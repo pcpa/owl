@@ -322,10 +322,10 @@ init_emit(void)
 #  endif
 #endif
 
-    FPR[0] = JIT_F0;
-    FPR[1] = JIT_F1;
-    FPR[2] = JIT_F2;
-    FPR[3] = JIT_F3;
+    FPR[0] = JIT_F1;
+    FPR[1] = JIT_F2;
+    FPR[2] = JIT_F3;
+    FPR[3] = JIT_F4;
 }
 
 void
