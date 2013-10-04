@@ -1,0 +1,28 @@
+To test the code after a checkout, in a recent Linux, just run:
+
+$ autoreconf -ifs
+$ ./configure --enable-debug
+$ make CFLAGS="-O0 -g3"
+
+
+If there are missing dependencies it will tell in the configure
+call. Usually one just need to install gmp devel, mpfr devel and
+mpc devel, e.g.
+
+$ sudo yum install gmp-devel mpfr-devel libmpc-devel
+
+Hardest part should be installing latest GNU lightning, e.g.:
+
+$ git clone git://git.savannah.gnu.org/lightning.git
+$ cd lightning
+$ autoreconf -ifs
+$ ./configure --prefix=/usr --enable-assertions
+$ make CFLAGS="-O0 -g3"
+$ sudo make install
+
+  You may prefer to not use /usr prefix but that may cause it to
+ use the wrong lightning version; you can run
+
+$ sudo make uninstall
+
+to remove lightning.
