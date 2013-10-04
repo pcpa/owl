@@ -1,0 +1,56 @@
+/*
+ * Copyright (C) 2013  Paulo Cesar Pereira de Andrade.
+ *
+ * This is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * Authors:
+ *	Paulo Cesar Pereira de Andrade
+ */
+
+#ifndef _oread_h
+#define _oread_h
+
+#include "otypes.h"
+
+#define oread_error(...)		onote_error(&input_note, __VA_ARGS__)
+
+/*
+ * Types
+ */
+struct oinput {
+    ostream_t		*stream;
+    oint32_t		 lineno;
+    oint32_t		 column;
+};
+
+/*
+ * Prototypes
+ */
+extern void
+init_read(void);
+
+extern void
+finish_read(void);
+
+extern oobject_t
+oread_object(void);
+
+extern void
+opush_input(ostream_t *stream);
+
+/*
+ * Externs
+ */
+extern oinput_t		*input;
+extern onote_t		 input_note;
+extern oobject_t	 object_eof;
+
+#endif /* _oread_h */
