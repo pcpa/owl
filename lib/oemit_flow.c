@@ -51,6 +51,11 @@ emit_return(oast_t *ast);
 
 static void
 emit_call(oast_t *ast);
+
+static void
+emit_call_next(ofunction_t *function, oast_t *alist,
+	       ooperand_t *top,
+	       obool_t vcall, obool_t ecall, obool_t builtin);
 #endif
 
 #if defined(CODE)
@@ -603,6 +608,7 @@ emit_function(ofunction_t *function)
     jit_node_t		*label;
     oword_t		 offset;
     oword_t		 length;
+    ofunction_t		*parent;
     ovector_t		*vector;
     jit_node_t		*overflow;
     char		 name[1024];
@@ -690,6 +696,13 @@ emit_function(ofunction_t *function)
 	load_w(1);
 
     jump = jump_get(tok_function);
+
+    /* If a constructor, explicitly call parent constructor first */
+    if (function->name->ctor && function->name->record->parent) {
+	if ((parent = oget_constructor(function->name->record->parent)))
+	    emit_call_next(parent, null, null, false, true, false);
+    }
+
     emit(function->ast->c.ast);
 
     assert(jump->t->offset == 0);
@@ -699,6 +712,18 @@ emit_function(ofunction_t *function)
 	do
 	    jit_patch_at(jump->f->v.ptr[--jump->f->offset], label);
 	while (jump->f->offset);
+    }
+
+    /* Constructors always 'return this;' (and only this) */
+    if (function->name->ctor) {
+	if (GPR[FRAME] == JIT_NOREG)
+	    jit_ldxi(frame, JIT_V0, offsetof(othread_t, fp));
+	if (GPR[THIS] == JIT_NOREG) {
+	    jit_ldxi(GPR[0], frame, THIS_OFFSET);
+	    sync_r(0, function->name->record->type);
+	}
+	else
+	    sync_r_w(0, GPR[THIS], function->name->record->type);
     }
 
     vector = function->name->tag->name;
@@ -814,6 +839,9 @@ emit_return(oast_t *ast)
     tag = vector->v.ptr[0];
     type = otag_to_type(tag);
     if (ast->l.ast) {
+	if (current_function->name && current_function->name->ctor)
+	    oparse_error(ast, "constructor cannot return a value");
+
 	assert(type != t_void);
 	if (type > t_float32)
 	    type = t_void;
@@ -863,24 +891,13 @@ if (varargs)
 static void
 emit_call(oast_t *ast)
 {
-    ooperand_t		*op;
     ooperand_t		*top;
-    jit_node_t		*call;
     oast_t		*list;
-    oword_t		 mask;
-    otype_t		 type;
-    jit_int32_t		 frame;
-    jit_int32_t		 stack;
     obool_t		 vcall;
     obool_t		 ecall;
-    oword_t		 offset;
     osymbol_t		*symbol;
-    ovector_t		*vector;
     obool_t		 builtin;
-    jit_node_t		*address;
-    jit_node_t		*overflow;
     ofunction_t		*function;
-    oint32_t		 framesize;
 
     top = null;
     vcall = ast->l.ast->token == tok_dot;
@@ -906,8 +923,30 @@ emit_call(oast_t *ast)
     function = symbol->value;
 
     list = ast->r.ast;
+    emit_call_next(function, list, top, vcall, ecall, builtin);
+}
+
+static void
+emit_call_next(ofunction_t *function, oast_t *alist,
+	       ooperand_t *top,
+	       obool_t vcall, obool_t ecall, obool_t builtin)
+{
+    ooperand_t		*op;
+    jit_node_t		*call;
+    oword_t		 mask;
+    otype_t		 type;
+    oast_t		*list;
+    jit_int32_t		 frame;
+    jit_int32_t		 stack;
+    oword_t		 offset;
+    osymbol_t		*symbol;
+    ovector_t		*vector;
+    jit_node_t		*address;
+    jit_node_t		*overflow;
+    oint32_t		 framesize;
+
     vector = function->record->vector;
-    for (offset = 0; offset < vector->offset; offset++) {
+    for (offset = 0, list = alist; offset < vector->offset; offset++) {
 	symbol = vector->v.ptr[offset];
 	if (!symbol->argument)
 	    break;
@@ -930,14 +969,24 @@ emit_call(oast_t *ast)
     for (; list; list = list->next)
 	framesize += sizeof(oobject_t);
 
+    if (top)
+	emit_load(top);
+
+    /* FIXME It should be worth the cost of spill/reloading registers
+     * if they were holding mp*_t objects instead of using this error
+     * prone logic */
     mask = 0;
     if (GPR[FRAME] == JIT_NOREG) {
 	if (GPR[TMP0] != JIT_NOREG)
 	    frame = GPR[TMP0];
 	else {
-	    frame = GPR[0];
-	    mask |= 1;
-	    spill_w(0);
+	    if (top == null || top->u.w != 0)
+		frame = 0;
+	    else
+		frame = 1;
+	    mask |= 1 << frame;
+	    spill_w(frame);
+	    frame = GPR[frame];
 	}
     }
     else
@@ -946,9 +995,13 @@ emit_call(oast_t *ast)
 	if (GPR[TMP1] != JIT_NOREG)
 	    stack = GPR[TMP1];
 	else {
-	    stack = GPR[1];
-	    mask |= 2;
-	    spill_w(1);
+	    if (top == null || top->u.w > 1)
+		stack = 1;
+	    else
+		stack = 2;
+	    mask |= 1 << stack;
+	    spill_w(stack);
+	    stack = GPR[stack];
 	}
     }
     else
@@ -999,7 +1052,7 @@ emit_call(oast_t *ast)
 	/* Only null or a compatible object type should be stored */
 	call = jit_bnei(GPR[top->u.w], 0);
 	jit_prepare();
-	jit_pushargi(except_invalid_argument);
+	jit_pushargi(except_null_dereference);
 	jit_finishi(ovm_raise);
 	jit_patch(call);
 
@@ -1019,11 +1072,13 @@ emit_call(oast_t *ast)
 	load_w(0);
     if (mask & 2)
 	load_w(1);
+    if (mask & 4)
+	load_w(2);
 
     ++depth;
 
     vector = function->record->vector;
-    for (offset = 0, list = ast->r.ast; list; offset++, list = list->next) {
+    for (offset = 0, list = alist; list; offset++, list = list->next) {
 	if (offset >= vector->length ||
 	    (symbol = vector->v.ptr[offset]) == null ||
 	    !symbol->argument) {

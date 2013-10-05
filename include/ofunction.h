@@ -94,6 +94,9 @@ ofunction_start_args(ofunction_t *function);
 extern void
 ofunction_start_locs(ofunction_t *function);
 
+extern ofunction_t *
+oget_constructor(orecord_t *record);
+
 /*
  * Externs
  */

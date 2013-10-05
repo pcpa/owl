@@ -237,4 +237,9 @@ extern void
 onew_ast(oobject_t *pointer, otoken_t token,
 	 ovector_t *name, oint32_t lineno, oint32_t column);
 
+/*
+ * Externs
+ */
+extern osymbol_t	*symbol_new;
+
 #endif /* _oparser_h */

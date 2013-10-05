@@ -203,6 +203,9 @@ sync_uw_z(oword_t regno);
 static void
 sync_r(oword_t regno, oint32_t type);
 
+static void
+sync_r_w(oword_t regno, oword_t regval, oint32_t type);
+
 static oword_t
 get_register(obool_t spill);
 
@@ -893,6 +896,7 @@ data_record(oast_t *ast)
     ooperand_t		*lop;
     ooperand_t		*rop;
     oast_t		*ref;
+    ofunction_t		*ctor;
     otype_t		 type;
     oword_t		 index;
     oword_t		 offset;
@@ -968,6 +972,15 @@ data_record(oast_t *ast)
 	}
 	ast = ast->next;
     }
+
+    /* Constructor may override any static initialization of use it as input */
+    if ((ctor = oget_constructor(record))) {
+	lop = operand_get();
+	operand_copy(lop, bop);
+	/* op argument is implicitly unget */
+	emit_call_next(ctor, null, lop, false, true, false);
+    }
+
     assert(ast == null);
 }
 
@@ -2048,7 +2061,7 @@ load_record(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
     load_w(bop->u.w);
     jump = jit_bnei(GPR[bop->u.w], 0);
     jit_prepare();
-    jit_pushargi(except_invalid_argument);
+    jit_pushargi(except_null_dereference);
     jit_finishi(ovm_raise);
     jit_patch(jump);
     loadi(rop, otag_to_type(rop->k), GPR[bop->u.w], symbol->offset);
@@ -2068,7 +2081,7 @@ store_record(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
     load_w(bop->u.w);
     jump = jit_bnei(GPR[bop->u.w], 0);
     jit_prepare();
-    jit_pushargi(except_invalid_argument);
+    jit_pushargi(except_null_dereference);
     jit_finishi(ovm_raise);
     jit_patch(jump);
     storei(rop, otag_to_type(symbol->tag), GPR[bop->u.w], symbol->offset);
@@ -2096,7 +2109,7 @@ load_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
     load_w(bop->u.w);
     jump = jit_bnei(GPR[bop->u.w], 0);
     jit_prepare();
-    jit_pushargi(except_invalid_argument);
+    jit_pushargi(except_null_dereference);
     jit_finishi(ovm_raise);
     jit_patch(jump);
 
@@ -2227,7 +2240,7 @@ store_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
     load_w(bop->u.w);
     jump = jit_bnei(GPR[bop->u.w], 0);
     jit_prepare();
-    jit_pushargi(except_invalid_argument);
+    jit_pushargi(except_null_dereference);
     jit_finishi(ovm_raise);
     jit_patch(jump);
 
@@ -2826,6 +2839,22 @@ sync_r(oword_t regno, oint32_t type)
     jit_movi(JIT_R0, type);
     jit_stxi_i(offset + offsetof(oregister_t, t), JIT_V0, JIT_R0);
     jit_stxi(offset + offsetof(oregister_t, v.w), JIT_V0, GPR[regno]);
+}
+
+static void
+sync_r_w(oword_t regno, oword_t regval, oint32_t type)
+{
+    oword_t		offset;
+    switch (regno) {
+	case 0:		offset = offsetof(othread_t, r0);	break;
+	case 1:		offset = offsetof(othread_t, r1);	break;
+	case 2:		offset = offsetof(othread_t, r2);	break;
+	case 3:		offset = offsetof(othread_t, r3);	break;
+	default:	abort();
+    }
+    jit_movi(JIT_R0, type);
+    jit_stxi_i(offset + offsetof(oregister_t, t), JIT_V0, JIT_R0);
+    jit_stxi(offset + offsetof(oregister_t, v.w), JIT_V0, regval);
 }
 
 static oword_t

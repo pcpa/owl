@@ -107,6 +107,9 @@ static otoken_t
 unary_value(otoken_t token);
 
 static otoken_t
+unary_ctor(void);
+
+static otoken_t
 unary_decl(void);
 
 static otoken_t
@@ -163,6 +166,8 @@ pop_block(void);
 /*
  * Initialization
  */
+osymbol_t		*symbol_new;
+
 static struct {
     char	*name;
     otoken_t	 token;
@@ -297,6 +302,8 @@ init_parser(void)
     mpq_set_ui(thr_qi, 1, 1);
     onew_cqq(&symbol->value, thr_qq);
 
+    symbol_new = oget_identifier(oget_string((ouint8_t *)"new", 3));
+
     oadd_root((oobject_t *)&root_ast);
     oadd_root((oobject_t *)&head_ast);
     oadd_root((oobject_t *)&block_vector);
@@ -387,7 +394,7 @@ statement(void)
 	case tok_label:
 	    label_define(ast);
 	    break;
-	case tok_decl:
+	case tok_decl:		case tok_ctor:
 	    token = declaration();
 	    break;
 	case tok_symbol:
@@ -855,10 +862,11 @@ declaration(void)
 }
 
 static ofunction_t *
-prototype(otag_t *tag, oast_t *proto)
+prototype(otag_t *base, oast_t *proto)
 {
     oast_t		*ast;
     otag_t		*dot;
+    otag_t		*tag;
     otype_t		 type;
     ovector_t		*name;
     orecord_t		*record;
@@ -867,12 +875,17 @@ prototype(otag_t *tag, oast_t *proto)
 
     assert(proto->token == tok_call);
     proto->token = tok_proto;
-    tag = otag_proto(tag, proto);
+    tag = otag_proto(base, proto);
     ast = proto->l.ast;
 
     if (ast->token == tok_symbol) {
 	record = current_record;
 	symbol = ast->l.value;
+    }
+    else if (ast->token == tok_ctor) {
+	assert(base->type == tag_class);
+	record = base->name;
+	symbol = symbol_new;
     }
     else if (ast->token == tok_explicit) {
 	assert(ast->l.ast->token == tok_type);
@@ -1035,7 +1048,7 @@ structure(void)
 		if (token != tok_comma && token != tok_semicollon)
 		    oparse_error(top_ast(), "expecting declaration %A",
 				 top_ast());
-	    case tok_decl:
+	    case tok_ctor:	case tok_decl:
 		if (declaration() != tok_function)
 		    discard();
 		else
@@ -1065,13 +1078,10 @@ definition(void)
     ast = top_ast();
     token = structure();
     ast->l.ast = pop_ast();
-    switch (lookahead()) {
+    switch (lookahead_noeof()) {
 	case tok_comma:
-	    if (token != tok_defn) {
-		if (head_ast == null)
-		    oread_error("unexpected end of file");
+	    if (token != tok_defn)
 		oparse_error(head_ast, "expecting ';' %A", head_ast);
-	    }
 	    ast = ast->l.ast;
 	    consume();
 	    for (;;) {
@@ -1081,23 +1091,18 @@ definition(void)
 				 top_ast());
 		ast->next = pop_ast();
 		ast = ast->next;
-		token = lookahead();
+		token = lookahead_noeof();
 		consume();
 		if (token == tok_semicollon)
 		    break;
-		if (token != tok_comma) {
-		    if (head_ast == null)
-			oread_error("unexpected end of file");
+		if (token != tok_comma)
 		    oparse_error(head_ast, "expecting ',' or ';' %A", head_ast);
-		}
 	    }
 	    break;
 	case tok_semicollon:
 	    consume();
 	    break;
 	default:
-	    if (head_ast == null)
-		oread_error("unexpected end of file");
 	    if (token == tok_defn)
 		oparse_error(head_ast, "expecting ',' or ';' %A", head_ast);
 	    oparse_error(head_ast, "expecting ';' %A", head_ast);
@@ -1412,8 +1417,15 @@ unary(void)
 
     switch (token = primary()) {
 	case tok_type:
-	    if (lookahead() != tok_dot)
-		return (unary_decl());
+	    switch (lookahead()) {
+		case tok_dot:
+		    return (unary_loop(token));
+		case tok_oparen:
+		    return (unary_ctor());
+		    break;
+		default:
+		    return (unary_decl());
+	    }
 	case tok_symbol:	case tok_string:
 	case tok_this:
 	    return (unary_loop(token));
@@ -1476,8 +1488,7 @@ unary_loop(otoken_t token)
 		top_ast() = ast;
 		break;
 	    case tok_dot:
-		token = tok_expr;
-		(void)unary_field();
+		token = unary_field();
 		break;
 	    case tok_inc:	case tok_dec:
 		token = tok_expr;
@@ -1527,6 +1538,37 @@ unary_value(otoken_t token)
 }
 
 static otoken_t
+unary_ctor(void)
+{
+    oast_t		*ast;
+    oobject_t		*pointer;
+
+    ast = top_ast();
+    assert(ast->token == tok_type);
+    gc_ref(pointer);
+    onew_ast(pointer, tok_declexpr, ast->note.name,
+	     ast->note.lineno, ast->note.column);
+    gc_pop(ast);
+    ast->l.ast = top_ast();
+    top_ast() = ast;
+    ast->token = tok_declexpr;
+
+    if (lookahead_noeof() != tok_oparen)
+	oparse_error(head_ast, "expecting '(' %A", head_ast);
+    ast->r.ast = head_ast;
+    head_ast = null;
+    ast = ast->r.ast;
+    ast->token = tok_call;
+
+    if (primary_noeof() != tok_cparen)
+	oparse_error(head_ast, "constructor cannot receive arguments");
+    ast->l.ast = pop_ast();
+    ast->l.ast->token = tok_ctor;
+
+    return (tok_ctor);
+}
+
+static otoken_t
 unary_decl(void)
 {
     oast_t		*ast;
@@ -1534,31 +1576,16 @@ unary_decl(void)
     oobject_t		*pointer;
 
     ast = top_ast();
-    if (ast->token != tok_type)
-	return (ast->token);
+    assert(ast->token == tok_type);
     token = lookahead();
     if (token == tok_comma || token == tok_cparen)
 	return (tok_type);
-    if (ast->token == tok_type) {
-	/*   If not a type declaration possibly followed by instantiation. */
-	gc_ref(pointer);
-	onew_ast(pointer, tok_declexpr, top_ast()->note.name,
-		 top_ast()->note.lineno, top_ast()->note.column);
-	gc_pop(ast);
-	ast->l.ast = top_ast();
-	top_ast() = ast;
-    }
-    else if (token == tok_semicollon) {
-	/*   Type definition or declaration.
-	 *   Code below is a copy of ecode.c:move_left_ast_up() */
-	assert(ast->r.ast == null);
-	ast->r.ast = ast->l.ast;
-	ast->token = ast->l.ast->token;
-	ast->l.ast = ast->l.ast->l.ast;
-	ast->r.ast->l.value = null;
-	odel_object(&ast->r.value);
-	return (ast->token);
-    }
+    gc_ref(pointer);
+    onew_ast(pointer, tok_declexpr, ast->note.name,
+	     ast->note.lineno, ast->note.column);
+    gc_pop(ast);
+    ast->l.ast = top_ast();
+    top_ast() = ast;
     ast->token = tok_declexpr;
     switch ((token = expression_noeof())) {
 	case tok_symbol:		case tok_expr:
@@ -1612,6 +1639,7 @@ static otoken_t
 unary_field(void)
 {
     oast_t		*ast;
+    oobject_t		value;
 
     ast = head_ast;
     head_ast = null;
@@ -1619,8 +1647,21 @@ unary_field(void)
     top_ast() = ast;
     if (ast->l.ast->token == tok_type)
 	ast->token = tok_explicit;
-    if (primary_noeof() != tok_symbol)
+    if (primary_noeof() != tok_symbol) {
+	if (top_ast()->token == tok_type &&
+	    ast->l.ast->token == tok_type &&
+	    top_ast()->l.value == ast->l.ast->l.value) {
+	    /* constructor full specification or error */
+	    value = ast->l.ast->l.value;
+	    discard();
+	    ast = top_ast();
+	    odel_object(&ast->l.value);
+	    ast->token = tok_type;
+	    ast->l.value = value;
+	    return (unary_ctor());
+	}
 	oparse_error(top_ast(), "expecting symbol %A", top_ast());
+    }
     ast->r.ast = pop_ast();
 
     return (unary_loop(tok_expr));

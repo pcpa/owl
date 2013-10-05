@@ -30189,3 +30189,18 @@ a:	%d %d\n",
       t27a.f64,	t27a.vf64[0],
       t27a.a,	t27a.va[0]
 );
+
+class t28c_t {
+    int8_t		i8;
+    int8_t		vi8[];
+    t28c_t () {
+	if (!i8)
+	    i8 = 1;
+	if (!vi8)
+	    vi8 = { 1 };
+    }
+};
+t28c_t t28c = {};
+print("%d %d\n", t28c.i8, t28c.vi8[0]);
+t28c = { 2, { 2 } };
+print("%d %d\n", t28c.i8, t28c.vi8[0]);

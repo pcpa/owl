@@ -992,20 +992,33 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast(ast->l.ast);
 	    break;
 	case tok_function:
+	    /* Do not print twice if a class method
+	      * defined outside class definition */
 	    if (ast->r.ast->l.ast->token == tok_dot) {
-		/* Do not print twice if a class method
-		 * defined outside class definition */
 		assert(ast->r.ast->l.ast->l.ast->token == tok_type);
 		tag = ast->r.ast->l.ast->l.ast->l.value;
 		if (current_record != tag->name)
 		    break;
 	    }
-	    bytes += print_ast(ast->l.ast);
-	    dputc(' ');		++bytes;
-	    if (ast->r.ast->l.ast->token == tok_dot)
-		bytes += print_ast(ast->r.ast->r.ast);
+	    else if (ast->r.ast->l.ast->token == tok_ctor) {
+		assert(ast->l.ast->token == tok_type);
+		tag = ast->l.ast->l.value;
+		if (current_record != tag->name)
+		    break;
+	    }
+	    if (ast->l.ast->token == tok_type)
+		bytes += print_tag(ast->l.ast->l.value, null, false);
 	    else
-		bytes += print_ast(ast->r.ast);
+		bytes += print_ast(ast->l.ast);
+	    if (ast->r.ast->l.ast->token == tok_ctor)
+		bytes += dputs("()", 2);
+	    else {
+		dputc(' ');	++bytes;
+		if (ast->r.ast->l.ast->token == tok_dot)
+		    bytes += print_ast(ast->r.ast->r.ast);
+		else
+		    bytes += print_ast(ast->r.ast);
+	    }
 	    dputc(' ');		++bytes;
 	    bytes += print_ast(ast->c.ast);
 	    break;
@@ -1050,7 +1063,9 @@ write_ast_call(oast_t *ast, oint32_t indent, oformat_t *format)
     osymbol_t		*symbol;
 
     if (ast->token != tok_symbol) {
-	assert(ast->token == tok_dot || ast->token == tok_explicit);
+	assert(ast->token == tok_dot ||
+	       ast->token == tok_explicit ||
+	       ast->token == tok_ctor);
 	bytes = print_ast(ast);
     }
     else {

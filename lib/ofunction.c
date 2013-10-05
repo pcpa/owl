@@ -137,8 +137,9 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
 
     function->name->value = function;
     function->name->method = current_record != root_record;
+    function->name->ctor = function->name->name == symbol_new->name;
     /* If an actual new method */
-    if (!function->name->offset)
+    if (!function->name->offset && !function->name->ctor)
 	function->name->offset = record->nmethod++;
     function->name->function = true;
 
@@ -271,4 +272,14 @@ ofunction_start_locs(ofunction_t *function)
     function->frame = function->record->length;
     function->record->offset = 0;
     function->local = 1;
+}
+
+ofunction_t *
+oget_constructor(orecord_t *record)
+{
+    osymbol_t		*symbol;
+
+    symbol = oget_symbol(record, symbol_new->name);
+
+    return ((ofunction_t *)oget_hash(record->methods, symbol));
 }
