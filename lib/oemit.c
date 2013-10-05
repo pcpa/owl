@@ -32,6 +32,9 @@
 /*
  * Prototypes
  */
+static void
+resolve_methods(orecord_t *record);
+
 static ooperand_t *
 operand_get(void);
 
@@ -438,8 +441,10 @@ oemit(void)
     for (offset = type_vector->offset - 1; offset > t_root; --offset) {
 	record = type_vector->v.ptr[offset];
 	if (otype(record) == t_prototype &&
-	    likely(record->function && ofunction_p(record->function)))
-	    emit_function(record->function);
+	    likely(record->function && ofunction_p(record->function))) {
+	    if (record->function->ast)
+		emit_function(record->function);
+	}
     }
     current_function = root_record->function;
     current_record = root_record;
@@ -463,12 +468,46 @@ oemit(void)
     for (offset = type_vector->offset - 1; offset > t_root; --offset) {
 	record = type_vector->v.ptr[offset];
 	if (otype(record) == t_prototype &&
-	    likely(record->function && ofunction_p(record->function)))
-	    record->function->address = jit_address(record->function->address);
+	    likely(record->function && ofunction_p(record->function))) {
+	    if (record->function->address)
+		record->function->address =
+		    jit_address(record->function->address);
+	}
+    }
+
+    /* Fourth pass, resolve virtual methods addresses */
+    for (offset = t_root + 1; offset < type_vector->offset; ++offset) {
+	record = type_vector->v.ptr[offset];
+	if (otype(record) == t_record)
+	    resolve_methods(record);
     }
 
     current_function->address = jit_address(current_function->address);
     thread_main->ip = current_function->address;
+}
+
+/* *MUST* be called from lower to higher address so that super methods are
+ * already in place when resolving virtual methods of a derived class */
+static void
+resolve_methods(orecord_t *record)
+{
+    ortti_t		*rtti;
+    ortti_t		*stti;
+    oword_t		 offset;
+    ofunction_t		*function;
+
+    rtti = rtti_vector->v.ptr[record->type];
+    /* Initialize to superclass methods, if any */
+    if (record->super) {
+	stti = rtti_vector->v.ptr[record->super->type];
+	memcpy(rtti->mdinfo, stti->mdinfo, stti->mdsize * sizeof(oobject_t));
+    }
+    /* Overwrite pointers to redefined methods, if any */
+    for (offset = 0; offset < record->methods->size; offset++) {
+	function = (ofunction_t *)record->methods->entries[offset];
+	for (; function; function = function->next)
+	    rtti->mdinfo[function->name->offset] = function->address;
+    }
 }
 
 static ooperand_t *

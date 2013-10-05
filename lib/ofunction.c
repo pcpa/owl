@@ -120,7 +120,7 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
     onew_object(pointer, t_function, sizeof(ofunction_t));
     function = *pointer;
 
-    /* Prototype may have created symbol */
+    /* Prototype or class derivation may have created symbol */
     if ((function->name = oget_symbol(record, name)))
 	assert(function->name->tag == tag);
     else
@@ -137,6 +137,9 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
 
     function->name->value = function;
     function->name->method = current_record != root_record;
+    /* If an actual new method */
+    if (!function->name->offset)
+	function->name->offset = record->nmethod++;
     function->name->function = true;
 
     vector = tag->name;

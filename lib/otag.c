@@ -132,6 +132,10 @@ init_tag(void)
     word_tag = types[t_word].tag;
     float_tag = types[t_float].tag;
 
+    symbol = onew_identifier(oget_string((ouint8_t *)"string_t", 8));
+    symbol->type = true;
+    symbol->tag = types[t_uint8].vtag;
+
     oadd_root((oobject_t *)&varargs_tag);
     onew((oobject_t *)&varargs_tag, tag);
     varargs_tag->type = tag_varargs;

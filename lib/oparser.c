@@ -134,6 +134,9 @@ static otoken_t
 lookahead(void);
 
 static otoken_t
+lookahead_noeof(void);
+
+static otoken_t
 primary(void);
 
 static otoken_t
@@ -855,8 +858,10 @@ static ofunction_t *
 prototype(otag_t *tag, oast_t *proto)
 {
     oast_t		*ast;
+    otag_t		*dot;
     otype_t		 type;
     ovector_t		*name;
+    orecord_t		*record;
     osymbol_t		*symbol;
     ofunction_t		*function;
 
@@ -864,18 +869,31 @@ prototype(otag_t *tag, oast_t *proto)
     proto->token = tok_proto;
     tag = otag_proto(tag, proto);
     ast = proto->l.ast;
-    assert(ast->token == tok_symbol);
-    symbol = ast->l.value;
+
+    if (ast->token == tok_symbol) {
+	record = current_record;
+	symbol = ast->l.value;
+    }
+    else if (ast->token == tok_explicit) {
+	assert(ast->l.ast->token == tok_type);
+	dot = ast->l.ast->l.value;
+	record = dot->name;
+	symbol = ast->r.ast->l.value;
+    }
+    else
+	oparse_error(ast, "expecting prototype %A", ast);
+
+    assert(osymbol_p(symbol));
     name = symbol->name;
-    type = otype(current_record);
+    type = otype(record);
     if (type != t_record && type != t_namespace)
-	oparse_error(proto, "function '%p' cannot be declared here");
-    if ((function = (ofunction_t *)oget_function(current_record, name))) {
+	oparse_error(proto, "function '%p' cannot be declared here", name);
+    if ((function = (ofunction_t *)oget_function(record, name))) {
 	if (function->tag != tag)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
     }
     else
-	function = onew_function(current_record, name, tag);
+	function = onew_function(record, name, tag);
 
     return (function);
 }
@@ -888,6 +906,7 @@ function(void)
     oast_t		*list;
     oast_t		*proto;
     osymbol_t		*symbol;
+    orecord_t		*record;
     ofunction_t		*function;
 
     if (current_record->parent && otype(current_record) != t_record)
@@ -899,6 +918,7 @@ function(void)
     function = prototype(type->l.value, proto);
     function->ast = ast;
     ast->t.value = function;
+    record = current_record;
     current_record = function->record;
 
     ofunction_start_args(function);
@@ -921,15 +941,17 @@ function(void)
     statement_noeof();
     pop_block();
     ast->c.ast = pop_ast();
-    current_record = current_record->parent;
+    current_record = record;
 }
 
 static otoken_t
 structure(void)
 {
     oast_t		*ast;
+    oast_t		*top;
     otag_t		*tag;
     oast_t		*temp;
+    orecord_t		*super;
     otoken_t		 token;
     orecord_t		*record;
     orecord_t		*current;
@@ -942,7 +964,25 @@ structure(void)
 	    ast = top_ast();
 	    record = onew_record(ast->l.value);
 	    token = lookahead();
-	    if (token != tok_obrace) {
+	    if (token == tok_collon) {
+		consume();
+		(void)primary_noeof();
+		top = pop_ast();
+		if (top->token != tok_type)
+		    oparse_error(ast, "expecting base class %A", ast);
+		tag = top->l.value;
+		if (tag->type != tag_class)
+		    oparse_error(ast, "type %p cannot be derived", tag);
+		/* Can only derive an already defined class */
+		super = tag->name;
+		if (super->length == 0)
+		    oparse_error(ast, "class %p is not defined", tag);
+		oadd_record(record, super);
+		token = lookahead_noeof();
+		if (token != tok_obrace)
+		    oparse_error(ast, "expecting '{' %A", top_ast());
+	    }
+	    else if (token != tok_obrace) {
 		ast->l.value = otag_object(record);
 		if (token == tok_comma || token == tok_semicollon)
 		    return (ast->token = tok_defn);
@@ -1097,7 +1137,8 @@ group(obool_t data)
 
     ast = null;
     switch (token = lookahead()) {
-	case tok_cparen:	case tok_semicollon:
+	case tok_cparen:	case tok_cbrace:
+	case tok_semicollon:
 	    push_ast(null);
 	    return (token);
 	default:
@@ -1371,8 +1412,10 @@ unary(void)
 
     switch (token = primary()) {
 	case tok_type:
-	    return (unary_decl());
+	    if (lookahead() != tok_dot)
+		return (unary_decl());
 	case tok_symbol:	case tok_string:
+	case tok_this:
 	    return (unary_loop(token));
 	case tok_oparen:
 	    return (unary_list());
@@ -1574,6 +1617,8 @@ unary_field(void)
     head_ast = null;
     ast->l.ast = top_ast();
     top_ast() = ast;
+    if (ast->l.ast->token == tok_type)
+	ast->token = tok_explicit;
     if (primary_noeof() != tok_symbol)
 	oparse_error(top_ast(), "expecting symbol %A", top_ast());
     ast->r.ast = pop_ast();
@@ -1667,6 +1712,17 @@ lookahead(void)
     }
 
     return (head_ast->token);
+}
+
+static otoken_t
+lookahead_noeof(void)
+{
+    otoken_t		token = lookahead();
+
+    if (token == tok_eof)
+	oread_error("unexpected end of file");
+
+    return (token);
 }
 
 static otoken_t

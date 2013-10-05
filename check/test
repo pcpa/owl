@@ -30120,3 +30120,72 @@ for (t26u32 = t26u64 = 0; t26u32 < 10; t26u32++) {
     t26u64 += t26u32;
 }
 print("%d %d\n", t26u32, t26u64);
+
+class t27s_t {
+    int8_t		i8;
+    int8_t		vi8[];
+    string_t isa() { return "t27s"; }
+};
+class t27u_t : t27s_t {
+    uint8_t		u8;
+    uint8_t		vu8[];
+    string_t isa() { return "t27u"; }
+};
+class t27f_t : t27u_t {
+    float64_t		f64;
+    float64_t		vf64[];
+    string_t isa() { return "t27f"; }
+};
+class t27a_t : t27f_t {
+    auto		a;
+    auto		va[];
+    string_t isa() { return "t27a"; }
+};
+t27s_t t27s = {
+    1, { 11 },
+};
+t27u_t t27u = {
+    2, { 22 },
+    3, { 33 },
+};
+t27f_t t27f = {
+    4, { 44 },
+    5, { 55 },
+    6, { 66 },
+};
+t27a_t t27a = {
+    7, { 77 },
+    8, { 88 },
+    9, { 99 },
+    1/2, { 11/2 },
+};
+print("\
+%s\n\
+s:	%d %d\n\
+%s\n\
+s:	%d %d\n\
+u:	%d %d\n\
+%s\n\
+s:	%d %d\n\
+u:	%d %d\n\
+f:	%d %d\n\
+%s\n\
+s:	%d %d\n\
+u:	%d %d\n\
+f:	%d %d\n\
+a:	%d %d\n",
+      t27s.isa(),
+      t27s.i8,	t27s.vi8[0],
+      t27u.isa(),
+      t27u.i8,	t27u.vi8[0],
+      t27u.u8,	t27u.vu8[0],
+      t27f.isa(),
+      t27f.i8,	t27f.vi8[0],
+      t27f.u8,	t27f.vu8[0],
+      t27f.f64,	t27f.vf64[0],
+      t27a.isa(),
+      t27a.i8,	t27a.vi8[0],
+      t27a.u8,	t27a.vu8[0],
+      t27a.f64,	t27a.vf64[0],
+      t27a.a,	t27a.va[0]
+);

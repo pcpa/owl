@@ -99,6 +99,9 @@ oeval_ast(oast_t *ast)
 	    /* validate field reference */
 	    oeval_ast_tag(ast);
 	    break;
+	case tok_explicit:
+	    oeval_ast_tag(ast);
+	    break;
 	case tok_andand:	case tok_oror:
 	case tok_ne:		case tok_lt:
 	case tok_le:		case tok_eq:
@@ -169,7 +172,8 @@ oeval_ast(oast_t *ast)
 		omove_ast_up_full(ast, temp);
 	    break;
 	case tok_call:
-	    assert(ast->l.ast->token == tok_symbol);
+	    if (ast->l.ast->token != tok_symbol)
+		oeval_ast(ast->l.ast);
 	    eval_ast_stat(ast->r.ast);
 	    break;
 	case tok_stat:		case tok_code:
@@ -189,7 +193,7 @@ oeval_ast(oast_t *ast)
 	case tok_type:		case tok_number:	case tok_string:
 	case tok_class:		case tok_label:		case tok_break:
 	case tok_continue:	case tok_case:		case tok_default:
-	case tok_function:	case tok_fieldref:
+	case tok_function:	case tok_fieldref:	case tok_this:
 	    break;
 	default:
 #if DEBUG
@@ -204,6 +208,7 @@ otag_t *
 oeval_ast_tag(oast_t *ast)
 {
     otag_t		*tag;
+    oast_t		*rast;
     orecord_t		*record;
     osymbol_t		*symbol;
     ovector_t		*vector;
@@ -225,7 +230,17 @@ oeval_ast_tag(oast_t *ast)
 	    }
 	    return (tag->base);
 	case tok_dot:
-	    tag = oeval_ast_tag(ast->l.ast);
+	    if (ast->l.ast->token == tok_this) {
+		for (record = current_record; record; record = record->parent)
+		    if (otype(record) == t_record)
+			break;
+		if (record == null)
+		    oparse_error(ast,
+				 "'this' now allowed outside 'class' method");
+		tag = record->name->tag;
+	    }
+	    else
+		tag = oeval_ast_tag(ast->l.ast);
 	    if (tag->type != tag_class) {
 		if (ast->l.ast->token == tok_symbol) {
 		    symbol = ast->l.ast->l.value;
@@ -235,14 +250,35 @@ oeval_ast_tag(oast_t *ast)
 		oparse_error(ast, "not a class reference %A", ast);
 	    }
 	    record = tag->name;
-	    ast = ast->r.ast;
-	    assert(ast->token == tok_symbol);
-	    symbol = ast->l.value;
+	    rast = ast->r.ast;
+	    assert(rast->token == tok_symbol);
+	    symbol = rast->l.value;
 	    vector = symbol->name;
 	    if ((symbol = oget_symbol(record, vector)) == null)
 		oparse_error(ast, "'%p' has no field named '%p'",
 			     record->name, vector);
-	    ast->l.value = symbol;
+	    if (ast->l.ast->token == tok_this) {
+		odel_object(&ast->l.value);
+		odel_object(&ast->r.value);
+		ast->token = tok_symbol;
+		ast->l.value = symbol;
+	    }
+	    else
+		rast->l.value = symbol;
+	    return (symbol->tag);
+	case tok_explicit:
+	    tag = ast->l.ast->l.value;
+	    if (tag->type != tag_class)
+		oparse_error(ast, "not a class reference");
+	    record = tag->name;
+	    rast = ast->r.ast;
+	    assert(rast->token == tok_symbol);
+	    symbol = rast->l.value;
+	    vector = symbol->name;
+	    if ((symbol = oget_symbol(record, vector)) == null)
+		oparse_error(ast, "'%p' has no field named '%p'",
+			     record->name, vector);
+	    rast->l.value = symbol;
 	    return (symbol->tag);
 	case tok_string:
 	    return (string_tag);
@@ -298,11 +334,13 @@ eval_root(void)
 	    function = record->function;
 	    current_record = record;
 	    current_function = function;
-	    ast = function->ast;
-	    oeval_ast(ast->l.ast);
-	    eval_ast_declexpr(ast->r.ast->r.ast);
-	    oeval_ast(ast->c.ast);
-	    odata(function->ast->c.ast);
+	    /* Error later if function is actually called but never defined */
+	    if ((ast = function->ast)) {
+		oeval_ast(ast->l.ast);
+		eval_ast_declexpr(ast->r.ast->r.ast);
+		oeval_ast(ast->c.ast);
+		odata(function->ast->c.ast);
+	    }
 	}
     }
     current_function = root_record->function;

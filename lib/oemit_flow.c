@@ -473,7 +473,7 @@ emit_continue(oast_t *ast)
 		break;
 	}
     }
-    /* continue outside switch already tested */
+    /* continue outside loop already tested */
     abort();
 }
 
@@ -601,16 +601,26 @@ emit_function(ofunction_t *function)
     jit_int32_t		 frame;
     jit_int32_t		 stack;
     jit_node_t		*label;
+    oword_t		 offset;
     oword_t		 length;
     ovector_t		*vector;
     jit_node_t		*overflow;
     char		 name[1024];
 
+    if (function->name && function->name->record != root_record) {
+	vector = function->name->record->name->name;
+	if ((offset = vector->length) >= sizeof(name) - 2)
+	    offset = sizeof(name) - 2;
+	memcpy(name, vector->v.obj, offset);
+	name[offset++] = '.';
+    }
+    else
+	offset = 0;
     vector = function->name->name;
-    if ((length = vector->length) >= sizeof(name) - 1)
-	length = sizeof(name) - 1;
-    memcpy(name, vector->v.obj, length);
-    name[length] = '\0';
+    if ((length = vector->length) >= sizeof(name) - offset - 1)
+	length = sizeof(name) - offset - 1;
+    memcpy(name + offset, vector->v.obj, length);
+    name[offset + length] = '\0';
     function->address = jit_name(name);
 
     /* Entry point */
@@ -854,12 +864,15 @@ static void
 emit_call(oast_t *ast)
 {
     ooperand_t		*op;
+    ooperand_t		*top;
     jit_node_t		*call;
     oast_t		*list;
     oword_t		 mask;
     otype_t		 type;
     jit_int32_t		 frame;
     jit_int32_t		 stack;
+    obool_t		 vcall;
+    obool_t		 ecall;
     oword_t		 offset;
     osymbol_t		*symbol;
     ovector_t		*vector;
@@ -869,8 +882,25 @@ emit_call(oast_t *ast)
     ofunction_t		*function;
     oint32_t		 framesize;
 
-    assert(ast->l.ast->token == tok_symbol);
-    symbol = ast->l.ast->l.value;
+    top = null;
+    vcall = ast->l.ast->token == tok_dot;
+    ecall = ast->l.ast->token == tok_explicit;
+
+    if (vcall) {
+	emit(ast->l.ast->l.ast);
+	top = operand_top();
+	assert(ast->l.ast->r.ast->token == tok_symbol);
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else if (ecall) {
+	assert(ast->l.ast->r.ast->token == tok_symbol);
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else {
+	assert(ast->l.ast->token == tok_symbol);
+	symbol = ast->l.ast->l.value;
+    }
+
     if (!(builtin = symbol->builtin))
 	assert(symbol->function == true);
     function = symbol->value;
@@ -962,10 +992,28 @@ emit_call(oast_t *ast)
 	jit_stxi_i(SIZE_OFFSET, stack, JIT_R0);
     }
 
-#if 0
-    jit_movi(JIT_R0, WHATEVER_IS_THIS);
-    jit_stxi_i(THIS_OFFSET, stack, JIT_R0);
-#endif
+    if (top) {
+	emit_load(top);
+	load_w(top->u.w);
+
+	/* Only null or a compatible object type should be stored */
+	call = jit_bnei(GPR[top->u.w], 0);
+	jit_prepare();
+	jit_pushargi(except_invalid_argument);
+	jit_finishi(ovm_raise);
+	jit_patch(call);
+
+	jit_stxi(THIS_OFFSET, stack, GPR[top->u.w]);
+	operand_unget(1);
+    }
+    else if (!builtin && function->name->method) {
+	if (GPR[THIS] != JIT_NOREG)
+	    jit_stxi(THIS_OFFSET, stack, GPR[THIS]);
+	else {
+	    jit_ldxi(JIT_R0, frame, THIS_OFFSET);
+	    jit_stxi(THIS_OFFSET, stack, JIT_R0);
+	}
+    }
 
     if (mask & 1)
 	load_w(0);
@@ -1064,11 +1112,41 @@ emit_call(oast_t *ast)
 	jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
     }
 
-    /*  Non builtins are cheaper to call and have a proper prolog/epilog. */
+    /*   Non builtins (and non virtual methods) are cheaper to call
+     * and have a proper prolog/epilog. */
     else {
 	/* Start executing function */
-	call = jit_jmpi();
-	jit_patch_at(call, function->patch);
+	if (vcall) {
+	    /* All methods are virtual, this is not always cheap but
+	     * do the expected thing for a dynamically typed language */
+	    if (GPR[STACK] != JIT_NOREG)
+		stack = GPR[STACK];
+	    else {
+		stack = JIT_R0;
+		jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+	    }
+	    /* All operand registers were saved */
+	    jit_ldxi(GPR[0], stack, THIS_OFFSET);	/* this */
+	    jit_ldxi_i(GPR[1], GPR[0], -4);		/* typeof(this) */
+#if DEBUG
+	    /* Ensure it is not a bad pointer; only if some bug and/or
+	     * memory corruption happened this would be possible */
+	    call = jit_blei_u(GPR[1], rtti_vector->offset);
+	    jit_calli(abort);
+	    jit_patch(call);
+#endif
+	    jit_muli(GPR[1], GPR[1], sizeof(oobject_t));
+	    jit_movi(JIT_R0, (oword_t)rtti_vector->v.ptr);
+	    jit_ldxr(GPR[1], JIT_R0, GPR[1]);		/* rrti[typeof(this)] */
+	    jit_ldxi(JIT_R0, GPR[1], offsetof(ortti_t, mdinfo));
+	    jit_ldxi(GPR[0], JIT_R0,
+		     function->name->offset * sizeof(oobject_t));
+	    jit_callr(GPR[0]);
+	}
+	else {
+	    call = jit_jmpi();
+	    jit_patch_at(call, function->patch);
+	}
 
 	/* Return address */
 	jit_patch(address);

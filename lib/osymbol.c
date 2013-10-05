@@ -114,11 +114,13 @@ onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
     obool_t		 down;
     otype_t		 type;
     oword_t		 length;
+    osymbol_t		*method;
     osymbol_t		*symbol;
     oobject_t		*pointer;
 
     /* caller must check with file/line/column context for error messages */
-    assert(oget_symbol(record, name) == null);
+    if ((method = oget_symbol(record, name)))
+	assert(tag->type == tag_function);
 
     gc_ref(pointer);
     make_symbol(pointer, name);
@@ -145,6 +147,13 @@ onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
 		break;
 	    default:
 		assert(tag->type == tag_function);
+		/* Must have been called from oadd_record */
+		if (method) {
+		    assert(otype(record) == t_record);
+		    symbol->value = method->value;
+		    symbol->offset = method->offset;
+		    symbol->function = symbol->method = true;
+		}
 		return (symbol);
 	}
     }
@@ -169,6 +178,9 @@ onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
 	down = false;
 	symbol->field = type == t_record;
 	symbol->global = type == t_namespace;
+	/* Simplify check of if return value of oget_bound_symbol */
+	if (symbol->field)
+	    symbol->bound = true;
     }
 
     switch (length) {
@@ -284,6 +296,21 @@ onew_prototype(void)
 }
 
 void
+oadd_record(orecord_t *record, orecord_t *super)
+{
+    oword_t		 offset;
+    osymbol_t		*symbol;
+
+    assert(otype(record) == t_record && otype(super) == t_record);
+    record->super = super;
+    for (offset = 0; offset < super->vector->offset; offset++) {
+	symbol = super->vector->v.ptr[offset];
+	onew_symbol(record, symbol->name, symbol->tag);
+    }
+    record->nmethod = super->nmethod;
+}
+
+void
 oend_record(orecord_t *record)
 {
     ortti_t		*rtti;
@@ -307,6 +334,12 @@ oend_record(orecord_t *record)
 		    rtti->gcsize * sizeof(oword_t));
 	memcpy(rtti->gcinfo, record->gcinfo->v.w,
 	       rtti->gcsize * sizeof(oword_t));
+    }
+
+    if (otype(record) == t_record) {
+	rtti->mdsize = record->nmethod;
+	onew_object((oobject_t *)&rtti->mdinfo, t_void,
+		    rtti->mdsize * sizeof(oobject_t));
     }
 
     /* For runtime type bounds checking */
@@ -336,8 +369,11 @@ new_record(osymbol_t *name, otype_t type)
 
     onew_vector((oobject_t *)&record->vector, t_void, 4);
 
-    if (type != t_prototype)
+    if (type != t_prototype) {
+	/* Method number zero is reserved for constructor */
+	record->nmethod = 1;
 	onew_hash((oobject_t *)&record->methods, 8);
+    }
 
     if (name) {
 	tag = otag_object(record);

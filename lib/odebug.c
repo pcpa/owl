@@ -561,6 +561,7 @@ write_record(orecord_t *record, oobject_t object, oformat_t *format)
 static oword_t
 write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 {
+    otag_t		*tag;
     oword_t		 bytes;
     ocase_t		*acase;
     osymbol_t		*symbol;
@@ -573,6 +574,8 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    break;
 	case tok_symbol:
 	    symbol = ast->l.value;
+	    if (symbol->field)
+		bytes += dputs("this.", 5);
 	    bytes += print_sym(symbol);
 	    break;
 	case tok_string:
@@ -619,8 +622,13 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	case tok_semicollon:	dputc(';');		++bytes;	break;
 	case tok_comma:		dputc(',');		++bytes;	break;
 	case tok_ellipsis:	bytes = dputs("...", 3);		break;
+	case tok_explicit:
+	    bytes += print_tag(ast->l.ast->l.value, null, false);
+	    dputc('.');		++bytes;
+	    bytes += print_ast(ast->r.ast);
+	    break;
 	case tok_dot:
-	    bytes = print_ast(ast->l.ast);
+	    bytes += print_ast(ast->l.ast);
 	    dputc('.');		++bytes;
 	    bytes += print_ast(ast->r.ast);
 	    break;
@@ -984,9 +992,20 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast(ast->l.ast);
 	    break;
 	case tok_function:
+	    if (ast->r.ast->l.ast->token == tok_dot) {
+		/* Do not print twice if a class method
+		 * defined outside class definition */
+		assert(ast->r.ast->l.ast->l.ast->token == tok_type);
+		tag = ast->r.ast->l.ast->l.ast->l.value;
+		if (current_record != tag->name)
+		    break;
+	    }
 	    bytes += print_ast(ast->l.ast);
 	    dputc(' ');		++bytes;
-	    bytes += print_ast(ast->r.ast);
+	    if (ast->r.ast->l.ast->token == tok_dot)
+		bytes += print_ast(ast->r.ast->r.ast);
+	    else
+		bytes += print_ast(ast->r.ast);
 	    dputc(' ');		++bytes;
 	    bytes += print_ast(ast->c.ast);
 	    break;
@@ -1031,7 +1050,7 @@ write_ast_call(oast_t *ast, oint32_t indent, oformat_t *format)
     osymbol_t		*symbol;
 
     if (ast->token != tok_symbol) {
-	assert(ast->token == tok_set || ast->token == tok_vector);
+	assert(ast->token == tok_dot || ast->token == tok_explicit);
 	bytes = print_ast(ast);
     }
     else {
@@ -1119,18 +1138,28 @@ write_ast_paren_comma_list(oast_t *ast, oint32_t indent, oformat_t *format)
 static oword_t
 write_fields(orecord_t *record, oint32_t indent, oformat_t *format)
 {
+    orecord_t		*save;
     oword_t		 bytes;
     oword_t		 offset;
     osymbol_t		*symbol;
+    ofunction_t		*function;
 
+    save = current_record;
+    current_record = record;
     bytes = dputs(" {", 2);
     indent += 4;
     for (offset = 0; offset < record->vector->offset; offset++) {
-	bytes += print_ast_newline();
 	symbol = record->vector->v.ptr[offset];
-	if (symbol->tag && symbol->tag->type == tag_function)
-	    bytes += print_ast(((ofunction_t *)(symbol->value))->ast);
+	if (symbol->tag && symbol->tag->type == tag_function) {
+	    function = symbol->value;
+	    if (function && function->ast &&
+		function->name->record == record) {
+		bytes += print_ast_newline();
+		bytes += print_ast(function->ast);
+	    }
+	}
 	else {
+	    bytes += print_ast_newline();
 	    bytes += print_tag(symbol->tag, symbol, false);
 	    dputc(';');	++bytes;
 	}
@@ -1138,6 +1167,7 @@ write_fields(orecord_t *record, oint32_t indent, oformat_t *format)
     indent -= 4;
     bytes += print_ast_newline();
     dputc('}');		++bytes;
+    current_record = save;
 
     return (bytes);
 }

@@ -1,4 +1,4 @@
 owl
 ===
 
-C/C++ programming language using GNU lightning
+C/C++ like programming language using GNU lightning

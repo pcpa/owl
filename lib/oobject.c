@@ -932,6 +932,8 @@ again:
 	case t_rtti:
 	    if (o.rtti->gcinfo)
 		mark(object_to_memory(o.rtti->gcinfo));
+	    if (o.rtti->mdinfo)
+		mark(object_to_memory(o.rtti->mdinfo));
 	    break;
 	case t_symbol:
 	    if (o.symbol->value) {

@@ -43,6 +43,7 @@ struct osymbol {
     ouint32_t		 field		: 1;
     ouint32_t		 global		: 1;
     ouint32_t		 bound		: 1;
+    ouint32_t		 ctor		: 1;
     ouint32_t		 method		: 1;
     ouint32_t		 builtin	: 1;
     ouint32_t		 function	: 1;
@@ -66,8 +67,12 @@ struct orecord {
     ovector_t		*gcinfo;
     orecord_t		*parent;
 
+    /* class specific fields */
+    orecord_t		*super;
     ohash_t		*methods;
+    oword_t		 nmethod;
 
+    /* frame specific fields */
     ofunction_t		*function;
 };
 
@@ -109,6 +114,9 @@ onew_namespace(osymbol_t *name);
 
 extern orecord_t *
 onew_prototype(void);
+
+extern void
+oadd_record(orecord_t *record, orecord_t *super);
 
 extern void
 oend_record(orecord_t *record);

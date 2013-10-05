@@ -88,11 +88,13 @@ orealize(void)
 	if (otype(record) == t_prototype &&
 	    likely(record->function && ofunction_p(record->function))) {
 	    function = record->function;
-	    current_record = record;
-	    current_function = function;
-	    stack->offset = 0;
-	    memset(stack->v.i32, 0, stack->length * sizeof(oint32_t));
-	    realize(function->ast->c.ast);
+	    if (function->ast) {
+		current_record = record;
+		current_function = function;
+		stack->offset = 0;
+		memset(stack->v.i32, 0, stack->length * sizeof(oint32_t));
+		realize(function->ast->c.ast);
+	    }
 	}
     }
     current_function = function = root_record->function;
@@ -315,13 +317,17 @@ call(oast_t *ast)
     osymbol_t		*name;
     osymbol_t		*symbol;
 
-    assert(ast->l.ast->token == tok_symbol);
-    name = ast->l.ast->l.value;
-    if ((symbol = oget_bound_symbol(name->name)) == null)
-	oparse_error(ast, "undefined function '%p'", name);
-    else if (symbol->tag->type != tag_function)
-	oparse_error(ast, "called object '%p' is not a function", name);
-    ast->l.ast->l.value = symbol;
+    if (ast->l.ast->token == tok_dot)
+	realize(ast->l.ast->l.ast);
+    else if (ast->l.ast->token != tok_explicit) {
+	assert(ast->l.ast->token == tok_symbol);
+	name = ast->l.ast->l.value;
+	if ((symbol = oget_bound_symbol(name->name)) == null)
+	    oparse_error(ast, "undefined function '%p'", name);
+	else if (symbol->tag->type != tag_function)
+	    oparse_error(ast, "called object '%p' is not a function", name);
+	ast->l.ast->l.value = symbol;
+    }
 
     stat(ast->r.ast);
 }

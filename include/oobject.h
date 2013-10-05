@@ -184,6 +184,8 @@ struct ovector {
 struct ortti {
     oword_t		 gcsize;	/* number of gc offsets */
     oword_t		*gcinfo;	/* gc pointer offsets */
+    oword_t		 mdsize;	/* number of methods */
+    oobject_t		*mdinfo;	/* method pointers */
     oword_t		 offset;	/* varargs stack offset */
 };
 
