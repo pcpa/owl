@@ -182,6 +182,7 @@ struct ovector {
 };
 
 struct ortti {
+    oint32_t		 superc;	/* superclass type */
     oword_t		 gcsize;	/* number of gc offsets */
     oword_t		*gcinfo;	/* gc pointer offsets */
     oword_t		 mdsize;	/* number of methods */

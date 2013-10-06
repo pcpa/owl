@@ -30204,3 +30204,53 @@ t28c_t t28c = {};
 print("%d %d\n", t28c.i8, t28c.vi8[0]);
 t28c = { 2, { 2 } };
 print("%d %d\n", t28c.i8, t28c.vi8[0]);
+
+/* missing test, vector of classes */
+class t29c_t {
+    int16_t	i16;
+    int32_t	i32;
+    uint32_t	u32;
+    int64_t	i64;
+    uint64_t	u64;
+    float32_t	f32;
+    float64_t	f64;
+    auto	a;
+    int16_t	vi16[];
+    int32_t	vi32[];
+    uint32_t	vu32[];
+    int64_t	vi64[];
+    uint64_t	vu64[];
+    float32_t	vf32[];
+    float64_t	vf64[];
+    auto	va[];
+};
+t29c_t t29v[] = {
+    { 1, 2, 3, 4, 5, 6.0, 7.0, 1/2,
+	{ 8 }, { 9 }, { 10 }, { 11 }, { 12 }, { 13.0 }, { 14.0 }, { 15/2 }
+    },
+};
+print("\
+i16:	%d\n\
+i32:	%d\n\
+u32:	%d\n\
+i64:	%d\n\
+u64:	%d\n\
+a:	%d\n\
+vi16:	%d\n\
+vi32:	%d\n\
+vu32:	%d\n\
+vi64:	%d\n\
+vu64:	%d\n\
+va:	%d\n",
+      t29v[0].i16,
+      t29v[0].i32,
+      t29v[0].u32,
+      t29v[0].i64,
+      t29v[0].u64,
+      t29v[0].a,
+      t29v[0].vi16[0],
+      t29v[0].vi32[0],
+      t29v[0].vu32[0],
+      t29v[0].vi64[0],
+      t29v[0].vu64[0],
+      t29v[0].va[0]);

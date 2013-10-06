@@ -180,8 +180,10 @@ ovm_coerce_uwuw(oregister_t *r)
 #endif
 
 extern void
-ovm_store_w(oword_t w, oobject_t *p)
+ovm_store_w(oword_t w, oobject_t *p, oint32_t t)
 {
+    if (t != t_void)
+	ovm_raise(except_invalid_argument);
     if (*p && otype(*p) == t_word)
 	**(oword_t **)p = w;
     else

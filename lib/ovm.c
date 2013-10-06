@@ -713,7 +713,7 @@ ovm_store_f64(oregister_t *r, ofloat64_t *o)
 }
 
 void
-ovm_store(oregister_t *reg, oobject_t *p)
+ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 {
     oobject_t		o = *p;
     if (o && otype(o) == reg->t) {
@@ -754,6 +754,30 @@ ovm_store(oregister_t *reg, oobject_t *p)
 	}
     }
     else {
+	oint32_t	savet = t;
+	if (t != t_void && reg->t != t_void &&
+	    (t & t_vector) != (reg->t & t_vector)) {
+	    /* Do not allow mixing signed and unsigned integers?
+	     * Should not cause a fault if allowing using a float32_t
+	     * vector where an int32_t were expected (or vice versa)
+	     * but for the sake of correctness do not allow it. */
+	    ortti_t		*rtti;
+
+	    /* Derived classes can be used where a base class
+	     * would be expected, due to language nature of
+	     * only allowing single inheritance */
+	    t &= ~t_vector;
+	    while (t > t_mpc) {
+		/* Only possible on memory corruption */
+		assert(t <= rtti_vector->offset);
+		rtti = rtti_vector->v.ptr[t];
+		if (rtti->superc == t)
+		    break;
+		t = rtti->superc;
+	    }
+	    if (t == 0)
+		ovm_raise(except_invalid_argument);
+	}
 	switch (reg->t) {
 	    case t_void:
 		*p = null;

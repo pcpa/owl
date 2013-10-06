@@ -54,8 +54,10 @@ ovm_coerce_d(oregister_t *r)
 }
 
 extern void
-ovm_store_d(ofloat_t d, oobject_t *p)
+ovm_store_d(ofloat_t d, oobject_t *p, oint32_t t)
 {
+    if (t != t_void)
+	ovm_raise(except_invalid_argument);
     if (*p && otype(*p) == t_float)
 	**(ofloat_t **)p = d;
     else

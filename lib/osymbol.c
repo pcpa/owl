@@ -328,6 +328,8 @@ oend_record(orecord_t *record)
 
     onew_object(rtti_vector->v.ptr + record->type, t_rtti, sizeof(ortti_t));
     rtti = rtti_vector->v.ptr[record->type];
+    if (record->super)
+	rtti->superc = record->super->type;
     if (record->gcinfo) {
 	rtti->gcsize = record->gcinfo->offset;
 	onew_object((oobject_t *)&rtti->gcinfo, t_word,

@@ -184,13 +184,13 @@ extern void
 ovm_store_f64(oregister_t *r, ofloat64_t *o);
 
 extern void
-ovm_store(oregister_t *r, oobject_t *p);
+ovm_store(oregister_t *r, oobject_t *p, oint32_t t);
 
 extern void
-ovm_store_w(oword_t w, oobject_t *p);
+ovm_store_w(oword_t w, oobject_t *p, oint32_t t);
 
 extern void
-ovm_store_d(ofloat_t d, oobject_t *p);
+ovm_store_d(ofloat_t d, oobject_t *p, oint32_t t);
 
 extern void
 ovm_o_copy(oregister_t *l, oregister_t *r);
