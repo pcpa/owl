@@ -28,6 +28,18 @@
 #define operand_copy(lop, rop)		memcpy(lop, rop, sizeof(ooperand_t))
 #define gc_offset(op)			(op)->s + 8
 #define wf_offset(op)			(op)->s
+/* To be used when a pure temporary is required, but that may
+ * need to be live after an ovm_* call */
+#define protect_tmp(N)							\
+    do {								\
+	assert(!(tmp_mask & (N + 1)));					\
+	tmp_mask |= N + 1;						\
+    } while (0);
+#define release_tmp(N)							\
+    do {								\
+	assert(tmp_mask & (N + 1));					\
+	tmp_mask &= ~(N + 1);						\
+    } while (0)
 
 /*
  * Prototypes
@@ -2150,10 +2162,10 @@ load_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 	    load_w(bop->u.w);
 	}
 	else {
-	    tmp_mask |= 1;
+	    protect_tmp(0);
 	    jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
 	    loadi(rop, type, GPR[TMP0], offset);
-	    tmp_mask &= ~1;
+	    release_tmp(0);
 	}
 	return;
     }
@@ -2218,10 +2230,10 @@ load_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 	load_w(bop->u.w);
     }
     else {
-	tmp_mask |= 1;
+	protect_tmp(0);
 	jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
 	loadr(rop, type, GPR[TMP0], GPR[lop->u.w]);
-	tmp_mask &= ~1;
+	release_tmp(0);
     }
 }
 
@@ -2281,10 +2293,10 @@ store_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 	    load_w(bop->u.w);
 	}
 	else {
-	    tmp_mask |= 1;
+	    protect_tmp(0);
 	    jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
 	    storei(rop, type, GPR[TMP0], offset);
-	    tmp_mask &= ~1;
+	    release_tmp(0);
 	}
 	return;
     }
@@ -2350,10 +2362,10 @@ store_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 	load_w(bop->u.w);
     }
     else {
-	tmp_mask |= 1;
+	protect_tmp(0);
 	jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
 	storer(rop, type, GPR[TMP0], GPR[lop->u.w]);
-	tmp_mask &= ~1;
+	release_tmp(0);
     }
 }
 

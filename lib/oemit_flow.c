@@ -641,8 +641,10 @@ emit_function(ofunction_t *function)
 
     mask = 0;
     if (GPR[FRAME] == JIT_NOREG) {
-	if (GPR[TMP0] != JIT_NOREG)
+	if (GPR[TMP0] != JIT_NOREG) {
 	    frame = GPR[TMP0];
+	    protect_tmp(0);
+	}
 	else {
 	    frame = GPR[0];
 	    mask |= 1;
@@ -652,8 +654,10 @@ emit_function(ofunction_t *function)
     else
 	frame = GPR[FRAME];
     if (GPR[STACK] == JIT_NOREG) {
-	if (GPR[TMP1] != JIT_NOREG)
+	if (GPR[TMP1] != JIT_NOREG) {
 	    stack = GPR[TMP1];
+	    protect_tmp(1);
+	}
 	else {
 	    stack = GPR[1];
 	    mask |= 2;
@@ -690,6 +694,10 @@ emit_function(ofunction_t *function)
     if (GPR[THIS] != JIT_NOREG && function->record->parent != root_record)
 	jit_ldxi(GPR[THIS], frame, THIS_OFFSET);
 
+    if (frame == GPR[TMP0])
+	release_tmp(0);
+    if (stack == GPR[TMP1])
+	release_tmp(1);
     if (mask & 1)
 	load_w(0);
     if (mask & 2)
@@ -977,8 +985,10 @@ emit_call_next(ofunction_t *function, oast_t *alist,
      * prone logic */
     mask = 0;
     if (GPR[FRAME] == JIT_NOREG) {
-	if (GPR[TMP0] != JIT_NOREG)
+	if (GPR[TMP0] != JIT_NOREG) {
 	    frame = GPR[TMP0];
+	    protect_tmp(0);
+	}
 	else {
 	    if (top == null || top->u.w != 0)
 		frame = 0;
@@ -992,8 +1002,10 @@ emit_call_next(ofunction_t *function, oast_t *alist,
     else
 	frame = GPR[FRAME];
     if (GPR[STACK] == JIT_NOREG) {
-	if (GPR[TMP1] != JIT_NOREG)
+	if (GPR[TMP1] != JIT_NOREG) {
 	    stack = GPR[TMP1];
+	    protect_tmp(1);
+	}
 	else {
 	    if (top == null || top->u.w > 1)
 		stack = 1;
@@ -1068,6 +1080,10 @@ emit_call_next(ofunction_t *function, oast_t *alist,
 	}
     }
 
+    if (frame == GPR[TMP0])
+	release_tmp(0);
+    if (stack == GPR[TMP1])
+	release_tmp(1);
     if (mask & 1)
 	load_w(0);
     if (mask & 2)
