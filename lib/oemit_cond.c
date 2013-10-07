@@ -291,7 +291,6 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 	    avec = ajmp->t;
 	    if (avec->offset) {
 		if (ast->token == tok_oror) {
-		    assert(bvec);
 		    /* Lift true test jumps down for oror */
 		    bvec = bjmp->t;
 		    do
@@ -309,7 +308,6 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 	    avec = ajmp->f;
 	    if (avec->offset) {
 		if (ast->token == tok_andand) {
-		    assert(bvec);
 		    /* Lift false test jumps down for andand */
 		    bvec = bjmp->f;
 		    do
