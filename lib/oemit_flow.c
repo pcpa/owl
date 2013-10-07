@@ -737,22 +737,18 @@ emit_function(ofunction_t *function)
     vector = function->name->tag->name;
     type = otag_to_type(vector->v.ptr[0]);
 
-    if (jit_callee_save_p(GPR[TMP0]))
-	save = GPR[TMP0];
-    else {
-	save = GPR[0];
-	switch (type) {
-	    case t_int8:	case t_uint8:
-	    case t_int16:	case t_uint16:
-	    case t_int32:	case t_uint32:
+    save = GPR[0];
+    switch (type) {
+	case t_int8:	case t_uint8:
+	case t_int16:	case t_uint16:
+	case t_int32:	case t_uint32:
 #if __WORDSIZE == 64
-	    case t_int64:	case t_uint64:
+	case t_int64:	case t_uint64:
 #endif
-		spill_w(0);
-		break;
-	    default:
-		break;
-	}
+	    spill_w(0);
+	    break;
+	default:
+	    break;
     }
 
     /* All live registers must have been saved and at exit,

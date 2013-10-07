@@ -375,7 +375,7 @@ oemit(void)
     scratch = jit_allocai(8);
 
     for (offset = 0; offset < 6; offset++) {
-	if (!jit_callee_save_p(GPR[offset]))
+	if (GPR[offset] != JIT_NOREG && !jit_callee_save_p(GPR[offset]))
 	    SPL[offset] = jit_allocai(sizeof(jit_word_t));
     }
 
