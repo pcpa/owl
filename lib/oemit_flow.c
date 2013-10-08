@@ -1208,7 +1208,7 @@ emit_call_next(ofunction_t *function, oast_t *alist,
 	    jit_ldxi(JIT_R0, GPR[1], offsetof(ortti_t, mdinfo));
 	    jit_ldxi(GPR[0], JIT_R0,
 		     function->name->offset * sizeof(oobject_t));
-	    jit_callr(GPR[0]);
+	    jit_jmpr(GPR[0]);
 	}
 	else {
 	    call = jit_jmpi();
