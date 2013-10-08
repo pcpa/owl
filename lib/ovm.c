@@ -118,7 +118,7 @@ search_instruction_pointer(void)
 	ip = __builtin_return_address(number);				\
 	if (ip == null || __builtin_frame_address(number) == null)	\
 	    goto fail;							\
-	if (jit_pointer_p(ip)) {					\
+	if (jit_pointer_p(ip))						\
 	    goto done;							\
     } while (0)
     search(0);
