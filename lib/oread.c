@@ -231,7 +231,7 @@ scan_str(void)
 	    size += BUFSIZ;
 	    size += BUFSIZ - (size % BUFSIZ);
 	    if (size < length) {
-		//thread_self->except = except_out_of_bounds;
+		thread_self->xcpt = except_out_of_bounds;
 		return (eof);
 	    }
 	    orenew_vector(thread_self->vec, size);
