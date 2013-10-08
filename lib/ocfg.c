@@ -44,7 +44,12 @@ jit_state_t		*_jit;
 int
 ocfg_main(int argc, char *argv[])
 {
-    cfg_parse_options(argc, argv);
+    int			 optind;
+    ostream_t		*stream;
+    ovector_t		*vector;
+    oobject_t		*pointer;
+
+    optind = cfg_parse_options(argc, argv);
 
     init_jit(cfg_progname);
     init_object();
@@ -65,7 +70,21 @@ ocfg_main(int argc, char *argv[])
     init_realize();
     init_emit();
 
-    opush_input(std_input);
+    if (optind < argc) {
+	int	index = argc - 1;
+	do {
+	    vector = oget_string((ouint8_t *)argv[index],
+				 strlen(argv[index]));
+	    gc_ref(pointer);
+	    ofopen(pointer, vector, S_read);
+	    if ((stream = *pointer) == null)
+		oerror("cannot read '%s'", argv[index]);
+	    opush_input(stream);
+	    gc_dec();
+	} while (--index >= optind);
+    }
+    else
+	opush_input(std_input);
 
     ocode();
 #if 1
