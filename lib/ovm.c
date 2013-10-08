@@ -754,7 +754,6 @@ ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 	}
     }
     else {
-	oint32_t	savet = t;
 	if (t != t_void && reg->t != t_void &&
 	    (t & t_vector) != (reg->t & t_vector)) {
 	    /* Do not allow mixing signed and unsigned integers?
