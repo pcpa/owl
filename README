@@ -9,7 +9,13 @@ If there are missing dependencies it will tell in the configure
 call. Usually one just need to install gmp devel, mpfr devel and
 mpc devel, e.g.
 
+fedora:
+
 $ sudo yum install gmp-devel mpfr-devel libmpc-devel
+
+ubuntu:
+
+$ sudo apt-get install libgmp-dev libmpfr-dev libmpc-dev
 
 Hardest part should be installing latest GNU lightning, e.g.:
 
