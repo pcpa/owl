@@ -120,6 +120,7 @@ emit_goto(oast_t *ast);
 #  include "oemit_unary.c"
 #  include "oemit_binary.c"
 #  include "oemit_cond.c"
+#  include "oemit_except.c"
 #  include "oemit_flow.c"
 #undef PROTO
 
@@ -798,7 +799,14 @@ emit(oast_t *ast)
 	case tok_goto:
 	    emit_goto(ast);
 	    break;
+	case tok_try:
+	    emit_try(ast);
+	    break;
+	case tok_throw:
+	    emit_throw(ast);
+	    break;
 	case tok_function:	case tok_class:
+	case tok_catch:		case tok_finally:
 	    break;
 	default:
 #if DEBUG
@@ -1249,6 +1257,7 @@ emit_goto(oast_t *ast)
 #  include "oemit_unary.c"
 #  include "oemit_binary.c"
 #  include "oemit_cond.c"
+#  include "oemit_except.c"
 #  include "oemit_flow.c"
 #undef CODE
 

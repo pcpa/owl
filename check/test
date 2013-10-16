@@ -30254,3 +30254,364 @@ va:	%d\n",
       t29v[0].vi64[0],
       t29v[0].vu64[0],
       t29v[0].va[0]);
+
+/*
+An exception occurred. Exception Nr. 20
+ */
+try {
+    throw 20;
+}
+catch (auto e) {
+    print("An exception occurred. Exception Nr. %d\n", e);
+}
+/*
+Innermost catch: string
+Topmost catch: string
+ */
+try {
+    try {
+	throw "string";
+    }
+    catch (auto ie) {
+	print("Innermost catch: %s\n", ie);
+	throw;
+    }
+}
+catch (auto te) {
+    print("Topmost catch: %s\n", te);
+}
+/*
+My exception happened
+(1) handled typed exception: My exception happened
+(2) handled typed exception: My exception happened
+ */
+class t30_exception_t {
+    string_t what() {
+	return "My exception happened";
+    }
+};
+t30_exception_t t30_e = {};
+try {
+    throw t30_e;
+}
+catch (t30_exception_t t30_ec) {
+    print("%s\n", t30_ec.what());
+}
+void t30_handle_exception_0() {
+    try {
+	throw;
+    }
+    catch (t30_exception_t ce) {
+	print("(1) handled typed exception: %s\n", ce.what());
+    }
+    catch (auto e) {
+	print("error %d\n", __LINE__);
+    }
+}
+void t30_f0() {
+    try {
+	throw t30_e;
+    }
+    catch (auto e) {
+	t30_handle_exception_0();
+    }
+}
+t30_f0();
+void t30_handle_exception_1(auto except) {
+    try {
+	throw except;
+    }
+    catch (t30_exception_t ce) {
+	print("(2) handled typed exception: %s\n", ce.what());
+    }
+    catch (auto e) {
+	print("error %d\n", __LINE__);
+    }
+}
+void t30_f1() {
+    try {
+	throw t30_e;
+    }
+    catch (auto e) {
+	t30_handle_exception_1(e);
+    }
+}
+t30_f1();
+/*
+--
+in try block, throwing "5"...
+in catch: "5"
+in finally block...
+ */
+try {
+    print("--\nin try block, throwing \"5\"...\n");
+    throw "5";
+}
+catch (string_t t30se) {
+    print("in catch: %#s\n", t30se);
+}
+catch (auto ae) {
+    print("error %d\n", __LINE__);
+}
+finally {
+    print("in finally block...\n");
+}
+/*
+--
+in top try...
+in inner try, throwing "3"...
+in inner typed catch: "3"
+in inner finally, throwing "2"...
+in top typed catch: "2"
+in top finally...
+ */
+try {
+    print("--\nin top try...\n");
+    try {
+	print("in inner try, throwing \"3\"...\n");
+	throw "3";
+    }
+    catch (string_t t30ise) {
+	print("in inner typed catch: %#s\n", t30ise);
+    }
+    catch (auto t30iae) {
+	print("error %d\n", __LINE__);
+    }
+    finally {
+	print("in inner finally, throwing \"2\"...\n");
+	/* this must throw to the top try */
+	throw "2";
+    }
+}
+catch (string_t t30tse) {
+    print("in top typed catch: %#s\n", t30tse);
+}
+catch (auto t30tae) {
+    print("error %d\n", __LINE__);
+}
+finally {
+    print("in top finally...\n");
+}
+/*
+--
+in top try...
+in inner try, throwing "3"...
+in inner typed catch: "3"
+in inner finally...
+in top finally...
+ */
+try {
+    print("--\nin top try...\n");
+    try {
+	print("in inner try, throwing \"3\"...\n");
+	throw "3";
+    }
+    catch (string_t t30ise1) {
+	print("in inner typed catch: %#s\n", t30ise1);
+    }
+    catch (auto t30iae1) {
+	print("error %d\n", __LINE__);
+    }
+    finally {
+	print("in inner finally...\n");
+    }
+}
+catch (string_t t30tse1) {
+    print("in top typed catch: %#s\n", t30tse1);
+}
+catch (auto t30tae1) {
+    print("error %d\n", __LINE__);
+}
+finally {
+    print("in top finally...\n");
+}
+/*
+--
+in top try...
+in inner try...
+in inner finally...
+in top finally...
+ */
+try {
+    print("--\nin top try...\n");
+    try {
+	print("in inner try...\n");
+    }
+    catch (string_t t30ise2) {
+	print("in inner typed catch: %#s\n", t30ise2);
+    }
+    catch (auto t30iae2) {
+	print("error %d\n", __LINE__);
+    }
+    finally {
+	print("in inner finally...\n");
+    }
+}
+catch (string_t t30tse2) {
+    print("in top typed catch: %#s\n", t30tse2);
+}
+catch (auto t30tae2) {
+    print("error %d\n", __LINE__);
+}
+finally {
+    print("in top finally...\n");
+}
+/*
+--
+in top try...
+in inner try, throwing null...
+in inner catch: null
+in inner finally...
+in top finally...
+ */
+try {
+    print("--\nin top try...\n");
+    try {
+	print("in inner try, throwing null...\n");
+	throw null;
+    }
+    catch (auto t30iae3) {
+	print("in inner catch: %#s\n", t30iae3);
+    }
+    finally {
+	print("in inner finally...\n");
+    }
+}
+catch (auto t30tae3) {
+    print("in top typed catch: %#s\n", t30tae3);
+}
+finally {
+    print("in top finally...\n");
+}
+/*
+ * These are commented because (arguably) must cause a parse time error:
+ ---
+// <stdin>:2:5:error: goto leaves 'try' block
+try {
+    goto out;
+}
+out:
+    ;
+---
+// <stdin>:1:1:error: goto enters 'try' block
+goto in;
+try {
+    in:
+	;
+}
+---
+// <stdin>:2:5:error: 'return' leaves 'try' block
+try {
+    return;
+}
+---
+// <stdin>:3:2:error: 'break' leaves 'try' block
+for (;;) {
+    try {
+	break;
+    }
+}
+---
+// <stdin>:3:2:error: 'continue' leaves 'try' block
+for (;;) {
+    try {
+	continue;
+    }
+}
+ ---
+// <stdin>:4:5:error: goto leaves 'catch' block
+try {
+}
+catch (auto e) {
+    goto out;
+}
+out:
+    ;
+---
+// <stdin>:1:1:error: goto enters 'catch' block
+goto in;
+try {
+}
+catch (auto e) {
+    in:
+	;
+}
+---
+// <stdin>:4:5:error: 'return' leaves 'catch' block
+try {
+}
+catch (auto e) {
+    return;
+}
+---
+// <stdin>:5:2:error: 'break' leaves 'catch' block
+for (;;) {
+    try {
+    }
+    catch (auto e) {
+	break;
+    }
+}
+---
+// <stdin>:5:2:error: 'continue' leaves 'catch' block
+for (;;) {
+    try {
+    }
+    catch (auto e) {
+	continue;
+    }
+}
+ ---
+// <stdin>:6:5:error: goto leaves 'finally' block
+try {
+}
+catch (auto e) {
+}
+finally {
+    goto out;
+}
+out:
+    ;
+---
+// <stdin>:1:1:error: goto enters 'finally' block
+goto in;
+try {
+}
+catch (auto e) {
+}
+finally {
+    in:
+	;
+}
+---
+// <stdin>:6:5:error: 'return' leaves 'finally' block
+try {
+}
+catch (auto e) {
+}
+finally {
+    return;
+}
+---
+// <stdin>:7:2:error: 'break' leaves 'finally' block
+for (;;) {
+    try {
+    }
+    catch (auto e) {
+    }
+    finally {
+	break;
+    }
+}
+---
+// <stdin>:7:2:error: 'continue' leaves 'finally' block
+for (;;) {
+    try {
+    }
+    catch (auto e) {
+    }
+    finally {
+	continue;
+    }
+}
+ */

@@ -46,6 +46,9 @@ eval_ast_sizeof(oast_t *ast);
 static void
 update_symbol(oast_t *ast);
 
+static void
+check_exception(oast_t *ast);
+
 /*
  * Implementation
  */
@@ -146,6 +149,8 @@ oeval_ast(oast_t *ast)
 	    eval_ast_stat(ast->r.ast);
 	    break;
 	case tok_return:
+	    check_exception(ast);
+	case tok_throw:
 	    if (ast->l.ast)
 		oeval_ast(ast->l.ast);
 	    break;
@@ -177,7 +182,7 @@ oeval_ast(oast_t *ast)
 	    eval_ast_stat(ast->r.ast);
 	    break;
 	case tok_stat:		case tok_code:
-	case tok_data:
+	case tok_data:		case tok_finally:
 	    eval_ast_stat(ast->l.ast);
 	    break;
 	case tok_decl:
@@ -190,10 +195,19 @@ oeval_ast(oast_t *ast)
 	case tok_goto:
 	    eval_ast_goto(ast);
 	    break;
+	case tok_try:
+	    eval_ast_stat(ast->r.ast);
+	    break;
+	case tok_catch:
+	    eval_ast_decl(ast->l.ast->r.ast);
+	    eval_ast_stat(ast->r.ast);
+	    break;
+	case tok_break:		case tok_continue:
+	    check_exception(ast);
 	case tok_type:		case tok_number:	case tok_string:
-	case tok_class:		case tok_label:		case tok_break:
-	case tok_continue:	case tok_case:		case tok_default:
-	case tok_function:	case tok_fieldref:	case tok_this:
+	case tok_class:		case tok_label:		case tok_case:
+	case tok_default:	case tok_function:	case tok_fieldref:
+	case tok_this:
 	    break;
 	default:
 #if DEBUG
@@ -413,15 +427,49 @@ eval_ast_declexpr(oast_t *decl)
 static void
 eval_ast_goto(oast_t *ast)
 {
+    obool_t		 fail;
+    olabel_t		*label;
     oentry_t		*entry;
     osymbol_t		*symbol;
+    char		*opcode;
+    char		*string;
 
     symbol = ast->l.ast->l.value;
     entry = oget_hash(current_function->labels, symbol->name);
     if (entry == null)
 	oparse_error(ast, "undefined label '%p'", symbol->name);
     /*   Use ast->c.ast to match other break, case, continue and default. */
-    ast->c.ast = entry->value;
+    ast->c.value = label = entry->value;
+
+    fail = false;
+    if (ast->t.ast != label->ast->t.ast) {
+	fail = true;
+	if (ast->t.ast) {
+	    string = "leaves";
+	    if (ast->t.ast->token == tok_try)
+		opcode = "try";
+	    else if (ast->t.ast->token == tok_catch)
+		opcode = "catch";
+	    else {
+		assert(ast->t.ast->token == tok_finally);
+		opcode = "finally";
+	    }
+	}
+	else {
+	    assert(label->ast->t.ast);
+	    string = "enters";
+	    if (label->ast->t.ast->token == tok_try)
+		opcode = "try";
+	    else if (label->ast->t.ast->token == tok_catch)
+		opcode = "catch";
+	    else {
+		assert(label->ast->t.ast->token == tok_finally);
+		opcode = "finally";
+	    }
+	}
+    }
+    if (fail)
+	oparse_error(ast, "goto %s '%s' block", string, opcode);
 }
 
 static void
@@ -463,5 +511,33 @@ update_symbol(oast_t *ast)
 	if (!symbol->bound)
 	    oparse_error(ast, "symbol '%p' used before definition", vector);
 	ast->l.value = symbol;
+    }
+}
+
+static void
+check_exception(oast_t *ast)
+{
+    char	*string;
+    char	*opcode;
+
+    if (ast->t.ast) {
+	if (ast->t.ast->token == tok_try)
+	    opcode = "try";
+	else if (ast->t.ast->token == tok_catch)
+	    opcode = "catch";
+	else {
+	    assert(ast->t.ast->token == tok_finally);
+	    opcode = "finally";
+	}
+	if (ast->token == tok_break)
+	    string = "break";
+	else if (ast->token == tok_continue) {
+	    string = "continue";
+	}
+	else {
+	    assert(ast->token == tok_return);
+	    string = "return";
+	}
+	oparse_error(ast, "'%s' leaves '%s' block", string, opcode);
     }
 }

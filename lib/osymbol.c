@@ -221,9 +221,53 @@ onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
     return (symbol);
 }
 
+oword_t
+onew_exception(orecord_t *record)
+{
+    oword_t		 offset;
+
+    assert(record == root_record || otype(record) == t_prototype);
+    assert(record->function);
+
+    if (otype(record) == t_prototype) {
+#if __WORDSIZE == 32
+	record->offset = record->offset & ~3;
+	record->length = (record->length + 3) & ~3;
+#else
+	record->offset = record->offset & ~7;
+	record->length = (record->length + 7) & ~7;
+#endif
+	record->offset -= sizeof(oexception_t);
+	offset = record->offset;
+	record->length += sizeof(oexception_t);
+#if __WORDSIZE == 32
+	assert(record->offset < 0);
+#else
+	assert((oint32_t)record->offset == record->offset);
+#endif
+    }
+    else {
+	assert(otype(record) == t_namespace);
+#if __WORDSIZE == 32
+	record->offset = (record->offset + 3) & ~3;
+	assert(record->offset >= 0);
+#else
+	record->offset = (record->offset + 7) & ~7;
+	assert((oint32_t)record->offset == record->offset);
+#endif
+	record->length = record->offset + sizeof(oexception_t);
+	offset = record->offset;
+	record->offset = record->length;
+    }
+
+    return (offset);
+}
+
 extern oint32_t
 onew_slot(orecord_t *record)
 {
+    oword_t		offset;
+
     if (otype(record) == t_prototype) {
 	record->offset = record->offset & ~7;
 	record->length = (record->length + 7) & ~7;
@@ -234,11 +278,14 @@ onew_slot(orecord_t *record)
 #else
 	assert(record->offset < 0);
 #endif
+	offset = record->offset;
     }
     else {
 	assert(otype(record) == t_namespace);
 	record->offset = (record->offset + 7) & ~7;
 	record->length = record->offset + 16;
+	offset = record->offset;
+	record->offset = record->length;
 #if __WORDISZE == 64
 	assert((oint32_t)record->offset == record->offset);
 #else
@@ -250,9 +297,9 @@ onew_slot(orecord_t *record)
 	onew_vector((oobject_t *)&record->gcinfo, t_word, 4);
     else if ((record->gcinfo->offset & 3) == 0)
 	orenew_vector(record->gcinfo, record->gcinfo->offset + 4);
-    record->gcinfo->v.w[record->gcinfo->offset++] = record->offset + 8;
+    record->gcinfo->v.w[record->gcinfo->offset++] = offset + 8;
 
-    return (record->offset);
+    return (offset);
 }
 
 obasic_t *

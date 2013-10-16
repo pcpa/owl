@@ -32,6 +32,7 @@ libowl_la_SOURCES =	\
 	oemit_unary.c	\
 	oemit_binary.c	\
 	oemit_cond.c	\
+	oemit_except.c	\
 	oemit_flow.c	\
 	oeval.c		\
 	ofunction.c	\

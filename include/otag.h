@@ -20,6 +20,8 @@
 
 #include "otypes.h"
 
+#define otag_p(object)		(otype(object) == t_tag)
+
 /*
  * Types
  */

@@ -43,6 +43,7 @@ struct osymbol {
     ouint32_t		 field		: 1;
     ouint32_t		 global		: 1;
     ouint32_t		 bound		: 1;
+    ouint32_t		 except		: 1;
     ouint32_t		 ctor		: 1;
     ouint32_t		 method		: 1;
     ouint32_t		 builtin	: 1;
@@ -99,6 +100,9 @@ oget_bound_symbol(ovector_t *name);
 
 extern osymbol_t *
 onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag);
+
+extern oword_t
+onew_exception(orecord_t *record);
 
 extern oint32_t
 onew_slot(orecord_t *record);

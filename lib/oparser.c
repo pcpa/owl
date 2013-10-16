@@ -17,7 +17,8 @@
 
 #include "owl.h"
 
-#define top_ast()			ast_vector[parser_vector->offset - 1]
+#define top_ast()		ast_vector[parser_vector->offset - 1]
+#define top_block()		block_vector->v.ptr[block_vector->offset - 1]
 
 /*
  * Prototypes
@@ -44,10 +45,26 @@ static void
 switch_default(oast_t *ast);
 
 static void
+try_check(void);
+
+static void
+try_catch(oast_t *ast);
+
+static void
+try_finally(oast_t *ast);
+
+static void
 statement_paren_comma_list(void);
 
 static oast_t *
 get_block(otoken_t token, oast_t *ast);
+
+/* Remember block to check for non allowed conditions of
+ * leaving or entering exception handler code with goto,
+ * break, continue and return. Must enter from catch/finally
+ * normal flow, and leave with throw or normal flow. */
+static void
+get_try_block(oast_t *ast);
 
 static osymbol_t *
 declare(oast_t *type, oast_t *decl);
@@ -250,7 +267,7 @@ static struct {
     { "try", 		tok_try		},
     { "catch",		tok_catch	},
     { "throw",		tok_throw	},
-    { "always",		tok_always	},
+    { "finally",	tok_finally	},
     { "class",		tok_class	},
 };
 static oast_t		 *root_ast;
@@ -258,6 +275,8 @@ static oast_t		 *head_ast;
 static oast_t		**ast_vector;
 static ovector_t	 *block_vector;
 static ovector_t	 *parser_vector;
+static ovector_t	 *except_vector;
+static ovector_t	 *root_except_vector;
 
 /*
  * Implemtantion
@@ -311,6 +330,12 @@ init_parser(void)
     oadd_root((oobject_t *)&parser_vector);
     onew_vector((oobject_t *)&parser_vector, t_void, 16);
     ast_vector = parser_vector->v.obj;
+    oadd_root((oobject_t *)&except_vector);
+    onew_vector((oobject_t *)&except_vector, t_int32, 4);
+    memset(except_vector->v.i32, -1, 16);
+    oadd_root((oobject_t *)&root_except_vector);
+    onew_vector((oobject_t *)&root_except_vector, t_int32, 4);
+    memset(root_except_vector->v.i32, -1, 16);
 }
 
 void
@@ -320,6 +345,8 @@ finish_parser(void)
     orem_root((oobject_t *)&head_ast);
     orem_root((oobject_t *)&block_vector);
     orem_root((oobject_t *)&parser_vector);
+    orem_root((oobject_t *)&except_vector);
+    orem_root((oobject_t *)&root_except_vector);
 }
 
 oobject_t
@@ -393,6 +420,7 @@ statement(void)
     switch (token) {
 	case tok_label:
 	    label_define(ast);
+	    get_try_block(ast);
 	    break;
 	case tok_decl:		case tok_ctor:
 	    token = declaration();
@@ -485,7 +513,7 @@ statement(void)
 	    ast->c.ast = pop_ast();
 	    break;
 	case tok_for:
-	    if (primary() != tok_oparen)
+	    if (primary_noeof() != tok_oparen)
 		oparse_error(top_ast(), "expecting '(' %A", top_ast());
 	    discard();
 	    group_match(false, tok_semicollon);
@@ -507,19 +535,19 @@ statement(void)
 	    statement_noeof();
 	    pop_block();
 	    ast->c.ast = pop_ast();
-	    if (primary() != tok_while)
+	    if (primary_noeof() != tok_while)
 		oparse_error(top_ast(), "expecting 'while' %A", top_ast());
 	    discard();
 	    statement_paren_comma_list();
 	    ast->t.ast = pop_ast();
-	    if (primary() != tok_semicollon)
+	    if (primary_noeof() != tok_semicollon)
 		oparse_error(top_ast(), "expecting ';' %A", top_ast());
 	    discard();
 	    break;
 	case tok_switch:
 	    statement_paren_comma_list();
 	    ast->t.ast = pop_ast();
-	    if (lookahead() != tok_obrace)
+	    if (lookahead_noeof() != tok_obrace)
 		oparse_error(head_ast, "expecting '{' %A", head_ast);
 	    onew_vector(&ast->l.value, t_void, 8);
 	    vector = ast->l.value;
@@ -533,7 +561,7 @@ statement(void)
 	    switch_case(ast);
 	    break;
 	case tok_default:
-	    if (primary() != tok_collon)
+	    if (primary_noeof() != tok_collon)
 		oparse_error(top_ast(), "expecting ':' %A", top_ast());
 	    discard();
 	    switch_default(ast);
@@ -543,12 +571,14 @@ statement(void)
 	    if (primary_noeof() != tok_semicollon)
 		oparse_error(top_ast(), "expecting ';' %A", top_ast());
 	    discard();
+	    get_try_block(ast);
 	    break;
 	case tok_continue:
 	    ast->c.ast = get_block(tok_continue, ast);
 	    if (primary_noeof() != tok_semicollon)
 		oparse_error(top_ast(), "expecting ';' %A", top_ast());
 	    discard();
+	    get_try_block(ast);
 	    break;
 	case tok_goto:
 	    if (unary_noeof() != tok_symbol)
@@ -557,12 +587,54 @@ statement(void)
 	    if (primary_noeof() != tok_semicollon)
 		oparse_error(top_ast(), "expecting ';' %A", top_ast());
 	    discard();
+	    get_try_block(ast);
 	    break;
 	case tok_return:
 	    if (lookahead() != tok_semicollon) {
 		expression_noeof();
 		ast->l.ast = pop_ast();
 	    }
+	    if (primary_noeof() != tok_semicollon)
+		oparse_error(top_ast(), "expecting ';' %A", top_ast());
+	    discard();
+	    get_try_block(ast);
+	    break;
+	case tok_try:
+	    vector = current_record == root_record ?
+		root_except_vector : except_vector;
+	    if (vector->offset >= vector->length) {
+		orenew_vector(vector, vector->length + 4);
+		memset(vector->v.i32 + vector->offset, -1, 16);
+	    }
+	    if (vector->v.i32[vector->offset] != -1)
+		ast->offset = vector->v.i32[vector->offset++];
+	    else {
+		ast->offset = onew_exception(current_record);
+		vector->v.i32[vector->offset++] = ast->offset;
+	    }
+	    if (lookahead_noeof() != tok_obrace)
+		oparse_error(head_ast, "expecting '{' %A", head_ast);
+	    push_block(ast);
+	    statement_noeof();
+	    onew_vector(&ast->l.value, t_void, 8);
+	    ast->r.ast = pop_ast();
+	    try_check();
+	    break;
+	case tok_catch:
+	    try_catch(ast);
+	    try_check();
+	    break;
+	case tok_finally:
+	    try_finally(ast);
+	    try_check();
+	    break;
+	case tok_throw:
+	    if (lookahead() != tok_semicollon) {
+		expression_noeof();
+		ast->l.ast = pop_ast();
+	    }
+	    /* FIXME else must be inside a catch,
+	     * and (re)throw the catch argument */
 	    if (primary_noeof() != tok_semicollon)
 		oparse_error(top_ast(), "expecting ';' %A", top_ast());
 	    discard();
@@ -726,9 +798,121 @@ switch_default(oast_t *ast)
 }
 
 static void
+try_check(void)
+{
+    switch (lookahead()) {
+	case tok_catch:		case tok_finally:
+	    break;
+	default:
+	    pop_block();
+	    if (current_record == root_record)
+		--root_except_vector->offset;
+	    else
+		--except_vector->offset;
+	    break;
+    }
+}
+
+static void
+try_catch(oast_t *ast)
+{
+    otag_t		*tag;
+    oast_t		*type;
+    oast_t		*name;
+    oast_t		*decl;
+    ocase_t		*acase;
+    oast_t		*block;
+    oword_t		 value;
+    oword_t		 offset;
+    osymbol_t		*symbol;
+    ovector_t		*vector;
+
+    block = top_block();
+    if (block->token != tok_try)
+	oparse_error(ast, "'catch' not following 'try'");
+    vector = block->l.value;
+    statement_paren_comma_list();
+    ast->l.ast = decl = pop_ast();
+    if (decl == null || (type = decl->l.ast) == null || type->token != tok_type)
+	oparse_error(ast, "expecting declaration");
+    if (decl->next)
+	oparse_error(decl->next, "expecting ')' %A", decl->next);
+    tag = otag_ast(type->l.value, &decl->r.ast);
+    name = decl->r.ast;
+    if (name->token != tok_symbol)
+	oparse_error(name, "expecting symbol %A", name);
+    switch (value = otag_to_type(tag)) {
+	case t_void:
+	case t_int8:		case t_uint8:
+	case t_int16:		case t_uint16:
+	case t_int32:		case t_uint32:
+	case t_int64:		case t_uint64:
+	case t_float32:		case t_float64:
+	    /* For consistency when throw'ing an immediate value */
+	    oparse_error(type, "only auto, class and vector types allowed");
+	default:
+	    break;
+    }
+    if (value == t_undef)
+	value = t_void;
+    offset = value == t_void ? 0 : vector->offset - 1;
+    for (; offset >= 0; offset--) {
+	if ((acase = vector->v.ptr[offset]) && acase->lval == value)
+	    oparse_error(ast, "duplicate catch type, also at %p:%d:%d",
+			 acase->ast->note.name,
+			 acase->ast->note.lineno, acase->ast->note.column);
+    }
+    symbol = name->l.value;
+    if (oget_symbol(current_record, symbol->name))
+	oparse_error(decl, "symbol '%p' redefined", symbol);
+    symbol = onew_symbol(current_record, symbol->name, tag);
+    symbol->except = true;
+
+    if (!vector->offset)
+	vector->offset = 1;
+
+    offset = value == t_void ? 0 : vector->offset;
+    if (offset >= vector->length)
+	orenew_vector(vector, vector->length + 8);
+    onew_object(vector->v.ptr + offset, t_case, sizeof(ocase_t));
+    acase = vector->v.ptr[offset];
+    if (value != t_void)
+	++vector->offset;
+    ast->t.value = acase;
+    acase->lval = value;
+    acase->ast = ast;
+    ast->c.ast = block;
+    if (lookahead_noeof() != tok_obrace)
+	oparse_error(head_ast, "expecting '{' %A", head_ast);
+    push_block(ast);
+    statement_noeof();
+    pop_block();
+    ast->r.ast = pop_ast();
+}
+
+static void
+try_finally(oast_t *ast)
+{
+    oast_t		*block;
+
+    block = top_block();
+    if (block->token != tok_try)
+	oparse_error(ast, "'finally' not following 'try'");
+    if (block->t.ast)
+	oparse_error(ast, "duplicated 'finally'");
+    if (lookahead_noeof() != tok_obrace)
+	oparse_error(head_ast, "expecting '{' %A", head_ast);
+    push_block(ast);
+    statement_noeof();
+    pop_block();
+    ast->l.ast = pop_ast();
+    block->t.ast = ast;
+}
+
+static void
 statement_paren_comma_list(void)
 {
-    if (primary() != tok_oparen)
+    if (primary_noeof() != tok_oparen)
 	oparse_error(top_ast(), "expecting '(' %A", top_ast());
     discard();
     group_match(false, tok_cparen);
@@ -788,6 +972,29 @@ get_block(otoken_t token, oast_t *ast)
 	default:
 	    /* toplevel function */
 	    return (null);
+    }
+}
+
+/* Get try/catch/finally partial information of the current ast, so that
+ * once all input is read, can check if attempting to leave or enter an
+ * exception related block, what usually cannot be allowed. */
+static void
+get_try_block(oast_t *ast)
+{
+    oast_t		*block;
+    oword_t		 offset;
+
+    assert(ast->t.ast == null);
+    for (offset = block_vector->offset - 1; offset >= 0; offset--) {
+	block = block_vector->v.ptr[offset];
+	switch (block->token) {
+	    case tok_try:
+	    case tok_catch:		case tok_finally:
+		ast->t.ast = block;
+		return;
+	    default:
+		break;
+	}
     }
 }
 
@@ -950,6 +1157,8 @@ function(void)
 
     ofunction_start_locs(function);
 
+    memset(except_vector->v.i32, -1, except_vector->length * 4);
+
     push_block(ast);
     statement_noeof();
     pop_block();
@@ -1026,7 +1235,7 @@ structure(void)
     ast->token = tok_type;
     current = current_record;
     current_record = record;
-    while ((token = expression()) != tok_cbrace) {
+    while ((token = expression_noeof()) != tok_cbrace) {
 	switch (token) {
 	    case tok_expr:
 		if (top_ast()->token != tok_vector)
@@ -1236,7 +1445,7 @@ precedence(void)
 			top_ast() = ast;
 			precedence_noeof();
 			ast->l.ast = pop_ast();
-			if (primary() != tok_collon)
+			if (primary_noeof() != tok_collon)
 			    oparse_error(top_ast(), "expecting ':' %A",
 					 top_ast());
 			discard();

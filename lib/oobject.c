@@ -1094,6 +1094,8 @@ gc_mark_thread(othread_t *thread)
 	mark(object_to_memory(thread->bp));
     if (thread->fp)
 	gc_mark_stack(thread->fp);
+    if (thread->ev)
+	mark(object_to_memory(thread->ev));
 
     if (thread->vec)
 	gc_mark(object_to_memory(thread->vec));

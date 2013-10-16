@@ -269,7 +269,7 @@ otoken_to_charp(otoken_t token)
 	case tok_try:		return ("'try'");
 	case tok_catch:		return ("'catch'");
 	case tok_throw:		return ("'throw'");
-	case tok_always:	return ("'always'");
+	case tok_finally:	return ("'finally'");
 	case tok_for:		return ("'for'");
 	case tok_do:		return ("'do'");
 	case tok_while:		return ("'while'");

@@ -212,12 +212,9 @@ realize(oast_t *ast)
 	    realize(ast->r.ast);
 	    unget(1);
 	    break;
-
 	case tok_code:		case tok_stat:
+	case tok_list:		case tok_finally:
 	    stat(ast->l.ast);
-	    break;
-	case tok_list:
-	    list(ast->l.ast);
 	    break;
 	case tok_decl:
 	    decl(ast->r.ast);
@@ -246,14 +243,16 @@ realize(oast_t *ast)
 	    stat(ast->t.ast);
 	    stat(ast->c.ast);
 	    break;
-	case tok_return:
+	case tok_return:	case tok_throw:
 	    if (ast->l.ast)
 		realize(ast->l.ast);
 	    break;
 	case tok_call:
 	    call(ast);
 	    break;
-
+	case tok_try:		case tok_catch:
+	    stat(ast->r.ast);
+	    break;
 	case tok_break:		case tok_continue:
 	case tok_case:		case tok_default:
 	case tok_function:	case tok_class:

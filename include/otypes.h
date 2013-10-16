@@ -92,6 +92,8 @@ typedef struct oregister	oregister_t;
 typedef struct ooperand		ooperand_t;
 typedef struct ojump		ojump_t;
 typedef enum oexcept		oexcept_t;
+typedef struct oexception	oexception_t;
+
 
 typedef void (*onative_t)(oobject_t, oint32_t);
 

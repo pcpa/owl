@@ -154,6 +154,8 @@ struct othread {
     oint8_t		*fp;		/* frame pointer */
     oint8_t		*sp;		/* stack pointer */
     oint8_t		*bp;		/* base of stack address */
+    oint8_t		*ex;		/* exception stack pointer */
+    oobject_t		 ev;		/* exception value */
 
     /* instruction pointer, either:
      *	o thread execution start address
@@ -175,6 +177,13 @@ struct othread {
     otype_t		 type;		/* stack type */
     oint32_t		 frame;		/* frame size */
     oint32_t		 stack;		/* stack size */
+};
+
+struct oexception {
+    uint8_t		*ip;		/* pointer to exception dispatcher */
+    uint8_t		*fp;		/* saved frame pointer */
+    uint8_t		*sp;		/* saved stack pointer */
+    uint8_t		*ex;		/* previous exception handler */
 };
 
 /*

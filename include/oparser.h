@@ -160,7 +160,7 @@ enum otoken {
     tok_try,
     tok_catch,
     tok_throw,
-    tok_always,
+    tok_finally,
     tok_for,
     tok_do,
     tok_while,

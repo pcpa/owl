@@ -982,6 +982,30 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	case tok_default:
 	    bytes += dputs("default:", 8);
 	    break;
+	case tok_try:
+	    bytes += dputs("try ", 4);
+	    bytes += print_ast(ast->r.ast);
+	    break;
+	case tok_catch:
+	    bytes += dputs("catch ", 6);
+	    dputc('(');		++bytes;
+	    symbol = ast->l.ast->r.ast->l.value;
+	    bytes += print_tag(symbol->tag, symbol, false);
+	    bytes += dputs(") ", 2);
+	    bytes += print_ast(ast->r.ast);
+	    break;
+	case tok_finally:
+	    bytes += dputs("finally ", 8);
+	    bytes += print_ast(ast->l.ast);
+	    break;
+	case tok_throw:
+	    if (ast->l.ast) {
+		bytes += print_ast_unary("throw ", 6, ast);
+		dputc(';');	++bytes;
+	    }
+	    else
+		bytes += dputs("throw;", 6);
+	    break;
 	case tok_elemref:
 	    dputc('[');		++bytes;
 	    bytes += print_ast(ast->l.ast);

@@ -129,7 +129,7 @@ odata(oast_t *ast)
 	    data_stat(ast->l.ast);
 	    data_stat(ast->r.ast);
 	    break;
-	case tok_return:
+	case tok_return:	case tok_throw:
 	    if (ast->l.ast)
 		odata(ast->l.ast);
 	    break;
@@ -155,8 +155,10 @@ odata(oast_t *ast)
 	    data_decl(ast->r.ast);
 	    break;
 	case tok_stat:		case tok_code:
-	case tok_list:
+	case tok_list:		case tok_finally:
 	    data_stat(ast->l.ast);
+	case tok_try:		case tok_catch:
+	    data_stat(ast->r.ast);
 	    break;
 	case tok_sizeof:	case tok_symbol:	case tok_goto:
 	case tok_type:		case tok_number:	case tok_string:

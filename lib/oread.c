@@ -854,8 +854,11 @@ read_symbol(oint32_t ch)
 	gc_enter();
 
 	gc_ref(pointer);
-	onew_ast(pointer, *(oword_t *)symbol->value,
-		 input_note.name, input->lineno, input->column);
+	if (*(oword_t *)symbol->value == tok_LINE)
+	    onew_word(pointer, input->lineno);
+	else
+	    onew_ast(pointer, *(oword_t *)symbol->value,
+		     input_note.name, input->lineno, input->column);
 	gc_leave();
 
 	return (*pointer);
