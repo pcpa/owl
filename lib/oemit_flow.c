@@ -368,7 +368,6 @@ emit_for(oast_t *ast)
 {
     ojump_t		*jump;
     oast_t		*test;
-    jit_node_t		*init;
     jit_node_t		*node;
     jit_node_t		*label;
     oword_t		 offset;
@@ -377,18 +376,17 @@ emit_for(oast_t *ast)
     emit_stat(ast->l.ast);
 
     /* If there is an increment expression, jump over it after the init one */
-    if (ast->l.ast && ast->r.ast)
+    if (ast->r.ast)
 	node = jit_jmpi();
 
     /* loop start */
     label = jit_label();
 
     /* increment expression */
-    if (ast->l.ast && ast->r.ast) {
+    if (ast->r.ast) {
 	emit_stat(ast->r.ast);
 	/* actual loop start if there are init and increment expressions */
-	init = jit_label();
-	jit_patch_at(node, init);
+	jit_patch(node);
     }
 
     /* test */
