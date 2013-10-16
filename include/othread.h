@@ -184,6 +184,7 @@ struct oexception {
     uint8_t		*fp;		/* saved frame pointer */
     uint8_t		*sp;		/* saved stack pointer */
     uint8_t		*ex;		/* previous exception handler */
+    uint8_t		*th;		/* previous this pointer */
 };
 
 /*

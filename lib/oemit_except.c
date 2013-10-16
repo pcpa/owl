@@ -68,11 +68,14 @@ store_exception(jit_int32_t regval, jit_int32_t ipreg)
     }
     /* Current sp */
     if (GPR[STACK] != JIT_NOREG)
-	jit_stxi(offsetof(oexception_t, fp), regval, GPR[STACK]);
+	jit_stxi(offsetof(oexception_t, sp), regval, GPR[STACK]);
     else {
 	jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, sp));
 	jit_stxi(offsetof(oexception_t, sp), regval, JIT_R0);
     }
+    /* Current this (if there is a this register) */
+    if (GPR[THIS] != JIT_NOREG)
+	jit_stxi(offsetof(oexception_t, th), regval, GPR[THIS]);
     /* Previous exception frame */
     jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, ex));
     jit_stxi(offsetof(oexception_t, ex), regval, JIT_R0);
@@ -95,6 +98,9 @@ unwind_exception(jit_int32_t regval)
     /* Restore sp */
     jit_ldxi(stack, regval, offsetof(oexception_t, sp));
     jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+    /* Restore this (if there is a this register) */
+    if (GPR[THIS] != JIT_NOREG)
+	jit_ldxi(GPR[THIS], regval, offsetof(oexception_t, th));
     /* Restore exception frame */
     jit_ldxi(JIT_R0, regval, offsetof(oexception_t, ex));
     jit_stxi(offsetof(othread_t, ex), JIT_V0, JIT_R0);
