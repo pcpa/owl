@@ -291,8 +291,7 @@ otoken_to_charp(otoken_t token)
 	case tok_explicit:	return ("<explicit>");
 	case tok_call:		return ("<call>");
 	case tok_proto:		return ("<proto>");
-	case tok_fieldref:	return ("<field_reference>");
-	case tok_elemref:	return ("<element_reference>");
+	case tok_init:		return ("<initializer>");
 	case tok_ctor:		return ("<constructor>");
     }
     abort();

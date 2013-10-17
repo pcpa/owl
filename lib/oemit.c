@@ -961,10 +961,9 @@ data_record(oast_t *ast)
     vector = record->vector;
     offset = 0;
     ast = ast->l.ast;
-    for (; ast && offset < vector->offset; offset++) {
-	if (ast->token == tok_set) {
-	    ref = ast->l.ast;
-	    symbol = ref->l.ast->l.value;
+    for (; ast; offset++) {
+	if (ast->token == tok_init) {
+	    symbol = ast->l.ast->l.value;
 	    symbol = oget_symbol(record, symbol->name);
 	    assert(symbol);
 	    for (index = 0; index < vector->offset; index++) {
@@ -976,6 +975,7 @@ data_record(oast_t *ast)
 	    ref = ast->r.ast;
 	}
 	else {
+	    assert(offset < vector->offset);
 	    symbol = vector->v.ptr[offset];
 	    if (!symbol->field)
 		continue;
@@ -1000,8 +1000,6 @@ data_record(oast_t *ast)
 	/* op argument is implicitly unget */
 	emit_call_next(ctor, null, lop, false, true, false);
     }
-
-    assert(ast == null);
 }
 
 static void
@@ -1074,17 +1072,15 @@ data_vector(oast_t *ast)
     }
     jit_finishi(memcpy);
     offset = 0;
-    ast = ast->l.ast;
-    for (; ast && offset < vector->length; ast = ast->next, offset++) {
-	if (ast->token == tok_set) {
-	    ref = ast->l.ast;
-	    offset = *(oword_t *)ref->l.ast->l.value;
-	    assert(offset >= 0 && offset < vector->length);
+    for (ast = ast->l.ast; ast; ast = ast->next, offset++) {
+	if (ast->token == tok_init) {
+	    offset = *(oword_t *)ast->l.ast->l.value;
 	    ref = ast->r.ast;
 	}
 	else
 	    ref = ast;
 	if (ref->token != tok_number) {
+	    assert(offset >= 0 && offset < vector->length);
 	    lop = operand_get();
 #if __WORDSIZE == 32
 	    if ((oint16_t)offset == offset)
@@ -1100,7 +1096,6 @@ data_vector(oast_t *ast)
 	    operand_unget(2);
 	}
     }
-    assert(ast == null);
 }
 
 static void

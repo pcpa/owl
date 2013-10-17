@@ -29,9 +29,6 @@ static void
 stat(oast_t *ast);
 
 static void
-list(oast_t *ast);
-
-static void
 decl(oast_t *ast);
 
 static void
@@ -216,6 +213,9 @@ realize(oast_t *ast)
 	case tok_list:		case tok_finally:
 	    stat(ast->l.ast);
 	    break;
+	case tok_init:
+	    realize(ast->r.ast);
+	    break;
 	case tok_decl:
 	    decl(ast->r.ast);
 	    break;
@@ -278,21 +278,6 @@ stat(oast_t *ast)
     for (; ast; ast = ast->next) {
 	realize(ast);
 	reset(offset);
-    }
-}
-
-static void
-list(oast_t *ast)
-{
-    oword_t		offset;
-
-    offset = stack->offset;
-    if (ast) {
-	for (; ast->next; ast = ast->next) {
-	    realize(ast);
-	    reset(offset);
-	}
-	realize(ast);
     }
 }
 

@@ -182,8 +182,7 @@ enum otoken {
     tok_explicit,	/* explicit class method call */
     tok_call,
     tok_proto,
-    tok_fieldref,
-    tok_elemref,
+    tok_init,
     tok_ctor,
 };
 

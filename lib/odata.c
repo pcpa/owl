@@ -107,12 +107,12 @@ odata(oast_t *ast)
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc:	case tok_postdec:
-	case tok_elemref:	case tok_fieldref:
-	    odata(ast->l.ast);
-	    break;
 	case tok_com:		case tok_plus:
 	case tok_neg:		case tok_not:
 	    odata(ast->l.ast);
+	    break;
+	case tok_init:
+	    odata(ast->r.ast);
 	    break;
 	case tok_atan2:		case tok_pow:
 	case tok_hypot:		case tok_subtypeof:
@@ -530,7 +530,6 @@ data_init(oobject_t *p, otag_t *tag, oast_t *ast)
 static void
 data_record(oobject_t *p, otag_t *tag, oast_t *ast)
 {
-    oast_t		*ref;
     oint8_t		*data;
     oword_t		 index;
     oword_t		 offset;
@@ -545,10 +544,9 @@ data_record(oobject_t *p, otag_t *tag, oast_t *ast)
     onew_object(p, record->type, record->length);
     data = *p;
     vector = record->vector;
-    for (offset = 0; ast && offset < vector->offset; offset++) {
-	if (ast->token == tok_set) {
-	    ref = ast->l.ast;
-	    symbol = ref->l.ast->l.value;
+    for (offset = 0; ast; offset++) {
+	if (ast->token == tok_init) {
+	    symbol = ast->l.ast->l.value;
 	    symbol = oget_symbol(record, symbol->name);
 	    assert(symbol);
 	    for (index = 0; index < vector->offset; index++) {
@@ -561,6 +559,7 @@ data_record(oobject_t *p, otag_t *tag, oast_t *ast)
 		      symbol->tag, ast->r.ast);
 	}
 	else {
+	    assert(offset < vector->offset);
 	    symbol = vector->v.ptr[offset];
 	    if (!symbol->field)
 		continue;
@@ -569,13 +568,11 @@ data_record(oobject_t *p, otag_t *tag, oast_t *ast)
 	}
 	ast = ast->next;
     }
-    assert(ast == null);
 }
 
 static void
 data_vector(oobject_t *p, otag_t *tag, oast_t *ast)
 {
-    oast_t		*ref;
     otag_t		*base;
     oint8_t		*data;
     oword_t		 size;
@@ -599,15 +596,15 @@ data_vector(oobject_t *p, otag_t *tag, oast_t *ast)
     onew_vector(p, type, length);
     vector = *p;
     data = vector->v.i8;
-    for (offset = 0; ast && offset < length; ast = ast->next, offset++) {
-	if (ast->token == tok_set) {
-	    ref = ast->l.ast;
-	    offset = *(oword_t *)ref->l.ast->l.value;
+    for (offset = 0; ast; ast = ast->next, offset++) {
+	if (ast->token == tok_init) {
+	    offset = *(oword_t *)ast->l.ast->l.value;
 	    assert(offset >= 0 && offset < length);
 	    data_init((oobject_t *)(data + offset * size), base, ast->r.ast);
 	}
-	else
+	else {
+	    assert(offset >= 0 && offset < length);
 	    data_init((oobject_t *)(data + offset * size), base, ast);
+	}
     }
-    assert(ast == null);
 }

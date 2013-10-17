@@ -1006,14 +1006,10 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    else
 		bytes += dputs("throw;", 6);
 	    break;
-	case tok_elemref:
-	    dputc('[');		++bytes;
+	case tok_init:
 	    bytes += print_ast(ast->l.ast);
-	    dputc(']');		++bytes;
-	    break;
-	case tok_fieldref:
-	    dputc('.');		++bytes;
-	    bytes += print_ast(ast->l.ast);
+	    bytes += dputs(": ", 2);
+	    bytes += print_ast(ast->r.ast);
 	    break;
 	case tok_function:
 	    /* Do not print twice if a class method

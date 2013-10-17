@@ -1339,7 +1339,7 @@ group_match(obool_t data, otoken_t token)
 	    case tok_cbrace:		chr = '}';	break;
 	    default:			abort();
 	}
-	oparse_error(ast, "expecting '%c' %A", chr, ast);
+	oparse_error(ast, "expecting '%c' %A", chr, head_ast ? head_ast : ast);
     }
 }
 
@@ -1347,7 +1347,9 @@ static otoken_t
 group(obool_t data)
 {
     oast_t		*ast;
+    oast_t		*init;
     otoken_t		 token;
+    oobject_t		*pointer;
 
     ast = null;
     switch (token = lookahead()) {
@@ -1359,7 +1361,21 @@ group(obool_t data)
 	    break;
     }
     for (;;) {
-	(void)expression();
+	if  (expression_noeof() == tok_label && data) {
+	    /* Rewrite "label, expr" to "init{ref, expr}" */
+	    gc_ref(pointer);
+	    onew_ast(pointer, tok_init, top_ast()->note.name,
+		     top_ast()->note.lineno, top_ast()->note.column);
+	    gc_pop(init);
+	    init->l.ast = top_ast();
+	    top_ast() = init;
+	    if (otype(init->l.ast->l.value) == t_symbol)
+		init->l.ast->token = tok_symbol;
+	    else
+		init->l.ast->token = tok_number;
+	    (void)expression_noeof();
+	    init->r.ast = pop_ast();
+	}
 	if (ast == null)
 	    ast = top_ast();
 	else {
@@ -1480,7 +1496,7 @@ expression(void)
     otoken_t		token;
 
     switch (token = precedence()) {
-	case tok_symbol:
+	case tok_symbol:		case tok_number:
 	    if (lookahead() == tok_collon) {
 		consume();
 		top_ast()->token = token = tok_label;
@@ -1640,23 +1656,6 @@ unary(void)
 	    return (unary_loop(token));
 	case tok_oparen:
 	    return (unary_list());
-	case tok_obrack:
-	    ast = top_ast();
-	    ast->token = tok_elemref;
-	    expression_noeof();
-	    ast->l.ast = pop_ast();
-	    if (primary_noeof() != tok_cbrack)
-		oparse_error(ast, "expecting expression after '[' %A",
-			     ast);
-	    discard();
-	    return (tok_expr);
-	case tok_dot:
-	    ast = top_ast();
-	    ast->token = tok_fieldref;
-	    if (primary_noeof() != tok_symbol)
-		oparse_error(ast, "expecting symbol %A", ast);
-	    ast->l.ast = pop_ast();
-	    return (tok_expr);
 	case tok_inc:		case tok_dec:
 	case tok_add:		case tok_sub:
 	case tok_not:		case tok_com:

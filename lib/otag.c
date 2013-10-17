@@ -484,12 +484,9 @@ tag_ast_data_record(otag_t *tag, oast_t *ast)
     assert(tag->type == tag_class);
     record = tag->name;
     vector = record->vector;
-    for (offset = 0; ast && offset < vector->offset; offset++) {
-	if (ast->token == tok_set) {
-	    rast = ast->l.value;
-	    if (rast->token != tok_fieldref)
-		oparse_error(ast, "unexpected '='");
-	    rast = rast->l.value;
+    for (offset = 0; ast; offset++) {
+	if (ast->token == tok_init) {
+	    rast = ast->l.ast;
 	    if (rast->token != tok_symbol)
 		oparse_error(rast, "not a symbol");
 	    symbol = rast->l.value;
@@ -507,6 +504,8 @@ tag_ast_data_record(otag_t *tag, oast_t *ast)
 	    (void)otag_ast_data(symbol->tag, ast->r.value);
 	}
 	else {
+	    if (offset >= vector->offset)
+		oparse_error(ast, "too many initializers");
 	    symbol = vector->v.ptr[offset];
 	    if (!symbol->field)
 		continue;
@@ -514,8 +513,6 @@ tag_ast_data_record(otag_t *tag, oast_t *ast)
 	}
 	ast = ast->next;
     }
-    if (ast)
-	oparse_error(ast, "too many initializers");
 
     return (tag);
 }
@@ -525,9 +522,6 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 {
     oast_t		*rast;
     otag_t		*btag;
-#if 0
-    otag_t		*rtag;
-#endif
     oword_t		 size;
     oword_t		 length;
     oword_t		 offset;
@@ -537,12 +531,9 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 	size = tag->size / btag->size;
     else
 	size = tag->size / sizeof(oobject_t);
-    for (length = 0; ast; ast = ast->next, length++) {
-	if (ast->token == tok_set) {
-	    rast = ast->l.value;
-	    if (rast->token != tok_elemref)
-		oparse_error(ast, "unexpected '='");
-	    rast = rast->l.value;
+    for (offset = length = 0; ast; ast = ast->next, offset++) {
+	if (ast->token == tok_init) {
+	    rast = ast->l.ast;
 	    if (rast->token != tok_number || otype(rast->l.value) != t_word)
 		oparse_error(rast, "not an integer");
 	    offset = *(oword_t *)rast->l.value;
@@ -550,20 +541,12 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 		oparse_error(rast, "negative offset");
 	    if (size && size <= offset)
 		oparse_error(rast, "offset out of bounds");
-	    if (length < offset)
-		length = offset;
-#if 0
-	    rtag = otag_ast_data(btag, ast->r.value);
-#endif
 	}
-#if 0
-	else
-	    rtag = otag_ast_data(btag, ast);
-	if (rtag->size > btag->size)
-	    btag = rtag;
-#endif
-	if (size && length >= size)
-	    oparse_error(ast, "too many initializers");
+	if (length <= offset) {
+	    length = offset + 1;
+	    if (size && length > size)
+		oparse_error(ast, "too many initializers");
+	}
     }
     if (btag->size * length > tag->size)
 	return (tag_vector_check(btag, length, ast));

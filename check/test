@@ -30261,8 +30261,8 @@ An exception occurred. Exception Nr. 20
 try {
     throw 20;
 }
-catch (auto e) {
-    print("An exception occurred. Exception Nr. %d\n", e);
+catch (auto t30e) {
+    print("An exception occurred. Exception Nr. %d\n", t30e);
 }
 /*
 Innermost catch: string
@@ -30272,8 +30272,8 @@ try {
     try {
 	throw "string";
     }
-    catch (auto ie) {
-	print("Innermost catch: %s\n", ie);
+    catch (auto t30ie) {
+	print("Innermost catch: %s\n", t30ie);
 	throw;
     }
 }
@@ -30615,3 +30615,82 @@ for (;;) {
     }
 }
  */
+
+auto t31va[3] = { 2: 20, 0: 1, 44, };
+if (t31va[0] != 1 || t31va[1] != 44 || t31va[2] != 20)
+    print("error %d\n", __LINE__);
+class t31a_t {
+    int32_t	s32;
+    uint32_t	u32;
+    auto	any;
+};
+t31a_t t31a = {
+    44,
+    any:	22,
+    u32:	66,
+};
+if (t31a.s32 != 44 || t31a.u32 != 66 || t31a.any != 22)
+    print("error %d\n", __LINE__);
+class t31b_t {
+    int8_t	s8;
+    uint8_t	u8;
+    int16_t	s16;
+    uint16_t	u16;
+    int32_t	s32;
+    uint32_t	u32;
+    int64_t	s64;
+    uint64_t	u64;
+    float32_t	f32;
+    float64_t	f64;
+    auto	any;
+};
+t31b_t t31b = {
+    any:	true,
+    u32:	  32,
+    s16:	 -16,
+    f64:	  64.0,
+    s32:	 -32,
+    u8:		   8,
+    f32:	  32.0,
+    s8:		  -8,
+    s64:	 -64,
+		  44,
+    u16:	  16,
+};
+if ( t31b.s8 !=   -8 ||  t31b.u8 !=    8 ||
+    t31b.s16 !=  -16 || t31b.u16 !=   16 ||
+    t31b.s32 !=  -32 || t31b.u32 !=   32 ||
+    /* u64 field must initialize to 44, as it follows the s64 field */
+    t31b.s64 !=  -64 || t31b.u64 !=   44 ||
+    t31b.f32 != 32.0 || t31b.f64 != 64.0 ||
+    t31b.any != true)			print("error %d\n", __LINE__);
+uint8_t		t31_u8  =   8;
+int32_t		t31_s32 = -32;
+int64_t		t31_s64 = -64;
+uint64_t	t31_u64 =  64;
+t31b_t t31bb = {
+    f64:	 t31_s64 * (1/64),
+    any:	 null,
+    u32:	 t31_u8 * 4,
+     u8:	 8,
+     s8:	 t31_s64 / 8,
+    s64:	 t31_s64,
+    u64:	 t31_u64,
+    f32:	 1.0 / t31_s32,
+    s32:	-32,
+};
+print("\
+s8:	%d\n\
+u8:	%d\n\
+s16:	%d\n\
+u16:	%d\n\
+s32:	%d\n\
+u32:	%d\n\
+s64:	%d\n\
+u64:	%d\n\
+f32:	%d\n\
+f64:	%d\n\
+any:	%d\n",
+    t31bb.s8,  t31bb.u8,  t31bb.s16, t31bb.u16,
+    t31bb.s32, t31bb.u32, t31bb.s64, t31bb.u64,
+    t31bb.f32, t31bb.f64, t31bb.any);

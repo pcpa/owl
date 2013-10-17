@@ -447,8 +447,8 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 		else				function = ovm_w_ne;
 	    }
 	    else if (lty == t_single) {
-		assert(rty == t_single);
 		if (rreg == -1) {
+		    assert(rty == t_float);
 		    if (jmpif) {
 			if (ast->token == tok_lt)
 			    node = jit_blti_f(FPR[lreg], rop->u.d);
@@ -479,6 +479,7 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 			}
 		}
 		else {
+		    assert(rty == t_single);
 		    if (jmpif) {
 			if (ast->token == tok_lt)
 			    node = jit_bltr_f(FPR[lreg], FPR[rreg]);

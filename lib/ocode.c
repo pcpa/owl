@@ -122,8 +122,10 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc:	case tok_postdec:
-	case tok_elemref:
 	    oeval_ast(ast->l.ast);
+	    break;
+	case tok_init:
+	    oeval_ast(ast->r.ast);
 	    break;
 	case tok_com:		case tok_plus:
 	case tok_neg:		case tok_not:
@@ -206,7 +208,7 @@ oeval_ast(oast_t *ast)
 	    check_exception(ast);
 	case tok_type:		case tok_number:	case tok_string:
 	case tok_class:		case tok_label:		case tok_case:
-	case tok_default:	case tok_function:	case tok_fieldref:
+	case tok_default:	case tok_function:
 	case tok_this:
 	    break;
 	default:
