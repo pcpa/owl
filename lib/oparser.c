@@ -1637,7 +1637,6 @@ unary_noeof(void)
 static otoken_t
 unary(void)
 {
-    oast_t		*ast;
     otoken_t		 token;
 
     switch (token = primary()) {
@@ -1666,6 +1665,9 @@ unary(void)
 	    return (unary_binary(token));
 	case tok_sizeof:	case tok_new:
 	    return (unary_unary(token));
+	case tok_ellipsis:
+	    if (lookahead() == tok_obrack)
+		token = unary_vector();
 	default:
 	    return (token);
     }
@@ -1725,6 +1727,7 @@ unary_value(otoken_t token)
 	case tok_com:
 	case tok_atan2:		case tok_pow:
 	case tok_hypot:		case tok_complex:
+	case tok_ellipsis:
 	    break;
 	default:
 	    oparse_error(top_ast(), "expecting expression %A", top_ast());

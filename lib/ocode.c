@@ -93,6 +93,8 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_vector:
 	    oeval_ast(ast->l.ast);
+	    if (ast->r.ast == null)
+		oparse_error(ast, "expecting offset");
 	    oeval_ast(ast->r.ast);
 	    /* validate element reference */
 	    oeval_ast_tag(ast);
@@ -208,7 +210,7 @@ oeval_ast(oast_t *ast)
 	    check_exception(ast);
 	case tok_type:		case tok_number:	case tok_string:
 	case tok_class:		case tok_label:		case tok_case:
-	case tok_default:	case tok_function:
+	case tok_default:	case tok_function:	case tok_ellipsis:
 	case tok_this:
 	    break;
 	default:
@@ -236,7 +238,7 @@ oeval_ast_tag(oast_t *ast)
 	    return (symbol->tag);
 	case tok_vector:
 	    tag = oeval_ast_tag(ast->l.ast);
-	    if (tag->type != tag_vector) {
+	    if (tag->type != tag_vector && tag->type != tag_varargs) {
 		if (ast->l.ast->token == tok_symbol) {
 		    symbol = ast->l.ast->l.value;
 		    oparse_error(ast, "'%p' is not a vector %A",
@@ -298,6 +300,8 @@ oeval_ast_tag(oast_t *ast)
 	    return (symbol->tag);
 	case tok_string:
 	    return (string_tag);
+	case tok_ellipsis:
+	    return (varargs_tag);
 	default:
 	    oparse_error(ast, "not a type or symbol reference %A", ast);
     }

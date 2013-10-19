@@ -103,6 +103,7 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
 #if DEBUG
     otype_t		 type;
 #endif
+    oword_t		 length;
     ovector_t		*vector;
     oobject_t		*pointer;
     ofunction_t		*function;
@@ -143,17 +144,11 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
 	function->name->offset = record->nmethod++;
     function->name->function = true;
 
+    /* Prototype tags are stored as strings for comparison by contents */
     vector = tag->name;
-    if (vector->offset > 1 &&
-	vector->v.ptr[vector->offset - 1] == varargs_tag) {
-#if __WORDSIZE == 32
-	function->varargs = (function->record->offset + 3) & ~3;
-#else
-	function->varargs = (function->record->offset + 7) & ~7;
-#endif
-	/* Must not be zero as it is both, varargs flag and offset */
-	assert(function->varargs != 0);
-    }
+    length = vector->length / sizeof(oword_t);
+    if (length && vector->v.ptr[length - 1] == varargs_tag)
+	function->varargs = THIS_OFFSET;
 
     return (function);
 }
@@ -266,8 +261,12 @@ ofunction_start_locs(ofunction_t *function)
     assert(!function->local);
 #if __WORDSIZE == 32
     function->record->length = (function->record->length + 3) & ~3;
+    if (function->varargs)
+	function->varargs = function->record->offset & ~3;
 #else
     function->record->length = (function->record->length + 7) & ~7;
+    if (function->varargs)
+	function->varargs = function->record->offset & ~7;
 #endif
     function->frame = function->record->length;
     function->record->offset = 0;

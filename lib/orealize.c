@@ -153,7 +153,7 @@ realize(oast_t *ast)
 		    break;
 	    }
 	    break;
-	case tok_symbol:
+	case tok_symbol:	case tok_ellipsis:
 	    ast->offset = get();
 	    break;
 	case tok_string:
@@ -179,6 +179,7 @@ realize(oast_t *ast)
 	case tok_not:		case tok_com:
 	case tok_plus:		case tok_neg:
 	case tok_inc:		case tok_dec:
+	case tok_sizeof:
 	    realize(ast->l.ast);
 	    break;
 	case tok_postinc:	case tok_postdec:

@@ -139,6 +139,7 @@ init_tag(void)
     oadd_root((oobject_t *)&varargs_tag);
     onew((oobject_t *)&varargs_tag, tag);
     varargs_tag->type = tag_varargs;
+    varargs_tag->base = auto_tag;
     symbol = onew_identifier(oget_string((ouint8_t *)"...", 3));
     symbol->tag = varargs_tag;
 }

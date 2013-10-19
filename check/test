@@ -30694,3 +30694,140 @@ any:	%d\n",
     t31bb.s8,  t31bb.u8,  t31bb.s16, t31bb.u16,
     t31bb.s32, t31bb.u32, t31bb.s64, t31bb.u64,
     t31bb.f32, t31bb.f64, t31bb.any);
+
+/* Test not properly tested earlier cases of register starving due
+ * due to too many values needing to be saved/restored */
+auto t32v[] = { 1, 2, 3 };
+auto t32f()
+{
+    auto i, n = 3;
+    for (i = 0; i < n; i++) {
+	t32v[i] *= 10;
+	print("%d\n", t32v[i]);
+    }
+    return n;
+}
+t32f();
+
+auto t33f0(...)
+{
+    auto i, n = sizeof(...);
+    for (i = 0; i < n; i++) {
+	...[i] = i * 10;
+	if (...[i] != i * 10)		print("error %d\n", __LINE__);
+    }
+    return n;
+}
+t33f0(1, 2, 3);
+auto t33f1(...)
+{
+    auto i, n = sizeof(...);
+    for (i = 0; i < n; i++)
+	print("%d\n", ...[i]);
+    return n;
+}
+t33f1(0, 1, 2);
+auto t33f2(...)
+{
+    auto i, n = sizeof(...);
+    for (i = 0; i < n; i++) {
+	...[i]++;
+	print("%d\n", ...[i]);
+    }
+    return n;
+}
+t33f2(1, 2, 3);
+auto t33f3(...)
+{
+    auto i, n = sizeof(...);
+    for (i = 0; i < n; i++) {
+	++...[i];
+	print("%d\n", ...[i]);
+    }
+    return n;
+}
+t33f3(1, 2, 3);
+auto t33_f0(...)				{ return sizeof(...); }
+auto t33_f1(auto v1, ...)			{ return sizeof(...); }
+auto t33_f2(auto v1, auto v2, ...)		{ return sizeof(...); }
+auto t33_f3(auto v1, auto v2, auto v3, ...)	{ return sizeof(...); }
+void t33_f_t1(void)
+{
+    auto v1 = 1, v2 = 2, v3 = 3;
+    if (t33_f0(v1, v2, v3) != 3)	print("error %d\n", __LINE__);
+    if (t33_f1(v1, v2, v3) != 2)	print("error %d\n", __LINE__);
+    if (t33_f2(v1, v2, v3) != 1)	print("error %d\n", __LINE__);
+    if (t33_f3(v1, v2, v3) != 0)	print("error %d\n", __LINE__);
+    if (t33_f0() != 0)			print("error %d\n", __LINE__);
+    if (t33_f1(v1) != 0)		print("error %d\n", __LINE__);
+    if (t33_f2(v1, v2) != 0)		print("error %d\n", __LINE__);
+    if (t33_f3(v1, v2, v3) != 0)	print("error %d\n", __LINE__);
+    if (t33_f0(v1) != 1)		print("error %d\n", __LINE__);
+    if (t33_f1(v1, v2) != 1)		print("error %d\n", __LINE__);
+    if (t33_f2(v1, v2, v3) != 1)	print("error %d\n", __LINE__);
+    if (t33_f3(v1, v2, v3, -1) != 1)	print("error %d\n", __LINE__);
+}
+t33_f_t1();
+class t33_c_t {
+    auto f0(...) {
+	auto r = 0, n = sizeof(...);
+	for (--n; n >= 0; --n)
+	    r += ...[n];
+	return r;
+    }
+    auto f1(auto v1, ...) {
+	auto r = v1, n = sizeof(...);
+	for (--n; n >= 0; --n)
+	    r += ...[n];
+	return r;
+    }
+    auto f2(auto v1, auto v2, ...) {
+	auto r = v1 + v2, n = sizeof(...);
+	for (--n; n >= 0; --n)
+	    r += ...[n];
+	return r;
+    }
+};
+void t33_f_t2(t33_c_t c)
+{
+    auto x= 1, y = 2, z = 3;
+    if (c.f0(x, y, z) != 6)		print("error %d\n", __LINE__);
+    if (c.f1(x, y, z) != 6)		print("error %d\n", __LINE__);
+    if (c.f2(x, y, z) != 6)		print("error %d\n", __LINE__);
+}
+t33_c_t t33_c = {};
+t33_f_t2(t33_c);
+void t33_fn(...)
+{
+    auto n = sizeof(...);
+    switch (n) {
+	case 0:
+	    t33_fn(1, 2);
+	    break;
+	case 1:
+	    t33_fn(1, 2, 3, 4);
+	    break;
+	case 2:
+	    t33_fn(1, 2, 3, 4, 5);
+	    break;
+	case 3:
+	    break;
+	case 4:
+	    t33_fn(1, 2, 3);
+	    break;
+	case 5:
+	    t33_fn(1, 2, 3, 4, 5, 6);
+	    break;
+	case 6:
+	    t33_fn(1);
+	    break;
+	default:
+	    print("error %d\n", __LINE__);
+    }
+    if (n != sizeof(...))		print("error %d\n", __LINE__);
+}
+void t33_f_t3(void)
+{
+    t33_fn();
+}
+t33_f_t3();

@@ -763,19 +763,19 @@ emit_function(ofunction_t *function)
     if (GPR[STACK] != JIT_NOREG) {
 	jit_movr(save, GPR[STACK]);
 	if (function->varargs) {
-	    jit_ldxi(JIT_R0, frame, SIZE_OFFSET);
-	    jit_addi(GPR[STACK], JIT_R0, function->frame + function->stack);
+	    jit_ldxi_i(JIT_R0, frame, SIZE_OFFSET);
+	    jit_addr(GPR[STACK], GPR[STACK], JIT_R0);
 	}
-	else
-	    jit_addi(GPR[STACK], GPR[STACK], function->frame + function->stack);
+	jit_addi(GPR[STACK], GPR[STACK], function->frame + function->stack);
 	jit_stxi(offsetof(othread_t, sp), JIT_V0, GPR[STACK]);
     }
     else {
 	jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, sp));
 	jit_movr(save, JIT_R0);
 	if (function->varargs) {
-	    jit_ldxi(GPR[3], frame, SIZE_OFFSET);
-	    jit_addi(JIT_R0, GPR[3], function->frame + function->stack);
+	    jit_ldxi_i(GPR[3], frame, SIZE_OFFSET);
+	    jit_addi(GPR[3], GPR[3], function->frame + function->stack);
+	    jit_addi(JIT_R0, JIT_R0, GPR[3]);
 	}
 	else
 	    jit_addi(JIT_R0, JIT_R0, function->frame + function->stack);
@@ -793,7 +793,7 @@ emit_function(ofunction_t *function)
     jit_pushargi(0);
     if (function->varargs) {
 	if (GPR[STACK] != JIT_NOREG)
-	    jit_subr(JIT_R0, stack, save);
+	    jit_subr(JIT_R0, GPR[STACK], save);
 	else {
 	    jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, sp));
 	    jit_subr(JIT_R0, JIT_R0, save);

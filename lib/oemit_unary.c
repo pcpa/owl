@@ -171,6 +171,7 @@ emit_inc_dec(oast_t *ast)
     oword_t		 offset;
     orecord_t		*record;
     osymbol_t		*symbol;
+    obool_t		 vararg;
 
     switch (ast->token) {
 	case tok_inc:		inc = true;	post = false;	break;
@@ -180,6 +181,7 @@ emit_inc_dec(oast_t *ast)
     }
     offset = ast->offset;
     ast = ast->l.ast;
+    vararg = ast->token == tok_vector && ast->l.ast->token == tok_ellipsis;
     switch (ast->token) {
 	case tok_symbol:
 	    emit(ast);
@@ -205,14 +207,22 @@ emit_inc_dec(oast_t *ast)
 	    load_record(bop, lop, rop);
 	    break;
 	case tok_vector:
-	    emit(ast->l.ast);
-	    bop = operand_top();
-	    if (bop->k == null || bop->k->type != tag_vector)
-		oparse_error(ast, "expecting vector %A", ast->l.ast);
-	    emit(ast->r.ast);
-	    lop = operand_top();
-	    rop = operand_get();
-	    load_vector(bop, lop, rop);
+	    if (vararg) {
+		emit(ast->r.ast);
+		lop = operand_top();
+		rop = operand_get();
+		load_vararg(lop, rop);
+	    }
+	    else {
+		emit(ast->l.ast);
+		bop = operand_top();
+		if (bop->k == null || bop->k->type != tag_vector)
+		    oparse_error(ast, "expecting vector %A", ast->l.ast);
+		emit(ast->r.ast);
+		lop = operand_top();
+		rop = operand_get();
+		load_vector(bop, lop, rop);
+	    }
 	    break;
 	default:
 	    oparse_error(ast, "not a lvalue %A", ast);
@@ -290,14 +300,21 @@ emit_inc_dec(oast_t *ast)
 	    operand_unget(2);
 	    break;
 	default:
-	    store_vector(bop, lop, rop);
-	    operand_copy(bop, rop);
-	    operand_unget(2);
+	    if (vararg) {
+		store_vararg(lop, rop);
+		operand_copy(lop, rop);
+		operand_unget(1);
+	    }
+	    else {
+		store_vector(bop, lop, rop);
+		operand_copy(bop, rop);
+		operand_unget(2);
+	    }
 	    break;
     }
 
     if (post) {
-	if (ast->token == tok_symbol)
+	if (ast->token == tok_symbol || vararg)
 	    operand_copy(rop, pop);
 	else
 	    operand_copy(bop, pop);
