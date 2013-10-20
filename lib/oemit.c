@@ -32,26 +32,26 @@
  * need to be live after an ovm_* call */
 #define protect_tmp(N)							\
     do {								\
-	assert(!(tmp_mask & (N + 1)));					\
-	tmp_mask |= N + 1;						\
+	assert(!(tmp_mask & (1 << (N))));				\
+	tmp_mask |= 1 << (N);						\
     } while (0);
 #define release_tmp(N)							\
     do {								\
-	assert(tmp_mask & (N + 1));					\
-	tmp_mask &= ~(N + 1);						\
+	assert(tmp_mask & (1 << (N)));					\
+	tmp_mask &= ~(1 << (N));					\
     } while (0)
 
 /* Avoid double spill, usually with the second spill being
  * done with the wrong value to be restored */
 #define protect_reg(N)							\
     do {								\
-	assert(!(reg_mask & (N + 1)));					\
-	reg_mask |= N + 1;						\
+	assert(!(reg_mask & (1 << (N))));				\
+	reg_mask |= 1 << (N);						\
     } while (0);
 #define release_reg(N)							\
     do {								\
-	assert(reg_mask & (N + 1));					\
-	reg_mask &= ~(N + 1);						\
+	assert(reg_mask & (1 << (N)));					\
+	reg_mask &= ~(1 << (N));					\
     } while (0)
 
 /*
@@ -2225,286 +2225,266 @@ store_record(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 static void
 load_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 {
+    obool_t		 imm;
+    obool_t		 byte;
     otype_t		 type;
-    jit_node_t		*jneg;
+    jit_node_t		*jnul;
     jit_node_t		*jump;
     oword_t		 offset;
 
     emit_load(bop);
 
-    /* Load now or rop may allocate the same register */
-    if (lop->t != t_half && lop->t != t_word)
+    imm = lop->t == t_half || lop->t == t_word;
+    if (imm)
+	offset = lop->u.w;
+    else {
+	/* Load now or rop may allocate the same register */
 	emit_load(lop);
+	offset = 0;
+    }
 
     rop->u.w = get_register(true);
     rop->k = bop->k->base;
     type = otag_to_type(rop->k);
+    byte = type == t_int8 || type == t_uint8;
 
     /* Only null or a compatible object type should be stored */
     load_w(bop->u.w);
-    jump = jit_bnei(GPR[bop->u.w], 0);
+    /* Could just except invalid argument, but prefer better error
+     * description at the cost of (at least) two more instructions */
+    jit_movi(JIT_R0, except_null_dereference);
+    jnul = jit_beqi(GPR[bop->u.w], 0);
+    /* Vector allocation does not allow allocating non addressable
+     * memory, so, no need to check if the offset overflows */
+    if (imm) {
+	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
+	jump = jit_bgti_u(JIT_R0, offset);
+    }
+    else {
+	switch (emit_get_type(lop)) {
+	    case t_half:	case t_word:
+		break;
+	    case t_single:
+		jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    case t_float:
+		sync_d(lop->u.w);
+	    case t_void:
+		load_r(lop->u.w);
+		jit_prepare();
+		jit_pushargr(GPR[lop->u.w]);
+		emit_finish(ovm_offset, mask1(lop->u.w));
+		load_w(lop->u.w);
+		emit_set_type(lop, t_word);
+		break;
+	    default:
+		abort();
+	}
+	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
+	jump = jit_bgtr_u(JIT_R0, GPR[lop->u.w]);
+    }
+    jit_movi(JIT_R0, except_out_of_bounds);
+    jit_patch(jnul);
     jit_prepare();
-    jit_pushargi(except_null_dereference);
+    jit_pushargr(JIT_R0);
     jit_finishi(ovm_raise);
     jit_patch(jump);
 
-    /* FIXME ensure earlier it is a positive integer and/or convert types */
-    if (lop->t == t_half || lop->t == t_word) {
-	offset = lop->u.w;
-	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
-	jump = jit_bgti(JIT_R0, offset);
-	jit_prepare();
-	jit_pushargi(except_out_of_bounds);
-	jit_finishi(ovm_raise);
-	jit_patch(jump);
-	switch (type) {
-	    case t_int8:	case t_uint8:
-		break;
-	    case t_int16:	case t_uint16:
-		offset <<= 1;
-		break;
-	    case t_int32:	case t_uint32:
-	    case t_float32:
+    if (!byte) {
+	if (imm) {
+	    /* Overflow after shift must have been already tested */
+	    switch (type) {
+		case t_int16:	case t_uint16:
+		    offset <<= 1;
+		    break;
+		case t_int32:	case t_uint32:	case t_float32:
 #if __WORDSIZE == 32
-	    default:
+		default:
 #endif
-		offset <<= 2;
-		break;
-	    case t_int64:	case t_uint64:
-	    case t_float64:
+		    offset <<= 2;
+		    break;
+		case t_int64:	case t_uint64:	case t_float64:
 #if __WORDSIZE == 64
-	    default:
+		default:
 #endif
-		offset <<= 3;
-		break;
-	}
-	if (GPR[TMP0] == JIT_NOREG) {
-	    spill_w(bop->u.w);
-	    jit_ldxi(GPR[bop->u.w], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	    loadi(rop, type, GPR[bop->u.w], offset);
-	    load_w(bop->u.w);
+		    offset <<= 3;
+		    break;
+	    }
 	}
 	else {
-	    protect_tmp(0);
-	    jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	    loadi(rop, type, GPR[TMP0], offset);
-	    release_tmp(0);
-	}
-	return;
-    }
-
-    switch (emit_get_type(lop)) {
-	case t_half:		case t_word:
-	    jneg = jit_blti(GPR[lop->u.w], 0);
-	    break;
-	case t_single:
-	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
-	case t_float:
-	    sync_d(lop->u.w);
-	case t_void:
-	    load_r(lop->u.w);
-	    jit_prepare();
-	    jit_pushargr(GPR[lop->u.w]);
-	    emit_finish(ovm_offset, mask1(lop->u.w));
-	    load_w(lop->u.w);
-	    emit_set_type(lop, t_word);
-	    jneg = null;
-	    break;
-	default:
-	    abort();
-    }
-    jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
-    jump = jit_bgtr(JIT_R0, GPR[lop->u.w]);
-    if (jneg)
-	jit_patch(jneg);
-    jit_prepare();
-    jit_pushargi(except_out_of_bounds);
-    jit_finishi(ovm_raise);
-    jit_patch(jump);
-
-    if (type != t_int8 && type != t_uint8) {
-	protect_reg(lop->u.w);
-	spill_w(lop->u.w);
-	switch (type) {
-	    case t_int16:	case t_uint16:
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 2);
-		break;
-	    case t_int32:	case t_uint32:
-	    case t_float32:
+	    protect_reg(lop->u.w);
+	    spill_w(lop->u.w);
+	    switch (type) {
+		case t_int16:	case t_uint16:
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 1);
+		    break;
+		case t_int32:	case t_uint32:	case t_float32:
 #if __WORDSIZE == 32
-	    default:
+		default:
 #endif
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 4);
-		break;
-	    case t_int64:	case t_uint64:
-	    case t_float64:
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 2);
+		    break;
+		case t_int64:	case t_uint64:	case t_float64:
 #if __WORDSIZE == 64
-	    default:
+		default:
 #endif
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 8);
-		break;
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 3);
+		    break;
+	    }
 	}
-	jump = jit_beqi(JIT_R0, 0);
-	jit_prepare();
-	jit_pushargi(except_not_an_integer);
-	jit_finishi(ovm_raise);
-	jit_patch(jump);
     }
+
     if (GPR[TMP0] == JIT_NOREG) {
 	spill_w(bop->u.w);
 	jit_ldxi(GPR[bop->u.w], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	loadr(rop, type, GPR[bop->u.w], GPR[lop->u.w]);
+	if (imm)
+	    loadi(rop, type, GPR[bop->u.w], offset);
+	else
+	    loadr(rop, type, GPR[bop->u.w], GPR[lop->u.w]);
 	load_w(bop->u.w);
     }
     else {
 	protect_tmp(0);
 	jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	loadr(rop, type, GPR[TMP0], GPR[lop->u.w]);
+	if (imm)
+	    loadi(rop, type, GPR[TMP0], offset);
+	else
+	    loadr(rop, type, GPR[TMP0], GPR[lop->u.w]);
 	release_tmp(0);
     }
-    if (type != t_int8 && type != t_uint8) {
-	release_reg(lop->u.w);
+    if (!imm && !byte) {
 	load_w(lop->u.w);
+	release_reg(lop->u.w);
     }
 }
 
 static void
 store_vector(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
 {
+    obool_t		 imm;
+    obool_t		 byte;
     otype_t		 type;
-    jit_node_t		*jneg;
+    jit_node_t		*jnul;
     jit_node_t		*jump;
     oword_t		 offset;
 
-    type = otag_to_type(bop->k->base);
     emit_load(bop);
+    type = otag_to_type(bop->k->base);
+    byte = type == t_int8 || type == t_uint8;
+
+    imm = lop->t == t_half || lop->t == t_word;
+    if (imm)
+	offset = lop->u.w;
+    else {
+	/* Load now or rop may allocate the same register */
+	emit_load(lop);
+	offset = 0;
+    }
 
     /* Only null or a compatible object type should be stored */
     load_w(bop->u.w);
-    jump = jit_bnei(GPR[bop->u.w], 0);
+    /* Could just except invalid argument, but prefer better error
+     * description at the cost of (at least) two more instructions */
+    jit_movi(JIT_R0, except_null_dereference);
+    jnul = jit_beqi(GPR[bop->u.w], 0);
+    /* Vector allocation does not allow allocating non addressable
+     * memory, so, no need to check if the offset overflows */
+    if (imm) {
+	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
+	jump = jit_bgti_u(JIT_R0, offset);
+    }
+    else {
+	switch (emit_get_type(lop)) {
+	    case t_half:	case t_word:
+		break;
+	    case t_single:
+		jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    case t_float:
+		sync_d(lop->u.w);
+	    case t_void:
+		load_r(lop->u.w);
+		jit_prepare();
+		jit_pushargr(GPR[lop->u.w]);
+		emit_finish(ovm_offset, mask1(lop->u.w));
+		load_w(lop->u.w);
+		emit_set_type(lop, t_word);
+		break;
+	    default:
+		abort();
+	}
+	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
+	jump = jit_bgtr_u(JIT_R0, GPR[lop->u.w]);
+    }
+    jit_movi(JIT_R0, except_out_of_bounds);
+    jit_patch(jnul);
     jit_prepare();
-    jit_pushargi(except_null_dereference);
+    jit_pushargr(JIT_R0);
     jit_finishi(ovm_raise);
     jit_patch(jump);
 
-    /* FIXME ensure earlier it is a positive integer and/or convert types */
-    if (lop->t == t_half || lop->t == t_word) {
-	offset = lop->u.w;
-	jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
-	jump = jit_bgti(JIT_R0, offset);
-	jit_prepare();
-	jit_pushargi(except_out_of_bounds);
-	jit_finishi(ovm_raise);
-	jit_patch(jump);
-	switch (type) {
-	    case t_int8:	case t_uint8:
-		break;
-	    case t_int16:	case t_uint16:
-		offset <<= 1;
-		break;
-	    case t_int32:	case t_uint32:
-	    case t_float32:
+    if (!byte) {
+	if (imm) {
+	    switch (type) {
+		case t_int16:	case t_uint16:
+		    offset <<= 1;
+		    break;
+		case t_int32:	case t_uint32:	case t_float32:
 #if __WORDSIZE == 32
-	    default:
+		default:
 #endif
-		offset <<= 2;
-		break;
-	    case t_int64:	case t_uint64:
-	    case t_float64:
+		    offset <<= 2;
+		    break;
+		case t_int64:	case t_uint64:	case t_float64:
 #if __WORDSIZE == 64
-	    default:
+		default:
 #endif
-		offset <<= 3;
-		break;
-	}
-	if (GPR[TMP0] == JIT_NOREG) {
-	    spill_w(bop->u.w);
-	    jit_ldxi(GPR[bop->u.w], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	    storei(rop, type, GPR[bop->u.w], offset);
-	    load_w(bop->u.w);
+		    offset <<= 3;
+		    break;
+	    }
 	}
 	else {
-	    protect_tmp(0);
-	    jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	    storei(rop, type, GPR[TMP0], offset);
-	    release_tmp(0);
-	}
-	return;
-    }
-
-    emit_load(lop);
-    switch (emit_get_type(lop)) {
-	case t_half:		case t_word:
-	    jneg = jit_blti(GPR[lop->u.w], 0);
-	    break;
-	case t_single:
-	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
-	case t_float:
-	    sync_d(lop->u.w);
-	case t_void:
-	    load_r(lop->u.w);
-	    jit_prepare();
-	    jit_pushargr(GPR[lop->u.w]);
-	    emit_finish(ovm_offset, mask1(lop->u.w));
-	    load_w(lop->u.w);
-	    emit_set_type(lop, t_word);
-	    jneg = null;
-	    break;
-	default:
-	    abort();
-    }
-    jit_ldxi(JIT_R0, GPR[bop->u.w], offsetof(ovector_t, length));
-    jump = jit_bgtr(JIT_R0, GPR[lop->u.w]);
-    if (jneg)
-	jit_patch(jneg);
-    jit_prepare();
-    jit_pushargi(except_out_of_bounds);
-    jit_finishi(ovm_raise);
-    jit_patch(jump);
-
-    if (type != t_int8 && type != t_uint8) {
-	protect_reg(lop->u.w);
-	spill_w(lop->u.w);
-	switch (type) {
-	    case t_int16:	case t_uint16:
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 2);
-		break;
-	    case t_int32:	case t_uint32:
-	    case t_float32:
+	    protect_reg(lop->u.w);
+	    spill_w(lop->u.w);
+	    switch (type) {
+		case t_int16:	case t_uint16:
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 1);
+		    break;
+		case t_int32:	case t_uint32:	case t_float32:
 #if __WORDSIZE == 32
-	    default:
+		default:
 #endif
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 4);
-		break;
-	    case t_int64:	case t_uint64:
-	    case t_float64:
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 2);
+		    break;
+		case t_int64:	case t_uint64:	case t_float64:
 #if __WORDSIZE == 64
-	    default:
+		default:
 #endif
-		jit_qmuli(GPR[lop->u.w], JIT_R0, GPR[lop->u.w], 8);
-		break;
+		    jit_lshi(GPR[lop->u.w], GPR[lop->u.w], 3);
+		    break;
+	    }
 	}
-	jump = jit_beqi(JIT_R0, 0);
-	jit_prepare();
-	jit_pushargi(except_not_an_integer);
-	jit_finishi(ovm_raise);
-	jit_patch(jump);
     }
+
     if (GPR[TMP0] == JIT_NOREG) {
 	spill_w(bop->u.w);
 	jit_ldxi(GPR[bop->u.w], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	storer(rop, type, GPR[bop->u.w], GPR[lop->u.w]);
+	if (imm)
+	    storei(rop, type, GPR[bop->u.w], offset);
+	else
+	    storer(rop, type, GPR[bop->u.w], GPR[lop->u.w]);
 	load_w(bop->u.w);
     }
     else {
 	protect_tmp(0);
 	jit_ldxi(GPR[TMP0], GPR[bop->u.w], offsetof(ovector_t, v.ptr));
-	storer(rop, type, GPR[TMP0], GPR[lop->u.w]);
+	if (imm)
+	    storei(rop, type, GPR[TMP0], offset);
+	else
+	    storer(rop, type, GPR[TMP0], GPR[lop->u.w]);
 	release_tmp(0);
     }
-    if (type != t_int8 && type != t_uint8) {
-	release_reg(lop->u.w);
+    if (!imm && !byte) {
 	load_w(lop->u.w);
+	release_reg(lop->u.w);
     }
 }
 
@@ -2599,8 +2579,8 @@ load_vararg(ooperand_t *lop, ooperand_t *rop)
     jit_pushargr(JIT_R0);
     emit_finish(ovm_load, mask1(rop->u.w));
     if (jovr) {
-	release_reg(lop->u.w);
 	load_w(lop->u.w);
+	release_reg(lop->u.w);
     }
 }
 
@@ -2689,8 +2669,8 @@ store_vararg(ooperand_t *lop, ooperand_t *rop)
     jit_pushargi(t_void);
     emit_finish(ovm_store, mask1(rop->u.w));
     if (jovr) {
-	release_reg(lop->u.w);
 	load_w(lop->u.w);
+	release_reg(lop->u.w);
     }
 }
 
@@ -3293,7 +3273,7 @@ sync_registers(oword_t mask)
     if (tmp_mask & 1)
 	jit_stxi(SPL[TMP0], JIT_FP, GPR[TMP0]);
     if (tmp_mask & 2)
-	jit_stxi(SPL[TMP0], JIT_FP, GPR[TMP1]);
+	jit_stxi(SPL[TMP1], JIT_FP, GPR[TMP1]);
 
     return (result);
 }
@@ -3314,5 +3294,5 @@ load_registers(oword_t mask)
     if (tmp_mask & 1)
 	jit_ldxi(GPR[TMP0], JIT_FP, SPL[TMP0]);
     if (tmp_mask & 2)
-	jit_ldxi(GPR[TMP1], JIT_FP, SPL[TMP0]);
+	jit_ldxi(GPR[TMP1], JIT_FP, SPL[TMP1]);
 }
