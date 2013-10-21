@@ -1397,7 +1397,7 @@ emit_load(ooperand_t *op)
 		jit_prepare();
 		jit_pushargr(GPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_finishi(ovm_copy);
+		emit_finish(ovm_copy, mask1(regno));
 		op->t = t_void;
 		break;
 	    default:
@@ -1707,24 +1707,30 @@ storei(ooperand_t *op, otype_t type, jit_int32_t base, oword_t offset)
 		break;
 	    case t_int64:		case t_uint64:
 #if __WORDSIZE == 32
-		if (GPR[TMP0] != JIT_NOREG)
+		if (GPR[TMP0] != JIT_NOREG && !(tmp_mask & 1))
 		    jit_rshi(GPR[TMP0], GPR[regno], 31);
+		else if (GPR[TMP1] != JIT_NOREG && !(tmp_mask & 2))
+		    jit_rshi(GPR[TMP1], GPR[regno], 31);
 		else {
 		    spill_w(regno);
 		    jit_rshi(GPR[regno], GPR[regno], 31);
 		}
 
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
-		if (GPR[TMP0] != JIT_NOREG)
+		if (GPR[TMP0] != JIT_NOREG && !(tmp_mask & 1))
 		    jit_stxi_i(offset + 4, base, GPR[TMP0]);
+		else if (GPR[TMP1] != JIT_NOREG && !(tmp_mask & 2))
+		    jit_stxi_i(offset + 4, base, GPR[TMP1]);
 		else {
 		    jit_stxi_i(offset + 4, base, GPR[regno]);
 		    load_w(regno);
 		}
 		jit_stxi_i(offset, base, GPR[regno]);
 #  else
-		if (GPR[TMP0] != JIT_NOREG)
+		if (GPR[TMP0] != JIT_NOREG && !(tmp_mask & 1))
 		    jit_stxi_i(offset, base, GPR[TMP0]);
+		else if (GPR[TMP1] != JIT_NOREG && !(tmp_mask & 2))
+		    jit_stxi_i(offset, base, GPR[TMP1]);
 		else {
 		    jit_stxi_i(offset, base, GPR[regno]);
 		    load_w(regno);
@@ -2787,7 +2793,7 @@ emit_save(ooperand_t *op)
 	    jit_pushargr(GPR[regno]);
 	    jit_pushargr(JIT_R0);
 	    jit_pushargi(t_void);
-	    jit_finishi(ovm_store);
+	    emit_finish(ovm_store, mask1(regno));
 	    break;
 	case t_half:	case t_word:
 	    if (!jit_callee_save_p(regno)) {
@@ -3203,8 +3209,10 @@ get_register(obool_t spill)
     /*  No register found; spill first match */
     for (offset = 0; offset < stack->offset; offset++) {
 	operand = stack->v.ptr[offset];
-	if ((operand->t & (t_spill|t_register)) == t_register)
+	if ((operand->t & (t_spill|t_register)) == t_register) {
+	    regno = operand->u.w;
 	    break;
+	}
     }
 
     assert(offset < stack->offset);

@@ -464,7 +464,7 @@ make_tag_vector(otag_t *base, oword_t length)
     onew_vector(&tag->name, t_uint8, sizeof(oword_t));
     vector = tag->name;
     *vector->v.w = length;
-    tag->size = size;
+    tag->size = length;
     tag->base = base;
     oput_hash(base->data, (oentry_t *)tag);
     gc_dec();
@@ -523,15 +523,11 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 {
     oast_t		*rast;
     otag_t		*btag;
-    oword_t		 size;
+    otag_t		*rtag;
     oword_t		 length;
     oword_t		 offset;
 
     btag = tag->base;
-    if (btag->type == tag_basic)
-	size = tag->size / btag->size;
-    else
-	size = tag->size / sizeof(oobject_t);
     for (offset = length = 0; ast; ast = ast->next, offset++) {
 	if (ast->token == tok_init) {
 	    rast = ast->l.ast;
@@ -540,17 +536,22 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 	    offset = *(oword_t *)rast->l.value;
 	    if (offset < 0)
 		oparse_error(rast, "negative offset");
-	    if (size && size <= offset)
+	    if (tag->size && tag->size <= offset)
 		oparse_error(rast, "offset out of bounds");
+	    rtag = otag_ast_data(btag, ast->r.value);
 	}
-	if (length <= offset) {
-	    length = offset + 1;
-	    if (size && length > size)
+	else {
+	    rtag = otag_ast_data(btag, ast);
+	    if (tag->size && tag->size <= offset)
 		oparse_error(ast, "too many initializers");
 	}
+	if (rtag->type == btag->type && rtag->size > btag->size)
+	    btag = rtag;
+	if (length <= offset)
+	    length = offset + 1;
     }
-    if (btag->size * length > tag->size)
-	return (tag_vector_check(btag, length, ast));
+    if (!tag->size)
+	tag = tag_vector_check(btag, length, ast);
 
     return (tag);
 }

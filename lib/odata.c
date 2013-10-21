@@ -577,7 +577,6 @@ data_vector(oobject_t *p, otag_t *tag, oast_t *ast)
     oint8_t		*data;
     oword_t		 size;
     otype_t		 type;
-    oword_t		 length;
     oword_t		 offset;
     ovector_t		*vector;
 
@@ -588,22 +587,20 @@ data_vector(oobject_t *p, otag_t *tag, oast_t *ast)
 	size = base->size;
     else
 	size = sizeof(oobject_t);
-    length = tag->size;
-    length /= size;
     type = otag_to_type(base);
     if (type < 0 || type > t_mpc)
 	type = t_void;
-    onew_vector(p, type, length);
+    onew_vector(p, type, tag->size);
     vector = *p;
     data = vector->v.i8;
     for (offset = 0; ast; ast = ast->next, offset++) {
 	if (ast->token == tok_init) {
 	    offset = *(oword_t *)ast->l.ast->l.value;
-	    assert(offset >= 0 && offset < length);
+	    assert(offset >= 0 && offset < tag->size);
 	    data_init((oobject_t *)(data + offset * size), base, ast->r.ast);
 	}
 	else {
-	    assert(offset >= 0 && offset < length);
+	    assert(offset >= 0 && offset < tag->size);
 	    data_init((oobject_t *)(data + offset * size), base, ast);
 	}
     }

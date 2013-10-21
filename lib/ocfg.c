@@ -92,8 +92,8 @@ ocfg_main(int argc, char *argv[])
 
     _jit = jit_new_state();
     oemit();
-    if (cfg_verbose)
-	jit_print();
+    //if (cfg_verbose)
+	//jit_print();
     jit_clear_state();
     if (cfg_verbose)
 	jit_disassemble();
