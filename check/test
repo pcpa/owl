@@ -31451,3 +31451,90 @@ for (t37i = 0; t37i < 1; t37i++) {
     }
     print("};\n");
 }
+
+class t38c_t {
+    int8_t	i8;
+    uint8_t	u8;
+    int16_t	i16;
+    uint16_t	u16;
+    int32_t	i32;
+    uint32_t	u32;
+    int64_t	i64;
+    uint64_t	u64;
+    float32_t	f32;
+    float64_t	f64;
+    auto	a;
+    int8_t	vi8[];
+    uint8_t	vu8[];
+    int16_t	vi16[];
+    uint16_t	vu16[];
+    int32_t	vi32[];
+    uint32_t	vu32[];
+    int64_t	vi64[];
+    uint64_t	vu64[];
+    float32_t	vf32[];
+    float64_t	vf64[];
+    t38c_t	va[];
+};
+t38c_t t38c = {
+    -8, 8, -16, 16, -32, 32, -64, 64, 1/32.0, 1/64.0, "foobar",
+    { 1 }, { 1, 2 },
+    { 1, 2, 3 }, { 1, 2, 3, 4 },
+    { 1, 2, 3, 4, 5 }, { 1, 2, 3, 4, 5, 6 },
+    { 1, 2, 3, 4, 5, 6, 7 }, { 1, 2, 3, 4, 5, 6, 7, 8 },
+    { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 },
+};
+t38c.va = { t38c, t38c, t38c, t38c, t38c, t38c, t38c, t38c, t38c, t38c };
+print("\
+i8:	%d\n\
+u8:	%d\n\
+i16:	%d\n\
+u16:	%d\n\
+i32:	%d\n\
+u32:	%d\n\
+i64:	%d\n\
+u64:	%d\n\
+f32:	%d\n\
+f64:	%d\n\
+a:	%#s\n\
+vi8:	%d\n\
+vu8:	%d\n\
+vi16:	%d\n\
+vu16:	%d\n\
+vi32:	%d\n\
+vu32:	%d\n\
+vi64:	%d\n\
+vu64:	%d\n\
+vf32:	%d\n\
+vf64:	%d\n\
+va:	%#s\n\
+",
+      t38c.i8,
+      t38c.va[0].u8,
+      t38c.va[0].va[1].i16,
+      t38c.va[0].va[1].va[2].u16,
+      t38c.va[0].va[1].va[2].va[3].i32,
+      t38c.va[0].va[1].va[2].va[3].va[4].u32,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].i64,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].u64,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].f32,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].va[8].f64,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].va[8].va[9].a,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].va[8].va[9].vi8[0],
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].va[8].vu8[1],
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].vi16[2],
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].vu16[3],
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].vi32[4],
+      t38c.va[0].va[1].va[2].va[3].va[4].vu32[5],
+      t38c.va[0].va[1].va[2].va[3].vi64[6],
+      t38c.va[0].va[1].va[2].vu64[7],
+      t38c.va[0].va[1].vf32[8],
+      t38c.va[0].vf64[9],
+      t38c.va[0].a);
+print("%d\n%d\n%d\n%d\n%d\n%d\n",
+      t38c.i8 += t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].va[8].vu8[1],
+      t38c.va[0].u8 += t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].i8,
+      t38c.va[0].va[1].va[2].i16 + t38c.va[0].va[1].va[2].va[3].u32,
+      t38c.va[0].va[1].va[2].va[3].i32 / t38c.va[0].u32,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].i64 % t38c.va[0].va[1].va[2].va[3].va[4].u64,
+      t38c.va[0].va[1].va[2].va[3].va[4].va[5].va[6].va[7].f32 \ 2);

@@ -218,6 +218,9 @@ data_set(oast_t *ast)
 		case tok_vecdcl:	case tok_proto:
 		    last = last->l.ast;
 		    break;
+		case tok_dot:
+		    last = last->r.ast;
+		    break;
 		default:
 		    abort();
 	    }
