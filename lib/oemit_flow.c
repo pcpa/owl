@@ -829,6 +829,7 @@ static void
 emit_return(oast_t *ast)
 {
     ooperand_t		*op;
+    ooperand_t		*rop;
     otag_t		*tag;
     otype_t		 type;
     jit_node_t		*node;
@@ -853,9 +854,17 @@ emit_return(oast_t *ast)
 	op = operand_top();
 	emit_load(op);
 	/* Return must be in register 0 */
-	assert(op->u.w == 0);
-	emit_coerce(type, op);
-	operand_unget(1);
+	if (op->u.w != 0) {
+	    /* In some complex expressions it may be left in another register */
+	    rop = operand_get();
+	    operand_copy(rop, op);
+	    rop->u.w = get_register(true);
+	    assert(rop->u.w == 0);
+	}
+	else
+	    rop = op;
+	emit_coerce(type, rop, op);
+	operand_unget(rop == op ? 1 : 2);
     }
 
     for (offset = branch->offset - 1; offset >= 0; offset--) {

@@ -131,20 +131,20 @@ extern void
 ovm_offset(oregister_t *r);
 
 extern void
-ovm_coerce_w(oregister_t *r);
+ovm_coerce_w(oregister_t *l, oregister_t *r);
 
 extern void
-ovm_coerce_uw(oregister_t *r);
+ovm_coerce_uw(oregister_t *l, oregister_t *r);
 
 extern void
-ovm_coerce_d(oregister_t *r);
+ovm_coerce_d(oregister_t *l, oregister_t *r);
 
 #if __WORDSIZE == 32
 extern void
-ovm_coerce_ww(oregister_t *r);
+ovm_coerce_ww(oregister_t *l, oregister_t *r);
 
 extern void
-ovm_coerce_uwuw(oregister_t *r);
+ovm_coerce_ww(oregister_t *l, oregister_t *r);
 #endif
 
 extern void
@@ -193,7 +193,7 @@ extern void
 ovm_store_d(ofloat_t d, oobject_t *p, oint32_t t);
 
 extern void
-ovm_o_copy(oregister_t *l, oregister_t *r);
+ovm_move(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_inc(oregister_t *r);

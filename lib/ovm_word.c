@@ -21,114 +21,122 @@
  * Implementation
  */
 void
-ovm_coerce_w(oregister_t *r)
+ovm_coerce_w(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
-	    r->v.w = 0;
+	    l->v.w = 0;
 	    break;
 	case t_word:
+	    l->v.w = r->v.w;
 	    break;
 	case t_float:
-	    r->v.w = r->v.d;
+	    l->v.w = r->v.d;
 	    break;
 	case t_mpz:
-	    r->v.w = ompz_get_w(ozr(r));
+	    l->v.w = ompz_get_w(ozr(r));
 	    break;
 	case t_rat:
-	    r->v.w = rat_num(r->v.r) / rat_den(r->v.r);
+	    l->v.w = rat_num(r->v.r) / rat_den(r->v.r);
 	    break;
 	case t_mpq:		case t_cqq:
-	    r->v.w = ompq_get_w(oqr(r));
+	    l->v.w = ompq_get_w(oqr(r));
 	    break;
 	case t_mpr:		case t_mpc:
-	    r->v.w = ompr_get_w(orr(r));
+	    l->v.w = ompr_get_w(orr(r));
 	    break;
 	case t_cdd:
-	    r->v.w = real(r->v.dd);
+	    l->v.w = real(r->v.dd);
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    r->t = t_word;
+    l->t = t_word;
 }
 
 void
-ovm_coerce_uw(oregister_t *r)
+ovm_coerce_uw(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
-	    r->v.w = 0;
+	    l->v.w = 0;
 	    break;
 	case t_word:
+	    l->v.w = r->v.w;
 	    break;
 	case t_float:
-	    r->v.w = r->v.d;
+	    l->v.w = r->v.d;
 	    break;
 	case t_mpz:
-	    r->v.w = ompz_get_w(ozr(r));
+	    l->v.w = ompz_get_w(ozr(r));
 	    break;
 	case t_rat:
-	    r->v.w = rat_num(r->v.r) / rat_den(r->v.r);
+	    l->v.w = rat_num(r->v.r) / rat_den(r->v.r);
 	    break;
 	case t_mpq:		case t_cqq:
-	    r->v.w = ompq_get_w(oqr(r));
+	    l->v.w = ompq_get_w(oqr(r));
 	    break;
 	case t_mpr:		case t_mpc:
-	    r->v.w = ompr_get_w(orr(r));
+	    l->v.w = ompr_get_w(orr(r));
 	    break;
 	case t_cdd:
-	    r->v.w = real(r->v.dd);
+	    l->v.w = real(r->v.dd);
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (r->v.w < 0) {
-	r->t = t_mpz;
-	mpz_set_ui(ozr(r), r->v.w);
+    if (l->v.w < 0) {
+	l->t = t_mpz;
+	mpz_set_ui(ozr(l), l->v.w);
     }
     else
-	r->t = t_word;
+	l->t = t_word;
 }
 
 #if __WORDSIZE == 32
 void
-ovm_coerce_ww(oregister_t *r)
+ovm_coerce_ww(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
-	    r->t = t_word;
-	    r->v.w = 0;
+	    l->t = t_word;
+	    l->v.w = 0;
 	    break;
 	case t_word:
+	    if (l != r) {
+		l->t = t_word;
+		l->v.w = r->v.w;
+	    }
 	    break;
 	case t_float:
-	    mpz_set_d(ozr(r), r->v.d);
+	    mpz_set_d(ozr(l), r->v.d);
+	    l->v.l = ompz_get_sl(ozr(l));
+	    goto mpz;
 	case t_mpz:
+	    l->v.l = ompz_get_sl(ozr(r));
 	mpz:
-	    r->v.l = ompz_get_sl(ozr(r));
-	    if ((oword_t)r->v.l == r->v.l) {
-		r->t = t_word;
-		r->v.w = r->v.l;
+	    if ((oword_t)l->v.l == l->v.l) {
+		l->t = t_word;
+		l->v.w = l->v.l;
 	    }
 	    else {
-		r->t = t_mpz;
-		ompz_set_sisi(ozr(r), r->v.s.l, r->v.s.h);
+		l->t = t_mpz;
+		ompz_set_sisi(ozr(l), l->v.s.l, l->v.s.h);
 	    }
 	    break;
 	case t_rat:
-	    r->t = t_word;
-	    r->v.w = rat_num(r->v.r) / rat_den(r->v.r);
+	    l->t = t_word;
+	    l->v.w = rat_num(r->v.r) / rat_den(r->v.r);
 	    break;
 	case t_mpq:		case t_cqq:
-	    r->v.l = ompq_get_sl(oqr(r));
+	    l->v.l = ompq_get_sl(oqr(r));
 	    goto mpz;
 	    break;
 	case t_mpr:		case t_mpc:
-	    r->v.l = ompr_get_sl(orr(r));
+	    l->v.l = ompr_get_sl(orr(r));
 	    goto mpz;
 	case t_cdd:
-	    r->v.l = real(r->v.dd);
+	    l->v.l = real(r->v.dd);
 	    goto mpz;
 	default:
 	    ovm_raise(except_invalid_argument);
@@ -136,42 +144,48 @@ ovm_coerce_ww(oregister_t *r)
 }
 
 void
-ovm_coerce_uwuw(oregister_t *r)
+ovm_coerce_uwuw(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
-	    r->t = t_word;
-	    r->v.w = 0;
+	    l->t = t_word;
+	    l->v.w = 0;
 	    break;
 	case t_word:
+	    if (l != r) {
+		l->t = t_word;
+		l->v.w = r->v.w;
+	    }
 	    break;
 	case t_float:
-	    mpz_set_d(ozr(r), r->v.d);
+	    mpz_set_d(ozr(l), r->v.d);
+	    l->v.l = ompz_get_sl(ozr(l));
+	    goto mpz;
 	case t_mpz:
+	    l->v.l = ompz_get_sl(ozr(r));
 	mpz:
-	    r->v.l = ompz_get_sl(ozr(r));
-	    if (r->v.l >= 0 && (oword_t)r->v.l == r->v.l) {
-		r->t = t_word;
-		r->v.w = r->v.l;
+	    if (l->v.l >= 0 && (oword_t)l->v.l == l->v.l) {
+		l->t = t_word;
+		l->v.w = l->v.l;
 	    }
 	    else {
-		r->t = t_mpz;
-		ompz_set_uiui(ozr(r), r->v.s.l, r->v.s.h);
+		l->t = t_mpz;
+		ompz_set_uiui(ozr(l), l->v.s.l, l->v.s.h);
 	    }
 	    break;
 	case t_rat:
-	    r->t = t_word;
-	    r->v.w = rat_num(r->v.r) / rat_den(r->v.r);
+	    l->t = t_word;
+	    l->v.w = rat_num(r->v.r) / rat_den(r->v.r);
 	    break;
 	case t_mpq:		case t_cqq:
-	    r->v.l = ompq_get_sl(oqr(r));
+	    l->v.l = ompq_get_sl(oqr(r));
 	    goto mpz;
 	    break;
 	case t_mpr:		case t_mpc:
-	    r->v.l = ompr_get_sl(orr(r));
+	    l->v.l = ompr_get_sl(orr(r));
 	    goto mpz;
 	case t_cdd:
-	    r->v.l = real(r->v.dd);
+	    l->v.l = real(r->v.dd);
 	    goto mpz;
 	default:
 	    ovm_raise(except_invalid_argument);

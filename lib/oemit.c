@@ -156,7 +156,7 @@ static void
 storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset);
 
 static void
-emit_coerce(otype_t type, ooperand_t *op);
+emit_coerce(otype_t type, ooperand_t *rop, ooperand_t *op);
 
 static void
 emit_load(ooperand_t *op);
@@ -198,7 +198,16 @@ static void
 load_w_w(oword_t regno, oword_t regval);
 
 static void
+loadif_w(oword_t regno);
+
+static void
 load_d(oword_t regno);
+
+static void
+loadif_d(oword_t regno);
+
+static void
+loadif_f(oword_t regno);
 
 static void
 load_r(oword_t regno);
@@ -1914,134 +1923,154 @@ storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset)
 }
 
 static void
-emit_coerce(otype_t type, ooperand_t *op)
+emit_coerce(otype_t type, ooperand_t *lop, ooperand_t *rop)
 {
-    otype_t		top;
-    oword_t		regno;
+    otype_t		rty;
+    oword_t		lreg;
+    oword_t		rreg;
 
-    top = emit_get_type(op);
-    regno = op->u.w;
-    if (top == t_half || top == t_word) {
+    rty = emit_get_type(rop);
+    lreg = lop->u.w;
+    rreg = rop->u.w;
+    lop->t = rop->t;
+    if (rty == t_half || rty == t_word) {
     word:
 	switch (type) {
 	    case t_int8:
-		jit_extr_c(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_half);
+		jit_extr_c(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_half);
 		break;
 	    case t_uint8:
-		jit_extr_uc(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_half);
+		jit_extr_uc(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_half);
 		break;
 	    case t_int16:
-		jit_extr_s(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_half);
+		jit_extr_s(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_half);
 		break;
 	    case t_uint16:
-		jit_extr_us(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_half);
+		jit_extr_us(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_half);
 		break;
 	    case t_int32:
 #if __WORDSIZE == 32
-		emit_set_type(op, t_word);
+		jit_movr(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_word);
 #else
-		jit_extr_i(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_half);
+		jit_extr_i(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_half);
 #endif
 		break;
 	    case t_uint32:
 #if __WORDSIZE == 32
-		sync_uw(regno);
-		emit_set_type(op, t_void);
+		jit_movr(GPR[lreg], GPR[rreg]);
+		sync_uw(lreg);
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 #else
-		jit_extr_ui(GPR[regno], GPR[regno]);
-		emit_set_type(op, t_word);
+		jit_extr_ui(GPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_word);
 #endif
 		break;
 	    case t_int64:
+		jit_movr(GPR[lreg], GPR[rreg]);
 #if __WORDSIZE == 32
-		sync_w(regno);
-		emit_set_type(op, t_void);
+		sync_w(lreg);
+		emit_set_type(lop, t_void);
+#else
+		emit_set_type(lop, t_word);
 #endif
-		emit_set_type(op, t_word);
 		break;
 	    case t_uint64:
-		sync_uw(regno);
-		emit_set_type(op, t_void);
+		jit_movr(GPR[lreg], GPR[rreg]);
+		sync_uw(lreg);
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 	    case t_float32:
-		jit_extr_f(FPR[regno], GPR[regno]);
-		emit_set_type(op, t_single);
+		jit_extr_f(FPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_single);
 		break;
 	    case t_float64:
-		jit_extr_d(FPR[regno], GPR[regno]);
-		emit_set_type(op, t_float);
+		jit_extr_d(FPR[lreg], GPR[rreg]);
+		emit_set_type(lop, t_float);
 		break;
 	    default:
-		sync_w(regno);
-		emit_set_type(op, t_void);
+		jit_movr(GPR[lreg], GPR[rreg]);
+		sync_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 	}
     }
-    else if (top == t_single) {
+    else if (rty == t_single) {
 	switch (type) {
 	    case t_int8:	case t_uint8:
 	    case t_int16:	case t_uint16:
 	    case t_int32:	case t_uint32:
-		jit_truncr_f(GPR[regno], FPR[regno]);
+		jit_truncr_f(GPR[lreg], FPR[rreg]);
+		rreg = lreg;
 		goto word;
 	    case t_int64:	case t_uint64:
 #if __WORDSIZE == 32
-		load_r(regno);
+		load_r(lreg);
 		jit_prepare();
-		jit_pushargr_f(FPR[regno]);
-		emit_finish(ovm_truncr_f, mask1(regno));
-		emit_set_type(op, t_void);
+		jit_pushargr_f(FPR[rreg]);
+		emit_finish(ovm_truncr_f, mask1(lreg));
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 #else
-		jit_truncr_f(GPR[regno], FPR[regno]);
+		jit_truncr_f(GPR[lreg], FPR[rreg]);
+		rreg = lreg;
 		goto word;
 #endif
 	    case t_float32:
+		jit_movr_f(FPR[lreg], FPR[rreg]);
 		break;
 	    case t_float64:
-		jit_extr_f_d(FPR[regno], FPR[regno]);
-		emit_set_type(op, t_float);
+		jit_extr_f_d(FPR[lreg], FPR[rreg]);
+		emit_set_type(lop, t_float);
 		break;
 	    default:
-		jit_extr_f_d(FPR[regno], FPR[regno]);
-		sync_d(regno);
-		emit_set_type(op, t_void);
+		jit_extr_f_d(FPR[lreg], FPR[rreg]);
+		sync_d(lreg);
+		emit_set_type(lop, t_void);
 		break;
 	}
     }
-    else if (top == t_float) {
+    else if (rty == t_float) {
 	switch (type) {
 	    case t_int8:	case t_uint8:
 	    case t_int16:	case t_uint16:
 	    case t_int32:	case t_uint32:
-		jit_truncr_d(GPR[regno], FPR[regno]);
+		jit_truncr_d(GPR[lreg], FPR[rreg]);
+		rreg = lreg;
 		goto word;
 	    case t_int64:	case t_uint64:
 #if __WORDSIZE == 32
-		load_r(regno);
+		load_r(lreg);
 		jit_prepare();
-		jit_pushargr_d(FPR[regno]);
-		emit_finish(ovm_truncr_d, mask1(regno));
-		emit_set_type(op, t_void);
+		jit_pushargr_d(FPR[rreg]);
+		emit_finish(ovm_truncr_d, mask1(lreg));
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 #else
-		jit_truncr_d(GPR[regno], FPR[regno]);
+		jit_truncr_d(GPR[lreg], FPR[rreg]);
+		rreg = lreg;
 		goto word;
 #endif
 	    case t_float32:
-		jit_extr_d_f(FPR[regno], FPR[regno]);
-		emit_set_type(op, t_single);
+		jit_extr_d_f(FPR[lreg], FPR[rreg]);
+		emit_set_type(lop, t_single);
 		break;
 	    case t_float64:
+		jit_movr_d(FPR[lreg], FPR[rreg]);
 		break;
 	    default:
-		sync_d(regno);
-		emit_set_type(op, t_void);
+		jit_movr_d(FPR[lreg], FPR[rreg]);
+		sync_d(lreg);
+		emit_set_type(lop, t_void);
 		break;
 	}
     }
@@ -2053,55 +2082,79 @@ emit_coerce(otype_t type, ooperand_t *op)
 #if __WORDSIZE == 64
 	    case t_uint32:	case t_int64:
 #endif
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_w, mask1(regno));
-		load_w(regno);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_w, mask1(lreg));
+		load_w(lreg);
+		rreg = lreg;
 		goto word;
 #if __WORDSIZE == 32
 	    case t_uint32:
 #else
 	    case t_uint64:
 #endif
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_uw, mask1(regno));
-		emit_set_type(op, t_void);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_uw, mask1(lreg));
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 #if __WORDSIZE == 32
 	    case t_int64:
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_ww, mask1(regno));
-		emit_set_type(op, t_void);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_ww, mask1(lreg));
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 	    case t_uint64:
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_uwuw, mask1(regno));
-		emit_set_type(op, t_void);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_uwuw, mask1(lreg));
+		loadif_w(lreg);
+		emit_set_type(lop, t_void);
 		break;
 #endif
 	    case t_float32:
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_d, mask1(regno));
-		load_d(regno);
-		jit_extr_d_f(FPR[regno], FPR[regno]);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_d, mask1(lreg));
+		load_d(lreg);
+		jit_extr_d_f(FPR[lreg], FPR[lreg]);
 		break;
 	    case t_float64:
-		load_r(regno);
+		load_r(lreg);
+		if (lreg != rreg)		load_r_w(rreg, JIT_R0);
 		jit_prepare();
-		jit_pushargr(GPR[regno]);
-		emit_finish(ovm_coerce_d, mask1(regno));
-		load_d(regno);
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(lreg != rreg ? JIT_R0 : GPR[lreg]);
+		emit_finish(ovm_coerce_d, mask1(lreg));
+		load_d(lreg);
 		break;
 	    default:
+		if (lreg != rreg) {
+		    load_r(lreg);
+		    load_r_w(rreg, JIT_R0);
+		    jit_prepare();
+		    jit_pushargr(GPR[lreg]);
+		    jit_pushargr(JIT_R0);
+		    emit_finish(ovm_move, mask1(lreg));
+		}
 		break;
 	}
     }
@@ -2852,6 +2905,24 @@ load_w_w(oword_t regno, oword_t regval)
 }
 
 static void
+loadif_w(oword_t regno)
+{
+    jit_node_t		*node;
+    oword_t		 offset;
+    switch (regno) {
+	case 0:		offset = offsetof(othread_t, r0);	break;
+	case 1:		offset = offsetof(othread_t, r1);	break;
+	case 2:		offset = offsetof(othread_t, r2);	break;
+	case 3:		offset = offsetof(othread_t, r3);	break;
+	default:	abort();
+    }
+    jit_ldxi_i(JIT_R0, JIT_V0, offset + offsetof(oregister_t, t));
+    node = jit_bnei(JIT_R0, t_word);
+    jit_ldxi(GPR[regno], JIT_V0, offset + offsetof(oregister_t, v.w));
+    jit_patch(node);
+}
+
+static void
 load_d(oword_t regno)
 {
     oword_t		offset;
@@ -2863,6 +2934,43 @@ load_d(oword_t regno)
 	default:	abort();
     }
     jit_ldxi_d(FPR[regno], JIT_V0, offset + offsetof(oregister_t, v.d));
+}
+
+static void
+loadif_d(oword_t regno)
+{
+    jit_node_t		*node;
+    oword_t		 offset;
+    switch (regno) {
+	case 0:		offset = offsetof(othread_t, r0);	break;
+	case 1:		offset = offsetof(othread_t, r1);	break;
+	case 2:		offset = offsetof(othread_t, r2);	break;
+	case 3:		offset = offsetof(othread_t, r3);	break;
+	default:	abort();
+    }
+    jit_ldxi_i(JIT_R0, JIT_V0, offset + offsetof(oregister_t, t));
+    node = jit_bnei(JIT_R0, t_word);
+    jit_ldxi_d(FPR[regno], JIT_V0, offset + offsetof(oregister_t, v.w));
+    jit_patch(node);
+}
+
+static void
+loadif_f(oword_t regno)
+{
+    jit_node_t		*node;
+    oword_t		 offset;
+    switch (regno) {
+	case 0:		offset = offsetof(othread_t, r0);	break;
+	case 1:		offset = offsetof(othread_t, r1);	break;
+	case 2:		offset = offsetof(othread_t, r2);	break;
+	case 3:		offset = offsetof(othread_t, r3);	break;
+	default:	abort();
+    }
+    jit_ldxi_i(JIT_R0, JIT_V0, offset + offsetof(oregister_t, t));
+    node = jit_bnei(JIT_R0, t_word);
+    jit_ldxi_d(FPR[regno], JIT_V0, offset + offsetof(oregister_t, v.w));
+    jit_extr_d_f(FPR[regno], FPR[regno]);
+    jit_patch(node);
 }
 
 static void

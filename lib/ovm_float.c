@@ -21,36 +21,37 @@
  * Implementation
  */
 void
-ovm_coerce_d(oregister_t *r)
+ovm_coerce_d(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
-	    r->v.d = 0.0;
+	    l->v.d = 0.0;
 	    break;
 	case t_word:
-	    r->v.d = r->v.w;
+	    l->v.d = r->v.w;
 	    break;
 	case t_float:
+	    l->v.d = r->v.d;
 	    break;
 	case t_mpz:
-	    r->v.d = mpz_get_d(ozr(r));
+	    l->v.d = mpz_get_d(ozr(r));
 	    break;
 	case t_rat:
-	    r->v.d = rat_get_d(r->v.r);
+	    l->v.d = rat_get_d(r->v.r);
 	    break;
 	case t_mpq:		case t_cqq:
-	    r->v.d = mpq_get_d(oqr(r));
+	    l->v.d = mpq_get_d(oqr(r));
 	    break;
 	case t_mpr:		case t_mpc:
-	    r->v.d = mpfr_get_d(orr(r), thr_rnd);
+	    l->v.d = mpfr_get_d(orr(r), thr_rnd);
 	    break;
 	case t_cdd:
-	    r->v.d = real(r->v.dd);
+	    l->v.d = real(r->v.dd);
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    r->t = t_float;
+    l->t = t_float;
 }
 
 extern void

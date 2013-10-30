@@ -816,7 +816,7 @@ ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 }
 
 void
-ovm_o_copy(oregister_t *l, oregister_t *r)
+ovm_move(oregister_t *l, oregister_t *r)
 {
     switch (r->t) {
 	case t_void:
