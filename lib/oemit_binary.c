@@ -301,11 +301,11 @@ emit_and_or_xor(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	else			function = ovm_o_xor;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     emit_set_type(lop, t_void);
 finish:
     operand_unget(1);
@@ -437,11 +437,11 @@ emit_mul2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    assert(rty == t_void);
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(ovm_o_mul2, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_o_mul2, mask1(lreg));
     if (done)
 	jit_patch(done);
     if (reload)
@@ -570,11 +570,11 @@ emit_div2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    assert(rty == t_void);
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(ovm_o_div2, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_o_div2, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -654,11 +654,11 @@ emit_shl(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    assert(rty == t_void);
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(ovm_o_shl, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_o_shl, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -760,11 +760,11 @@ emit_shr(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    assert(rty == t_void);
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(ovm_o_shr, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_o_shr, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -892,11 +892,11 @@ emit_add_sub(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	function = tok == tok_add ? ovm_o_add : ovm_o_sub;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -994,11 +994,11 @@ emit_mul(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	function = ovm_o_mul;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -1077,11 +1077,11 @@ emit_div(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	function = ovm_o_div;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -1159,11 +1159,11 @@ emit_trunc2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	function = ovm_o_trunc2;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);
@@ -1241,11 +1241,11 @@ emit_rem(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	function = ovm_o_rem;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
     emit_set_type(lop, t_void);

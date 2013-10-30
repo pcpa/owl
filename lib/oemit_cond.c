@@ -83,10 +83,10 @@ emit_cond(oast_t *ast)
 	    jit_nei_d(GPR[lreg], FPR[rreg], 0.0);
 	    break;
 	default:
-	    load_r(rreg);
+	    load_r_w(rreg, JIT_R0);
 	    jit_prepare();
-	    jit_pushargr(GPR[rreg]);
-	    emit_finish(ovm_bool, mask2(lreg, rreg));
+	    jit_pushargr(JIT_R0);
+	    emit_finish(ovm_bool, mask1(lreg));
 	    load_w_w(rreg, lreg);
 	    break;
     }
@@ -253,11 +253,11 @@ emit_cmp(oast_t *ast)
 	else				function = ovm_o_ne;
     }
     load_r(lreg);
-    load_r(rreg);
+    load_r_w(rreg, JIT_R0);
     jit_prepare();
     jit_pushargr(GPR[lreg]);
-    jit_pushargr(GPR[rreg]);
-    emit_finish(function, mask2(lreg, rreg));
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     load_w(lreg);
 finish:
     emit_set_type(lop, t_half);
@@ -593,11 +593,11 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 		else				function = ovm_o_ne;
 	    }
 	    load_r(lreg);
-	    load_r(rreg);
+	    load_r_w(rreg, JIT_R0);
 	    jit_prepare();
 	    jit_pushargr(GPR[lreg]);
-	    jit_pushargr(GPR[rreg]);
-	    emit_finish(function, mask2(lreg, rreg));
+	    jit_pushargr(JIT_R0);
+	    emit_finish(function, mask1(lreg));
 	    load_w(lreg);
 	    if (jmpif)		node = jit_bnei(GPR[lreg], 0);
 	    else		node = jit_beqi(GPR[lreg], 0);
