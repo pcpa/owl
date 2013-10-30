@@ -116,7 +116,7 @@ emit_catch(oast_t *ast, jit_node_t *final)
     decl = ast->l.ast->r.ast;
 
     /* Load exception object from thread state */
-    op = operand_get();
+    op = operand_get(0);
     op->t = t_register|t_void;
     op->u.w = 0;
     load_r(op->u.w);

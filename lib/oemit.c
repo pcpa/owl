@@ -61,7 +61,7 @@ static void
 resolve_methods(orecord_t *record);
 
 static ooperand_t *
-operand_get(void);
+operand_get(oword_t offset);
 
 static ooperand_t *
 operand_top(void);
@@ -562,7 +562,7 @@ resolve_methods(orecord_t *record)
 }
 
 static ooperand_t *
-operand_get(void)
+operand_get(oword_t offset)
 {
     ooperand_t		*op;
 
@@ -574,6 +574,7 @@ operand_get(void)
 	return (stack->v.ptr[stack->offset++]);
     }
     memset(op, 0, sizeof(ooperand_t));
+    op->s = offset;
     ++stack->offset;
 
     return (op);
@@ -700,8 +701,7 @@ emit(oast_t *ast)
 
     switch (ast->token) {
 	case tok_number:
-	    op = operand_get();
-	    op->s = ast->offset;
+	    op = operand_get(ast->offset);
 	    switch (otype(ast->l.value)) {
 		case t_word:
 		    op->u.w = *(oword_t *)ast->l.value;
@@ -729,15 +729,13 @@ emit(oast_t *ast)
 	    }
 	    break;
 	case tok_symbol:
-	    op = operand_get();
-	    op->s = ast->offset;
+	    op = operand_get(ast->offset);
 	    op->t = t_symbol;
 	    op->u.o = ast->l.value;
 	    op->k = ((osymbol_t *)op->u.o)->tag;
 	    break;
 	case tok_string:
-	    op = operand_get();
-	    op->s = ast->offset;
+	    op = operand_get(ast->offset);
 	    op->t = t_undef;
 	    op->u.o = ast->l.value;
 	    op->k = string_tag;
@@ -954,9 +952,8 @@ emit_sizeof(oast_t *ast)
     if (ast->l.ast->token == tok_ellipsis) {
 	if (!current_function->varargs)
 	    oparse_error(ast->l.ast, "function is not varargs");
-	op = operand_get();
+	op = operand_get(ast->l.ast->offset);
 	op->u.w = get_register(true);
-	op->s = ast->l.ast->offset;
 	if (GPR[FRAME] != JIT_NOREG)
 	    jit_ldxi_i(GPR[op->u.w], GPR[FRAME], SIZE_OFFSET);
 	else {
@@ -1014,11 +1011,10 @@ data_record(oast_t *ast)
 
     type = otype(ast->r.value);
     record = type_vector->v.ptr[type];
-    bop = operand_get();
+    bop = operand_get(ast->offset);
     bop->t = t_void|t_register;
     bop->u.w = get_register(true);
     bop->k = ast->t.value;
-    bop->s = ast->offset;
     if (current_record == root_record) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
@@ -1070,7 +1066,7 @@ data_record(oast_t *ast)
 	    ref = ast;
 	}
 	if (ref->token != tok_number) {
-	    lop = operand_get();
+	    lop = operand_get(ref->offset);
 	    lop->t = t_symbol;
 	    lop->u.o = symbol;
 	    emit(ref);
@@ -1083,7 +1079,7 @@ data_record(oast_t *ast)
 
     /* Constructor may override any static initialization of use it as input */
     if ((ctor = oget_constructor(record))) {
-	lop = operand_get();
+	lop = operand_get(0);
 	operand_copy(lop, bop);
 	/* op argument is implicitly unget */
 	emit_call_next(ctor, null, lop, false, true, false);
@@ -1103,11 +1099,10 @@ data_vector(oast_t *ast)
 
     vector = ast->r.value;
     type = otype(vector);
-    bop = operand_get();
+    bop = operand_get(ast->offset);
     bop->t = t_void|t_register;
     bop->u.w = get_register(true);
     bop->k = ast->t.value;
-    bop->s = ast->offset;
     if (current_record == root_record) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
@@ -1169,7 +1164,7 @@ data_vector(oast_t *ast)
 	    ref = ast;
 	if (ref->token != tok_number) {
 	    assert(offset >= 0 && offset < vector->length);
-	    lop = operand_get();
+	    lop = operand_get(ref->offset);
 #if __WORDSIZE == 32
 	    if ((oint16_t)offset == offset)
 		lop->t = t_half;
@@ -1230,7 +1225,7 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
     if (bop->k == null || bop->k->type != tag_class)
 	oparse_error(last, "expecting class %A", last->l.ast);
     record = bop->k->name;
-    lop = operand_get();
+    lop = operand_get(0);
     lop->t = t_symbol;
     lop->u.o = symbol = last->r.ast->l.value;
     /* FIXME should have been already checked */
@@ -1241,7 +1236,7 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
     if (rast) {
 	tok = get_token(ast);
 	if (tok) {
-	    rop = operand_get();
+	    rop = operand_get(bop->s);
 	    load_record(bop, lop, rop);
 	    emit(rast);
 	    emit_binary_next(rop, tok, operand_top());
@@ -1255,7 +1250,7 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
 	}
     }
     else {
-	rop = operand_get();
+	rop = operand_get(bop->s);
 	load_record(bop, lop, rop);
     }
     operand_copy(bop, rop);
@@ -1280,7 +1275,7 @@ emit_vector(oast_t *last, oast_t *ast, oast_t *rast)
     if (rast) {
 	tok = get_token(ast);
 	if (tok) {
-	    rop = operand_get();
+	    rop = operand_get(bop->s);
 	    load_vector(bop, lop, rop);
 	    emit(rast);
 	    emit_binary_next(rop, tok, operand_top());
@@ -1294,7 +1289,7 @@ emit_vector(oast_t *last, oast_t *ast, oast_t *rast)
 	}
     }
     else {
-	rop = operand_get();
+	rop = operand_get(bop->s);
 	load_vector(bop, lop, rop);
     }
     operand_copy(bop, rop);
@@ -1316,7 +1311,7 @@ emit_vararg(oast_t *last, oast_t *ast, oast_t *rast)
     if (rast) {
 	tok = get_token(ast);
 	if (tok) {
-	    rop = operand_get();
+	    rop = operand_get(rast->offset);
 	    load_vararg(lop, rop);
 	    emit(rast);
 	    emit_binary_next(rop, tok, operand_top());
@@ -1330,7 +1325,7 @@ emit_vararg(oast_t *last, oast_t *ast, oast_t *rast)
 	}
     }
     else {
-	rop = operand_get();
+	rop = operand_get(lop->s);
 	load_vararg(lop, rop);
     }
     operand_copy(lop, rop);

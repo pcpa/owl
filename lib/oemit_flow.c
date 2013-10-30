@@ -856,7 +856,7 @@ emit_return(oast_t *ast)
 	/* Return must be in register 0 */
 	if (op->u.w != 0) {
 	    /* In some complex expressions it may be left in another register */
-	    rop = operand_get();
+	    rop = operand_get(op->s);
 	    operand_copy(rop, op);
 	    rop->u.w = get_register(true);
 	    assert(rop->u.w == 0);
@@ -1232,7 +1232,7 @@ emit_call_next(ofunction_t *function, oast_t *alist,
 
     if (type != t_void) {
 	/* Insert/reload return value in operand stack */
-	op = operand_get();
+	op = operand_get(0);
 	op->u.w = 0;
 	switch (type) {
 	    case t_int8:	case t_uint8:

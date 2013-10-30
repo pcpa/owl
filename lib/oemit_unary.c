@@ -195,7 +195,7 @@ emit_inc_dec(oast_t *ast)
 	    if (bop->k == null || bop->k->type != tag_class)
 		oparse_error(ast, "expecting class %A", ast->l.ast);
 	    record = bop->k->name;
-	    lop = operand_get();
+	    lop = operand_get(0);
 	    lop->t = t_symbol;
 	    lop->u.o = symbol = ast->r.ast->l.value;
 	    /* FIXME should have been already checked */
@@ -203,14 +203,14 @@ emit_inc_dec(oast_t *ast)
 	    if (symbol == null)
 		oparse_error(ast, "no field '%p' in '%p'",
 			     lop->u.o, record->name);
-	    rop = operand_get();
+	    rop = operand_get(bop->s);
 	    load_record(bop, lop, rop);
 	    break;
 	case tok_vector:
 	    if (vararg) {
 		emit(ast->r.ast);
 		lop = operand_top();
-		rop = operand_get();
+		rop = operand_get(ast->offset);
 		load_vararg(lop, rop);
 	    }
 	    else {
@@ -220,7 +220,7 @@ emit_inc_dec(oast_t *ast)
 		    oparse_error(ast, "expecting vector %A", ast->l.ast);
 		emit(ast->r.ast);
 		lop = operand_top();
-		rop = operand_get();
+		rop = operand_get(bop->s);
 		load_vector(bop, lop, rop);
 	    }
 	    break;
@@ -229,7 +229,7 @@ emit_inc_dec(oast_t *ast)
     }
 
     if (post) {
-	pop = operand_get();
+	pop = operand_get(0);
 	operand_copy(pop, rop);
 	pop->s = offset;
 	switch (emit_get_type(rop)) {
