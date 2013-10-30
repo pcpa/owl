@@ -568,6 +568,11 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
     ovector_t		*vector;
 
     bytes = 0;
+    if (cfg_verbose > 1) {
+	dputc('<');	++bytes;
+	print_int(ast->offset);
+	dputc('#');	++bytes;
+    }
     switch (ast->token) {
 	case tok_number:
 	    bytes += print_obj(ast->l.value);
@@ -1045,6 +1050,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	default:
 	    bytes += print_ptr(ast);
 	    break;
+    }
+    if (cfg_verbose > 1) {
+	dputc('>');	++bytes;
     }
 
     return (bytes);

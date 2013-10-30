@@ -66,13 +66,8 @@ finish_code(void)
 void
 ocode(void)
 {
-    if ((root_record->function->ast->c.ast->l.ast = oparser())) {
+    if ((root_record->function->ast->c.ast->l.ast = oparser()))
 	eval_root();
-#if 1
-	if (cfg_verbose)
-	    owrite_object(root_record->function->ast->c.ast->l.ast);
-#endif
-    }
 }
 
 void

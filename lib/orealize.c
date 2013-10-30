@@ -126,6 +126,11 @@ orealize(void)
 	for (entry = hash->entries[offset]; entry; entry = entry->next)
 	    cv->v.ptr[cv->offset++] = entry->value;
     }
+
+#if 1
+    if (cfg_verbose)
+	owrite_object(root_record->function->ast->c.ast->l.ast);
+#endif
 }
 
 /* Quickly simulate jit code generation to figure out how many slots
@@ -174,6 +179,7 @@ realize(oast_t *ast)
 	case tok_vector:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
+	    ast->offset = ast->r.ast->offset;
 	    break;
 
 	case tok_not:		case tok_com:
@@ -181,6 +187,7 @@ realize(oast_t *ast)
 	case tok_inc:		case tok_dec:
 	case tok_sizeof:
 	    realize(ast->l.ast);
+	    ast->offset = ast->l.ast->offset;
 	    break;
 	case tok_postinc:	case tok_postdec:
 	    ast->offset = get();
@@ -198,6 +205,11 @@ realize(oast_t *ast)
 	case tok_mul:		case tok_div:
 	case tok_trunc2:	case tok_rem:
 	case tok_complex:
+	    realize(ast->l.ast);
+	    realize(ast->r.ast);
+	    unget(1);
+	    ast->offset = ast->l.ast->offset;
+	    break;
 	case tok_set:
 	case tok_andset:	case tok_orset:
 	case tok_xorset:
@@ -208,7 +220,7 @@ realize(oast_t *ast)
 	case tok_trunc2set:	case tok_remset:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
-	    unget(1);
+	    ast->offset = ast->l.ast->offset;
 	    break;
 	case tok_code:		case tok_stat:
 	case tok_list:		case tok_finally:
@@ -224,6 +236,7 @@ realize(oast_t *ast)
 	    realize(ast->t.ast);
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
+	    ast->offset = ast->l.ast->offset;
 	    break;
 	case tok_if:
 	    stat(ast->t.ast);
@@ -250,6 +263,7 @@ realize(oast_t *ast)
 	    break;
 	case tok_call:
 	    call(ast);
+	    ast->offset = get();
 	    break;
 	case tok_try:		case tok_catch:
 	    stat(ast->r.ast);
@@ -313,7 +327,6 @@ call(oast_t *ast)
 	    oparse_error(ast, "called object '%p' is not a function", name);
 	ast->l.ast->l.value = symbol;
     }
-
     stat(ast->r.ast);
 }
 
