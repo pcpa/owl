@@ -246,7 +246,7 @@ emit_inc_dec(oast_t *ast)
 		jit_movr_d(FPR[pop->u.w], FPR[rop->u.w]);
 		break;
 	    default:
-		emit_save(pop);
+		emit_save(pop, false);
 		pop->u.w = get_register(true);
 		break;
 	}

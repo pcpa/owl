@@ -53,12 +53,15 @@ static void
 emit_call(oast_t *ast);
 
 static void
-emit_call_next(ofunction_t *function, oast_t *alist,
+emit_call_next(ooperand_t *rop,
+	       ofunction_t *function, oast_t *alist,
 	       ooperand_t *top,
 	       obool_t vcall, obool_t ecall, obool_t builtin);
 #endif
 
 #if defined(CODE)
+#define x_spill_w(r)	jit_stxi(SPL[r], JIT_FP, GPR[r])
+#define x_load_w(r)	jit_ldxi(GPR[r], JIT_FP, SPL[r])
 static void
 emit_question(oast_t *ast)
 {
@@ -130,30 +133,25 @@ emit_question(oast_t *ast)
     else if (lty == t_single) {
 	if (rty == t_single)
 	    jit_movr_f(FPR[lreg], FPR[rreg]);
+	else if (rty == t_half || rty == t_word)
+	    jit_extr_f(FPR[lreg], GPR[rreg]);
 	else {
-	    if (rty == t_half || rty == t_word) {
-		jit_extr_d(FPR[lreg], GPR[rreg]);
+	    if (rty == t_float) {
+		jit_extr_f_d(FPR[lreg], FPR[rreg]);
 		sync_d(lreg);
 	    }
-	    else if (rty == t_float)
-		sync_d_w(lreg, FPR[rreg]);
 	    match = false;
 	}
     }
     else if (lty == t_float) {
 	if (rty == t_float)
 	    jit_movr_d(FPR[lreg], FPR[rreg]);
-	else {
-	    if (rty == t_half || rty == t_word) {
-		jit_extr_d(FPR[lreg], GPR[rreg]);
-		sync_d(lreg);
-	    }
-	    else if (rty == t_single) {
-		jit_extr_f_d(FPR[lreg], FPR[rreg]);
-		sync_d(lreg);
-	    }
+	else if (rty == t_half || rty == t_word)
+	    jit_extr_d(FPR[lreg], GPR[rreg]);
+	else if (rty == t_single)
+	    jit_extr_f_d(FPR[lreg], FPR[rreg]);
+	else
 	    match = false;
-	}
     }
     else {
 	if (rty == t_half || rty == t_word)
@@ -167,6 +165,7 @@ emit_question(oast_t *ast)
 	match = false;
     }
 
+    /* If type conversion/coercion is complex */
     if (match == false) {
 	if (lty == t_half || lty == t_word ||
 	    lty == t_single || lty == t_float)
@@ -174,14 +173,24 @@ emit_question(oast_t *ast)
 	     * mismatch (or possible type mismatch due to overflow
 	     * prevention) */
 	    fixup = jit_jmpi();
-	else
-	    /* Already in memory */
+	else {
 	    fixup = null;
+	    if (rty == t_void) {
+		load_r(lreg);
+		load_r_w(rreg, JIT_R0);
+		jit_prepare();
+		jit_pushargr(GPR[lreg]);
+		jit_pushargr(JIT_R0);
+		emit_finish(ovm_move, mask1(lreg));
+	    }
+	}
     }
 
+    /* True expression lands here */
     label = jit_label();
     jit_patch_at(node, label);
 
+    /* If type conversion/coercion is complex */
     if (match == false) {
 	if (fixup) {
 	    if (lty == t_half || lty == t_word)
@@ -597,7 +606,6 @@ emit_function(ofunction_t *function)
 {
     oast_t		*ast;
     jit_int32_t		 ret;
-    oword_t		 mask;
     ojump_t		*jump;
     otype_t		 type;
     jit_int32_t		 save;
@@ -637,38 +645,14 @@ emit_function(ofunction_t *function)
     current_function = function;
     current_record = function->record;
 
-    mask = 0;
-    if (GPR[FRAME] == JIT_NOREG) {
-	if (GPR[TMP0] != JIT_NOREG) {
-	    frame = GPR[TMP0];
-	    protect_tmp(0);
-	}
-	else {
-	    frame = GPR[0];
-	    mask |= 1;
-	    spill_w(0);
-	}
-    }
-    else
-	frame = GPR[FRAME];
-    if (GPR[STACK] == JIT_NOREG) {
-	if (GPR[TMP1] != JIT_NOREG) {
-	    stack = GPR[TMP1];
-	    protect_tmp(1);
-	}
-	else {
-	    stack = GPR[1];
-	    mask |= 2;
-	    spill_w(1);
-	}
-    }
-    else
-	stack = GPR[STACK];
-
-    if (GPR[STACK] == JIT_NOREG)
-	jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
-    if (GPR[FRAME] == JIT_NOREG)
+    if ((frame = GPR[FRAME]) == JIT_NOREG) {
+	frame = GPR[0];
 	jit_ldxi(frame, JIT_V0, offsetof(othread_t, fp));
+    }
+    if ((stack = GPR[STACK]) == JIT_NOREG) {
+	stack = GPR[1];
+	jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+    }
     jit_stxi(PREV_OFFSET, stack, frame);
     jit_movr(frame, stack);
 
@@ -692,21 +676,12 @@ emit_function(ofunction_t *function)
     if (GPR[THIS] != JIT_NOREG && function->record->parent != root_record)
 	jit_ldxi(GPR[THIS], frame, THIS_OFFSET);
 
-    if (frame == GPR[TMP0])
-	release_tmp(0);
-    if (stack == GPR[TMP1])
-	release_tmp(1);
-    if (mask & 1)
-	load_w(0);
-    if (mask & 2)
-	load_w(1);
-
     jump = jump_get(tok_function);
 
     /* If a constructor, explicitly call parent constructor first */
     if (function->name->ctor && function->name->record->parent) {
 	if ((parent = oget_constructor(function->name->record->parent)))
-	    emit_call_next(parent, null, null, false, true, false);
+	    emit_call_next(null, parent, null, null, false, true, false);
     }
 
     emit(function->ast->c.ast);
@@ -743,7 +718,7 @@ emit_function(ofunction_t *function)
 #if __WORDSIZE == 64
 	case t_int64:	case t_uint64:
 #endif
-	    spill_w(0);
+	    x_spill_w(0);
 	    break;
 	default:
 	    break;
@@ -813,7 +788,7 @@ emit_function(ofunction_t *function)
 #if __WORDSIZE == 64
 	    case t_int64:	case t_uint64:
 #endif
-		load_w(0);
+		x_load_w(0);
 		break;
 	    default:
 		break;
@@ -902,6 +877,7 @@ if (varargs)
 static void
 emit_call(oast_t *ast)
 {
+    ooperand_t		*rop;
     ooperand_t		*top;
     oast_t		*list;
     obool_t		 vcall;
@@ -910,6 +886,8 @@ emit_call(oast_t *ast)
     obool_t		 builtin;
     ofunction_t		*function;
 
+    rop = operand_get(ast->offset);
+    rop->u.w = get_register(true);
     top = null;
     vcall = ast->l.ast->token == tok_dot;
     ecall = ast->l.ast->token == tok_explicit;
@@ -934,11 +912,12 @@ emit_call(oast_t *ast)
     function = symbol->value;
 
     list = ast->r.ast;
-    emit_call_next(function, list, top, vcall, ecall, builtin);
+    emit_call_next(rop, function, list, top, vcall, ecall, builtin);
 }
 
 static void
-emit_call_next(ofunction_t *function, oast_t *alist,
+emit_call_next(ooperand_t *rop,
+	       ofunction_t *function, oast_t *alist,
 	       ooperand_t *top,
 	       obool_t vcall, obool_t ecall, obool_t builtin)
 {
@@ -946,6 +925,7 @@ emit_call_next(ofunction_t *function, oast_t *alist,
     jit_node_t		*call;
     oword_t		 mask;
     otype_t		 type;
+    oast_t		*prev;
     oast_t		*list;
     jit_int32_t		 frame;
     jit_int32_t		 stack;
@@ -957,12 +937,13 @@ emit_call_next(ofunction_t *function, oast_t *alist,
     oint32_t		 framesize;
 
     vector = function->record->vector;
-    for (offset = 0, list = alist; offset < vector->offset; offset++) {
+    for (offset = 0, list = prev = alist; offset < vector->offset; offset++) {
 	symbol = vector->v.ptr[offset];
 	if (!symbol->argument)
 	    break;
 	if (list == null)
-	    oparse_error(list, "too few arguments to '%p'", function->name);
+	    oparse_error(prev, "too few arguments to '%p'", function->name);
+	prev = list;
 	list = list->next;
     }
 
@@ -998,9 +979,10 @@ emit_call_next(ofunction_t *function, oast_t *alist,
 	    else
 		frame = 1;
 	    mask |= 1 << frame;
-	    spill_w(frame);
+	    x_spill_w(frame);
 	    frame = GPR[frame];
 	}
+	jit_ldxi(frame, JIT_V0, offsetof(othread_t, fp));
     }
     else
 	frame = GPR[FRAME];
@@ -1015,18 +997,13 @@ emit_call_next(ofunction_t *function, oast_t *alist,
 	    else
 		stack = 2;
 	    mask |= 1 << stack;
-	    spill_w(stack);
+	    x_spill_w(stack);
 	    stack = GPR[stack];
 	}
+	jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
     }
     else
 	stack = GPR[STACK];
-
-    if (GPR[STACK] == JIT_NOREG)
-	jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
-
-    if (GPR[FRAME] == JIT_NOREG)
-	jit_ldxi(frame, JIT_V0, offsetof(othread_t, fp));
 
     /* Update "next" frame pointer */
     jit_subi(JIT_R0, stack, framesize);
@@ -1088,11 +1065,11 @@ emit_call_next(ofunction_t *function, oast_t *alist,
     if (stack == GPR[TMP1])
 	release_tmp(1);
     if (mask & 1)
-	load_w(0);
+	x_load_w(0);
     if (mask & 2)
-	load_w(1);
+	x_load_w(1);
     if (mask & 4)
-	load_w(2);
+	x_load_w(2);
 
     ++depth;
 
@@ -1230,30 +1207,46 @@ emit_call_next(ofunction_t *function, oast_t *alist,
     vector = function->name->tag->name;
     type = otag_to_type(vector->v.ptr[0]);
 
-    if (type != t_void) {
-	/* Insert/reload return value in operand stack */
-	op = operand_get(0);
-	op->u.w = 0;
+    if (type != t_void && rop) {
 	switch (type) {
 	    case t_int8:	case t_uint8:
 	    case t_int16:	case t_uint16:
 #if __WORDSIZE == 64
 	    case t_int32:	case t_uint32:
 #endif
-		op->t = t_half | t_register;
+		if (rop->u.w)
+		    jit_movr(GPR[rop->u.w], GPR[0]);
+		rop->t = t_half | t_register;
 		break;
 #if __WORDSIZE == 32
 	    case t_int32:
 #else
 	    case t_int64:
 #endif
-		op->t = t_word | t_register;
+		if (rop->u.w)
+		    jit_movr(GPR[rop->u.w], GPR[0]);
+		rop->t = t_word | t_register;
 		break;
-	    case t_single:	case t_float:
-		op->t = type | t_register;
+	    case t_single:
+		if (rop->u.w)
+		    jit_movr_f(FPR[rop->u.w], FPR[0]);
+		rop->t = t_single | t_register;
+		break;
+	    case t_float:
+		if (rop->u.w)
+		    jit_movr_d(FPR[rop->u.w], FPR[0]);
+		rop->t = t_float | t_register;
 		break;
 	    default:
-		op->t = t_void | t_register;
+		if (rop->u.w) {
+		    load_r(rop->u.w);
+		    load_r_w(0, JIT_R0);
+		    jit_prepare();
+		    jit_pushargr(GPR[rop->u.w]);
+		    jit_pushargr(JIT_R0);
+		    emit_finish(ovm_move, mask1(rop->u.w));
+		}
+		rop->t = t_void | t_register;
 		break;
 	}
     }

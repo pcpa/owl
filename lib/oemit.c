@@ -156,7 +156,7 @@ static void
 storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset);
 
 static void
-emit_coerce(otype_t type, ooperand_t *rop, ooperand_t *op);
+emit_coerce(otype_t type, ooperand_t *lop, ooperand_t *rop);
 
 static void
 emit_load(ooperand_t *op);
@@ -189,7 +189,7 @@ static void
 emit_reload(ooperand_t *op, obool_t same);
 
 static void
-emit_save(ooperand_t *op);
+emit_save(ooperand_t *op, obool_t force);
 
 static void
 load_w(oword_t regno);
@@ -411,7 +411,7 @@ oemit(void)
     scratch = jit_allocai(8);
 
     for (offset = 0; offset < 6; offset++) {
-	if (GPR[offset] != JIT_NOREG && !jit_callee_save_p(GPR[offset]))
+	if (GPR[offset] != JIT_NOREG)
 	    SPL[offset] = jit_allocai(sizeof(jit_word_t));
     }
 
@@ -1082,7 +1082,7 @@ data_record(oast_t *ast)
 	lop = operand_get(0);
 	operand_copy(lop, bop);
 	/* op argument is implicitly unget */
-	emit_call_next(ctor, null, lop, false, true, false);
+	emit_call_next(null, ctor, null, lop, false, true, false);
     }
 }
 
@@ -2744,8 +2744,8 @@ emit_reload(ooperand_t *op, obool_t same)
     }
     else {
 	global = false;
-	if (GPR[STACK] != JIT_NOREG)
-	    regval = GPR[STACK];
+	if (GPR[FRAME] != JIT_NOREG)
+	    regval = GPR[FRAME];
 	else
 	    regval = JIT_R0;
     }
@@ -2777,26 +2777,22 @@ emit_reload(ooperand_t *op, obool_t same)
 	    jit_finishi(ovm_load);
 	    break;
 	case t_half:	case t_word:
-	    if (!jit_callee_save_p(regno)) {
-		if (regval == JIT_R0) {
-		    if (global)
-			jit_movi(JIT_R0, (oword_t)gd);
-		    else
-			jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
-		}
-		jit_ldxi(GPR[regno], regval, wf_offset(op));
+	    if (regval == JIT_R0) {
+		if (global)
+		    jit_movi(JIT_R0, (oword_t)gd);
+		else
+		    jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
 	    }
+	    jit_ldxi(GPR[regno], regval, wf_offset(op));
 	    break;
 	case t_single:	case t_float:
-	    if (!jit_callee_save_p(regno)) {
-		if (regval == JIT_R0) {
-		    if (global)
-			jit_movi(JIT_R0, (oword_t)gd);
-		    else
-			jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
-		}
-		jit_ldxi_d(FPR[regno], regval, wf_offset(op));
+	    if (regval == JIT_R0) {
+		if (global)
+		    jit_movi(JIT_R0, (oword_t)gd);
+		else
+		    jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
 	    }
+	    jit_ldxi_d(FPR[regno], regval, wf_offset(op));
 	    break;
 	default:
 	    abort();
@@ -2804,7 +2800,7 @@ emit_reload(ooperand_t *op, obool_t same)
 }
 
 static void
-emit_save(ooperand_t *op)
+emit_save(ooperand_t *op, obool_t force)
 {
     oword_t		regno;
     obool_t		global;
@@ -2819,10 +2815,11 @@ emit_save(ooperand_t *op)
     }
     else {
 	global = false;
-	if (GPR[STACK] != JIT_NOREG)
-	    regval = GPR[STACK];
+	if (GPR[FRAME] != JIT_NOREG)
+	    regval = GPR[FRAME];
 	else
 	    regval = JIT_R0;
+	assert(op->s != 0);
     }
 
     assert((op->t & (t_register|t_spill)) == t_register);
@@ -2842,9 +2839,10 @@ emit_save(ooperand_t *op)
 	    jit_pushargr(JIT_R0);
 	    jit_pushargi(t_void);
 	    emit_finish(ovm_store, mask1(regno));
+	    op->t |= t_spill;
 	    break;
 	case t_half:	case t_word:
-	    if (!jit_callee_save_p(regno)) {
+	    if (force || !jit_callee_save_p(regno)) {
 		if (regval == JIT_R0) {
 		    if (global)
 			jit_movi(JIT_R0, (oword_t)gd);
@@ -2852,10 +2850,11 @@ emit_save(ooperand_t *op)
 			jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
 		}
 		jit_stxi(wf_offset(op), regval, GPR[regno]);
+		op->t |= t_spill;
 	    }
 	    break;
 	case t_single:	case t_float:
-	    if (!jit_callee_save_p(regno)) {
+	    if (force || !jit_callee_save_p(regno)) {
 		if (regval == JIT_R0) {
 		    if (global)
 			jit_movi(JIT_R0, (oword_t)gd);
@@ -2863,12 +2862,12 @@ emit_save(ooperand_t *op)
 			jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
 		}
 		jit_stxi_d(wf_offset(op), regval, FPR[regno]);
+		op->t |= t_spill;
 	    }
 	    break;
 	default:
 	    abort();
     }
-    op->t |= t_spill;
 }
 
 static void
@@ -3319,7 +3318,7 @@ get_register(obool_t spill)
     }
 
     assert(offset < stack->offset);
-    emit_save(operand);
+    emit_save(operand, false);
 
     return (regno);
 }
@@ -3341,7 +3340,7 @@ emit_save_operands(void)
     for (offset = 0; offset < stack->offset; offset++) {
 	operand = stack->v.ptr[offset];
 	if ((operand->t & (t_register|t_spill)) == t_register)
-	    emit_save(operand);
+	    emit_save(operand, true);
     }
 }
 
