@@ -144,7 +144,7 @@ extern void
 ovm_coerce_ww(oregister_t *l, oregister_t *r);
 
 extern void
-ovm_coerce_ww(oregister_t *l, oregister_t *r);
+ovm_coerce_uwuw(oregister_t *l, oregister_t *r);
 #endif
 
 extern void
