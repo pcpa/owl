@@ -92,7 +92,6 @@ emit_question(oast_t *ast)
     lop = operand_top();
     emit_load(lop);
     lty = emit_get_type(lop);
-    lreg = lop->u.w;
     node = jit_jmpi();
 
     /* false test jump target */
@@ -108,6 +107,7 @@ emit_question(oast_t *ast)
     rop = operand_top();
     emit_load(rop);
     rty = emit_get_type(rop);
+    lreg = lop->u.w;
     rreg = rop->u.w;
 
     /*   Due to type promotion rules, cannot really make the language
@@ -167,23 +167,22 @@ emit_question(oast_t *ast)
 
     /* If type conversion/coercion is complex */
     if (match == false) {
+	if (rty == t_void) {
+	    load_r(lreg);
+	    load_r_w(rreg, JIT_R0);
+	    jit_prepare();
+	    jit_pushargr(GPR[lreg]);
+	    jit_pushargr(JIT_R0);
+	    emit_finish(ovm_move, mask1(lreg));
+	}
 	if (lty == t_half || lty == t_word ||
 	    lty == t_single || lty == t_float)
 	    /* Need to sync true expression result to memory due to type
 	     * mismatch (or possible type mismatch due to overflow
 	     * prevention) */
 	    fixup = jit_jmpi();
-	else {
+	else
 	    fixup = null;
-	    if (rty == t_void) {
-		load_r(lreg);
-		load_r_w(rreg, JIT_R0);
-		jit_prepare();
-		jit_pushargr(GPR[lreg]);
-		jit_pushargr(JIT_R0);
-		emit_finish(ovm_move, mask1(lreg));
-	    }
-	}
     }
 
     /* True expression lands here */
@@ -195,12 +194,11 @@ emit_question(oast_t *ast)
 	if (fixup) {
 	    if (lty == t_half || lty == t_word)
 		sync_w(lreg);
-	    else if (lty == t_single) {
-		jit_extr_f_d(FPR[lreg], FPR[rreg]);
-		sync_d(lreg);
-	    }
 	    else {
-		assert(lty == t_float);
+		if (lty == t_single)
+		    jit_extr_f_d(FPR[lreg], FPR[lreg]);
+		else
+		    assert(lty == t_float);
 		sync_d(lreg);
 	    }
 	    jit_patch(fixup);

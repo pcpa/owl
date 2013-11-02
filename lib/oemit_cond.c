@@ -624,12 +624,12 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 		else		node = jit_beqi(GPR[lreg], 0);
 	    }
 	    else if (lty == t_single) {
-		if (jmpif)	node = jit_bnei_f(GPR[lreg], 0.0);
-		else		node = jit_beqi_f(GPR[lreg], 0.0);
+		if (jmpif)	node = jit_bnei_f(FPR[lreg], 0.0);
+		else		node = jit_beqi_f(FPR[lreg], 0.0);
 	    }
 	    else if (lty == t_float) {
-		if (jmpif)	node = jit_bnei_d(GPR[lreg], 0.0);
-		else		node = jit_beqi_d(GPR[lreg], 0.0);
+		if (jmpif)	node = jit_bnei_d(FPR[lreg], 0.0);
+		else		node = jit_beqi_d(FPR[lreg], 0.0);
 	    }
 	    else {
 		load_r(lreg);

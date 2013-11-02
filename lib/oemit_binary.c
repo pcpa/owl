@@ -1142,6 +1142,12 @@ emit_trunc2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    jit_pushargr_d(FPR[lreg]);
 	    jit_pushargr(JIT_R0);
 	    emit_finish(modf, mask2(lreg, rreg));
+#if __WORDSIZE == 32 && defined(__i386__)
+	    /* FIXME should not be required but on special conditions
+	     * may cause undefined behaviour if not fetching the result
+	     * from the x87 stack */
+	    jit_retval_d(JIT_F0);
+#endif
 	    jit_ldxi_d(FPR[lreg], JIT_FP, scratch);
 	    jit_truncr_d(GPR[lreg], FPR[lreg]);
 	    jit_extr_d(FPR[rreg], GPR[lreg]);
