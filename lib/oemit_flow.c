@@ -658,16 +658,19 @@ emit_function(ofunction_t *function)
     jit_movi(JIT_R0, 0);
     jit_stxi(NEXT_OFFSET, frame, JIT_R0);
 
-    if (function->stack) {
-	/* Update stack pointer */
-	jit_subi(stack, stack, function->stack);
-	jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
-
-	/* Check for stack overflow */
+    if (function->framesize) {
+	/* Check if stack may overflow during function execution */
 	jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, bp));
-	overflow = jit_bger_u(stack, JIT_R0);
+	jit_addi(JIT_R0, JIT_R0, function->framesize);
+	overflow = jit_bltr_u(JIT_R0, stack);
 	jit_calli(abort);
 	jit_patch(overflow);
+
+	if (function->stack) {
+	    /* Update stack pointer */
+	    jit_subi(stack, stack, function->stack);
+	    jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+	}
     }
 
     jit_stxi(offsetof(othread_t, fp), JIT_V0, frame);
@@ -893,17 +896,12 @@ emit_call(oast_t *ast)
     if (vcall) {
 	emit(ast->l.ast->l.ast);
 	top = operand_top();
-	assert(ast->l.ast->r.ast->token == tok_symbol);
 	symbol = ast->l.ast->r.ast->l.value;
     }
-    else if (ecall) {
-	assert(ast->l.ast->r.ast->token == tok_symbol);
+    else if (ecall)
 	symbol = ast->l.ast->r.ast->l.value;
-    }
-    else {
-	assert(ast->l.ast->token == tok_symbol);
+    else
 	symbol = ast->l.ast->l.value;
-    }
 
     if (!(builtin = symbol->builtin))
 	assert(symbol->function == true);
@@ -923,7 +921,6 @@ emit_call_next(ooperand_t *rop,
     jit_node_t		*call;
     oword_t		 mask;
     otype_t		 type;
-    oast_t		*prev;
     oast_t		*list;
     jit_int32_t		 frame;
     jit_int32_t		 stack;
@@ -931,28 +928,15 @@ emit_call_next(ooperand_t *rop,
     osymbol_t		*symbol;
     ovector_t		*vector;
     jit_node_t		*address;
-    jit_node_t		*overflow;
     oint32_t		 framesize;
 
+    /* Too few or too many arguments already checked */
     vector = function->record->vector;
-    for (offset = 0, list = prev = alist; offset < vector->offset; offset++) {
+    for (offset = 0, list = alist; offset < vector->offset; offset++) {
 	symbol = vector->v.ptr[offset];
 	if (!symbol->argument)
 	    break;
-	if (list == null)
-	    oparse_error(prev, "too few arguments to '%p'", function->name);
-	prev = list;
 	list = list->next;
-    }
-
-    for (; list; offset++, list = list->next) {
-	if (offset >= vector->length ||
-	    (symbol = vector->v.ptr[offset]) == null ||
-	    !symbol->argument) {
-	    if (function->varargs)
-		break;
-	    oparse_error(list, "too many arguments to '%p'", function->name);
-	}
     }
 
     framesize = function->frame;
@@ -1013,11 +997,6 @@ emit_call_next(ooperand_t *rop,
     /* Update stack pointer */
     jit_movr(stack, JIT_R0);
     jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
-    /* Check for stack overflow */
-    jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, bp));
-    overflow = jit_bger_u(stack, JIT_R0);
-    jit_calli(abort);
-    jit_patch(overflow);
 
     if (!builtin) {
 	/* Update return address */
@@ -1073,15 +1052,11 @@ emit_call_next(ooperand_t *rop,
 
     vector = function->record->vector;
     for (offset = 0, list = alist; list; offset++, list = list->next) {
+	/* Invalid argument list already checked */
 	if (offset >= vector->length ||
 	    (symbol = vector->v.ptr[offset]) == null ||
-	    !symbol->argument) {
-	    if (!function->varargs)
-		oparse_error(list, "too many arguments to '%p'",
-			     function->name);
-	    else
-		break;
-	}
+	    !symbol->argument)
+	    break;
 	emit(list);
 	op = operand_top();
 	emit_load(op);

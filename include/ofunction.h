@@ -58,6 +58,8 @@ struct ofunction {
 
     oint32_t		 stack;		/* locals and temporaries size */
 
+    oint32_t		 framesize;	/* stack + called functions arguments */
+
     /* parsing local variables */
     ouint32_t		 local		: 1;
     /* parsing temp variables */

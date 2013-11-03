@@ -48,6 +48,8 @@ literal(oobject_t object);
  */
 static ohash_t		*hash;
 static ovector_t	*stack;
+static oint32_t		 call_size;
+static oint32_t		 call_depth;
 
 /*
  * Implementation
@@ -113,6 +115,8 @@ orealize(void)
 	    likely(record->function && ofunction_p(record->function))) {
 	    oend_record(record);
 	    record->function->stack = -record->offset;
+	    if (record->function->framesize < record->function->stack)
+		record->function->framesize = record->function->stack;
 	    if (record->function->varargs) {
 		rtti = rtti_vector->v.ptr[record->type];
 		rtti->offset = record->function->varargs;
@@ -313,12 +317,30 @@ decl(oast_t *ast)
 static void
 call(oast_t *ast)
 {
+    oast_t		*list;
+    oast_t		*prev;
     osymbol_t		*name;
+    oint32_t		 size;
+    obool_t		 vcall;
+    obool_t		 ecall;
+    oword_t		 offset;
     osymbol_t		*symbol;
+    ovector_t		*vector;
+    obool_t		 builtin;
+    ofunction_t		*function;
 
-    if (ast->l.ast->token == tok_dot)
+    vcall = ast->l.ast->token == tok_dot;
+    ecall = ast->l.ast->token == tok_explicit;
+    if (vcall) {
 	realize(ast->l.ast->l.ast);
-    else if (ast->l.ast->token != tok_explicit) {
+	assert(ast->l.ast->r.ast->token == tok_symbol);
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else if (ecall) {
+	assert(ast->l.ast->r.ast->token == tok_symbol);
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else {
 	assert(ast->l.ast->token == tok_symbol);
 	name = ast->l.ast->l.value;
 	if ((symbol = oget_bound_symbol(name->name)) == null)
@@ -327,7 +349,60 @@ call(oast_t *ast)
 	    oparse_error(ast, "called object '%p' is not a function", name);
 	ast->l.ast->l.value = symbol;
     }
+
+    if (!(builtin = symbol->builtin))
+	assert(symbol->function == true);
+    function = symbol->value;
+
+    offset = 0;
+    vector = function->record->vector;
+    for (list = prev = ast->r.ast; offset < vector->offset; offset++) {
+	symbol = vector->v.ptr[offset];
+	if (!symbol->argument)
+	    break;
+	if (list == null)
+	    oparse_error(prev, "too few arguments to '%p'", function->name);
+	prev = list;
+	list = list->next;
+    }
+
+    for (; list; offset++, list = list->next) {
+	if (offset >= vector->length ||
+	    (symbol = vector->v.ptr[offset]) == null ||
+	    !symbol->argument) {
+	    if (function->varargs)
+		break;
+	    oparse_error(list, "too many arguments to '%p'", function->name);
+	}
+    }
+
+    ++call_depth;
+
+    size = function->frame;
+    for (; list; list = list->next)
+	size += sizeof(oobject_t);
+
+    call_size += size;
+#if __WORDSIZE == 64
+    assert((oint32_t)call_size == call_size);
+#endif
+    assert(call_size >= 0);
+
     stat(ast->r.ast);
+
+    if (--call_depth == 0) {
+	if (!builtin) {
+	    call_size += function->stack;
+#if __WORDSIZE == 64
+	    assert((oint32_t)call_size == call_size);
+#endif
+	    assert(call_size >= 0);
+	    if (function->framesize < call_size)
+		function->framesize = call_size;
+	}
+    }
+    else
+	assert(call_depth > 0);
 }
 
 static oint32_t
