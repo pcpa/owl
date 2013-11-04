@@ -383,9 +383,6 @@ call(oast_t *ast)
 	size += sizeof(oobject_t);
 
     call_size += size;
-#if __WORDSIZE == 64
-    assert((oint32_t)call_size == call_size);
-#endif
     assert(call_size >= 0);
 
     stat(ast->r.ast);
@@ -393,9 +390,6 @@ call(oast_t *ast)
     if (--call_depth == 0) {
 	if (!builtin) {
 	    call_size += function->stack;
-#if __WORDSIZE == 64
-	    assert((oint32_t)call_size == call_size);
-#endif
 	    assert(call_size >= 0);
 	    if (function->framesize < call_size)
 		function->framesize = call_size;
