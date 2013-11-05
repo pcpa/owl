@@ -1789,8 +1789,10 @@ unary_decl(void)
     ast = top_ast();
     assert(ast->token == tok_type);
     token = lookahead();
-    if (token == tok_comma || token == tok_cparen)
+    if (token == tok_comma || token == tok_cparen || token == tok_semicollon)
 	return (tok_type);
+    else if (token == tok_obrack)
+	return (unary_vector());
     gc_ref(pointer);
     onew_ast(pointer, tok_declexpr, ast->note.name,
 	     ast->note.lineno, ast->note.column);
@@ -1881,8 +1883,11 @@ unary_field(void)
 static otoken_t
 unary_unary(otoken_t token)
 {
+    otag_t		*tag;
     oast_t		*ast;
+    oast_t		*vast;
     obool_t		 paren;
+    oword_t		 length;
 
     ast = top_ast();
     if ((paren = lookahead() == tok_oparen))
@@ -1891,6 +1896,37 @@ unary_unary(otoken_t token)
 	oparse_error(ast, "expecting '(' %A", ast);
     expression_noeof();
     ast->l.ast = pop_ast();
+    if (token == tok_new) {
+	if (ast->l.ast->token != tok_type) {
+	    if (ast->l.ast->token == tok_vector) {
+		ast->l.ast->token = tok_vecnew;
+		vast = ast->l.ast;
+		if (vast->l.ast->token == tok_type) {
+		    if (vast->r.ast == null)
+			oparse_error(vast, "expecting vector length", vast);
+		    if (vast->r.ast->token == tok_number) {
+			if (otype(vast->r.ast->l.value) != t_word)
+			    oparse_error(vast->r.ast,
+					 "vector length not an integer");
+			if ((length = *(oword_t *)vast->r.ast->l.value) <= 0)
+			    oparse_error(vast->r.ast, "invalid vector length");
+		    }
+		    else
+			length = 0;
+		    /* else a runtime vector length */
+		    ast->r.ast = otag_vector(vast->l.ast->l.value, length);
+		    goto next;
+		}
+	    }
+	    oparse_error(ast->l.ast, "expecting type %A", ast->l.ast);
+	}
+	else {
+	    tag = ast->l.ast->l.value;
+	    if (tag->type != tag_class)
+		oparse_error(ast->l.ast, "expecting class %A", ast->l.ast);
+	}
+    }
+next:
     if (paren) {
 	if (primary_noeof() != tok_cparen)
 	    oparse_error(ast, "expecting ')' %A", ast);

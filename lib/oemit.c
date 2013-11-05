@@ -109,6 +109,9 @@ static void
 emit_sizeof(oast_t *ast);
 
 static void
+emit_new(oast_t *ast);
+
+static void
 emit_data(oast_t *ast);
 
 static void
@@ -743,6 +746,9 @@ emit(oast_t *ast)
 	case tok_sizeof:
 	    emit_sizeof(ast);
 	    break;
+	case tok_new:
+	    emit_new(ast);
+	    break;
 	case tok_data:
 	    emit_data(ast);
 	    break;
@@ -983,6 +989,78 @@ emit_sizeof(oast_t *ast)
 	jit_patch(jump);
     }
     op->t = t_register|t_word;
+}
+
+static void
+emit_new(oast_t *ast)
+{
+    ooperand_t		*bop;
+    ooperand_t		*rop;
+    otype_t		 type;
+    orecord_t		*record;
+
+    bop = operand_get(ast->offset);
+    bop->t = t_void|t_register;
+    /* new class */
+    if (ast->l.ast->token == tok_type)
+	bop->k = ast->l.ast->l.value;
+    /* new vector[...] */
+    else
+	bop->k = ast->r.value;
+    assert(otag_p(bop->k));
+    type = otag_to_type(bop->k);
+    bop->u.w = get_register(true);
+    if (current_record == root_record) {
+	if (GPR[GLOBAL] != JIT_NOREG)
+	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
+	else {
+	    jit_movi(GPR[bop->u.w], (oword_t)gd + gc_offset(bop));
+	}
+    }
+    else {
+	if (GPR[STACK] != JIT_NOREG)
+	    jit_addi(GPR[bop->u.w], GPR[STACK], gc_offset(bop));
+	else {
+	    jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, fp));
+	    jit_addi(GPR[bop->u.w], JIT_R0, + gc_offset(bop));
+	}
+    }
+    /* new class */
+    if (bop->k->type == tag_class) {
+	record = bop->k->name;
+	assert(orecord_p(record));
+	jit_prepare();
+	jit_pushargr(GPR[bop->u.w]);
+	jit_pushargi(type);
+	jit_pushargi(record->length);
+	emit_finish(onew_object, 0);
+    }
+    /* new vector[immediate] */
+    else if (bop->k->size) {
+	jit_prepare();
+	jit_pushargr(GPR[bop->u.w]);
+	jit_pushargi(type & ~t_vector);
+	jit_pushargi(type);
+	jit_pushargi(bop->k->size);
+	jit_pushargi(sizeof(ovector_t));
+	emit_finish(onew_vector_base, 0);
+    }
+    /* new vector[variable] */
+    else {
+	emit(ast->l.ast->r.ast);
+	rop = operand_top();
+	emit_load(rop);
+	jit_prepare();
+	jit_pushargr(GPR[bop->u.w]);
+	jit_pushargi(type & ~t_vector);
+	jit_pushargi(type);
+	jit_pushargr(GPR[rop->u.w]);
+	jit_pushargi(sizeof(ovector_t));
+	emit_finish(onew_vector_base, 0);
+	operand_unget(1);
+    }
+    jit_ldr(GPR[bop->u.w], GPR[bop->u.w]);
+    sync_r(bop->u.w, type);
 }
 
 static void

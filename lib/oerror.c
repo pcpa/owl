@@ -278,6 +278,7 @@ otoken_to_charp(otoken_t token)
 	case tok_list:		return ("<list>");
 	case tok_vector:	return ("<vector>");
 	case tok_vecdcl:	return ("<vecdcl>");
+	case tok_vecnew:	return ("<vecnew>");
 	case tok_code:		return ("<code>");
 	case tok_data:		return ("<data>");
 	case tok_new_type_data:	return ("<new_type_data>");

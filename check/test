@@ -33316,3 +33316,19 @@ print("%d %d %d %d %d %d %d %d %d %d %d\n",
       av_t41_sc(1), av_t41_uc(2),  av_t41_ss(3), av_t41_us(4),
       av_t41_si(5), av_t41_ui(6),  av_t41_sl(7), av_t41_ul(8),
       av_t41_sf(9), av_t41_df(10), av_t41_av(11));
+
+class t42c_t {
+    int8_t	sc;
+};
+t42c_t t42a = new t42c_t;
+t42a.sc = 32;
+print("%d %d\n", t42a.sc, sizeof(t42a));
+int32_t t42av[];
+t42av = new int32_t[42];
+t42av[32] = 43;
+print("%d %d\n", t42av[32], sizeof(t42av));
+int32_t t42av2[];
+int32_t t42len = 20;
+t42av2 = new int32_t[t42len];
+t42av2[12] = -21;
+print("%d %d\n", t42av2[12], sizeof(t42av2));

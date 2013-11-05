@@ -180,6 +180,16 @@ realize(oast_t *ast)
 	case tok_dot:
 	    ast->offset = get();
 	    break;
+
+	case tok_new:
+	    ast->offset = get();
+	    stat(ast->l.ast);
+	    break;
+	case tok_vecnew:
+	    if (ast->r.ast->token != tok_number)
+		ast->r.ast->offset = get();
+	    break;
+
 	case tok_vector:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
@@ -276,7 +286,7 @@ realize(oast_t *ast)
 	case tok_case:		case tok_default:
 	case tok_function:	case tok_class:
 	case tok_vecdcl:	case tok_label:
-	case tok_goto:
+	case tok_goto:		case tok_type:
 	    break;
 
 	default:

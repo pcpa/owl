@@ -119,9 +119,10 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc:	case tok_postdec:
+	case tok_new:
 	    oeval_ast(ast->l.ast);
 	    break;
-	case tok_init:
+	case tok_init:		case tok_vecnew:
 	    oeval_ast(ast->r.ast);
 	    break;
 	case tok_com:		case tok_plus:

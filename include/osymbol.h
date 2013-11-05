@@ -21,6 +21,7 @@
 #include "otypes.h"
 
 #define osymbol_p(object)	(otype(object) == t_symbol)
+#define orecord_p(object)	(otype(object) == t_record)
 
 /*
  * Types

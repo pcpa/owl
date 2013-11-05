@@ -790,8 +790,10 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    break;
 	case tok_new:
 	    bytes += dputs("new(", 4);
-	    assert(ast->l.ast->token == tok_type);
-	    bytes += print_tag(ast->l.value, null, false);
+	    if (ast->l.ast->token == tok_type)
+		bytes += print_tag(ast->l.ast->l.value, null, false);
+	    else
+		bytes += print_ast(ast->l.ast);
 	    dputc(')');		++bytes;
 	    break;
 	case tok_goto:
@@ -824,6 +826,7 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast_paren_comma_list(ast->l.ast);
 	    break;
 	case tok_vector:	case tok_vecdcl:
+	case tok_vecnew:
 	    bytes += print_ast(ast->l.ast);
 	    dputc('[');		++bytes;
 	    if (ast->r.ast)	bytes += print_ast(ast->r.ast);
@@ -1229,7 +1232,7 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
     if (fields && tag->type == tag_class)
 	bytes = dputs("class ", 6);
     for (base = tag; base->base; base = base->base)
-	;
+	assert(otag_p(base));
     if ((record = base->name))
 	bytes += print_sym(record->name);
     else
