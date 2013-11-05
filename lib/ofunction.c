@@ -94,7 +94,11 @@ finish_function(void)
 ofunction_t *
 oget_function(orecord_t *record, ovector_t *name)
 {
-    return ((ofunction_t *)oget_hash(record->methods, name));
+    osymbol_t		*symbol;
+
+    if ((symbol = oget_symbol(record, name)))
+	return ((ofunction_t *)oget_hash(record->methods, symbol));
+    return (null);
 }
 
 ofunction_t *

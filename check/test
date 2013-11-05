@@ -33150,3 +33150,169 @@ print("%-3d ", t40av1 % t40sf2 ? t40sc1 : t40sf2);
 print("%-3d ", t40av1 % t40df2 ? t40sc1 : t40df2);
 print("%-3d ", t40av1 % t40av2 ? t40sc1 : t40av2);
 print("\n");
+
+int8_t sc_t41_sc(int8_t a)    { return a; }
+int8_t sc_t41_uc(uint8_t a)   { return a; }
+int8_t sc_t41_ss(int16_t a)   { return a; }
+int8_t sc_t41_us(uint16_t a)  { return a; }
+int8_t sc_t41_si(int32_t a)   { return a; }
+int8_t sc_t41_ui(uint32_t a)  { return a; }
+int8_t sc_t41_sl(int64_t a)   { return a; }
+int8_t sc_t41_ul(uint64_t a)  { return a; }
+int8_t sc_t41_sf(float32_t a) { return a; }
+int8_t sc_t41_df(float64_t a) { return a; }
+int8_t sc_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      sc_t41_sc(1), sc_t41_uc(2),  sc_t41_ss(3), sc_t41_us(4),
+      sc_t41_si(5), sc_t41_ui(6),  sc_t41_sl(7), sc_t41_ul(8),
+      sc_t41_sf(9), sc_t41_df(10), sc_t41_av(11));
+uint8_t uc_t41_sc(int8_t a)    { return a; }
+uint8_t uc_t41_uc(uint8_t a)   { return a; }
+uint8_t uc_t41_ss(int16_t a)   { return a; }
+uint8_t uc_t41_us(uint16_t a)  { return a; }
+uint8_t uc_t41_si(int32_t a)   { return a; }
+uint8_t uc_t41_ui(uint32_t a)  { return a; }
+uint8_t uc_t41_sl(int64_t a)   { return a; }
+uint8_t uc_t41_ul(uint64_t a)  { return a; }
+uint8_t uc_t41_sf(float32_t a) { return a; }
+uint8_t uc_t41_df(float64_t a) { return a; }
+uint8_t uc_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      uc_t41_sc(1), uc_t41_uc(2),  uc_t41_ss(3), uc_t41_us(4),
+      uc_t41_si(5), uc_t41_ui(6),  uc_t41_sl(7), uc_t41_ul(8),
+      uc_t41_sf(9), uc_t41_df(10), uc_t41_av(11));
+int16_t ss_t41_sc(int8_t a)    { return a; }
+int16_t ss_t41_uc(uint8_t a)   { return a; }
+int16_t ss_t41_ss(int16_t a)   { return a; }
+int16_t ss_t41_us(uint16_t a)  { return a; }
+int16_t ss_t41_si(int32_t a)   { return a; }
+int16_t ss_t41_ui(uint32_t a)  { return a; }
+int16_t ss_t41_sl(int64_t a)   { return a; }
+int16_t ss_t41_ul(uint64_t a)  { return a; }
+int16_t ss_t41_sf(float32_t a) { return a; }
+int16_t ss_t41_df(float64_t a) { return a; }
+int16_t ss_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      ss_t41_sc(1), ss_t41_uc(2),  ss_t41_ss(3), ss_t41_us(4),
+      ss_t41_si(5), ss_t41_ui(6),  ss_t41_sl(7), ss_t41_ul(8),
+      ss_t41_sf(9), ss_t41_df(10), ss_t41_av(11));
+uint16_t us_t41_sc(int8_t a)    { return a; }
+uint16_t us_t41_uc(uint8_t a)   { return a; }
+uint16_t us_t41_ss(int16_t a)   { return a; }
+uint16_t us_t41_us(uint16_t a)  { return a; }
+uint16_t us_t41_si(int32_t a)   { return a; }
+uint16_t us_t41_ui(uint32_t a)  { return a; }
+uint16_t us_t41_sl(int64_t a)   { return a; }
+uint16_t us_t41_ul(uint64_t a)  { return a; }
+uint16_t us_t41_sf(float32_t a) { return a; }
+uint16_t us_t41_df(float64_t a) { return a; }
+uint16_t us_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      us_t41_sc(1), us_t41_uc(2),  us_t41_ss(3), us_t41_us(4),
+      us_t41_si(5), us_t41_ui(6),  us_t41_sl(7), us_t41_ul(8),
+      us_t41_sf(9), us_t41_df(10), us_t41_av(11));
+int32_t si_t41_sc(int8_t a)    { return a; }
+int32_t si_t41_uc(uint8_t a)   { return a; }
+int32_t si_t41_ss(int16_t a)   { return a; }
+int32_t si_t41_us(uint16_t a)  { return a; }
+int32_t si_t41_si(int32_t a)   { return a; }
+int32_t si_t41_ui(uint32_t a)  { return a; }
+int32_t si_t41_sl(int64_t a)   { return a; }
+int32_t si_t41_ul(uint64_t a)  { return a; }
+int32_t si_t41_sf(float32_t a) { return a; }
+int32_t si_t41_df(float64_t a) { return a; }
+int32_t si_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      si_t41_sc(1), si_t41_uc(2),  si_t41_ss(3), si_t41_us(4),
+      si_t41_si(5), si_t41_ui(6),  si_t41_sl(7), si_t41_ul(8),
+      si_t41_sf(9), si_t41_df(10), si_t41_av(11));
+uint32_t ui_t41_sc(int8_t a)    { return a; }
+uint32_t ui_t41_uc(uint8_t a)   { return a; }
+uint32_t ui_t41_ss(int16_t a)   { return a; }
+uint32_t ui_t41_us(uint16_t a)  { return a; }
+uint32_t ui_t41_si(int32_t a)   { return a; }
+uint32_t ui_t41_ui(uint32_t a)  { return a; }
+uint32_t ui_t41_sl(int64_t a)   { return a; }
+uint32_t ui_t41_ul(uint64_t a)  { return a; }
+uint32_t ui_t41_sf(float32_t a) { return a; }
+uint32_t ui_t41_df(float64_t a) { return a; }
+uint32_t ui_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      ui_t41_sc(1), ui_t41_uc(2),  ui_t41_ss(3), ui_t41_us(4),
+      ui_t41_si(5), ui_t41_ui(6),  ui_t41_sl(7), ui_t41_ul(8),
+      ui_t41_sf(9), ui_t41_df(10), ui_t41_av(11));
+int64_t sl_t41_sc(int8_t a)    { return a; }
+int64_t sl_t41_uc(uint8_t a)   { return a; }
+int64_t sl_t41_ss(int16_t a)   { return a; }
+int64_t sl_t41_us(uint16_t a)  { return a; }
+int64_t sl_t41_si(int32_t a)   { return a; }
+int64_t sl_t41_ui(uint32_t a)  { return a; }
+int64_t sl_t41_sl(int64_t a)   { return a; }
+int64_t sl_t41_ul(uint64_t a)  { return a; }
+int64_t sl_t41_sf(float32_t a) { return a; }
+int64_t sl_t41_df(float64_t a) { return a; }
+int64_t sl_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      sl_t41_sc(1), si_t41_uc(2),  sl_t41_ss(3), sl_t41_us(4),
+      sl_t41_si(5), si_t41_ui(6),  sl_t41_sl(7), sl_t41_ul(8),
+      sl_t41_sf(9), si_t41_df(10), sl_t41_av(11));
+uint64_t ul_t41_sc(int8_t a)    { return a; }
+uint64_t ul_t41_uc(uint8_t a)   { return a; }
+uint64_t ul_t41_ss(int16_t a)   { return a; }
+uint64_t ul_t41_us(uint16_t a)  { return a; }
+uint64_t ul_t41_si(int32_t a)   { return a; }
+uint64_t ul_t41_ui(uint32_t a)  { return a; }
+uint64_t ul_t41_sl(int64_t a)   { return a; }
+uint64_t ul_t41_ul(uint64_t a)  { return a; }
+uint64_t ul_t41_sf(float32_t a) { return a; }
+uint64_t ul_t41_df(float64_t a) { return a; }
+uint64_t ul_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      ul_t41_sc(1), ul_t41_uc(2),  ul_t41_ss(3), ul_t41_us(4),
+      ul_t41_si(5), ul_t41_ui(6),  ul_t41_sl(7), ul_t41_ul(8),
+      ul_t41_sf(9), ul_t41_df(10), ul_t41_av(11));
+float32_t sf_t41_sc(int8_t a)    { return a; }
+float32_t sf_t41_uc(uint8_t a)   { return a; }
+float32_t sf_t41_ss(int16_t a)   { return a; }
+float32_t sf_t41_us(uint16_t a)  { return a; }
+float32_t sf_t41_si(int32_t a)   { return a; }
+float32_t sf_t41_ui(uint32_t a)  { return a; }
+float32_t sf_t41_sl(int64_t a)   { return a; }
+float32_t sf_t41_ul(uint64_t a)  { return a; }
+float32_t sf_t41_sf(float32_t a) { return a; }
+float32_t sf_t41_df(float64_t a) { return a; }
+float32_t sf_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      sf_t41_sc(1), sf_t41_uc(2),  sf_t41_ss(3), sf_t41_us(4),
+      sf_t41_si(5), sf_t41_ui(6),  sf_t41_sl(7), sf_t41_ul(8),
+      sf_t41_sf(9), sf_t41_df(10), sf_t41_av(11));
+float64_t df_t41_sc(int8_t a)    { return a; }
+float64_t df_t41_uc(uint8_t a)   { return a; }
+float64_t df_t41_ss(int16_t a)   { return a; }
+float64_t df_t41_us(uint16_t a)  { return a; }
+float64_t df_t41_si(int32_t a)   { return a; }
+float64_t df_t41_ui(uint32_t a)  { return a; }
+float64_t df_t41_sl(int64_t a)   { return a; }
+float64_t df_t41_ul(uint64_t a)  { return a; }
+float64_t df_t41_sf(float32_t a) { return a; }
+float64_t df_t41_df(float64_t a) { return a; }
+float64_t df_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      df_t41_sc(1), df_t41_uc(2),  df_t41_ss(3), df_t41_us(4),
+      df_t41_si(5), df_t41_ui(6),  df_t41_sl(7), df_t41_ul(8),
+      df_t41_sf(9), df_t41_df(10), df_t41_av(11));
+auto av_t41_sc(int8_t a)    { return a; }
+auto av_t41_uc(uint8_t a)   { return a; }
+auto av_t41_ss(int16_t a)   { return a; }
+auto av_t41_us(uint16_t a)  { return a; }
+auto av_t41_si(int32_t a)   { return a; }
+auto av_t41_ui(uint32_t a)  { return a; }
+auto av_t41_sl(int64_t a)   { return a; }
+auto av_t41_ul(uint64_t a)  { return a; }
+auto av_t41_sf(float32_t a) { return a; }
+auto av_t41_df(float64_t a) { return a; }
+auto av_t41_av(auto a)      { return a; }
+print("%d %d %d %d %d %d %d %d %d %d %d\n",
+      av_t41_sc(1), av_t41_uc(2),  av_t41_ss(3), av_t41_us(4),
+      av_t41_si(5), av_t41_ui(6),  av_t41_sl(7), av_t41_ul(8),
+      av_t41_sf(9), av_t41_df(10), av_t41_av(11));

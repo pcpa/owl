@@ -2009,6 +2009,7 @@ emit_coerce(otype_t type, ooperand_t *lop, ooperand_t *rop)
 #if __WORDSIZE == 32
 		load_r(lreg);
 		jit_prepare();
+		jit_pushargr(GPR[lreg]);
 		jit_pushargr_f(FPR[rreg]);
 		emit_finish(ovm_truncr_f, mask1(lreg));
 		loadif_w(lreg);
@@ -2045,6 +2046,7 @@ emit_coerce(otype_t type, ooperand_t *lop, ooperand_t *rop)
 #if __WORDSIZE == 32
 		load_r(lreg);
 		jit_prepare();
+		jit_pushargr(GPR[lreg]);
 		jit_pushargr_d(FPR[rreg]);
 		emit_finish(ovm_truncr_d, mask1(lreg));
 		loadif_w(lreg);
