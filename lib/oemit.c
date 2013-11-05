@@ -1050,6 +1050,24 @@ emit_new(oast_t *ast)
 	emit(ast->l.ast->r.ast);
 	rop = operand_top();
 	emit_load(rop);
+	switch (emit_get_type(rop)) {
+	    case t_half:	case t_word:
+		break;
+	    case t_single:
+		jit_extr_f_d(FPR[rop->u.w], FPR[rop->u.w]);
+	    case t_float:
+		sync_d(rop->u.w);
+	    case t_void:
+		load_r(rop->u.w);
+		jit_prepare();
+		jit_pushargr(GPR[rop->u.w]);
+		emit_finish(ovm_offset, mask1(rop->u.w));
+		load_w(rop->u.w);
+		emit_set_type(rop, t_word);
+		break;
+	    default:
+		abort();
+	}
 	jit_prepare();
 	jit_pushargr(GPR[bop->u.w]);
 	jit_pushargi(type & ~t_vector);

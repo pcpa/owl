@@ -1908,7 +1908,7 @@ unary_unary(otoken_t token)
 			if (otype(vast->r.ast->l.value) != t_word)
 			    oparse_error(vast->r.ast,
 					 "vector length not an integer");
-			if ((length = *(oword_t *)vast->r.ast->l.value) <= 0)
+			if ((length = *(oword_t *)vast->r.ast->l.value) < 0)
 			    oparse_error(vast->r.ast, "invalid vector length");
 		    }
 		    else
