@@ -427,10 +427,9 @@ otag_to_type(otag_t *tag)
 	case tag_vector:
 	    return (t_vector | otag_to_type(tag->base));
 	default:
-	    /*   FIXME Assuming a function call, not a function pointer. */
 	    assert(tag->type == tag_function);
 	    vector = tag->name;
-	    return (otag_to_type(vector->v.ptr[0]));
+	    return (t_function | otag_to_type(vector->v.ptr[0]));
     }
 }
 

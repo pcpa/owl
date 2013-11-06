@@ -1664,6 +1664,7 @@ unary(void)
 	case tok_subtypeof:	case tok_renew:
 	    return (unary_binary(token));
 	case tok_sizeof:	case tok_new:
+	case tok_typeof:
 	    return (unary_unary(token));
 	case tok_ellipsis:
 	    if (lookahead() == tok_obrack)
@@ -1892,7 +1893,7 @@ unary_unary(otoken_t token)
     ast = top_ast();
     if ((paren = lookahead() == tok_oparen))
 	consume();
-    else if (token != tok_sizeof && token != tok_new)
+    else if (token != tok_sizeof && token != tok_new && token != tok_typeof)
 	oparse_error(ast, "expecting '(' %A", ast);
     expression_noeof();
     ast->l.ast = pop_ast();

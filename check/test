@@ -33337,3 +33337,46 @@ float32_t t42len2 = 20.0;
 t42av3 = new int32_t[t42len2];
 t42av3[12] = -21;
 print("%d %d\n", t42av3[12], sizeof(t42av3));
+
+print("%#x %#x %#x %#x\n", typeof(1), typeof(1.0), typeof(1/2), typeof("foo"));
+int8_t		t43sc;
+uint8_t		t43uc;
+int16_t		t43ss;
+uint16_t	t43us;
+int32_t		t43si;
+uint32_t	t43ui;
+int64_t		t43sl;
+uint64_t	t43ul;
+float32_t	t43sf;
+float64_t	t43df;
+auto		t43av;
+class		t43c_t {
+    auto v;
+};
+t43c_t		t43c = {};
+print("\
+sc: %#x %#x\n\
+uc: %#x %#x\n\
+ss: %#x %#x\n\
+us: %#x %#x\n\
+si: %#x %#x\n\
+ui: %#x %#x\n\
+sl: %#x %#x\n\
+ul: %#x %#x\n\
+sf: %#x %#x\n\
+df: %#x %#x\n\
+av: %#x %#x\n\
+cc: %#x %#x\n",
+      typeof(int8_t),    typeof(t43sc), typeof(uint8_t),   typeof(t43uc),
+      typeof(int16_t),   typeof(t43ss), typeof(uint16_t),  typeof(t43us),
+      typeof(int32_t),   typeof(t43si), typeof(uint32_t),  typeof(t43ui),
+      typeof(int64_t),   typeof(t43sl), typeof(uint64_t),  typeof(t43ul),
+      typeof(float32_t), typeof(t43sf), typeof(float64_t), typeof(t43df),
+      typeof(auto),      typeof(t43av), typeof(t43c_t),    typeof(t43c));
+t43av = t43c;
+print("%#x\n", typeof(t43c));
+int32_t si_t43_v(void) { return 1; }
+auto av_t43_v(void) { return 1/2; }
+print("%#x %#x\n", typeof(si_t43_v()), typeof(av_t43_v()));
+int16_t t43v[] = { 1, 2 };
+print("%#x\n", typeof(t43v[1]));

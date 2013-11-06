@@ -109,6 +109,9 @@ static void
 emit_sizeof(oast_t *ast);
 
 static void
+emit_typeof(oast_t *ast);
+
+static void
 emit_new(oast_t *ast);
 
 static void
@@ -746,6 +749,9 @@ emit(oast_t *ast)
 	case tok_sizeof:
 	    emit_sizeof(ast);
 	    break;
+	case tok_typeof:
+	    emit_typeof(ast);
+	    break;
 	case tok_new:
 	    emit_new(ast);
 	    break;
@@ -989,6 +995,39 @@ emit_sizeof(oast_t *ast)
 	jit_patch(jump);
     }
     op->t = t_register|t_word;
+}
+
+static void
+emit_typeof(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 offset;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    switch (emit_get_type(op)) {
+	case t_half:	case t_word:
+	    jit_movi(GPR[op->u.w], t_word);
+	    break;
+	case t_single:
+	    jit_movi(GPR[op->u.w], t_float32);
+	    break;
+	case t_float:
+	    jit_movi(GPR[op->u.w], t_float64);
+	    break;
+	default:
+	    switch (op->u.w) {
+		case 0:		offset = offsetof(othread_t, r0);	break;
+		case 1:		offset = offsetof(othread_t, r1);	break;
+		case 2:		offset = offsetof(othread_t, r2);	break;
+		case 3:		offset = offsetof(othread_t, r3);	break;
+		default:	abort();
+	    }
+	    jit_ldxi_i(GPR[op->u.w], JIT_V0, offset + offsetof(oregister_t, t));
+	    break;
+    }
+    emit_set_type(op, t_word);
 }
 
 static void

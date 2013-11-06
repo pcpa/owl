@@ -199,7 +199,7 @@ realize(oast_t *ast)
 	case tok_not:		case tok_com:
 	case tok_plus:		case tok_neg:
 	case tok_inc:		case tok_dec:
-	case tok_sizeof:
+	case tok_sizeof:	case tok_typeof:
 	    realize(ast->l.ast);
 	    ast->offset = ast->l.ast->offset;
 	    break;

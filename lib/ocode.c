@@ -43,6 +43,12 @@ eval_ast_goto(oast_t *ast);
 static void
 eval_ast_sizeof(oast_t *ast);
 
+static osymbol_t *
+ast_call_symbol(oast_t *ast);
+
+static void
+eval_ast_typeof(oast_t *ast);
+
 static void
 update_symbol(oast_t *ast);
 
@@ -137,6 +143,9 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_sizeof:
 	    eval_ast_sizeof(ast);
+	    break;
+	case tok_typeof:
+	    eval_ast_typeof(ast);
 	    break;
 	case tok_question:
 	    oeval_ast(ast->t.ast);
@@ -497,6 +506,109 @@ eval_ast_sizeof(oast_t *ast)
     onew_word(&ast->l.value, size);
 }
 
+static osymbol_t *
+ast_call_symbol(oast_t *ast)
+{
+    osymbol_t		*name;
+    osymbol_t		*symbol;
+
+    assert(ast->token == tok_call);
+    if (ast->l.ast->token == tok_dot ||
+	ast->l.ast->token == tok_explicit)
+	symbol = ast->l.ast->r.ast->l.value;
+    else {
+	name = ast->l.ast->l.value;
+	if ((symbol = oget_bound_symbol(name->name)) == null)
+	    oparse_error(ast, "undefined function '%p'", name);
+	else if (symbol->tag->type != tag_function)
+	    oparse_error(ast, "called object '%p' is not a function",
+			 name);
+    }
+
+    return (symbol);
+}
+
+static void
+eval_ast_typeof(oast_t *ast)
+{
+    otype_t		 type;
+    osymbol_t		*symbol;
+    ofunction_t		*function;
+
+    oeval_ast(ast->l.ast);
+    switch (ast->l.ast->token) {
+	case tok_number:
+	    type = otype(ast->l.ast->l.value);
+	    break;
+	case tok_string:
+	    type = t_string;
+	    break;
+	case tok_symbol:
+	    symbol = ast->l.ast->l.value;
+	    type = otag_to_type(symbol->tag);
+	    break;
+	case tok_call:
+	    symbol = ast_call_symbol(ast->l.ast);
+	    function = symbol->value;
+	    type = otag_to_type(function->tag) & ~t_function;
+	    break;
+	case tok_type:
+	    type = otag_to_type(ast->l.ast->l.value);
+	    break;
+	default:
+	    return;
+    }
+
+    /* Return "normalized" type, not variable type, because
+     * otherwise there would be inconsistencies with actual
+     * runtime type information for "unsigned word" if it
+     * does not fit in a "signed word", as well as being
+     * simply tagged as "word" if moved to a vm register */
+    switch ((oword_t)type) {
+	case t_undef:
+	    if (ast->l.ast->token != tok_type)
+		return;
+	    type = t_void;
+	    break;
+	case t_void:
+	    break;
+	case t_int8:			case t_uint8:
+	case t_int16:			case t_uint16:
+	case t_int32:
+#if __WORDSIZE == 64
+	case t_uint32:			case t_int64:
+#endif
+	    type = t_word;
+	    break;
+#if __WORDSIZE == 32
+	case t_uint32:			case t_int64:
+#endif
+	case t_uint64:
+	    if (ast->l.ast->token != tok_type)
+		return;
+	    type = t_word;
+	    break;
+	case t_float32:			case t_float64:
+	    break;
+	case t_vector|t_int8:		case t_vector|t_uint8:
+	case t_vector|t_int16:		case t_vector|t_uint16:
+	case t_vector|t_int32:		case t_vector|t_uint32:
+	case t_vector|t_int64:		case t_vector|t_uint64:
+	case t_vector|t_float32:	case t_vector|t_float64:
+	    break;
+	case t_vector|t_undef:
+	    type = t_vector;
+	    break;
+	default:
+	    if (type > rtti_vector->offset)
+		return;
+	    break;
+    }
+    odel_object(&ast->l.value);
+    ast->token = tok_number;
+    onew_word(&ast->l.value, type);
+}
+
 static void
 update_symbol(oast_t *ast)
 {
@@ -510,8 +622,13 @@ update_symbol(oast_t *ast)
 	if (symbol == null)
 	    oparse_error(ast, "unbound symbol '%p'", vector);
 	/*   This also happens to error out if using a now shadowed variable. */
-	if (!symbol->bound)
+	if (!symbol->bound) {
+	    if (symbol->function || symbol->method || symbol->builtin)
+		/*  More descriptive error message when attempting to use a
+		 * function as a variable. */
+		oparse_error(ast, "symbol '%p' is a function", vector);
 	    oparse_error(ast, "symbol '%p' used before definition", vector);
+	}
 	ast->l.value = symbol;
     }
 }

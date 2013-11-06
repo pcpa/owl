@@ -132,7 +132,6 @@ enum otype {
     t_namespace,
     t_prototype,
     t_builtin,
-    t_function,
 
     t_null,		/* static null */
     t_bool,		/* zero or one */
@@ -155,6 +154,8 @@ enum otype {
     t_vector_uint64	= t_vector | t_uint64,
     t_vector_float32	= t_vector | t_float32,
     t_vector_float64	= t_vector | t_float64,
+
+    t_function		= 0x40000000,
 
     /* bitmasks */
     t_spill		= 0x40000000,

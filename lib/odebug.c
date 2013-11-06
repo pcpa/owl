@@ -788,6 +788,11 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast(ast->l.ast);
 	    dputc(')');		++bytes;
 	    break;
+	case tok_typeof:
+	    bytes += dputs("typeof(", 7);
+	    bytes += print_ast(ast->l.ast);
+	    dputc(')');		++bytes;
+	    break;
 	case tok_new:
 	    bytes += dputs("new(", 4);
 	    if (ast->l.ast->token == tok_type)
