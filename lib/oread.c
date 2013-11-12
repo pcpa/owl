@@ -1681,10 +1681,6 @@ macro_evaluate(ovector_t *final, ovector_t *expand)
 	orenew_vector(save_vector, save_vector->offset + 4);
     save_vector->v.ptr[save_vector->offset++] = macro_vector;
 
-    offset = macro_offset;
-    macro_vector = expand;
-    macro_offset = 0;
-
     /* Ensure the expand argument is not modified; it can be modified
      * in some macro expansions  */
     if (expand_vector->offset >= expand_vector->length)
@@ -1700,6 +1696,10 @@ macro_evaluate(ovector_t *final, ovector_t *expand)
     memcpy(vector->v.ptr, expand->v.ptr, expand->offset * sizeof(oobject_t));
     vector->offset = expand->offset;
 
+    offset = macro_offset;
+    macro_vector = vector;
+    macro_offset = 0;
+
     assert(final->offset == 0);
     while (macro_offset < macro_vector->offset) {
 	symbol = read_object();
@@ -1709,11 +1709,6 @@ macro_evaluate(ovector_t *final, ovector_t *expand)
     }
 
     /* Restore the expand argument */
-    if (expand->offset > vector->offset)
-	memset(expand->v.ptr + vector->offset, 0,
-	       (expand->offset - vector->offset) * sizeof(oobject_t));
-    memcpy(expand->v.ptr, vector->v.ptr, vector->offset * sizeof(oobject_t));
-    expand->offset = vector->offset;
     memset(vector->v.ptr, 0, vector->offset * sizeof(oobject_t));
     vector->offset = 0;
 
