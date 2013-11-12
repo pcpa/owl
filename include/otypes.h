@@ -79,6 +79,7 @@ typedef struct ohash		ohash_t;
 typedef struct osymbol		osymbol_t;
 typedef struct oformat		oformat_t;
 typedef struct onote		onote_t;
+typedef struct omacro		omacro_t;
 
 typedef struct oast		oast_t;
 typedef struct otag		otag_t;

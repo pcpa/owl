@@ -20,6 +20,8 @@
 
 #include "otypes.h"
 
+#define omacro_p(object)		(otype(object) == t_macro)
+#define oread_warn(...)			onote_warn(&input_note, __VA_ARGS__)
 #define oread_error(...)		onote_error(&input_note, __VA_ARGS__)
 
 /*
@@ -29,6 +31,18 @@ struct oinput {
     ostream_t		*stream;
     oint32_t		 lineno;
     oint32_t		 column;
+};
+
+struct omacro {
+    omacro_t		*next;
+    ovector_t		*vector;
+    osymbol_t		*name;
+    oword_t		 key;
+
+    ohash_t		*table;			/* macro function if non null */
+    obool_t		 expand		: 1;	/* expanding */
+    obool_t		 vararg		: 1;	/* multiple arguments */
+    obool_t		 unsafe		: 1;	/* may lead to recursion */
 };
 
 /*

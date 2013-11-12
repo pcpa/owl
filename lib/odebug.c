@@ -175,6 +175,7 @@ write_object(oobject_t object, oformat_t *format)
 	ompq_t		 mpq;
 	ompr_t		 mpr;
 	ompc_t		 mpc;
+	omacro_t	*macro;
 	oobject_t	 object;
 	orecord_t	*record;
 	osymbol_t	*symbol;
@@ -249,6 +250,9 @@ write_object(oobject_t object, oformat_t *format)
 		break;
 	    case t_symbol:
 		bytes = print_sym(data.symbol);
+		break;
+	    case t_macro:
+		bytes = print_sym(data.macro->name);
 		break;
 	    default:
 		if (type & t_vector) {
@@ -567,6 +571,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
     osymbol_t		*symbol;
     ovector_t		*vector;
 
+    /* do not crash if called from gdb with incomplete data */
+    if (ast == null)
+	return (0);
     bytes = 0;
     if (cfg_verbose > 1) {
 	dputc('<');	++bytes;

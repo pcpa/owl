@@ -33380,3 +33380,549 @@ auto av_t43_v(void) { return 1/2; }
 print("%#x %#x\n", typeof(si_t43_v()), typeof(av_t43_v()));
 int16_t t43v[] = { 1, 2 };
 print("%#x\n", typeof(t43v[1]));
+
+#define t44max(a, b) ((a) > (b) ? (a) : (b))
+/*
+((1) > (2) ? (1) : (2))
+ */
+if (t44max(1, 2) != 2)
+    print("error %d\n", __LINE__);
+/*
+((max(-1, 3)) > (max(2, 1)) ? (max(-1, 3)) : (max(2, 1)))
+((((-1) > (3) ? (-1) : (3))) > (((2) > (1) ? (2) : (1)))) ? (((-1) > (3) ? (-1) : (3)))) : (((2) > (1) ? (2) : (1)))))
+ */
+if (t44max(t44max(-1, 3), t44max(2, 1)) != 3)
+    print("error %d\n", __LINE__);
+/*
+((2 + 1) > (max(4.2, 9/2)) ? (2 + 1) : (max(4.2, 9/2)))
+((2 + 1) > (((4.2) > (9/2) ? (4.2) : (9/2))) ? (2 + 1) : (((4.2) > (9/2) ? (4.2) : (9/2))))
+ */
+if (t44max(2 + 1, t44max(4.2, 9 / 2)) != 9/2)
+    print("error %d\n", __LINE__);
+#define t44plus		+
+#define t44times	*
+/*
+((3 plus 3) > (3 times 3) ? (3 plus 3) : (3 times 3))
+((3 + 3) > (3 * 3) ? (3 + 3) : (3 * 3))
+ */
+if (t44max(3 t44plus 3, 3 t44times 3) != 9)
+    print("error %d\n", __LINE__);
+#define t44_NUMBERS	1, \
+			2, \
+			3
+/*
+1, 2, 3
+ */
+int32_t t44x[] = { t44_NUMBERS };
+if (t44x[0] != 1 || t44x[1] != 2 || t44x[2] != 3)
+    print("error %d\n", __LINE__);
+#define t44_TABLESIZE	t44_BUFSIZE
+#define t44_BUFSIZE	1024
+/*
+BUFSIZE
+1024
+ */
+if (t44_TABLESIZE != 1024)
+    print("error %d\n", __LINE__);
+#undef t44_BUFSIZE
+#define t44_BUFSIZE	37
+/*
+BUFSIZE
+37
+ */
+if (t44_TABLESIZE != 37)
+    print("error %d\n", __LINE__);
+if (t44_TABLESIZE != t44_BUFSIZE)
+    print("error %d\n", __LINE__);
+auto t44_foo = 2;
+#define t44_foo		(4 + t44_foo)
+/*
+(4 + foo)
+--> foo recursion
+ */
+if (t44_foo != 6)
+    print("error %d\n", __LINE__);
+auto t44_x = 5;
+auto t44_y = 2;
+#define t44_x		(4 + t44_y)
+#define t44_y		(2 * t44_x)
+/*
+(4 + y)
+(4 + (2 * x))
+--> x recursion
+ */
+if (t44_x != 14)
+    print("error %d\n", __LINE__);
+/*
+(2 * x)
+(2 * (4 + y))
+--> y recursion
+ */
+if (t44_y != 12)
+    print("error %d\n", __LINE__);
+auto t44_a = 1, t44_b = 2;
+#undef t44_foo
+#define t44_foo		(t44_a, t44_b)
+#define t44_bar(x)	t44_lose(x)
+#define t44_lose(x)	(1 + (x))
+/*
+bar(foo)
+(a, b)
+lose((a, b))
+(1 + ((a, b)))
+ */
+if (t44_bar(t44_foo) != 3)
+    print("error %d\n", __LINE__);
+#undef t44_x
+t44_x = 10;
+#define t44_ignore_second_arg(a,b,c) a; c
+/*
+x += 10; x += 10
+ */
+t44_ignore_second_arg(t44_x += 10,
+		      t44_x += 10,
+		      t44_x += 10);
+if (t44_x != 30)
+    print("error %d\n", __LINE__);
+#define t44_set_to_1
+t44_x = 0;
+#ifdef t44_set_to_1
+t44_x = 1;
+#endif
+/*
+1
+ */
+if (t44_x != 1)
+    print("error %d\n", __LINE__);
+#undef t44_set_to_1
+t44_x = 0;
+#ifdef t44_set_to_1
+t44_x = 1;
+#else
+t44_x = 10;
+#endif
+/*
+10
+ */
+if (t44_x != 10)
+    print("error %d\n", __LINE__);
+#undef t44_foo
+t44_foo = 1;
+#define t44_PLUS	+
+#define t44_INC(x)	t44_PLUS+x
+/*
+PLUS + foo
++ + foo
+ */
+t44_INC(t44_foo);
+if (t44_foo != 1)
+    print("error %d\n", __LINE__);
+#undef t44_x
+#undef t44_y
+t44_x = -1.5;
+#define t44_foo(x)	x, "x"
+/*
+-1.5, "x"
+ */
+print("%d %#s\n", t44_foo(t44_x));
+#undef t44_foo
+#define t44_foo
+/*
+ */
+if (t44_foo - 10 != -10)
+    print("error %d\n", __LINE__);
+#warning warning preprocessor test
+#undef t44_foo
+#define t44_foo()	2
+/*
+2
+ */
+if (t44_foo() + t44_foo() != 4)
+    print("error %d\n", __LINE__);
+#undef t44_foo
+#define t44_foo		t44_foo
+#ifdef t44_foo
+t44_foo = -1;
+#else
+t44_foo = 1;
+#endif
+/*
+-1
+ */
+if (t44_foo != -1)
+    print("error %d\n", __LINE__);
+#undef t44_foo
+#define t44_foo(x)	t44_ ## x
+t44_x = -1, t44_y = 1;
+/*
+-1
+--
+1
+ */
+if (t44_foo(x) + t44_foo(y) != 0)
+    print("error %d\n", __LINE__);
+#define t44_WARN_IF(EXP) \
+    do { if (EXP) \
+	print("%s", "Warning: " #EXP "\n"); } \
+    while (0)
+t44_x = 0;
+/*	==>
+    do { if (t44_x == 0) print("%s", "Warning: "  "t44_x == 0" "\n"); } while (0); */
+t44_WARN_IF (t44_x == 0);
+#undef t44_foo
+#define t44_xstr(s) t44_astr(s)
+#define t44_astr(s) #s
+#define t44_foo 4
+/*
+# foo
+"foo"
+ */
+print("%s\n", t44_astr(t44_foo));
+/*
+xstr(astr(foo))
+astr(4)
+# 4
+"4"
+ */
+print("%s\n", t44_xstr(t44_foo));
+#undef t44_foo
+print("%s\n", t44_xstr("s \"t\" r"));
+#define x	y
+#define y	x
+#define X	_Y_
+#define Y	_X_
+print("%s\n", t44_astr((x||y)&&X^Y));
+#undef Y
+#undef X
+#undef y
+#undef x
+class t44_command {
+    string_t	name;
+    auto	value;
+};
+#define t44_COMMAND(NAME)	{ #NAME, t44_##NAME }
+t44_x = 7; t44_y = 15;
+t44_command t44c[] = {
+    t44_COMMAND(x),
+    t44_COMMAND(y),
+};
+t44_x = t44_y = 0;
+if (t44c[0].name != "x" || t44c[0].value != 7 ||
+    t44c[1].name != "y" || t44c[1].value != 15)
+    print("error %d\n", __LINE__);
+#define t44_print(...)		print(__VA_ARGS__)
+/*
+print("%d %d\n", 1, 2)
+ */
+t44_print("%d %d\n", 1, 2);
+#undef t44_print
+#define t44_print(format, ...)	print(format, __VA_ARGS__)
+/*
+print(%s", "Success\n");
+ */
+t44_print("%s", "Success\n");
+#undef t44_print
+#define t44_print(format, arg1, arg2)	print(format, ## arg1, ## arg2)
+t44_print("%d\n", , 1);
+t44_print("%d\n", 0, );
+t44_print("foobar\n", , );
+#define t44_	t44
+#define foo	foo_
+#define t44_set_foo(prefix, sufix, value)	prefix##sufix = value
+auto t44foo_ = -1;
+t44_foo = t44foo_;
+/*	==>
+t44_foo = 10;
+	and not
+t44foo_ = 10;
+	last one would happen if fully expanded macro arguments were
+	used with '##'
+*/
+t44_set_foo(t44_, foo, 10);
+if (t44_foo != 10 || t44foo_ != -1)
+    print("error %d\n", __LINE__);
+print("hello from %s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+void t44_f(auto file, auto function, auto line)
+{
+    print("hello again, from %s:%s:%d\n", __FILE__, __FUNCTION__, __LINE__);
+    print("I was called from %s:%s:%d\n", file, function, line);
+}
+t44_f(__FILE__, __FUNCTION__, __LINE__);
+/*
+--- not supported ---
+#define twice(x) (2*(x))
+#define call_with_1(x) x(1)
+if (call_with_1 (twice) != 2)
+    print("error %d\n", __LINE__);
+ */
+#define t44_strange(format)	print(format,
+/*
+print("%d",
+ */
+t44_strange("%d\n") 45);
+#define t44_new_var(prefix)		prefix ## __COUNTER__
+if (t44_xstr(t44_new_var(foo)) != "foo0")
+    print("error %d\n", __LINE__);
+print("Hello again! Now at line %d, date is %s, and time is %s.\n",
+      __LINE__, __DATE__, __TIME__);
+#if 0
+this line is never parsed
+#endif
+#if defined (__vax__) || defined (__ns16000__)
+print("Hi there __vax__ or __ns16000__!\n");
+#endif
+#if defined (BUFSIZE) && BUFSIZE >= 1024
+print("BUFSIZE && BUFSIZE >= 1024");
+#endif
+#if BUFSIZE >= 1024		/* BUFSIZE expands to 0 in conditional */
+print("BUFSIZE >= 1024");
+#endif
+#if !defined(NEVER_DEFINED_BEFORE)
+print("!defined(NEVER_DEFINED_BEFORE)\n");
+#else
+print("???\n");
+#endif
+#define ONE	1
+#define TWO	two
+#define two	2
+#define THREE	ThReE
+#define ThReE	three
+#define three	3
+#define FOUR	Four
+#define Four	fouR
+#define fouR	four
+#define four	4
+#define FIVE	Five
+#define Five	fIve
+#define fIve	fiVe
+#define fiVe	five
+#define five	5
+#if ONE + ONE != TWO
+print("error ONE + ONE != TWO\n");
+#elif ONE << ONE == THREE || TWO + TWO == FIVE
+print("error ONE << ONE == THREE || TWO + TWO == FIVE\n");
+#elif FIVE ^ FOUR != THREE + - FOUR / TWO
+print("error FIVE ^ FOUR != THREE + - FOUR / TWO\n");
+#else
+/* nothing */
+#  ifndef ONE
+print("error %d\n", __LINE__);
+#  else
+print("ONE\n");
+#  endif
+#endif
+#if (TWO + THREE) * TWO != 10
+print("error %d\n", __LINE__);
+#endif
+#if 0
+not parsed
+/*
+#else
+also not parsed
+#endif
+again not parsed */
+#endif
+#if 1
+1;
+#else
+hello!
+#endif
+/* should not warn because of indentical redefine */
+#undef t44_foo
+#define t44_foo(a, b, c)	a, b, c
+#define t44_foo(a, b, c)	a, b, c
+#undef t44_foo
+#define t44_foo	1, 2, 3
+#define t44_foo		1, 2, 3
+#if ONE + \
+	ONE + ONE \
+	+ ONE + ONE \
+	!= TWO \
+	+ TWO + \
+	ONE
+print("1+1+1+1+1 != 5\n");
+#elif (FIVE + FIVE \
+	+ FIVE + FIVE \
+	+ FIVE \
+	) /* truncation operation followed by line concatenation */\\
+	FIVE != ONE + TWO \
+	+ THREE + FOUR - FIVE
+print("(5+5+5+5+5)\\5 != 1+2+3+4-5\n");
+#elif FIVE == five * Five / (2 + three)
+print("%d\n", FIVE);	/* expected result */
+#elif FIVE == 5
+print("5 == 5\n");	/* correct, but should just skip it */
+#elif ONE
+print("1\n");		/* correct, but should just skip it */
+#else
+print("error %d\n", __LINE__);
+#endif
+#if TWO + TWO != FOUR
+print("2+2 != 4\n");
+#  if ONE + ONE != TWO
+print("1+1 != 2\n");
+#  endif
+#elif ONE + ONE == TWO		/* <= use this condition */
+#  if ONE ^ TWO != 1 | TWO
+print("1^2 != 1|2\n");
+#  elif THREE & ONE == FOUR >> TWO	/* <= use this condition */
+print("3&1 == 4>>2\n");	/* <<<<< expected result */
+#  elif (ONE || 0) && FOUR + THREE && 1 - ONE
+print("(1||0) && 4+3 && 1-1\n");
+#  elif ONE + ONE - TWO == 0		/* correct but already choosen branch */
+print("1+1-2 == 0\n");
+#  else
+print("error %d\n", __LINE__);
+#  endif
+#elif TWO + TWO == FOUR		/* <= correct, but already choosen a branch */
+print("2+2 = 4\n");
+#elif 1 + ONE == two		/* <= correct, but already choosen a branch */
+print("1+1 == 2\n");
+#else				/* also "correct", but should not execute */
+print("error %d\n", __LINE__);
+#endif
+#if 1
+#  if 1
+#    if 1
+print("1\n");
+#    elif 1
+print("error %d\n", __LINE__);
+#    elif 1
+print("error %d\n", __LINE__);
+#    else
+print("error %d\n", __LINE__);
+#    endif
+#  elif 1
+print("error %d\n", __LINE__);
+#  elif 1
+print("error %d\n", __LINE__);
+#  else
+print("error %d\n", __LINE__);
+#  endif
+#elif 1
+print("error %d\n", __LINE__);
+#elif 1
+print("error %d\n", __LINE__);
+#else
+print("error %d\n", __LINE__);
+#endif
+#if 0
+#  if 1
+print("error %d\n", __LINE__);
+#  elif 0
+print("error %d\n", __LINE__);
+#  else
+print("error %d\n", __LINE__);
+#  endif
+#elif 0
+#  if 1
+print("error %d\n", __LINE__);
+#  elif 1
+print("error %d\n", __LINE__);
+#  else
+print("error %d\n", __LINE__);
+#  endif
+#else
+#  if 0
+print("error %d\n", __LINE__);
+#  elif 0
+#    if 1
+print("error %d\n", __LINE__);
+#    else
+print("error %d\n", __LINE__);
+#    endif
+#  else
+#    if 0
+print("error %d\n", __LINE__);
+#    else
+#      if 1
+print("5\n");
+#      elif 1
+print("error %d\n", __LINE__);
+#      else
+print("error %d\n", __LINE__);
+#      endif
+#    endif
+#  endif
+#endif
+#if 1
+# if 0
+#  if 3
+#   if 4
+#    if 5
+print("error %d\n", __LINE__);
+#     if 6
+#      if 7
+#       if 8
+#        if 9
+#         if 10
+print("error %d\n", __LINE__);
+#         endif
+#        endif
+#       endif
+#      endif
+#     endif
+#    endif
+#   endif
+#  endif
+# elif 2
+#  if 3
+#   if 4
+#    if 5
+#     if 0
+#      if 7
+print("error %d\n", __LINE__);
+#       if 8
+#        if 9
+#         if 10
+print("error %d\n", __LINE__);
+#         endif
+#        endif
+#       endif
+#      endif
+#     elif 6
+#      if 7
+#       if 8
+#        if 9
+#         if 10
+print("10\n");
+#         endif
+#        endif
+#       endif
+#      endif
+#     elif 6
+#      if 7
+print("error %d\n", __LINE__);
+#       if 8
+#        if 9
+print("error %d\n", __LINE__);
+#         if 10
+print("error %d\n", __LINE__);
+#         endif
+#        endif
+#       endif
+#      endif
+#     else
+#      if 7
+print("error %d\n", __LINE__);
+#       if 8
+#        if 9
+#         if 10
+print("error %d\n", __LINE__);
+#	  elif 1
+print("error %d\n", __LINE__);
+#	  elif 1
+print("error %d\n", __LINE__);
+#         endif
+#        endif
+#       endif
+#      endif
+#     endif
+#    endif
+#   endif
+#  endif
+# endif
+#endif
+#if 0
+"#endif"
+#endif

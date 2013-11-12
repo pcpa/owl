@@ -841,6 +841,7 @@ gc_mark(memory_t *memory)
 	ohash_t		*hash;
 	oinput_t	*input;
 	ojump_t		*jump;
+	omacro_t	*macro;
 	oobject_t	 object;
 	oobject_t	*pointer;
 	orecord_t	*record;
@@ -962,6 +963,14 @@ again:
 		gc_mark(object_to_memory(o.jump->t));
 	    if (o.jump->f) {
 		memory = object_to_memory(o.jump->f);
+		goto again;
+	    }
+	    break;
+	case t_macro:
+	    if (o.macro->vector)
+		gc_mark(object_to_memory(o.macro->vector));
+	    if (o.macro->table) {
+		memory = object_to_memory(o.macro->table);
 		goto again;
 	    }
 	    break;

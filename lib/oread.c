@@ -20,6 +20,57 @@
 #define symbol_char_p(ch)	(symbol_set[(ch) >> 5] & (1 << ((ch) & 31)))
 #define space_p(ch)		(spaces_set[(ch) >> 5] & (1 << ((ch) & 31)))
 
+#define macro_lookahead(token, offset, vector)				\
+    do {								\
+	if (macro_next_token == tok_none)				\
+	    macro_next_token = macro_do_lookahead(offset, vector);	\
+	token = macro_next_token;					\
+    } while (0)
+
+#define macro_consume(offset)						\
+    do {								\
+	if (macro_next_token != tok_none) {				\
+	    macro_next_token = tok_none;				\
+	    ++*offset;							\
+	}								\
+	else								\
+	    macro_cond_error();						\
+    } while (0)
+
+#define macro_skip_line()						\
+    for (ch = macro_skip(); ch != eof && ch != '\n'; ch = macro_skip())
+
+#define macro_state_inc()						\
+    do {								\
+	if (++macro_state->offset >= macro_state->length)				\
+	    orenew_vector(macro_state, macro_state->length + 256);	\
+    } while (0)
+
+#define macro_get_else()	(macro_state->v.i8[macro_state->offset] &  1)
+#define macro_set_else()	 macro_state->v.i8[macro_state->offset] |= 1
+#define macro_get_true()	(macro_state->v.i8[macro_state->offset] &  2)
+#define macro_set_true()	 macro_state->v.i8[macro_state->offset] |= 2
+#define macro_get_skip()	(macro_state->v.i8[macro_state->offset] &  4)
+#define macro_set_skip()	 macro_state->v.i8[macro_state->offset] |= 4
+#define macro_clr_bits()	 macro_state->v.i8[macro_state->offset]  = 0
+
+/*
+ * Types
+ */
+typedef enum {
+    mac_define,
+    mac_undef,
+    mac_include,
+    mac_ifdef,
+    mac_ifndef,
+    mac_if,
+    mac_elif,
+    mac_else,
+    mac_endif,
+    mac_error,
+    mac_warning,
+} macro_t;
+
 /*
  * Prototypes
  */
@@ -57,6 +108,9 @@ static oobject_t
 read_symbol(oint32_t ch);
 
 static oobject_t
+expand_symbol(osymbol_t *symbol);
+
+static oobject_t
 read_keyword(oint32_t ch);
 
 static oint32_t
@@ -80,6 +134,99 @@ getc_quoted(void);
 static oint32_t
 char_value(oint32_t ch, oint32_t base);
 
+static void
+macro_date(oobject_t *pointer);
+
+static void
+macro_time(oobject_t *pointer);
+
+static oobject_t
+macro_string(ovector_t *vector);
+
+static void
+macro_insert_vector(ovector_t *vector);
+
+static void
+macro_expand_object(ovector_t *expand, oobject_t object);
+
+static void
+macro_expand_vector(ovector_t *expand, ovector_t *vector);
+
+static void
+macro_function(omacro_t *macro, ovector_t *expand, ovector_t *alist);
+
+static void
+macro_evaluate(ovector_t *final, ovector_t *expand);
+
+static otoken_t
+macro_vector_token(ovector_t *vector);
+
+static oobject_t
+macro_expand(omacro_t *macro);
+
+static oobject_t
+macro_read(void);
+
+static oobject_t
+macro_object(obool_t define);
+
+static osymbol_t *
+macro_ident(void);
+
+static oint32_t
+macro_skip(void);
+
+static omacro_t *
+macro_define(osymbol_t *symbol);
+
+static void
+macro_undef(omacro_t *macro);
+
+static void
+macro_check(void);
+
+static void
+macro_ignore(void);
+
+static otoken_t
+macro_unary(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_do_lookahead(oword_t *offset, ovector_t *expand);
+
+static otoken_t
+macro_muldivrem(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_addsub(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_shift(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_bitop(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_logcmp(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static otoken_t
+macro_logop(oword_t *offset, oword_t *lvalue, ovector_t *expand);
+
+static void
+macro_cond_error(void);
+
+static obool_t
+macro_cond(void);
+
+static oword_t
+macro_value(omacro_t *macro);
+
+static void
+macro_defined(ovector_t *expand);
+
+static void
+macro_get_object(oobject_t *pointer, oobject_t object);
+
 /*
  * Initialization
  */
@@ -87,10 +234,47 @@ oinput_t		*input;
 onote_t			 input_note;
 oobject_t		 object_eof;
 
+static struct {
+    char		*name;
+    macro_t		 macro;
+    osymbol_t		*symbol;
+} macros[] = {
+    { "define",		 mac_define	},
+    { "undef",		 mac_undef	},
+    { "include",	 mac_include	},
+    { "ifdef",		 mac_ifdef	},
+    { "ifndef",		 mac_ifndef	},
+    { "if",		 mac_if		},
+    { "elif",		 mac_elif	},
+    { "else",		 mac_else	},
+    { "endif",		 mac_endif	},
+    { "error",		 mac_error	},
+    { "warning",	 mac_warning	},
+};
 static oint32_t		 spaces_set[256 / 4];
 static oint32_t		 string_set[256 / 4];
 static oint32_t		 symbol_set[256 / 4];
 static ovector_t	*input_vector;
+static ovector_t	*macro_vector;
+static ovector_t	*save_vector;
+static ovector_t	*expand_vector;
+static ovector_t	*alist_vector;
+static ohash_t		*macro_table;
+static ovector_t	*macro_state;
+static ovector_t	*macro_name;
+static oint32_t		 macro_line;
+static oint32_t		 macro_counter;
+static obool_t		 macro_conditional;
+static oint32_t		 macro_cond_lineno;
+static oint32_t		 macro_cond_column;
+static osymbol_t	*symbol_defined;
+static osymbol_t	*symbol_concat;
+static osymbol_t	*symbol_oparen;
+static osymbol_t	*symbol_cparen;
+static osymbol_t	*symbol_counter;
+static oword_t		 macro_offset;
+static oint32_t		 macro_expand_level;
+static otoken_t		 macro_next_token;
 
 /*
  * Implementation
@@ -98,12 +282,46 @@ static ovector_t	*input_vector;
 void
 init_read(void)
 {
+    oword_t		 offset;
     char		*string;
+    osymbol_t		*symbol;
 
     oadd_root((oobject_t *)&input_vector);
     onew_vector((oobject_t *)&input_vector, t_stream, 16);
 
+    oadd_root((oobject_t *)&macro_vector);
+    onew_vector((oobject_t *)&macro_vector, t_void, 16);
+
+    oadd_root((oobject_t *)&save_vector);
+    onew_vector((oobject_t *)&save_vector, t_void, 4);
+
+    oadd_root((oobject_t *)&expand_vector);
+    onew_vector((oobject_t *)&expand_vector, t_void, 4);
+
+    oadd_root((oobject_t *)&alist_vector);
+    onew_vector((oobject_t *)&alist_vector, t_void, 4);
+
+    oadd_root((oobject_t *)&macro_table);
+    onew_hash((oobject_t *)&macro_table, 256);
+
+    /* conditional state bits */
+    oadd_root((oobject_t *)&macro_state);
+    onew_vector((oobject_t *)&macro_state, t_int8, 256);
+
+    for (offset = 0; offset < osize(macros); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)macros[offset].name,
+					     strlen(macros[offset].name)));
+	macros[offset].symbol = symbol;
+    }
+
     object_eof = onew_identifier(oget_string((ouint8_t *)"*eof*", 5));
+
+    symbol_concat = onew_identifier(oget_string((ouint8_t *)"##", 2));
+    symbol_oparen = onew_identifier(oget_string((ouint8_t *)"(", 1));
+    symbol_cparen = onew_identifier(oget_string((ouint8_t *)")", 1));
+    symbol_counter = onew_identifier(oget_string((ouint8_t *)"__COUNTER__", 11));
+
+    symbol_defined = onew_identifier(oget_string((ouint8_t *)"defined", 7));
 
     memset(string_set, 0xff, sizeof(string_set));
     for (string = " \t\r\n\f\v"; *string; string++) {
@@ -121,17 +339,28 @@ void
 finish_read(void)
 {
     orem_root((oobject_t *)&input_vector);
+    orem_root((oobject_t *)&macro_vector);
+    orem_root((oobject_t *)&save_vector);
+    orem_root((oobject_t *)&expand_vector);
+    orem_root((oobject_t *)&alist_vector);
+    orem_root((oobject_t *)&macro_table);
+    orem_root((oobject_t *)&macro_state);
 }
 
 oobject_t
 oread_object(void)
 {
-    oobject_t	object;
+    oobject_t		object;
 
     if (input) {
 	for (;;) {
-	    if ((object = read_object()) != object_eof)
+	    if ((object = read_object()) != object_eof) {
+		if (omacro_p(object))
+		    return (((omacro_t *)object)->name);
+		if (osymbol_p(object))
+		    return (expand_symbol(object));
 		return (object);
+	    }
 	    if (input->stream != std_input)
 		oclose(input->stream);
 	    assert(input_vector->offset);
@@ -525,51 +754,55 @@ read_ident(oint32_t ch)
 static oobject_t
 read_object(void)
 {
-    oint32_t		ch;
-    oobject_t		object;
+    oint32_t		 ch;
+    omacro_t		*macro;
+    oobject_t		 object;
 
-    switch ((ch = skip())) {
-	case eof:
-	    object = object_eof;
-	    break;
-	case '"':
+    if (macro_offset < macro_vector->offset)
+	object = macro_vector->v.ptr[macro_offset++];
+    else {
+	if ((ch = skip()) != eof) {
 	    input->lineno = input_note.lineno;
 	    input->column = input_note.column;
-	    object = read_string();
-	    break;
-	case '\'':
-	    input->lineno = input_note.lineno;
-	    input->column = input_note.column;
-	    object = read_character();
-	    break;
-	case '0'...'9':
-	    input->lineno = input_note.lineno;
-	    input->column = input_note.column;
-	    object = read_number(ch);
-	    break;
-	case 'a'...'z': case 'A'...'Z': case '_':
-	    input->lineno = input_note.lineno;
-	    input->column = input_note.column;
-	    object = read_symbol(ch);
-	    break;
-	case '.':
-	    /* allow leading dot for floats */
-	    input->lineno = input_note.lineno;
-	    input->column = input_note.column;
-	    ch = getc();
-	    if (ch >= '0' && ch <= '9') {
-		ungetc(ch);
-		object = read_number('.');
+	}
+	switch (ch) {
+	    case eof:
+		object = object_eof;
 		break;
-	    }
-	    ungetc(ch);
-	    ch = '.';
-	default:
-	    input->lineno = input_note.lineno;
-	    input->column = input_note.column;
-	    object = read_keyword(ch);
-	    break;
+	    case '#':
+		object = macro_read();
+		break;
+	    case '"':
+		object = read_string();
+		break;
+	    case '\'':
+		object = read_character();
+		break;
+	    case '0'...'9':
+		object = read_number(ch);
+		break;
+	    case 'a'...'z': case 'A'...'Z': case '_':
+		object = read_symbol(ch);
+		break;
+	    case '.':
+		/* allow leading dot for floats */
+		ch = getc();
+		if (ch >= '0' && ch <= '9') {
+		    ungetc(ch);
+		    object = read_number('.');
+		    break;
+		}
+		ungetc(ch);
+		ch = '.';
+	    default:
+		object = read_keyword(ch);
+		break;
+	}
     }
+    if (osymbol_p(object) &&
+	!((osymbol_t *)object)->keyword &&
+	(macro = (omacro_t *)oget_hash(macro_table, object)))
+	object = macro_expand(macro);
 
     return (object);
 }
@@ -845,33 +1078,61 @@ read_number(oint32_t ch)
 static oobject_t
 read_symbol(oint32_t ch)
 {
-    oast_t		*ast;
     osymbol_t		*symbol;
     oobject_t		*pointer;
 
     symbol = onew_identifier(read_ident(ch));
-    if (symbol->keyword) {
-	gc_enter();
-
+    if (unlikely(symbol == symbol_counter)) {
 	gc_ref(pointer);
-	if (*(oword_t *)symbol->value == tok_LINE)
-	    onew_word(pointer, input->lineno);
-	else
-	    onew_ast(pointer, *(oword_t *)symbol->value,
-		     input_note.name, input->lineno, input->column);
-	gc_leave();
+	onew_word(pointer, macro_counter);
+	gc_dec();
+	++macro_counter;
+	return (*pointer);
+    }
+    else if (!macro_expand_level)
+	return (expand_symbol(symbol));
+
+    return (symbol);
+}
+
+static oobject_t
+expand_symbol(osymbol_t *symbol)
+{
+    oast_t		*ast;
+    oobject_t		*pointer;
+
+    assert(macro_expand_level == 0);
+    if (symbol->keyword) {
+	gc_ref(pointer);
+	switch (*(oword_t *)symbol->value) {
+	    case tok_FILE:
+		*pointer = input_note.name;
+		break;
+	    case tok_LINE:
+		onew_word(pointer, input->lineno);
+		break;
+	    case tok_DATE:
+		macro_date(pointer);
+		break;
+	    case tok_TIME:
+		macro_time(pointer);
+		break;
+	    default:
+		onew_ast(pointer, *(oword_t *)symbol->value,
+			 input_note.name, input->lineno, input->column);
+		break;
+	}
+	gc_dec();
 
 	return (*pointer);
     }
     else if (symbol->type) {
-	gc_enter();
-
 	gc_ref(pointer);
 	onew_ast(pointer, tok_type,
 		 input_note.name, input->lineno, input->column);
 	ast = *pointer;
 	ast->l.value = symbol->tag;
-	gc_leave();
+	gc_dec();
 
 	return (ast);
     }
@@ -887,6 +1148,12 @@ read_keyword(oint32_t ch)
     oobject_t		*pointer;
 
     switch (ch) {
+	case '#':
+	    if ((ch = getc()) == '#')	token = tok_concat;
+	    else {
+		ungetc(ch);		token = tok_stringify;
+	    }
+	    break;
 	case '(':			token = tok_oparen;		break;
 	case ')':			token = tok_cparen;		break;
 	case '[':			token = tok_obrack;		break;
@@ -1016,9 +1283,13 @@ read_keyword(oint32_t ch)
 	    oread_error("syntax error at '%c'", ch);
     }
 
-    gc_ref(pointer);
-    onew_ast(pointer, token, input_note.name, input->lineno, input->column);
-    gc_pop(object);
+    if (macro_expand_level)
+	object = symbol_token_vector[token];
+    else {
+	gc_ref(pointer);
+	onew_ast(pointer, token, input_note.name, input->lineno, input->column);
+	gc_pop(object);
+    }
 
     return (object);
 }
@@ -1038,4 +1309,1758 @@ char_value(oint32_t ch, oint32_t base)
 	value = eof;
 
     return (value >= 0 && value < base ? value : eof);
+}
+
+/* adapted from <gcc-base>/libcpp/macro.c:_cpp_builtin_macro_text(),
+ * but instead of having a static global value, recalculate it everytime
+ * the macro is expanded, so it can be used to measure compile time
+ * (in seconds resolution) */
+static void
+macro_date(oobject_t *pointer)
+{
+    oformat_t		 format;
+    ostream_t		*stream;
+    struct tm		*macro_tm;
+    time_t		 macro_time;
+    static const char *const monthnames[] = {
+	"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    };
+
+    errno = 0;
+    macro_tm = null;
+    macro_time = time(null);
+    if (macro_time != (time_t)-1 || errno == 0)
+	macro_tm = localtime(&macro_time);
+
+    stream = (ostream_t *)thread_main->vec;
+    if (macro_tm) {
+	memset(&format, 0, sizeof(oformat_t));
+	format.width = 2;
+	format.radix = 10;
+	memcpy(stream->ptr, monthnames[macro_tm->tm_mon], 3);
+	stream->ptr[3] = ' ';
+	stream->offset = stream->length = 4;
+	oprint_wrd(stream, &format, macro_tm->tm_mday);
+	stream->ptr[6] = ' ';
+	stream->offset = stream->length = 7;
+	oprint_wrd(stream, &format, macro_tm->tm_year + 1900);
+	*pointer = oget_string(stream->ptr, stream->length);
+    }
+    else {
+	oread_warn("could not determine date");
+	*pointer = oget_string((ouint8_t *)"??? ?? ????", 11);
+    }
+}
+
+static void
+macro_time(oobject_t *pointer)
+{
+    oformat_t		 format;
+    ostream_t		*stream;
+    struct tm		*macro_tm;
+    time_t		 macro_time;
+
+    errno = 0;
+    macro_tm = null;
+    macro_time = time(null);
+    if (macro_time != (time_t)-1 || errno == 0)
+	macro_tm = localtime(&macro_time);
+
+    stream = (ostream_t *)thread_main->vec;
+    if (macro_tm) {
+	memset(&format, 0, sizeof(oformat_t));
+	format.zero = 1;
+	format.width = 2;
+	format.radix = 10;
+	stream->offset = stream->length = 0;
+	oprint_wrd(stream, &format, macro_tm->tm_hour);
+	stream->ptr[2] = ':';
+	stream->offset = stream->length = 3;
+	oprint_wrd(stream, &format, macro_tm->tm_min);
+	stream->ptr[5] = ':';
+	stream->offset = stream->length = 6;
+	oprint_wrd(stream, &format, macro_tm->tm_sec);
+	*pointer = oget_string(stream->ptr, stream->length);
+    }
+    else {
+	oread_warn("could not determine time");
+	*pointer = oget_string((ouint8_t *)"??:??:??", 8);
+    }
+}
+
+static oobject_t
+macro_string(ovector_t *vector)
+{
+    GET_THREAD_SELF()
+    obool_t		 first;
+    oformat_t		 format;
+    oobject_t		 object;
+    oword_t		 offset;
+    ostream_t		*stream;
+    char		*string;
+
+    first = true;
+    memset(&format, 0, sizeof(oformat_t));
+    format.read = 1;
+    format.prec = 6;
+    format.radix = 10;
+    thread_self->vec->offset = thread_self->vec->length = 0;
+    stream = (ostream_t *)thread_self->vec;
+
+    for (offset = 0; offset < vector->offset; offset++) {
+	object = vector->v.ptr[offset];
+	if (!first)
+	    oputc(stream, ' ');
+	else
+	    first = false;
+	if (object == null)
+	    owrite(stream, "null", 4);
+	else {
+	    switch (otype(object)) {
+		case t_word:
+		    oprint_wrd(stream, &format, *(oword_t *)object);
+		    break;
+		case t_float:
+		    oprint_flt(stream, &format, *(ofloat_t *)object);
+		    break;
+		case t_mpz:
+		    oprint_mpz(stream, &format, object);
+		    break;
+		case t_rat:
+		    oprint_rat(stream, &format, object);
+		    break;
+		case t_mpq:
+		    oprint_mpq(stream, &format, object);
+		    break;
+		case t_mpr:
+		    oprint_mpr(stream, &format, object);
+		    break;
+		case t_cdd:
+		    oprint_cdd(stream, &format, object);
+		    break;
+		case t_cqq:
+		    oprint_cqq(stream, &format, object);
+		    break;
+		case t_mpc:
+		    oprint_mpc(stream, &format, object);
+		    break;
+		case t_string:
+		    oprint_str(stream, &format, object);
+		    break;
+		case t_symbol:
+		    format.read = 0;
+		    oprint_str(stream, &format, ((osymbol_t *)object)->name);
+		    format.read = 1;
+		    break;
+		case t_ast:
+		    string = otoken_to_charp(((oast_t *)object)->token);
+		    owrite(stream, string, strlen(string));
+		    break;
+		default:
+		    abort();
+	    }
+	}
+    }
+
+    return (oget_string(thread_self->vec->v.obj, thread_self->vec->offset));
+}
+
+static void
+macro_insert_vector(ovector_t *vector)
+{
+    oword_t		 offset;
+
+    offset = macro_vector->offset - macro_offset + vector->offset;
+    if (macro_vector->length < offset)
+	orenew_vector(macro_vector, (offset + 16) & -16);
+    memmove(macro_vector->v.ptr + vector->offset,
+	    macro_vector->v.ptr + macro_offset,
+	    (offset - vector->offset) * sizeof(oobject_t));
+    macro_vector->offset = offset;
+    macro_offset = 0;
+    for (offset = 0; offset < vector->offset; offset++)
+	macro_get_object(macro_vector->v.ptr + offset, vector->v.ptr[offset]);
+}
+
+static void
+macro_expand_object(ovector_t *expand, oobject_t object)
+{
+    if (expand->offset + 1 >= expand->length)
+	orenew_vector(expand, (expand->offset + 1 + 4) & -4);
+    expand->v.ptr[expand->offset++] = object;
+}
+
+static void
+macro_expand_vector(ovector_t *expand, ovector_t *vector)
+{
+    oword_t		offset;
+
+    if (vector) {
+	assert(otype(vector) == t_vector);
+	if (expand->offset + vector->offset >= expand->length)
+	    orenew_vector(expand, (expand->offset + vector->offset + 4) & -4);
+	for (offset = 0; offset < vector->offset; offset++)
+	    expand->v.ptr[expand->offset++] = vector->v.ptr[offset];
+    }
+}
+
+static void
+macro_function(omacro_t *macro, ovector_t *expand, ovector_t *alist)
+{
+    obool_t		 eval;
+    ovector_t		*elist;
+    oentry_t		*entry;
+    oword_t		 offset;
+    oword_t		 length;
+    osymbol_t		*symbol;
+    osymbol_t		*concat;
+    ovector_t		*vector;
+
+    if (alist_vector->v.ptr[alist_vector->offset] == null)
+	onew_vector(alist_vector->v.ptr + alist_vector->offset,
+		    t_void,
+		    ((macro->table->count + (!!macro->vararg)) + 4) & -4);
+    elist = alist_vector->v.ptr[alist_vector->offset++];
+    if (elist->length < alist->offset)
+	orenew_vector(elist, (alist->offset + 4) & -4);
+    elist->offset = alist->offset;
+
+    for (offset = 0; offset < alist->offset; offset++) {
+	if ((vector = alist->v.ptr[offset])) {
+	    length = (vector->offset + 4) & -4;
+	    if ((vector = elist->v.ptr[offset]) == null) {
+		onew_vector(elist->v.ptr + offset, t_void, length);
+		vector = elist->v.ptr[offset];
+	    }
+	    else if (vector->length < length)
+		orenew_vector(vector, length);
+	    macro_evaluate(vector, alist->v.ptr[offset]);
+	}
+    }
+
+    for (offset = 0; offset < macro->vector->offset; offset++) {
+	symbol = macro->vector->v.ptr[offset];
+	if (osymbol_p(symbol)) {
+	    if (symbol->keyword) {
+		switch (*(oword_t *)symbol->value) {
+		    case tok_stringify:
+			entry = null;
+			if (offset + 1 < macro->vector->offset) {
+			    symbol = macro->vector->v.ptr[++offset];
+			    if (osymbol_p(symbol))
+				entry = oget_hash(macro->table, symbol);
+			}
+			if (entry) {
+			    vector = alist->v.ptr[*(oword_t *)entry->value];
+			    macro_expand_object(expand, macro_string(vector));
+			}
+			else
+			    oread_warn("# not followed by macro parameter");
+			continue;
+		    case tok_VA_ARGS:
+			if (!macro->vararg) {
+			    oread_warn("__VA_ARGS__ on non vararg macro");
+			    continue;
+			}
+			macro_expand_vector(expand,
+					    alist->v.ptr[macro->table->count]);
+			break;
+			/* Check for special ",##arg" expansion with
+			 * with empty arg, and do not print a warning
+			 * on that condition */
+		    case tok_comma:
+			if (offset + 2 > macro->vector->offset)
+			    goto comma_fail;
+			concat = macro->vector->v.ptr[offset + 1];
+			if (concat != symbol_concat)
+			    goto comma_fail;
+			concat = macro->vector->v.ptr[offset + 2];
+			if (!osymbol_p(concat))
+			    goto comma_fail;
+			vector = null;
+			if (concat->keyword &&
+			    *(oword_t *)concat->value == tok_VA_ARGS)
+			    vector = alist->v.ptr[macro->table->count];
+			else if ((entry = oget_hash(macro->table, concat))) {
+			    assert(*(oword_t *)entry->value >= 0 &&
+				   *(oword_t *)entry->value < alist->offset);
+			    vector = elist->v.ptr[*(oword_t *)entry->value];
+			}
+			else
+			    goto comma_fail;
+			if (vector == null || vector->offset == 0)
+			    offset += 2;
+			else {
+			    /* Remove the ## as it for sure will not
+			     * not generate valid token, and was
+			     * actually already processed when
+			     * checking for empty argument */
+			    macro_expand_object(expand, symbol);
+			    ++offset;
+			}
+			break;
+		    default:
+		    comma_fail:
+			macro_expand_object(expand, symbol);
+			break;
+		}
+	    }
+	    else {
+		if ((entry = oget_hash(macro->table, symbol))) {
+		    eval = true;
+		    /* Do not evaluate if prev argument is ## */
+		    if (offset > 0) {
+			concat = macro->vector->v.ptr[offset - 1];
+			if (concat == symbol_concat)
+			    eval = false;
+		    }
+		    /* Do not evaluate if next argument is ## */
+		    if (eval && offset + 1 < macro->vector->offset) {
+			concat = macro->vector->v.ptr[offset + 1];
+			if (concat == symbol_concat)
+			    eval = false;
+		    }
+		    vector = eval ? elist : alist;
+		    assert(*(oword_t *)entry->value >= 0 &&
+			   *(oword_t *)entry->value < vector->offset);
+		    macro_expand_vector(expand,
+					vector->v.ptr[*(oword_t *)entry->value]);
+		}
+		else
+		    macro_expand_object(expand, symbol);
+	    }
+	}
+	else
+	    macro_expand_object(expand, symbol);
+    }
+
+    for (offset = 0; offset < alist->offset; offset++) {
+	if ((vector = alist->v.ptr[offset])) {
+	    memset(vector->v.ptr, 0, vector->offset * sizeof(oobject_t));
+	    vector->offset = 0;
+	    vector = elist->v.ptr[offset];
+	    assert(vector);
+	    memset(vector->v.ptr, 0, vector->offset * sizeof(oobject_t));
+	    vector->offset = 0;
+	}
+	else
+	    assert( elist->v.ptr[offset] == null);
+    }
+    alist->offset = elist->offset = 0;
+    alist_vector->offset -= 2;
+}
+
+static void
+macro_evaluate(ovector_t *final, ovector_t *expand)
+{
+    oword_t		 offset;
+    osymbol_t		*symbol;
+    ovector_t		*vector;
+
+    /* Check if some macro will (or may) expand */
+    for (offset = 0; offset < expand->offset; offset++) {
+	symbol = expand->v.ptr[offset];
+	if (osymbol_p(symbol) &&
+	    !symbol->keyword && oget_hash(macro_table, symbol))
+	    break;
+    }
+    if (offset == expand->offset) {
+	if (final->offset < expand->offset)
+	    orenew_vector(final, (expand->offset + 4) & -4);
+	memcpy(final->v.ptr, expand->v.ptr,
+	       expand->offset * sizeof(oobject_t));
+	final->offset = expand->offset;
+	return;
+    }
+
+    if (save_vector->offset >= save_vector->length)
+	orenew_vector(save_vector, save_vector->offset + 4);
+    save_vector->v.ptr[save_vector->offset++] = macro_vector;
+
+    offset = macro_offset;
+    macro_vector = expand;
+    macro_offset = 0;
+
+    /* Ensure the expand argument is not modified; it can be modified
+     * in some macro expansions  */
+    if (expand_vector->offset >= expand_vector->length)
+	orenew_vector(expand_vector, expand_vector->offset + 4);
+    if ((vector = expand_vector->v.ptr[expand_vector->offset]) == null) {
+	onew_vector(expand_vector->v.ptr + expand_vector->offset,
+		    t_void, (expand->offset + 4) & -4);
+	vector = expand_vector->v.ptr[expand_vector->offset];
+    }
+    else if (expand->offset >= vector->length)
+	orenew_vector(vector, (expand->offset + 4) & -4);
+    ++expand_vector->offset;
+    memcpy(vector->v.ptr, expand->v.ptr, expand->offset * sizeof(oobject_t));
+    vector->offset = expand->offset;
+
+    assert(final->offset == 0);
+    while (macro_offset < macro_vector->offset) {
+	symbol = read_object();
+	if (final->offset >= final->length)
+	    orenew_vector(final, final->offset + 4);
+	final->v.ptr[final->offset++] = symbol;
+    }
+
+    /* Restore the expand argument */
+    if (expand->offset > vector->offset)
+	memset(expand->v.ptr + vector->offset, 0,
+	       (expand->offset - vector->offset) * sizeof(oobject_t));
+    memcpy(expand->v.ptr, vector->v.ptr, vector->offset * sizeof(oobject_t));
+    expand->offset = vector->offset;
+    memset(vector->v.ptr, 0, vector->offset * sizeof(oobject_t));
+    vector->offset = 0;
+
+    /* Restore toplevel expansion */
+    macro_vector = save_vector->v.ptr[--save_vector->offset];
+    macro_offset = offset;
+}
+
+static otoken_t
+macro_vector_token(ovector_t *vector)
+{
+    otoken_t		token;
+
+    token = tok_none;
+    switch (vector->v.u8[0]) {
+	case '.':
+	    if (vector->length == 3 &&
+		vector->v.u8[1] == '.' && vector->v.u8[2] == '.')
+		token = tok_ellipsis;
+	    break;
+	case '=':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_eq;
+	    break;
+	case '&':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '&')
+		    token = tok_andand;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_andset;
+	    }
+	    break;
+	case '|':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '|')
+		    token = tok_oror;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_orset;
+	    }
+	    break;
+	case '^':
+	    if (vector->length == 2 &&
+		vector->v.u8[1] == '=')
+		token = tok_xorset;
+	    break;
+	case '<':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '<')
+		    token = tok_mul2;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_le;
+	    }
+	    else if (vector->length == 3) {
+		if (vector->v.u8[1] == '<') {
+		    if (vector->v.u8[2] == '<')
+			token = tok_shl;
+		    else if (vector->v.u8[2] == '=')
+			token = tok_mul2set;
+		}
+	    }
+	    else if (vector->length == 4 && vector->v.u8[1] == '<' &&
+		     vector->v.u8[2] == '<' && vector->v.u8[3] == '=')
+		token = tok_shlset;
+	    break;
+	case '>':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '>')
+		    token = tok_div2;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_ge;
+	    }
+	    else if (vector->length == 3) {
+		if (vector->v.u8[1] == '>') {
+		    if (vector->v.u8[2] == '>')
+			token = tok_shr;
+		    else if (vector->v.u8[2] == '=')
+			token = tok_div2set;
+		}
+	    }
+	    else if (vector->length == 4 && vector->v.u8[1] == '>' &&
+		     vector->v.u8[2] == '>' && vector->v.u8[3] == '=')
+		token = tok_shrset;
+	    break;
+	case '+':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '+')
+		    token = tok_inc;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_addset;
+	    }
+	    break;
+	case '-':
+	    if (vector->length == 2) {
+		if (vector->v.u8[1] == '-')
+		    token = tok_dec;
+		else if (vector->v.u8[1] == '=')
+		    token = tok_subset;
+	    }
+	    break;
+	case '*':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_mulset;
+	    break;
+	case '/':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_divset;
+	    break;
+	case '\\':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_trunc2set;
+	    break;
+	case '%':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_remset;
+	    break;
+	case '!':
+	    if (vector->length == 2 && vector->v.u8[1] == '=')
+		token = tok_ne;
+	    break;
+	default:
+	    break;
+    }
+
+    return (token);
+}
+
+static oobject_t
+macro_expand(omacro_t *macro)
+{
+    GET_THREAD_SELF()
+    oword_t		 word;
+    ovector_t		*alist;
+    ovector_t		*final;
+    oword_t		 level;
+    otoken_t		 token;
+    oobject_t		 object;
+    ovector_t		*vector;
+    ovector_t		*expand;
+    oformat_t		 format;
+    osymbol_t		*concat;
+    oword_t		 offset;
+    osymbol_t		*symbol;
+    oobject_t		*pointer;
+
+    if (++macro_expand_level > 65536)
+	/* not really overflow but do not allow it */
+	oread_error("macro expansion depth overflow");
+
+    if (expand_vector->offset >= expand_vector->length)
+	orenew_vector(expand_vector, expand_vector->length + 4);
+    if (expand_vector->v.ptr[expand_vector->offset] == null)
+	onew_vector(expand_vector->v.ptr + expand_vector->offset, t_void, 4);
+    expand = expand_vector->v.ptr[expand_vector->offset++];
+    alist = null;
+
+    /* If a function macro */
+    if (macro->table) {
+	assert(!macro->unsafe);
+	symbol = macro_object(false);
+	if (symbol == symbol_oparen) {
+	    /* Allocate argument name -> value translation place holders */
+	    if (alist_vector->offset >= alist_vector->length)
+		orenew_vector(alist_vector, alist_vector->length + 4);
+	    if (alist_vector->v.ptr[alist_vector->offset] == null)
+		onew_vector(alist_vector->v.ptr +
+			    alist_vector->offset,
+			    t_void, macro->table->count);
+	    alist = alist_vector->v.ptr[alist_vector->offset++];
+	    offset = macro->table->count + !!macro->vararg;
+	    if (alist->length < offset)
+		orenew_vector(alist, (offset + 4) & -4);
+
+	    level = 1;
+	    vector = null;
+	    while ((symbol = macro_object(false))) {
+		if (symbol == object_eof)
+		    oread_error("unexpected end of file");
+		if (osymbol_p(symbol) && symbol->keyword) {
+		    switch (*(oword_t *)symbol->value) {
+			case tok_oparen:
+			    ++level;
+			    break;
+			case tok_cparen:
+			    if (--level == 0) {
+				if (++alist->offset < macro->table->count)
+				    oread_error("too few arguments to '%p'",
+						macro->name);
+				goto macro_expand;
+			    }
+			    break;
+			case tok_comma:
+			    if (level == 1) {
+				vector = null;
+				if (++alist->offset >= macro->table->count) {
+				    if (macro->vararg)
+					goto macro_vararg;
+				    oread_error("too many arguments to '%p'",
+						macro->name);
+				}
+				continue;
+			    }
+			    break;
+			default:
+			    break;
+		    }
+		}
+		else if (alist->offset >= macro->table->count && !macro->vararg)
+		    oread_error("too many arguments to '%p'", macro->name);
+
+		if (vector == null &&
+		    (vector = alist->v.ptr[alist->offset]) == null) {
+		    onew_vector(alist->v.ptr + alist->offset, t_void, 4);
+		    vector = alist->v.ptr[alist->offset];
+		}
+		else if (vector->offset >= vector->length)
+		    orenew_vector(vector, vector->length + 4);
+		vector->v.ptr[vector->offset++] = symbol;
+		/* Check for macro with only a __VA_ARGS__ argument */
+		if (alist->offset >= macro->table->count) {
+		    assert(macro->vararg &&
+			   alist->offset == macro->table->count);
+		    goto macro_vararg_next;
+		}
+	    }
+
+	macro_vararg:
+	    assert(alist->offset == macro->table->count);
+	    if ((vector = alist->v.ptr[alist->offset]) == null) {
+		onew_vector(alist->v.ptr + alist->offset, t_void, 4);
+		vector = alist->v.ptr[alist->offset];
+	    }
+
+	macro_vararg_next:
+	    while ((symbol = macro_object(false))) {
+		if (symbol == object_eof)
+		    oread_error("unexpected end of file");
+		if (osymbol_p(symbol) && symbol->keyword) {
+		    switch (*(oword_t *)symbol->value) {
+			case tok_oparen:
+			    ++level;
+			    break;
+			case tok_cparen:
+			    if (--level == 0) {
+				++alist->offset;
+				goto macro_expand;
+			    }
+			    break;
+			default:
+			    break;
+		    }
+		}
+		if (vector->offset >= vector->length)
+		    orenew_vector(vector, vector->length + 4);
+		vector->v.ptr[vector->offset++] = symbol;
+	    }
+
+	macro_expand:
+	    macro_function(macro, expand, alist);
+	}
+	else
+	    /* This is actually valid preprocessor, but confusing;
+	     * since incorrect number of arguments already generate
+	     * an error (besides valid preprocessor, that would not
+	     * be expanded), make this also generate an error for the
+	     * sake of avoiding the complexity of handling it, and
+	     * allowing difficult to read, macro code to be written;
+	     * the usage would be to pass a macro name as an argument
+	     * to macro invoking it... */
+	    oread_error("'%p' is as macro function", macro->name);
+    }
+    else {
+	if (macro->expand) {
+	    --macro_expand_level;
+	    return (macro);
+	}
+	macro->expand = macro->unsafe;
+
+	if (!macro->vector->offset) {
+	    if (!macro_conditional)
+		macro_expand_object(expand, read_object());
+	}
+	else
+	    macro_expand_vector(expand, macro->vector);
+    }
+
+    /* Final expansion checking for concatenation */
+    if (expand_vector->offset >= expand_vector->length)
+	orenew_vector(expand_vector, expand_vector->length + 4);
+    if (expand_vector->v.ptr[expand_vector->offset] == null)
+	onew_vector(expand_vector->v.ptr + expand_vector->offset, t_void, 4);
+    final = expand_vector->v.ptr[expand_vector->offset++];
+
+    gc_ref(pointer);
+    for (offset = 0; offset < expand->offset; offset++) {
+	symbol = expand->v.ptr[offset];
+	if (symbol == null)
+	    continue;
+	concat = null;
+	if (osymbol_p(symbol) && symbol->keyword) {
+	    switch (*(oword_t *)symbol->value) {
+		case tok_VA_ARGS:
+		    if (!macro->vararg)
+			oread_warn("__VA_ARGS__ on non vararg macro");
+		    /* Remove empty __VA_ARGS__ in macro expansion */
+		    continue;
+		case tok_stringify:
+		    /* Remove leftover # in macro expansion */
+		    oread_warn("# not followed by macro parameter");
+		    continue;
+		case tok_concat:
+		    /* Remove misplaced ## in macro expansion */
+		    oread_warn("## doesn't form a valid token");
+		    continue;
+		default:
+		    concat = symbol;
+		    break;
+	    }
+	}
+	else if (osymbol_p(symbol) || omacro_p(symbol))
+	    concat = symbol;
+
+	if (concat && offset + 2 < expand->offset) {
+	    concat = expand->v.ptr[offset + 1];
+	    if (concat == symbol_concat) {
+		concat = expand->v.ptr[offset + 2];
+		if (concat == null)
+		    goto concat_fail;
+		vector = thread_self->vec;
+		vector->offset = vector->length = 0;
+
+		if (omacro_p(symbol))
+		    symbol = ((omacro_t *)symbol)->name;
+		else
+		    owrite((ostream_t *)vector, symbol->name->v.ptr,
+			   symbol->name->length);
+
+		if (osymbol_p(concat) && concat->keyword) {
+		    switch (*(oword_t *)concat->value) {
+			case tok_VA_ARGS:
+			case tok_stringify:
+			case tok_concat:
+			    /* Do not update offset so that warning is
+			     * triggered above for misplaced tokens */
+			    goto concat_fail;
+			default:
+			    owrite((ostream_t *)vector, concat->name->v.ptr,
+				   concat->name->length);
+			    break;
+		    }
+		}
+		else if (osymbol_p(concat) || omacro_p(concat)) {
+		    if (omacro_p(concat))
+			concat = ((omacro_t *)concat)->name;
+		    owrite((ostream_t *)vector, concat->name->v.ptr,
+			   concat->name->length);
+		}
+		else if (otype(concat) == t_word) {
+		    memset(&format, 0, sizeof(oformat_t));
+		    format.radix = 10;
+		    oprint_wrd((ostream_t *)vector, &format,
+			       *(oword_t *)concat);
+		}
+
+		if (vector->offset >= vector->length)
+		    orenew_vector(vector, vector->offset + 1);
+		vector->v.u8[vector->offset] = '\0';
+		if (symbol_char_p(vector->v.u8[0])) {
+		    if (vector->v.u8[0] >= '0' && vector->v.u8[0] <= '9') {
+			/* Concatenation generated an integer */
+			errno = 0;
+			word = strtol((char *)vector->v.ptr, null, 10);
+			/* Do not concatenate due to overflow */
+			if (errno == ERANGE)
+			    continue;
+			onew_word(pointer, word);
+			symbol = *pointer;
+		    }
+		    else {
+			/* Concatenation generated a symbol */
+			for (word = 1; word < vector->offset; word++)
+			    if (!symbol_char_p(vector->v.u8[word]))
+				break;
+			if (word != vector->offset)
+			    /* Do not concatenate due to invalid name */
+			    continue;
+			vector = oget_string(vector->v.u8, vector->offset);
+			symbol = onew_identifier(vector);
+		    }
+		}
+		else {
+		    /* Concatenation generated a "token" */
+		    token = macro_vector_token(vector);
+		    /* Did not generate a valid token  */
+		    if (token == tok_none)
+			continue;
+		    symbol = symbol_token_vector[token];
+		}
+
+		/* Concatenation done */
+		offset += 2;
+	    }
+	}
+
+    concat_fail:
+	macro_expand_object(final, symbol);
+    }
+    gc_dec();
+
+    memset(expand->v.ptr, 0, expand->offset * sizeof(oobject_t));
+    expand->offset = 0;
+    if (macro->unsafe) {
+	macro_evaluate(expand, final);
+	macro_insert_vector(expand);
+	memset(expand->v.ptr, 0, expand->offset * sizeof(oobject_t));
+	expand->offset = 0;
+    }
+    else
+	macro_insert_vector(final);
+
+    expand_vector->offset -= 2;
+    memset(final->v.ptr, 0, final->offset * sizeof(oobject_t));
+    final->offset = 0;
+
+    object = read_object();
+
+    if (macro->unsafe)
+	macro->expand = false;
+
+    --macro_expand_level;
+
+    return (object);
+}
+
+static oobject_t
+macro_read(void)
+{
+    GET_THREAD_SELF()
+    oobject_t		 p;
+    oobject_t		 q;
+    oint32_t		 ch;
+    obool_t		 same;
+    omacro_t		*prev;
+    omacro_t		*macro;
+    osymbol_t		*symbol;
+    ostream_t		*stream;
+    oword_t		 offset;
+
+    symbol = macro_ident();
+    assert(osymbol_p(symbol));
+    for (offset = 0; offset < osize(macros); offset++) {
+	if (symbol == macros[offset].symbol)
+	    break;
+    }
+    if (offset == osize(macros))
+	oread_error("bad preprocessor '%p'", symbol);
+
+    switch (macros[offset].macro) {
+	case mac_define:
+	    symbol = macro_ident();
+	    if (symbol->keyword || symbol == symbol_defined)
+		oread_error("'%p' cannot name a macro", symbol);
+	    if ((prev = (omacro_t *)oget_hash(macro_table, symbol)))
+		gc_push(prev);
+	    macro = macro_define(symbol);
+	    if (prev) {
+		same = ((prev->table && macro->table) ||
+			(!prev->table && !macro->table));
+		if (same && prev->table)
+		    same = prev->table->count == macro->table->count;
+		if (same)
+		    same = prev->vector->offset == macro->vector->offset;
+		if (same)
+		    same = prev->vararg == macro->vararg;
+		if (same) {
+		    for (offset = 0; offset < macro->vector->offset; offset++) {
+			p = prev->vector->v.ptr[offset];
+			q = macro->vector->v.ptr[offset];
+			if (p != q) {
+			    if (otype(p) != otype(q)) {
+				same = false;
+				break;
+			    }
+			    if (otype(p) == t_word) {
+				if (*(oword_t *)p != *(oword_t *)q) {
+				    same = false;
+				    break;
+				}
+			    }
+			    if (otype(p) == t_float) {
+				if (*(ofloat_t *)p != *(ofloat_t *)q) {
+				    same = false;
+				    break;
+				}
+			    }
+			}
+		    }
+		}
+		if (same && macro->table) {
+		    for (offset = prev->table->size;
+			 same && offset < prev->table->size; offset++) {
+			p = prev->table->entries[offset];
+			q = prev->table->entries[offset];
+			if (!p ^ !q) {
+			    same = false;
+			    break;
+			}
+			while (p && q) {
+			    if (((oentry_t *)p)->name != ((oentry_t *)q)->name) {
+				same = false;
+				break;
+			    }
+			}
+			if (p || q) {
+			    same = false;
+			    break;
+			}
+		    }
+		}
+		if (!same)
+		    oread_warn("macro '%p' redefined", symbol);
+		gc_dec();
+	    }
+	    break;
+	case mac_undef:
+	    symbol = macro_ident();
+	    macro_undef((omacro_t *)oget_hash(macro_table, symbol));
+	    break;
+
+	case mac_include:
+	    /* TODO */
+	    break;
+
+	case mac_ifdef:
+	    symbol = macro_ident();
+	    macro_check();
+	    macro_state_inc();
+	    if (macro_state->offset == 1) {
+		macro_name = input_note.name;
+		macro_line = input->lineno;
+	    }
+	    if (oget_hash(macro_table, symbol))
+		macro_set_true();
+	    else
+		macro_ignore();
+	    break;
+	case mac_ifndef:
+	    symbol = macro_ident();
+	    macro_check();
+	    macro_state_inc();
+	    if (macro_state->offset == 1) {
+		macro_name = input_note.name;
+		macro_line = input->lineno;
+	    }
+	    if (oget_hash(macro_table, symbol))
+		macro_ignore();
+	    else
+		macro_set_true();
+	    break;
+	    break;
+	case mac_if:
+	    macro_state_inc();
+	    macro_name = input_note.name;
+	    macro_line = input->lineno;
+	    if (macro_cond() == false)
+		macro_ignore();
+	    else
+		macro_set_true();
+	    break;
+	case mac_elif:
+	    if (!macro_state->offset || macro_get_else())
+		oread_error("unexpected #elif");
+	    else if (macro_state->offset == 1) {
+		macro_name = input_note.name;
+		macro_line = input->lineno;
+	    }
+	    macro_skip_line();
+	    macro_ignore();
+	    break;
+	case mac_else:
+	    if (!macro_state->offset || macro_get_else())
+		oread_error("unexpected #else");
+	    else if (macro_state->offset == 1) {
+		macro_name = input_note.name;
+		macro_line = input->lineno;
+	    }
+	    macro_set_else();
+	    macro_check();
+	    macro_ignore();
+	    break;
+	case mac_endif:
+	    if (!macro_state->offset)
+		oread_error("unexpected #endif");
+	    macro_check();
+	    macro_clr_bits();
+	    if (--macro_state->offset > 0 && !macro_get_true())
+		macro_ignore();
+	    break;
+	case mac_error:
+	case mac_warning:
+	    stream = (ostream_t *)thread_self->vec;
+	    stream->offset = stream->length = 0;
+	    ungetc(macro_skip());
+	    for (ch = getc(); ch != eof && ch != '\n'; ch = getc())
+		oputc(stream, ch);
+	    /* backup line number */
+	    ungetc(ch);
+	    if (macros[offset].macro == mac_warning)
+		oread_warn("%p", stream);
+	    else
+		oread_error("%p", stream);
+	    break;
+	default:
+	    abort();
+    }
+
+    return (read_object());
+}
+
+static oobject_t
+macro_object(obool_t define)
+{
+    oint32_t		ch;
+    oobject_t		object;
+
+    if (macro_offset < macro_vector->offset)
+	object = macro_vector->v.ptr[macro_offset++];
+    else {
+	ch = define ? macro_skip() : skip();
+	switch (ch) {
+	    case '\n':
+		/* Print proper line number on warnings and errors */
+		ungetc('\n');
+	    case eof:
+		object = object_eof;
+		break;
+	    case '"':
+		object = read_string();
+		break;
+	    case '\'':
+		object = read_character();
+		break;
+	    case '0'...'9':
+		object = read_number(ch);
+		break;
+	    case 'a'...'z': case 'A'...'Z': case '_':
+		object = read_symbol(ch);
+		break;
+	    case '.':
+		/* allow leading dot for floats */
+		ch = getc();
+		if (ch >= '0' && ch <= '9') {
+		    ungetc(ch);
+		    object = read_number('.');
+		    break;
+		}
+		ungetc(ch);
+		ch = '.';
+	    default:
+		object = read_keyword(ch);
+		break;
+	}
+    }
+
+    return (object);
+}
+
+static osymbol_t *
+macro_ident(void)
+{
+    oint32_t		 ch;
+    ovector_t		*vector;
+
+    switch (ch = macro_skip()) {
+	case eof:	oread_error("unexpected end of file");
+	case 'a'...'z': case 'A'...'Z': case '_':
+	    vector = read_ident(ch);
+	    break;
+	case '\n':	oread_error("expecting identifier");
+	default:	oread_error("'%c' is not a symbol char", ch);
+    }
+
+    return (onew_identifier(vector));
+}
+
+static oint32_t
+macro_skip(void)
+{
+    oint32_t		ch;
+
+    for (ch = getc(); ; ch = getc()) {
+	if (ch == '/')
+	    ch = skip_comment();
+	switch (ch) {
+	    case '\n':
+		return (ch);
+	    case ' ':	case '\t':
+	    case '\r':	case '\v':	case '\f':
+		break;
+	    case '\\':
+		ch = getc();
+		if (ch == eof)
+		    oread_error("unexpected end of input");
+		else if (ch != '\n') {
+		    ungetc(ch);
+		    return ('\\');
+		}
+		break;
+	    default:
+		return (ch);
+	}
+    }
+}
+
+static omacro_t *
+macro_define(osymbol_t *symbol)
+{
+    osymbol_t		*name;
+    oentry_t		*entry;
+    omacro_t		*macro;
+    oint32_t		 state;
+    oobject_t		 object;
+    oword_t		 offset;
+    obool_t		 unsafe;
+    oobject_t		*pointer;
+
+    ++macro_expand_level;
+
+    gc_ref(pointer);
+    onew(pointer, macro);
+    macro = *pointer;
+    macro->name = symbol;
+    oput_hash(macro_table, (oentry_t *)macro);
+    gc_dec();
+
+    state = getc();
+    if (state == '(') {
+	unsafe = false;
+#define wait_sep	(1 << 0)
+#define wait_sym	(1 << 1)
+#define wait_end	(1 << 2)
+	offset = 0;
+	state = wait_sym | wait_end;
+	onew_hash((oobject_t *)&macro->table, 4);
+	for (name = macro_object(true); ; name = macro_object(true)) {
+	    if (!osymbol_p(name))
+		goto macro_fail;
+	    if (name->keyword) {
+		switch (*(oword_t *)name->value) {
+		    case tok_cparen:
+			if (!(state & wait_end))
+			    goto macro_fail;
+			goto macro_define;
+		    case tok_comma:
+			if (!(state & wait_sep))
+			    goto macro_fail;
+			state = wait_sym;
+			break;
+		    case tok_ellipsis:
+			if (macro->vararg || !(state & wait_sym))
+			    goto macro_fail;
+			macro->vararg = true;
+			state = wait_end;
+			break;
+		    default:
+			goto macro_fail;
+		}
+	    }
+	    else {
+		if (!(state & wait_sym))
+		    goto macro_fail;
+		if (oget_hash(macro->table, name))
+		    oread_error("macro argument '%p' redefined", name);
+		gc_ref(pointer);
+		onew_entry(pointer, name, null);
+		entry = *pointer;
+		oput_hash(macro->table, entry);
+		gc_dec();
+		onew_word(&entry->value, offset);
+		++offset;
+		state = wait_sep|wait_end;
+	    }
+	}
+#undef wait_end
+#undef wait_sym
+#undef wait_sep
+    }
+    else {
+	unsafe = true;
+	ungetc(state);
+    }
+
+macro_define:
+    onew_vector((oobject_t *)&macro->vector, t_void, 4);
+    while ((object = macro_object(true)) != object_eof) {
+	if (macro->vector->offset >= macro->vector->length)
+	    orenew_vector(macro->vector, macro->vector->length * 2);
+	macro->vector->v.ptr[macro->vector->offset++] = object;
+	if (unsafe && osymbol_p(object)) {
+	    macro->unsafe = true;
+	    unsafe = false;
+	}
+    }
+
+    --macro_expand_level;
+
+    return (macro);
+macro_fail:
+    oread_error("macro argument syntax error");
+}
+
+static void
+macro_undef(omacro_t *macro)
+{
+    oword_t		offset;
+
+    if (macro && macro->vector) {
+	for (offset = 0; offset < macro->vector->offset; offset++)
+	    odel_object(macro->vector->v.ptr + offset);
+	orem_hash(macro_table, (oentry_t *)macro);
+    }
+}
+
+static void
+macro_check(void)
+{
+    oint32_t		ch;
+
+    if ((ch = macro_skip()))
+	ungetc(ch);
+    else if (ch != eof)
+	oread_error("'%c' after preprocessor", ch);
+}
+
+static void
+macro_ignore(void)
+{
+    oint32_t		 ch;
+    oint32_t		 line;
+    ovector_t		*name;
+    osymbol_t		*ident;
+    oint32_t		 quote;
+    oword_t		 offset;
+
+    for (ch = skip(); ch != eof; ch = skip()) {
+	if (ch == '#') {
+	    /* save value now, as macro_ident() may read a newline */
+	    name = input_note.name;
+	    line = input->lineno;
+	    ident = macro_ident();
+	    for (offset = 0; offset < osize(macros); offset++)
+		if (ident == macros[offset].symbol)
+		    break;
+	    if (offset == osize(macros))
+		oread_error("bad preprocessor '%p'", ident);
+	    switch (macros[offset].macro) {
+		case mac_ifdef:
+		case mac_ifndef:
+		case mac_if:
+		    macro_state_inc();
+		    macro_set_skip();
+		    macro_skip_line();
+		    macro_ignore();
+		    break;
+		case mac_elif:
+		    if (!macro_state->offset || macro_get_else())
+			oread_error("unexpected #elif");
+		    else if (macro_state->offset == 1) {
+			macro_name = name;
+			macro_line = line;
+		    }
+		    if (!macro_get_true() && !macro_get_skip()) {
+			if (macro_cond()) {
+			    macro_set_true();
+			    return;
+			}
+			/* dont skip line as newline was already read */
+			continue;
+		    }
+		    break;
+		case mac_else:
+		    macro_check();
+		    if (!macro_state->offset || macro_get_else())
+			oread_error("unexpected #else");
+		    else if (macro_state->offset == 1) {
+			macro_name = name;
+			macro_line = line;
+		    }
+		    macro_set_else();
+		    if (!macro_get_true() && !macro_get_skip()) {
+			macro_set_true();
+			return;
+		    }
+		    break;
+		case mac_endif:
+		    macro_clr_bits();
+		    macro_check();
+		    --macro_state->offset;
+		    return;
+		default:
+		    break;
+	    }
+	}
+	else if (ch == '"' || ch == '\'') {
+	    quote = ch;
+	    while ((ch = getc_quoted()) != quote) {
+		if (ch == eof || ch == '\n')
+		    oread_error("expecting '\\%c'", quote);
+	    }
+	}
+	/* skip to next line or eof */
+	macro_skip_line();
+    }
+}
+
+static otoken_t
+macro_unary(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		 token;
+    union {
+	oobject_t	 object;
+	osymbol_t	*symbol;
+    } value;
+
+    if (*offset >= expand->offset)
+	return (tok_eof);
+
+    value.object = expand->v.ptr[(*offset)++];
+    if (osymbol_p(value.object)) {
+	switch (*(oword_t *)value.symbol->value) {
+	    case tok_add:
+		token = macro_unary(offset, lvalue, expand);
+		if (token != tok_number)
+		    oread_error("macro value not an integer");
+		break;
+	    case tok_sub:
+		token = macro_unary(offset, lvalue, expand);
+		if (token != tok_number || *lvalue == MININT)
+		    oread_error("macro value overflow");
+		*lvalue = -*lvalue;
+		break;
+	    case tok_not:
+		token = macro_unary(offset, lvalue, expand);
+		if (token != tok_number)
+		    oread_error("macro value not an integer");
+		*lvalue = !*lvalue;
+		break;
+	    case tok_oparen:
+		token = macro_logop(offset, lvalue, expand);
+		if (*offset >= expand->length)
+		    macro_cond_error();
+		value.object = expand->v.ptr[(*offset)++];
+		if (value.symbol != symbol_cparen)
+		    macro_cond_error();
+		macro_next_token = tok_none;
+		break;
+	    default:
+		macro_cond_error();
+		break;
+	}
+    }
+    else {
+	assert(otype(value.object) == t_word);
+	*lvalue = *(oword_t *)value.object;
+	token = tok_number;
+    }
+
+    return (token);
+}
+
+static otoken_t
+macro_do_lookahead(oword_t *offset, ovector_t *expand)
+{
+    union {
+	oobject_t	 object;
+	osymbol_t	*symbol;
+    } value;
+
+    if (*offset >= expand->offset)
+	return (tok_eof);
+    value.object = expand->v.ptr[*offset];
+    if (osymbol_p(value.object))
+	return (*(oword_t *)value.symbol->value);
+    assert(otype(value.object) == t_word);
+
+    return (tok_number);
+}
+
+static otoken_t
+macro_muldivrem(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		value;
+    oword_t		rvalue;
+
+    if ((token = macro_unary(offset, lvalue, expand)) != tok_number)
+	return (token);
+
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	if (token != tok_mul    && token != tok_div &&
+	    token != tok_trunc2 && token != tok_rem)
+	    return (tok_number);
+	macro_consume(offset);
+	if (macro_unary(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	if (token == tok_mul) {
+	    value = *lvalue * rvalue;
+	    if (rvalue && (value / rvalue) != *lvalue)
+		oread_error("macro mul value overflow");
+	    *lvalue = value;
+	}
+	else if (token == tok_div) {
+	    if (*lvalue % rvalue)
+		oread_error("macro inexact division");
+	    *lvalue /= rvalue;
+	}
+	else if (token == tok_trunc2)
+	    *lvalue /= rvalue;
+	else
+	    *lvalue %= rvalue;
+    }
+}
+
+static otoken_t
+macro_addsub(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		value;
+    oword_t		rvalue;
+
+    if ((token = macro_muldivrem(offset, lvalue, expand)) == tok_eof)
+	return (tok_eof);
+    if (token != tok_number)
+	macro_cond_error();
+
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	if (token != tok_add && token != tok_sub)
+	    return (tok_number);
+	macro_consume(offset);
+	if (macro_muldivrem(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	if (token == tok_add) {
+	    value = *lvalue + rvalue;
+	    if ((value - rvalue) != *lvalue)
+		oread_error("macro add value integer");
+	    *lvalue = value;
+	}
+	else {
+	    value = *lvalue - rvalue;
+	    if ((value + rvalue) != *lvalue)
+		oread_error("macro sub value overflow");
+	    *lvalue = value;
+	}
+    }
+}
+
+static otoken_t
+macro_shift(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		value;
+    oword_t		rvalue;
+
+    if ((token = macro_addsub(offset, lvalue, expand)) == tok_eof)
+	return (tok_eof);
+    if (token != tok_number)
+	macro_cond_error();
+
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	if (token != tok_mul2 && token != tok_div2 &&
+	    token != tok_shl  && token != tok_shr)
+	    return (tok_number);
+	macro_consume(offset);
+	if (macro_addsub(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	if (token == tok_mul2 || token == tok_shl) {
+	    value = *lvalue << rvalue;
+	    if ((value >> rvalue) != *lvalue)
+		oread_error("macro shift value overflow");
+	    *lvalue = value;
+	}
+	else if (token == tok_div2) {
+	    value = *lvalue >> rvalue;
+	    if ((value << rvalue) != *lvalue)
+		oread_error("macro shift value underflow");
+	    *lvalue = value;
+	}
+	else
+	    *lvalue = *lvalue >> rvalue;
+    }
+}
+
+static otoken_t
+macro_bitop(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		rvalue;
+
+    if ((token = macro_shift(offset, lvalue, expand)) == tok_eof)
+	return (tok_eof);
+    if (token != tok_number)
+	macro_cond_error();
+
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	if (token != tok_and && token != tok_or && token != tok_xor)
+	    return (tok_number);
+	macro_consume(offset);
+	if (macro_shift(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	if (token == tok_and)
+	    *lvalue = *lvalue & rvalue;
+	else if (token == tok_or)
+	    *lvalue = *lvalue | rvalue;
+	else
+	    *lvalue = *lvalue ^ rvalue;
+    }
+}
+
+static otoken_t
+macro_logcmp(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		rvalue;
+
+    if ((token = macro_bitop(offset, lvalue, expand)) == tok_eof)
+	return (tok_eof);
+    if (token != tok_number)
+	macro_cond_error();
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	switch (token) {
+	    case tok_lt:		case tok_le:
+	    case tok_eq:		case tok_ge:
+	    case tok_gt:		case tok_ne:
+		break;
+	    default:
+		return (tok_number);
+	}
+	macro_consume(offset);
+	if (macro_bitop(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	switch (token) {
+	    case tok_lt:
+		*lvalue = *lvalue <  rvalue;
+		break;
+	    case tok_le:
+		*lvalue = *lvalue <= rvalue;
+		break;
+	    case tok_eq:
+		*lvalue = *lvalue == rvalue;
+		break;
+	    case tok_ge:
+		*lvalue = *lvalue >= rvalue;
+		break;
+	    case tok_gt:
+		*lvalue = *lvalue >  rvalue;
+		break;
+	    default:
+		*lvalue = *lvalue != rvalue;
+		break;
+	}
+    }
+}
+
+static otoken_t
+macro_logop(oword_t *offset, oword_t *lvalue, ovector_t *expand)
+{
+    otoken_t		token;
+    oword_t		rvalue;
+
+    if ((token = macro_logcmp(offset, lvalue, expand)) == tok_eof)
+	return (tok_eof);
+    if (token != tok_number)
+	macro_cond_error();
+
+    for (;;) {
+	macro_lookahead(token, offset, expand);
+	if (token != tok_andand && token != tok_oror)
+	    return (tok_number);
+	macro_consume(offset);
+	if (macro_logcmp(offset, &rvalue, expand) != tok_number)
+	    macro_cond_error();
+	if (token == tok_andand)
+	    *lvalue = *lvalue && rvalue;
+	else
+	    *lvalue = *lvalue || rvalue;
+    }
+}
+
+static void
+macro_cond_error(void)
+{
+    input->lineno = macro_cond_lineno;
+    input->column = macro_cond_column;
+    oread_error("macro condition syntax error");
+}
+
+static obool_t
+macro_cond(void)
+{
+    oword_t		 result;
+    oint32_t		 lineno;
+    oint32_t		 column;
+    oobject_t		 object;
+    oword_t		 offset;
+    ovector_t		*expand;
+
+    /* Not recursive */
+    assert(macro_expand_level == 0);
+    ++macro_expand_level;
+
+    macro_conditional = true;
+    lineno = macro_cond_lineno;
+    column = macro_cond_column;
+    macro_cond_lineno = input->lineno;
+    macro_cond_column = input->column;
+
+    if (expand_vector->offset >= expand_vector->length)
+	orenew_vector(expand_vector, expand_vector->length + 4);
+    if (expand_vector->v.ptr[expand_vector->offset] == null)
+	onew_vector(expand_vector->v.ptr + expand_vector->offset, t_void, 4);
+    expand = expand_vector->v.ptr[expand_vector->offset++];
+
+    object = macro_object(true);
+    for (; object != object_eof; object = macro_object(true))
+	macro_expand_object(expand, object);
+    if (!expand->offset)
+	oread_error("unexpected end of file");
+
+    macro_defined(expand);
+    if (expand->offset == 0)
+	macro_cond_error();
+
+    offset = 0;
+    macro_next_token = tok_none;
+    (void)macro_logop(&offset, &result, expand);
+
+    if (offset < expand->offset)
+	macro_cond_error();
+
+    expand->offset = 0;
+    --expand_vector->offset;
+    memset(expand->v.ptr, 0, expand->length * sizeof(oobject_t));
+
+    macro_cond_column = column;
+    macro_cond_lineno = lineno;
+    macro_conditional = false;
+
+    --macro_expand_level;
+
+    return (!!result);
+}
+
+static oword_t
+macro_value(omacro_t *macro)
+{
+    omacro_t		*expand;
+    obool_t		 result;
+    oobject_t		 object;
+
+    if (macro->expand)
+	return (false);
+    if (macro->vector->offset == 0)
+	return (false);
+    object = macro->vector->v.ptr[macro->vector->offset - 1];
+    if (osymbol_p(object)) {
+	if ((expand = (omacro_t *)oget_hash(macro_table, object))) {
+	    macro->expand = true;
+	    result = macro_value(expand);
+	    macro->expand = false;
+	    return (result);
+	}
+	return (false);
+    }
+    if (otype(object) == t_word)
+	return (*(oword_t *)object);
+
+    return (!ofalse_p(object));
+}
+
+static void
+macro_defined(ovector_t *expand)
+{
+    omacro_t		*macro;
+    oword_t		 offset;
+    osymbol_t		*symbol;
+
+    for (offset = 0; offset < expand->offset; offset++) {
+	symbol = expand->v.ptr[offset];
+	if (!osymbol_p(symbol)) {
+	    /* Only integer simple expressions supported */
+	    if (otype(symbol) != t_word)
+		oread_error("macro condition is not an integer");
+	}
+	else if ((macro = (omacro_t *)oget_hash(macro_table, symbol)))
+	    onew_word(expand->v.ptr + offset, macro_value(macro));
+	else if (symbol == symbol_defined) {
+	    /* defined */
+	    if (offset + 3 >= expand->offset)
+		macro_cond_error();
+
+	    /* defined ( */
+	    if (expand->v.ptr[offset + 1] != symbol_oparen)
+		macro_cond_error();
+
+	    /* defined ( symbol */
+	    symbol = expand->v.ptr[offset + 2];
+	    if (!osymbol_p(symbol))
+		macro_cond_error();
+
+	    if ((macro = (omacro_t *)oget_hash(macro_table, symbol)))
+		onew_word(expand->v.ptr + offset, 1);
+	    else
+		onew_word(expand->v.ptr + offset, 0);
+
+	    /* defined ( symbol ) */
+	    if (expand->v.ptr[offset + 3] != symbol_cparen)
+		macro_cond_error();
+
+	    /* defined(symbol) -> number */
+	    memmove(expand->v.ptr + offset + 1,
+		    expand->v.ptr + offset + 4,
+		    (expand->offset - offset - 3) * sizeof(oobject_t));
+	    /* ensure there are no duplicated oast_t references */
+	    expand->offset -= 3;
+	    memset(expand->v.ptr + expand->offset, 0, 3 * sizeof(oobject_t));
+   	}
+	else if (!symbol->keyword)
+	    onew_word(expand->v.ptr + offset, 0);
+    }
+}
+
+static void
+macro_get_object(oobject_t *pointer, oobject_t object)
+{
+    if (object == null)
+	*pointer = null;
+    else {
+	switch (otype(object)) {
+	    case t_word:	case t_float:	case t_rat:
+	    case t_mpz:		case t_mpq:	case t_mpr:
+	    case t_cdd:		case t_cqq:	case t_mpc:
+		ocopy(pointer, object);
+		break;
+	    default:
+		*pointer = object;
+		break;
+	}
+    }
 }

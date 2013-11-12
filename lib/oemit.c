@@ -577,9 +577,10 @@ operand_get(oword_t offset)
     if ((op = stack->v.ptr[stack->offset]) == null) {
 	onew_object(stack->v.ptr + stack->offset,
 		    t_operand, sizeof(ooperand_t));
-	return (stack->v.ptr[stack->offset++]);
+	op = stack->v.ptr[stack->offset];
     }
-    memset(op, 0, sizeof(ooperand_t));
+    else
+	memset(op, 0, sizeof(ooperand_t));
     op->s = offset;
     ++stack->offset;
 
@@ -770,6 +771,9 @@ emit(oast_t *ast)
 	case tok_not:		case tok_com:
 	case tok_neg:
 	    emit_unary(ast);
+	    break;
+	case tok_plus:
+	    emit(ast->l.ast);
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc: 	case tok_postdec:

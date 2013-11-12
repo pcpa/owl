@@ -119,6 +119,8 @@ enum otype {
 
     t_symbol,
 
+    t_macro,
+
     t_ast,
     t_tag,
     t_case,

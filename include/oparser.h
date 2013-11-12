@@ -18,6 +18,7 @@
 #ifndef _oparser_h
 #define _oparser_h
 
+#define oast_p(object)			(otype(object) == t_ast)
 #define oparse_error(ast, ...)		onote_error(&((ast)->note), __VA_ARGS__)
 #define oparse_warn(ast, ...)		onote_warn(&((ast)->note), __VA_ARGS__)
 
@@ -241,5 +242,6 @@ onew_ast(oobject_t *pointer, otoken_t token,
  * Externs
  */
 extern osymbol_t	*symbol_new;
+extern osymbol_t	*symbol_token_vector[tok_ctor];
 
 #endif /* _oparser_h */

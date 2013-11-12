@@ -118,6 +118,9 @@ static otoken_t
 unary(void);
 
 static otoken_t
+unary_string(void);
+
+static otoken_t
 unary_loop(otoken_t token);
 
 static otoken_t
@@ -184,6 +187,7 @@ pop_block(void);
  * Initialization
  */
 osymbol_t		*symbol_new;
+osymbol_t		*symbol_token_vector[tok_ctor];
 
 static struct {
     char	*name;
@@ -199,6 +203,57 @@ static struct {
     { "__COUNTER__",	tok_COUNTER	},
     { "#",		tok_stringify	},
     { "##",		tok_concat	},
+    { "(",		tok_oparen	},
+    { ")",		tok_cparen	},
+    { "[",		tok_obrack	},
+    { "]",		tok_cbrack	},
+    { "{",		tok_obrace	},
+    { "}",		tok_cbrace	},
+    { ";",		tok_semicollon	},
+    { ":",		tok_collon	},
+    { ",",		tok_comma	},
+    { ".",		tok_dot		},
+    { "...",		tok_ellipsis	},
+    { "=",		tok_set		},
+    { "&=",		tok_andset	},
+    { "|=",		tok_orset	},
+    { "^=",		tok_xorset	},
+    { "<<=",		tok_mul2set	},
+    { ">>=",		tok_div2set	},
+    { "<<<=",		tok_shlset	},
+    { ">>>=",		tok_shrset	},
+    { "+=",		tok_addset	},
+    { "-=",		tok_subset	},
+    { "*=",		tok_mulset	},
+    { "/=",		tok_divset	},
+    { "\\=",		tok_trunc2set	},
+    { "%=",		tok_remset	},
+    { "&&",		tok_andand	},
+    { "||",		tok_oror	},
+    { "!=",		tok_ne		},
+    { "<",		tok_lt		},
+    { "<=",		tok_le		},
+    { "==",		tok_eq		},
+    { ">=",		tok_ge		},
+    { ">",		tok_gt		},
+    { "&",		tok_and		},
+    { "|",		tok_or		},
+    { "^",		tok_xor		},
+    { "<<",		tok_mul2	},
+    { ">>",		tok_div2	},
+    { "<<<",		tok_shl		},
+    { "<<<",		tok_shr		},
+    { "+",		tok_add		},
+    { "-",		tok_sub		},
+    { "*",		tok_mul		},
+    { "/",		tok_div		},
+    { "\\",		tok_trunc2	},
+    { "%",		tok_rem		},
+    { "!",		tok_not		},
+    { "~",		tok_com		},
+    { "++",		tok_inc		},
+    { "--",		tok_dec		},
+    { "?",		tok_question	},
     { "atan2", 		tok_atan2	},
     { "pow", 		tok_pow		},
     { "hypot",		tok_hypot	},
@@ -294,6 +349,7 @@ init_parser(void)
 					     strlen(keywords[offset].name)));
 	onew_word(&symbol->value, keywords[offset].token);
 	symbol->keyword = 1;
+	symbol_token_vector[keywords[offset].token] = symbol;
     }
 
     symbol = onew_identifier(oget_string((ouint8_t *)"null", 4));
@@ -1594,7 +1650,8 @@ binary_right(otoken_t token)
 	case tok_expr:		case tok_list:
 	    break;
 	case tok_string:
-	    if (top_ast()->l.value == null)
+	    if (token == tok_eq || token == tok_ne ||
+		top_ast()->l.value == null)
 		break;
 	default:
 	    oparse_error(top_ast(), "expecting expression %A", top_ast());
@@ -1650,8 +1707,9 @@ unary(void)
 		default:
 		    return (unary_decl());
 	    }
-	case tok_symbol:	case tok_string:
-	case tok_this:
+	case tok_string:
+	    token = unary_string();
+	case tok_symbol:	case tok_this:
 	    return (unary_loop(token));
 	case tok_oparen:
 	    return (unary_list());
@@ -1669,9 +1727,61 @@ unary(void)
 	case tok_ellipsis:
 	    if (lookahead() == tok_obrack)
 		token = unary_vector();
+	    return (token);
+	case tok_FUNCTION:
+	    if (current_record->function->name)
+		top_ast()->l.value = current_record->function->name->name;
+	    else
+		top_ast()->l.value = null;
+	    top_ast()->token = tok_string;
+	    token = unary_string();
+	    return (unary_loop(token));
 	default:
 	    return (token);
     }
+}
+
+static otoken_t
+unary_string(void)
+{
+    oast_t		*ast;
+    oast_t		*top;
+    obool_t		 first;
+    oword_t		 offset;
+    oword_t		 length;
+    ovector_t		*append;
+    ovector_t		*string;
+    oobject_t		*pointer;
+
+    ast = top_ast();
+    if ((string = ast->l.value)) {
+	first = true;
+	offset = string->length;
+	while (lookahead() == tok_string) {
+	    primary();
+	    top = top_ast();
+	    if ((append = top->l.value) == null)
+		oparse_error(top, "'null' not expected");
+	    length = offset + append->length;
+	    if (length < offset)
+		oparse_error(top, "out of bounds");
+	    if (first) {
+		gc_ref(pointer);
+		onew_vector(pointer, t_uint8, length);
+		gc_pop(append);
+		memcpy(append->v.u8, string->v.u8, string->length);
+		string = ast->l.value = append;
+		append = top->l.value;
+	    }
+	    else
+		orenew_vector(string, length);
+	    memcpy(string->v.u8 + offset, append->v.u8, append->length);
+	    offset = length;
+	    pop_ast();
+	}
+    }
+
+    return (tok_string);
 }
 
 static otoken_t
@@ -1915,7 +2025,7 @@ unary_unary(otoken_t token)
 		    else
 			length = 0;
 		    /* else a runtime vector length */
-		    ast->r.ast = otag_vector(vast->l.ast->l.value, length);
+		    ast->r.value = otag_vector(vast->l.ast->l.value, length);
 		    goto next;
 		}
 	    }
