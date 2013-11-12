@@ -377,6 +377,9 @@ oread_object(void)
 	    }
 	}
     }
+    if (macro_state->offset > 0)
+	oread_error("unfinished conditional starting at %p:%d",
+		    macro_name, macro_line);
 
     return (object_eof);
 }
@@ -2971,13 +2974,11 @@ static oword_t
 macro_value(omacro_t *macro)
 {
     omacro_t		*expand;
-    obool_t		 result;
+    oword_t		 result;
     oobject_t		 object;
 
-    if (macro->expand)
-	return (false);
-    if (macro->vector->offset == 0)
-	return (false);
+    if (macro->expand || macro->vector->offset == 0)
+	return (0);
     object = macro->vector->v.ptr[macro->vector->offset - 1];
     if (osymbol_p(object)) {
 	if ((expand = (omacro_t *)oget_hash(macro_table, object))) {
@@ -2986,12 +2987,13 @@ macro_value(omacro_t *macro)
 	    macro->expand = false;
 	    return (result);
 	}
-	return (false);
+	return (0);
     }
-    if (otype(object) == t_word)
-	return (*(oword_t *)object);
+    /* Only integer simple expressions supported */
+    if (otype(object) != t_word)
+	oread_error("macro condition is not an integer");
 
-    return (!ofalse_p(object));
+    return (*(oword_t *)object);
 }
 
 static void
