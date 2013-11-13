@@ -20,6 +20,15 @@
 #define symbol_char_p(ch)	(symbol_set[(ch) >> 5] & (1 << ((ch) & 31)))
 #define space_p(ch)		(spaces_set[(ch) >> 5] & (1 << ((ch) & 31)))
 
+/* Objects returned by read_object() are not guaranteed gc protected,
+ * and must be protected if gc may be called before they are protected */
+#define read_renew_vector(object, vector, length)			\
+    do {								\
+	gc_push(object);						\
+	orenew_vector(vector, length);					\
+	gc_dec();							\
+    } while (0)
+
 #define macro_lookahead(token, offset, vector)				\
     do {								\
 	if (macro_next_token == tok_none)				\
@@ -1490,7 +1499,7 @@ static void
 macro_expand_object(ovector_t *expand, oobject_t object)
 {
     if (expand->offset + 1 >= expand->length)
-	orenew_vector(expand, (expand->offset + 1 + 4) & -4);
+	read_renew_vector(object, expand, (expand->offset + 1 + 4) & -4);
     expand->v.ptr[expand->offset++] = object;
 }
 
@@ -1648,7 +1657,7 @@ macro_function(omacro_t *macro, ovector_t *expand, ovector_t *alist)
 	    vector->offset = 0;
 	}
 	else
-	    assert( elist->v.ptr[offset] == null);
+	    assert(elist->v.ptr[offset] == null);
     }
     alist->offset = elist->offset = 0;
     alist_vector->offset -= 2;
@@ -1704,7 +1713,7 @@ macro_evaluate(ovector_t *final, ovector_t *expand)
     while (macro_offset < macro_vector->offset) {
 	symbol = read_object();
 	if (final->offset >= final->length)
-	    orenew_vector(final, final->offset + 4);
+	    read_renew_vector(symbol, final, final->offset + 4);
 	final->v.ptr[final->offset++] = symbol;
     }
 
@@ -1862,7 +1871,6 @@ macro_expand(omacro_t *macro)
     if (expand_vector->v.ptr[expand_vector->offset] == null)
 	onew_vector(expand_vector->v.ptr + expand_vector->offset, t_void, 4);
     expand = expand_vector->v.ptr[expand_vector->offset++];
-    alist = null;
 
     /* If a function macro */
     if (macro->table) {
@@ -1924,7 +1932,7 @@ macro_expand(omacro_t *macro)
 		    vector = alist->v.ptr[alist->offset];
 		}
 		else if (vector->offset >= vector->length)
-		    orenew_vector(vector, vector->length + 4);
+		    read_renew_vector(symbol, vector, vector->length + 4);
 		vector->v.ptr[vector->offset++] = symbol;
 		/* Check for macro with only a __VA_ARGS__ argument */
 		if (alist->offset >= macro->table->count) {
@@ -1961,7 +1969,7 @@ macro_expand(omacro_t *macro)
 		    }
 		}
 		if (vector->offset >= vector->length)
-		    orenew_vector(vector, vector->length + 4);
+		    read_renew_vector(symbol, vector, vector->length + 4);
 		vector->v.ptr[vector->offset++] = symbol;
 	    }
 
@@ -2504,7 +2512,7 @@ macro_define:
     onew_vector((oobject_t *)&macro->vector, t_void, 4);
     while ((object = macro_object(true)) != object_eof) {
 	if (macro->vector->offset >= macro->vector->length)
-	    orenew_vector(macro->vector, macro->vector->length * 2);
+	    read_renew_vector(object, macro->vector, macro->vector->length * 2);
 	macro->vector->v.ptr[macro->vector->offset++] = object;
 	if (unsafe && osymbol_p(object)) {
 	    macro->unsafe = true;
