@@ -33926,3 +33926,3770 @@ print("error %d\n", __LINE__);
 #if 0
 "#endif"
 #endif
+
+#define t45_defscheck(name, ta, tb, tc, op)				\
+void name(ta a, tb b, tc c) {						\
+    int8_t	sc;							\
+    int16_t	ss;							\
+    int32_t	si;							\
+    int64_t	sl;							\
+    float32_t	f;	float64_t	d;				\
+    auto	v;							\
+    sc = ss = si = sl = f = d = v = b;					\
+    if (a op sc != c)	print("error %d\n", __LINE__);			\
+    if (a op ss != c)	print("error %d\n", __LINE__);			\
+    if (a op si != c)	print("error %d\n", __LINE__);			\
+    if (a op sl != c)	print("error %d\n", __LINE__);			\
+    if (a op f  != c)	print("error %d\n", __LINE__);			\
+    if (a op d  != c)	print("error %d\n", __LINE__);			\
+    if (a op v  != c)	print("error %d\n", __LINE__);			\
+}
+#define t45_defucheck(name, ta, tb, tc, op)				\
+void name(ta a, tb b, tc c) {						\
+    uint8_t	uc;							\
+    uint16_t	us;							\
+    uint32_t	ui;							\
+    uint64_t	ul;							\
+    uc = us = ui = ul = b;						\
+    if (a op uc != c)	print("error %d\n", __LINE__);			\
+    if (a op us != c)	print("error %d\n", __LINE__);			\
+    if (a op ui != c)	print("error %d\n", __LINE__);			\
+    if (a op ul != c)	print("error %d\n", __LINE__);			\
+}
+t45_defscheck(t45_slt_ccc, int8_t,  int8_t,  int8_t,  <)
+t45_defucheck(t45_ult_ccc, uint8_t, uint8_t, uint8_t, <)
+t45_slt_ccc( 1, 2, 1);
+t45_slt_ccc( 1, 1, 0);
+t45_slt_ccc(-1, 1, 1);
+t45_ult_ccc( 1, 2, 1);
+t45_ult_ccc( 1, 1, 0);
+t45_ult_ccc(-1, 1, 0);
+t45_defscheck(t45_slt_sss, int16_t,  int16_t,  int16_t,  <)
+t45_defucheck(t45_ult_sss, uint16_t, uint16_t, uint16_t, <)
+t45_slt_sss( 1, 2, 1);
+t45_slt_sss( 1, 1, 0);
+t45_slt_sss(-1, 1, 1);
+t45_ult_sss( 1, 2, 1);
+t45_ult_sss( 1, 1, 0);
+t45_ult_sss(-1, 1, 0);
+t45_defscheck(t45_slt_iii, int32_t,  int32_t,  int32_t,  <)
+t45_defucheck(t45_ult_iii, uint32_t, uint32_t, uint32_t, <)
+t45_slt_iii( 1, 2, 1);
+t45_slt_iii( 1, 1, 0);
+t45_slt_iii(-1, 1, 1);
+t45_ult_iii( 1, 2, 1);
+t45_ult_iii( 1, 1, 0);
+t45_ult_iii(-1, 1, 0);
+t45_defscheck(t45_slt_lll, int64_t,  int64_t,  int64_t,  <)
+t45_defucheck(t45_ult_lll, uint64_t, uint64_t, uint64_t, <)
+t45_slt_lll( 1, 2, 1);
+t45_slt_lll( 1, 1, 0);
+t45_slt_lll(-1, 1, 1);
+t45_ult_lll( 1, 2, 1);
+t45_ult_lll( 1, 1, 0);
+t45_ult_lll(-1, 1, 0);
+t45_defscheck(t45_slt_fff, float32_t,  float32_t,  float32_t, <)
+t45_slt_fff( 1, 2, 1);
+t45_slt_fff( 1, 1, 0);
+t45_slt_fff(-1, 1, 1);
+t45_defscheck(t45_slt_ddd, float64_t,  float64_t,  float64_t, <)
+t45_slt_ddd( 1, 2, 1);
+t45_slt_ddd( 1, 1, 0);
+t45_slt_ddd(-1, 1, 1);
+t45_defscheck(t45_slt_vvv, auto, auto, auto, <)
+t45_slt_vvv( 1, 2, 1);
+t45_slt_vvv( 1, 1, 0);
+t45_slt_vvv(-1, 1, 1);
+t45_defscheck(t45_sle_ccc, int8_t,  int8_t,  int8_t,  <=)
+t45_defucheck(t45_ule_ccc, uint8_t, uint8_t, uint8_t, <=)
+t45_sle_ccc( 1, 2, 1);
+t45_sle_ccc( 1, 1, 1);
+t45_sle_ccc(-1, 1, 1);
+t45_ule_ccc( 1, 2, 1);
+t45_ule_ccc( 1, 1, 1);
+t45_ule_ccc(-1, 1, 0);
+t45_defscheck(t45_sle_sss, int16_t,  int16_t,  int16_t,  <=)
+t45_defucheck(t45_ule_sss, uint16_t, uint16_t, uint16_t, <=)
+t45_sle_sss( 1, 2, 1);
+t45_sle_sss( 1, 1, 1);
+t45_sle_sss(-1, 1, 1);
+t45_ule_sss( 1, 2, 1);
+t45_ule_sss( 1, 1, 1);
+t45_ule_sss(-1, 1, 0);
+t45_defscheck(t45_sle_iii, int32_t,  int32_t,  int32_t,  <=)
+t45_defucheck(t45_ule_iii, uint32_t, uint32_t, uint32_t, <=)
+t45_sle_iii( 1, 2, 1);
+t45_sle_iii( 1, 1, 1);
+t45_sle_iii(-1, 1, 1);
+t45_ule_iii( 1, 2, 1);
+t45_ule_iii( 1, 1, 1);
+t45_ule_iii(-1, 1, 0);
+t45_defscheck(t45_sle_lll, int64_t,  int64_t,  int64_t,  <=)
+t45_defucheck(t45_ule_lll, uint64_t, uint64_t, uint64_t, <=)
+t45_sle_lll( 1, 2, 1);
+t45_sle_lll( 1, 1, 1);
+t45_sle_lll(-1, 1, 1);
+t45_ule_lll( 1, 2, 1);
+t45_ule_lll( 1, 1, 1);
+t45_ule_lll(-1, 1, 0);
+t45_defscheck(t45_sle_fff, float32_t,  float32_t,  float32_t, <=)
+t45_sle_fff( 1, 2, 1);
+t45_sle_fff( 1, 1, 1);
+t45_sle_fff(-1, 1, 1);
+t45_defscheck(t45_sle_ddd, float64_t,  float64_t,  float64_t, <=)
+t45_sle_ddd( 1, 2, 1);
+t45_sle_ddd( 1, 1, 1);
+t45_sle_ddd(-1, 1, 1);
+t45_defscheck(t45_sle_vvv, auto, auto, auto, <=)
+t45_sle_vvv( 1, 2, 1);
+t45_sle_vvv( 1, 1, 1);
+t45_sle_vvv(-1, 1, 1);
+t45_defscheck(t45_seq_ccc, int8_t,  int8_t,  int8_t,  ==)
+t45_defucheck(t45_ueq_ccc, uint8_t, uint8_t, uint8_t, ==)
+t45_seq_ccc( 1, 2, 0);
+t45_seq_ccc( 1, 1, 1);
+t45_seq_ccc(-1, 1, 0);
+t45_ueq_ccc( 1, 2, 0);
+t45_ueq_ccc( 1, 1, 1);
+t45_ueq_ccc(-1, 1, 0);
+t45_defscheck(t45_seq_sss, int16_t,  int16_t,  int16_t,  ==)
+t45_defucheck(t45_ueq_sss, uint16_t, uint16_t, uint16_t, ==)
+t45_seq_sss( 1, 2, 0);
+t45_seq_sss( 1, 1, 1);
+t45_seq_sss(-1, 1, 0);
+t45_ueq_sss( 1, 2, 0);
+t45_ueq_sss( 1, 1, 1);
+t45_ueq_sss(-1, 1, 0);
+t45_defscheck(t45_seq_iii, int32_t,  int32_t,  int32_t,  ==)
+t45_defucheck(t45_ueq_iii, uint32_t, uint32_t, uint32_t, ==)
+t45_seq_iii( 1, 2, 0);
+t45_seq_iii( 1, 1, 1);
+t45_seq_iii(-1, 1, 0);
+t45_ueq_iii( 1, 2, 0);
+t45_ueq_iii( 1, 1, 1);
+t45_ueq_iii(-1, 1, 0);
+t45_defscheck(t45_seq_lll, int64_t,  int64_t,  int64_t,  ==)
+t45_defucheck(t45_ueq_lll, uint64_t, uint64_t, uint64_t, ==)
+t45_seq_lll( 1, 2, 0);
+t45_seq_lll( 1, 1, 1);
+t45_seq_lll(-1, 1, 0);
+t45_ueq_lll( 1, 2, 0);
+t45_ueq_lll( 1, 1, 1);
+t45_ueq_lll(-1, 1, 0);
+t45_defscheck(t45_seq_fff, float32_t,  float32_t,  float32_t, ==)
+t45_seq_fff( 1, 2, 0);
+t45_seq_fff( 1, 1, 1);
+t45_seq_fff(-1, 1, 0);
+t45_defscheck(t45_seq_ddd, float64_t,  float64_t,  float64_t, ==)
+t45_seq_ddd( 1, 2, 0);
+t45_seq_ddd( 1, 1, 1);
+t45_seq_ddd(-1, 1, 0);
+t45_defscheck(t45_seq_vvv, auto, auto, auto, ==)
+t45_seq_vvv( 1, 2, 0);
+t45_seq_vvv( 1, 1, 1);
+t45_seq_vvv(-1, 1, 0);
+t45_defscheck(t45_sge_ccc, int8_t,  int8_t,  int8_t,  >=)
+t45_defucheck(t45_uge_ccc, uint8_t, uint8_t, uint8_t, >=)
+t45_sge_ccc( 1, 2, 0);
+t45_sge_ccc( 1, 1, 1);
+t45_sge_ccc(-1, 1, 0);
+t45_uge_ccc( 1, 2, 0);
+t45_uge_ccc( 1, 1, 1);
+t45_uge_ccc(-1, 1, 1);
+t45_defscheck(t45_sge_sss, int16_t,  int16_t,  int16_t,  >=)
+t45_defucheck(t45_uge_sss, uint16_t, uint16_t, uint16_t, >=)
+t45_sge_sss( 1, 2, 0);
+t45_sge_sss( 1, 1, 1);
+t45_sge_sss(-1, 1, 0);
+t45_uge_sss( 1, 2, 0);
+t45_uge_sss( 1, 1, 1);
+t45_uge_sss(-1, 1, 1);
+t45_defscheck(t45_sge_iii, int32_t,  int32_t,  int32_t,  >=)
+t45_defucheck(t45_uge_iii, uint32_t, uint32_t, uint32_t, >=)
+t45_sge_iii( 1, 2, 0);
+t45_sge_iii( 1, 1, 1);
+t45_sge_iii(-1, 1, 0);
+t45_uge_iii( 1, 2, 0);
+t45_uge_iii( 1, 1, 1);
+t45_uge_iii(-1, 1, 1);
+t45_defscheck(t45_sge_lll, int64_t,  int64_t,  int64_t,  >=)
+t45_defucheck(t45_uge_lll, uint64_t, uint64_t, uint64_t, >=)
+t45_sge_lll( 1, 2, 0);
+t45_sge_lll( 1, 1, 1);
+t45_sge_lll(-1, 1, 0);
+t45_uge_lll( 1, 2, 0);
+t45_uge_lll( 1, 1, 1);
+t45_uge_lll(-1, 1, 1);
+t45_defscheck(t45_sge_fff, float32_t,  float32_t,  float32_t, >=)
+t45_sge_fff( 1, 2, 0);
+t45_sge_fff( 1, 1, 1);
+t45_sge_fff(-1, 1, 0);
+t45_defscheck(t45_sge_ddd, float64_t,  float64_t,  float64_t, >=)
+t45_sge_ddd( 1, 2, 0);
+t45_sge_ddd( 1, 1, 1);
+t45_sge_ddd(-1, 1, 0);
+t45_defscheck(t45_sge_vvv, auto, auto, auto, >=)
+t45_sge_vvv( 1, 2, 0);
+t45_sge_vvv( 1, 1, 1);
+t45_sge_vvv(-1, 1, 0);
+t45_defscheck(t45_sgt_ccc, int8_t,  int8_t,  int8_t,  >)
+t45_defucheck(t45_ugt_ccc, uint8_t, uint8_t, uint8_t, >)
+t45_sgt_ccc( 1, 2, 0);
+t45_sgt_ccc( 1, 1, 0);
+t45_sgt_ccc(-1, 1, 0);
+t45_ugt_ccc( 1, 2, 0);
+t45_ugt_ccc( 1, 1, 0);
+t45_ugt_ccc(-1, 1, 1);
+t45_defscheck(t45_sgt_sss, int16_t,  int16_t,  int16_t,  >)
+t45_defucheck(t45_ugt_sss, uint16_t, uint16_t, uint16_t, >)
+t45_sgt_sss( 1, 2, 0);
+t45_sgt_sss( 1, 1, 0);
+t45_sgt_sss(-1, 1, 0);
+t45_ugt_sss( 1, 2, 0);
+t45_ugt_sss( 1, 1, 0);
+t45_ugt_sss(-1, 1, 1);
+t45_defscheck(t45_sgt_iii, int32_t,  int32_t,  int32_t,  >)
+t45_defucheck(t45_ugt_iii, uint32_t, uint32_t, uint32_t, >)
+t45_sgt_iii( 1, 2, 0);
+t45_sgt_iii( 1, 1, 0);
+t45_sgt_iii(-1, 1, 0);
+t45_ugt_iii( 1, 2, 0);
+t45_ugt_iii( 1, 1, 0);
+t45_ugt_iii(-1, 1, 1);
+t45_defscheck(t45_sgt_lll, int64_t,  int64_t,  int64_t,  >)
+t45_defucheck(t45_ugt_lll, uint64_t, uint64_t, uint64_t, >)
+t45_sgt_lll( 1, 2, 0);
+t45_sgt_lll( 1, 1, 0);
+t45_sgt_lll(-1, 1, 0);
+t45_ugt_lll( 1, 2, 0);
+t45_ugt_lll( 1, 1, 0);
+t45_ugt_lll(-1, 1, 1);
+t45_defscheck(t45_sgt_fff, float32_t,  float32_t,  float32_t, >)
+t45_sgt_fff( 1, 2, 0);
+t45_sgt_fff( 1, 1, 0);
+t45_sgt_fff(-1, 1, 0);
+t45_defscheck(t45_sgt_ddd, float64_t,  float64_t,  float64_t, >)
+t45_sgt_ddd( 1, 2, 0);
+t45_sgt_ddd( 1, 1, 0);
+t45_sgt_ddd(-1, 1, 0);
+t45_defscheck(t45_sgt_vvv, auto, auto, auto, >)
+t45_sgt_vvv( 1, 2, 0);
+t45_sgt_vvv( 1, 1, 0);
+t45_sgt_vvv(-1, 1, 0);
+t45_defscheck(t45_sne_ccc, int8_t,  int8_t,  int8_t,  !=)
+t45_defucheck(t45_une_ccc, uint8_t, uint8_t, uint8_t, !=)
+t45_sne_ccc( 1, 2, 1);
+t45_sne_ccc( 1, 1, 0);
+t45_sne_ccc(-1, 1, 1);
+t45_une_ccc( 1, 2, 1);
+t45_une_ccc( 1, 1, 0);
+t45_une_ccc(-1, 1, 1);
+t45_defscheck(t45_sne_sss, int16_t,  int16_t,  int16_t,  !=)
+t45_defucheck(t45_une_sss, uint16_t, uint16_t, uint16_t, !=)
+t45_sne_sss( 1, 2, 1);
+t45_sne_sss( 1, 1, 0);
+t45_sne_sss(-1, 1, 1);
+t45_une_sss( 1, 2, 1);
+t45_une_sss( 1, 1, 0);
+t45_une_sss(-1, 1, 1);
+t45_defscheck(t45_sne_iii, int32_t,  int32_t,  int32_t,  !=)
+t45_defucheck(t45_une_iii, uint32_t, uint32_t, uint32_t, !=)
+t45_sne_iii( 1, 2, 1);
+t45_sne_iii( 1, 1, 0);
+t45_sne_iii(-1, 1, 1);
+t45_une_iii( 1, 2, 1);
+t45_une_iii( 1, 1, 0);
+t45_une_iii(-1, 1, 1);
+t45_defscheck(t45_sne_lll, int64_t,  int64_t,  int64_t,  !=)
+t45_defucheck(t45_une_lll, uint64_t, uint64_t, uint64_t, !=)
+t45_sne_lll( 1, 2, 1);
+t45_sne_lll( 1, 1, 0);
+t45_sne_lll(-1, 1, 1);
+t45_une_lll( 1, 2, 1);
+t45_une_lll( 1, 1, 0);
+t45_une_lll(-1, 1, 1);
+t45_defscheck(t45_sne_fff, float32_t,  float32_t,  float32_t, !=)
+t45_sne_fff( 1, 2, 1);
+t45_sne_fff( 1, 1, 0);
+t45_sne_fff(-1, 1, 1);
+t45_defscheck(t45_sne_ddd, float64_t,  float64_t,  float64_t, !=)
+t45_sne_ddd( 1, 2, 1);
+t45_sne_ddd( 1, 1, 0);
+t45_sne_ddd(-1, 1, 1);
+t45_defscheck(t45_sne_vvv, auto, auto, auto, !=)
+t45_sne_vvv( 1, 2, 1);
+t45_sne_vvv( 1, 1, 0);
+t45_sne_vvv(-1, 1, 1);
+t45_defscheck(t45_sadd_ccc, int8_t,  int8_t,  int8_t,  +)
+t45_defucheck(t45_uadd_ccc, uint8_t, uint8_t, uint16_t, +)
+t45_sadd_ccc( 1, 2, 3);
+t45_sadd_ccc( 1, 1, 2);
+t45_sadd_ccc(-1, 1, 0);
+t45_uadd_ccc( 1, 2, 3);
+t45_uadd_ccc( 1, 1, 2);
+t45_uadd_ccc(-1, 1, 256);
+t45_defscheck(t45_sadd_sss, int16_t,  int16_t,  int16_t,  +)
+t45_defucheck(t45_uadd_sss, uint16_t, uint16_t, uint32_t, +)
+t45_sadd_sss( 1, 2, 3);
+t45_sadd_sss( 1, 1, 2);
+t45_sadd_sss(-1, 1, 0);
+t45_uadd_sss( 1, 2, 3);
+t45_uadd_sss( 1, 1, 2);
+t45_uadd_sss(-1, 1, 65536);
+t45_defscheck(t45_sadd_iii, int32_t,  int32_t,  int32_t,  +)
+t45_defucheck(t45_uadd_iii, uint32_t, uint32_t, uint64_t, +)
+t45_sadd_iii( 1, 2, 3);
+t45_sadd_iii( 1, 1, 2);
+t45_sadd_iii(-1, 1, 0);
+t45_uadd_iii( 1, 2, 3);
+t45_uadd_iii( 1, 1, 2);
+t45_uadd_iii(-1, 1, 4294967296);
+t45_defscheck(t45_sadd_lll, int64_t,  int64_t,  int64_t,  +)
+t45_defucheck(t45_uadd_lll, uint64_t, uint64_t, auto, +)
+t45_sadd_lll( 1, 2, 3);
+t45_sadd_lll( 1, 1, 2);
+t45_sadd_lll(-1, 1, 0);
+t45_uadd_lll( 1, 2, 3);
+t45_uadd_lll( 1, 1, 2);
+t45_uadd_lll(-1, 1, 18446744073709551616);
+t45_defscheck(t45_sadd_fff, float32_t,  float32_t,  float32_t, +)
+t45_sadd_fff( 1, 2, 3);
+t45_sadd_fff( 1, 1, 2);
+t45_sadd_fff(-1, 1, 0);
+t45_defscheck(t45_sadd_ddd, float64_t,  float64_t,  float64_t, +)
+t45_sadd_ddd( 1, 2, 3);
+t45_sadd_ddd( 1, 1, 2);
+t45_sadd_ddd(-1, 1, 0);
+t45_defscheck(t45_sadd_vvv, auto, auto, auto, +)
+t45_sadd_vvv( 1, 2, 3);
+t45_sadd_vvv( 1, 1, 2);
+t45_sadd_vvv(-1, 1, 0);
+t45_defscheck(t45_ssub_ccc, int8_t,  int8_t,  int8_t,  -)
+t45_defucheck(t45_usub_ccc, uint8_t, uint8_t, auto, -)
+t45_ssub_ccc( 1, 2, -1);
+t45_ssub_ccc( 1, 1,  0);
+t45_ssub_ccc(-1, 1, -2);
+t45_usub_ccc( 1, 2, -1);
+t45_usub_ccc( 1, 1,  0);
+t45_usub_ccc(-1, 1,  254);
+t45_defscheck(t45_ssub_sss, int16_t,  int16_t,  int16_t,  -)
+t45_defucheck(t45_usub_sss, uint16_t, uint16_t, auto, -)
+t45_ssub_sss( 1, 2, -1);
+t45_ssub_sss( 1, 1,  0);
+t45_ssub_sss(-1, 1, -2);
+t45_usub_sss( 1, 2, -1);
+t45_usub_sss( 1, 1,  0);
+t45_usub_sss(-1, 1,  65534);
+t45_defscheck(t45_ssub_iii, int32_t,  int32_t,  int32_t,  -)
+t45_defucheck(t45_usub_iii, uint32_t, uint32_t, auto, -)
+t45_ssub_iii( 1, 2, -1);
+t45_ssub_iii( 1, 1,  0);
+t45_ssub_iii(-1, 1, -2);
+t45_usub_iii( 1, 2, -1);
+t45_usub_iii( 1, 1,  0);
+t45_usub_iii(-1, 1,  4294967294);
+t45_defscheck(t45_ssub_lll, int64_t,  int64_t,  int64_t,  -)
+t45_defucheck(t45_usub_lll, uint64_t, auto, auto, -)
+t45_ssub_lll( 1, 2, -1);
+t45_ssub_lll( 1, 1,  0);
+t45_ssub_lll(-1, 1, -2);
+t45_usub_lll( 1, 2, -1);
+t45_usub_lll( 1, 1,  0);
+t45_usub_lll(-1, 1,  18446744073709551614);
+t45_defscheck(t45_ssub_fff, float32_t,  float32_t,  float32_t, -)
+t45_ssub_fff( 1, 2, -1);
+t45_ssub_fff( 1, 1,  0);
+t45_ssub_fff(-1, 1, -2);
+t45_defscheck(t45_ssub_ddd, float64_t,  float64_t,  float64_t, -)
+t45_ssub_ddd( 1, 2, -1);
+t45_ssub_ddd( 1, 1,  0);
+t45_ssub_ddd(-1, 1, -2);
+t45_defscheck(t45_ssub_vvv, auto, auto, auto, -)
+t45_ssub_vvv( 1, 2, -1);
+t45_ssub_vvv( 1, 1,  0);
+t45_ssub_vvv(-1, 1, -2);
+
+void t46_0() {
+    uint64_t	u;
+    for (u = 0x7ffffffffffffff0; u < 0x8000000000010000.0; u++)
+	;
+    if (u != 0x8000000000010000.0)
+	print("error %d\n", __LINE__);
+}
+t46_0();
+class t46_c_t {
+    int8_t	c;	uint8_t		uc;
+    int16_t	s;	uint16_t	us;
+    int32_t	i;	uint32_t	ui;
+    int64_t	l;	uint64_t	ul;
+    float32_t	f;	float64_t	d;
+    auto	v;
+    int8_t c_c_I()	{ return c++; }
+    int8_t c_uc_I()	{ return uc++; }
+    int16_t s_s_I()	{ return s++; }
+    int16_t s_us_I()	{ return us++; }
+    int32_t i_i_I()	{ return i++; }
+    int32_t i_ui_I()	{ return ui++; }
+    int64_t l_l_I()	{ return l++; }
+    int64_t l_ul_I()	{ return ul++; }
+    float32_t f_f_I()	{ return f++; }
+    float64_t d_d_I()	{ return d++; }
+    auto v_v_I()	{ return v++; }
+    int8_t c_c_D()	{ return c--; }
+    int8_t c_uc_D()	{ return uc--; }
+    int16_t s_s_D()	{ return s--; }
+    int16_t s_us_D()	{ return us--; }
+    int32_t i_i_D()	{ return i--; }
+    int32_t i_ui_D()	{ return ui--; }
+    int64_t l_l_D()	{ return l--; }
+    int64_t l_ul_D()	{ return ul--; }
+    float32_t f_f_D()	{ return f--; }
+    float64_t d_d_D()	{ return d--; }
+    auto v_v_D()	{ return v--; }
+    int8_t c_I_c()	{ return ++c; }
+    int8_t c_I_uc()	{ return ++uc; }
+    int16_t s_I_s()	{ return ++s; }
+    int16_t s_I_us()	{ return ++us; }
+    int32_t i_I_i()	{ return ++i; }
+    int32_t i_I_ui()	{ return ++ui; }
+    int64_t l_I_l()	{ return ++l; }
+    int64_t l_I_ul()	{ return ++ul; }
+    float32_t f_I_f()	{ return ++f; }
+    float64_t d_I_d()	{ return ++d; }
+    auto v_I_v()	{ return ++v; }
+    int8_t c_D_c()	{ return --c; }
+    int8_t c_D_uc()	{ return --uc; }
+    int16_t s_D_s()	{ return --s; }
+    int16_t s_D_us()	{ return --us; }
+    int32_t i_D_i()	{ return --i; }
+    int32_t i_D_ui()	{ return --ui; }
+    int64_t l_D_l()	{ return --l; }
+    int64_t l_D_ul()	{ return --ul; }
+    float32_t f_D_f()	{ return --f; }
+    float64_t d_D_d()	{ return --d; }
+    auto v_D_v()	{ return --v; }
+    void c_A_c(int8_t a)	{ c += a; }
+    void c_A_uc(uint8_t a)	{ c += a; }
+    void c_A_s(int16_t a)	{ c += a; }
+    void c_A_us(uint16_t a)	{ c += a; }
+    void c_A_i(int32_t a)	{ c += a; }
+    void c_A_ui(uint32_t a)	{ c += a; }
+    void c_A_l(int64_t a)	{ c += a; }
+    void c_A_ul(uint64_t a)	{ c += a; }
+    void c_A_f(float32_t a)	{ c += a; }
+    void c_A_d(float64_t a)	{ c += a; }
+    void c_A_v(auto a)		{ c += a; }
+    void uc_A_c(int8_t a)	{ uc += a; }
+    void uc_A_uc(uint8_t a)	{ uc += a; }
+    void uc_A_s(int16_t a)	{ uc += a; }
+    void uc_A_us(uint16_t a)	{ uc += a; }
+    void uc_A_i(int32_t a)	{ uc += a; }
+    void uc_A_ui(uint32_t a)	{ uc += a; }
+    void uc_A_l(int64_t a)	{ uc += a; }
+    void uc_A_ul(uint64_t a)	{ uc += a; }
+    void uc_A_f(float32_t a)	{ uc += a; }
+    void uc_A_d(float64_t a)	{ uc += a; }
+    void uc_A_v(auto a)		{ uc += a; }
+    void s_A_c(int8_t a)	{ s += a; }
+    void s_A_uc(uint8_t a)	{ s += a; }
+    void s_A_s(int16_t a)	{ s += a; }
+    void s_A_us(uint16_t a)	{ s += a; }
+    void s_A_i(int32_t a)	{ s += a; }
+    void s_A_ui(uint32_t a)	{ s += a; }
+    void s_A_l(int64_t a)	{ s += a; }
+    void s_A_ul(uint64_t a)	{ s += a; }
+    void s_A_f(float32_t a)	{ s += a; }
+    void s_A_d(float64_t a)	{ s += a; }
+    void s_A_v(auto a)		{ s += a; }
+    void us_A_c(int8_t a)	{ us += a; }
+    void us_A_uc(uint8_t a)	{ us += a; }
+    void us_A_s(int16_t a)	{ us += a; }
+    void us_A_us(uint16_t a)	{ us += a; }
+    void us_A_i(int32_t a)	{ us += a; }
+    void us_A_ui(uint32_t a)	{ us += a; }
+    void us_A_l(int64_t a)	{ us += a; }
+    void us_A_ul(uint64_t a)	{ us += a; }
+    void us_A_f(float32_t a)	{ us += a; }
+    void us_A_d(float64_t a)	{ us += a; }
+    void us_A_v(auto a)		{ us += a; }
+    void i_A_c(int8_t a)	{ i += a; }
+    void i_A_uc(uint8_t a)	{ i += a; }
+    void i_A_s(int16_t a)	{ i += a; }
+    void i_A_us(uint16_t a)	{ i += a; }
+    void i_A_i(int32_t a)	{ i += a; }
+    void i_A_ui(uint32_t a)	{ i += a; }
+    void i_A_l(int64_t a)	{ i += a; }
+    void i_A_ul(uint64_t a)	{ i += a; }
+    void i_A_f(float32_t a)	{ i += a; }
+    void i_A_d(float64_t a)	{ i += a; }
+    void i_A_v(auto a)		{ i += a; }
+    void ui_A_c(int8_t a)	{ ui += a; }
+    void ui_A_uc(uint8_t a)	{ ui += a; }
+    void ui_A_s(int16_t a)	{ ui += a; }
+    void ui_A_us(uint16_t a)	{ ui += a; }
+    void ui_A_i(int32_t a)	{ ui += a; }
+    void ui_A_ui(uint32_t a)	{ ui += a; }
+    void ui_A_l(int64_t a)	{ ui += a; }
+    void ui_A_ul(uint64_t a)	{ ui += a; }
+    void ui_A_f(float32_t a)	{ ui += a; }
+    void ui_A_d(float64_t a)	{ ui += a; }
+    void ui_A_v(auto a)		{ ui += a; }
+    void l_S_c(int8_t a)	{ l -= a; }
+    void l_S_uc(uint8_t a)	{ l -= a; }
+    void l_S_s(int16_t a)	{ l -= a; }
+    void l_S_us(uint16_t a)	{ l -= a; }
+    void l_S_i(int32_t a)	{ l -= a; }
+    void l_S_ui(uint32_t a)	{ l -= a; }
+    void l_S_l(int64_t a)	{ l -= a; }
+    void l_S_ul(uint64_t a)	{ l -= a; }
+    void l_S_f(float32_t a)	{ l -= a; }
+    void l_S_d(float64_t a)	{ l -= a; }
+    void l_S_v(auto a)		{ l -= a; }
+    void ul_S_c(int8_t a)	{ ul -= a; }
+    void ul_S_uc(uint8_t a)	{ ul -= a; }
+    void ul_S_s(int16_t a)	{ ul -= a; }
+    void ul_S_us(uint16_t a)	{ ul -= a; }
+    void ul_S_i(int32_t a)	{ ul -= a; }
+    void ul_S_ui(uint32_t a)	{ ul -= a; }
+    void ul_S_l(int64_t a)	{ ul -= a; }
+    void ul_S_ul(uint64_t a)	{ ul -= a; }
+    void ul_S_f(float32_t a)	{ ul -= a; }
+    void ul_S_d(float64_t a)	{ ul -= a; }
+    void ul_S_v(auto a)		{ ul -= a; }
+    void f_S_c(int8_t a)	{ f -= a; }
+    void f_S_uc(uint8_t a)	{ f -= a; }
+    void f_S_s(int16_t a)	{ f -= a; }
+    void f_S_us(uint16_t a)	{ f -= a; }
+    void f_S_i(int32_t a)	{ f -= a; }
+    void f_S_ui(uint32_t a)	{ f -= a; }
+    void f_S_l(int64_t a)	{ f -= a; }
+    void f_S_ul(uint64_t a)	{ f -= a; }
+    void f_S_f(float32_t a)	{ f -= a; }
+    void f_S_d(float64_t a)	{ f -= a; }
+    void f_S_v(auto a)		{ f -= a; }
+    void d_S_c(int8_t a)	{ d -= a; }
+    void d_S_uc(uint8_t a)	{ d -= a; }
+    void d_S_s(int16_t a)	{ d -= a; }
+    void d_S_us(uint16_t a)	{ d -= a; }
+    void d_S_i(int32_t a)	{ d -= a; }
+    void d_S_ui(uint32_t a)	{ d -= a; }
+    void d_S_l(int64_t a)	{ d -= a; }
+    void d_S_ul(uint64_t a)	{ d -= a; }
+    void d_S_f(float32_t a)	{ d -= a; }
+    void d_S_d(float64_t a)	{ d -= a; }
+    void d_S_v(auto a)		{ d -= a; }
+    void v_S_c(int8_t a)	{ v -= a; }
+    void v_S_uc(uint8_t a)	{ v -= a; }
+    void v_S_s(int16_t a)	{ v -= a; }
+    void v_S_us(uint16_t a)	{ v -= a; }
+    void v_S_i(int32_t a)	{ v -= a; }
+    void v_S_ui(uint32_t a)	{ v -= a; }
+    void v_S_l(int64_t a)	{ v -= a; }
+    void v_S_ul(uint64_t a)	{ v -= a; }
+    void v_S_f(float32_t a)	{ v -= a; }
+    void v_S_d(float64_t a)	{ v -= a; }
+    void v_S_v(auto a)		{ v -= a; }
+    void reset()	{ c = uc = s = us = i = ui = l = ul = f = d = v = 0; }
+    void t0() {
+	/* assuming first call (basically to have v as null) */
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+	if (c_c_I() != 0.0 || c_uc_I() != 0 ||
+	    s_s_I() != 0 || s_us_I() != 0.0 ||
+	    i_i_I() != 0.0 || i_ui_I() != 0 ||
+	    l_l_I() != 0 || l_ul_I() != 0.0 ||
+	    f_f_I() != 0.0 || d_d_I() != 0 ||
+	    v_v_I() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != 1 || uc != 1.0 ||
+	    s != 1.0 || us != 1 ||
+	    i != 1 || ui != 1.0 ||
+	    l != 1.0 || ul != 1 ||
+	    f != 1 || d != 1.0 ||
+	    v != 1.0)
+	    print("error %d\n", __LINE__);
+	if (c_D_c() != 0 || c_D_uc() != 0.0 ||
+	    s_D_s() != 0.0 || s_D_us() != 0 ||
+	    i_D_i() != 0 || i_D_ui() != 0.0 ||
+	    l_D_l() != 0.0 || l_D_ul() != 0 ||
+	    f_D_f() != 0 || d_D_d() != 0.0 ||
+	    v_D_v() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+    }
+    void t1() {
+	reset();
+	if (c_c_I() != 0.0 || c_uc_I() != 0 ||
+	    s_s_I() != 0 || s_us_I() != 0.0 ||
+	    i_i_I() != 0.0 || i_ui_I() != 0 ||
+	    l_l_I() != 0 || l_ul_I() != 0.0 ||
+	    f_f_I() != 0.0 || d_d_I() != 0 ||
+	    v_v_I() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != 1 || uc != 1.0 ||
+	    s != 1.0 || us != 1 ||
+	    i != 1 || ui != 1.0 ||
+	    l != 1.0 || ul != 1 ||
+	    f != 1 || d != 1.0 ||
+	    v != 1.0)
+	    print("error %d\n", __LINE__);
+	if (c_D_c() != 0 || c_D_uc() != 0.0 ||
+	    s_D_s() != 0.0 || s_D_us() != 0 ||
+	    i_D_i() != 0 || i_D_ui() != 0.0 ||
+	    l_D_l() != 0.0 || l_D_ul() != 0 ||
+	    f_D_f() != 0 || d_D_d() != 0.0 ||
+	    v_D_v() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+    }
+    void t2() {
+	reset();
+	ul = 0x7fffffffffffffff;
+	if (l_ul_I() != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+	if (l_ul_I() != -0x8000000000000000)	print("error %d\n", __LINE__);
+	if (l_ul_I() != -0x7fffffffffffffff)	print("error %d\n", __LINE__);
+	if (l_D_ul() != -0x7fffffffffffffff)	print("error %d\n", __LINE__);
+	if (l_D_ul() != -0x8000000000000000)	print("error %d\n", __LINE__);
+	if (ul != 0x8000000000000000)		print("error %d\n", __LINE__);
+    }
+    void t3() {
+	reset();
+	if (c_c_D() != 0.0 || c_uc_D() != 0 ||
+	    s_s_D() != 0 || s_us_D() != 0.0 ||
+	    i_i_D() != 0.0 || i_ui_D() != 0 ||
+	    l_l_D() != 0 || l_ul_D() != 0.0 ||
+	    f_f_D() != 0.0 || d_d_D() != 0 ||
+	    v_v_D() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != -1 || uc != 0xff.0 ||
+	    s != -1.0 || us != 0xffff ||
+	    i != -1 || ui != 0xffffffff.0 ||
+	    l != -1.0 || ul != 0xffffffffffffffff ||
+	    f != -1 || d != -1.0 ||
+	    v != -1.0)
+	    print("error %d\n", __LINE__);
+	if (c_I_c() != 0 || c_I_uc() != 0.0 ||
+	    s_I_s() != 0.0 || s_I_us() != 0 ||
+	    i_I_i() != 0 || i_I_ui() != 0.0 ||
+	    l_I_l() != 0.0 || l_I_ul() != 0 ||
+	    f_I_f() != 0 || d_I_d() != 0.0 ||
+	    v_I_v() != 0)
+	    print("error %d\n", __LINE__);
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+    }
+    void t4() {
+	int8_t		xc;	uint8_t		xuc;
+	int16_t		xs;	uint16_t	xus;
+	int32_t		xi;	uint32_t	xui;
+	int64_t		xl;	uint64_t	xul;
+	float32_t	xf;	float64_t	xd;
+	auto		xv;
+	reset();
+	xc = c++;	xuc = uc++;	xs = s++;	xus = us++;
+	xi = i++;	xui = ui++;	xl = l++;	xul = ul++;
+	xf = f++;	xd = d++;	xv = v++;
+	if (xc != 0 || xuc != 0.0 ||
+	    xs != 0.0 || xus != 0 ||
+	    xi != 0 || xui != 0.0 ||
+	    xl != 0.0 || xul != 0 ||
+	    xf != 0 || xd != 0.0 ||
+	    xv != 0.0)
+	    print("error %d\n", __LINE__);
+	if (c != 1 || uc != 1.0 ||
+	    s != 1.0 || us != 1 ||
+	    i != 1 || ui != 1.0 ||
+	    l != 1.0 || ul != 1 ||
+	    f != 1 || d != 1.0 ||
+	    v != 1.0)
+	    print("error %d\n", __LINE__);
+	xc = c--;	xuc = uc--;	xs = s--;	xus = us--;
+	xi = i--;	xui = ui--;	xl = l--;	xul = ul--;
+	xf = f--;	xd = d--;	xv = v--;
+	if (xc != 1.0 || xuc != 1 ||
+	    xs != 1 || xus != 1.0 ||
+	    xi != 1.0 || xui != 1 ||
+	    xl != 1 || xul != 1.0 ||
+	    xf != 1.0 || xd != 1 ||
+	    xv != 1)
+	    print("error %d\n", __LINE__);
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+	xc = ++c;	xuc = ++uc;	xs = ++s;	xus = ++us;
+	xi = ++i;	xui = ++ui;	xl = ++l;	xul = ++ul;
+	xf = ++f;	xd = ++d;	xv = ++v;
+	if (xc != c || xuc != uc ||
+	    xs != s || xus != us ||
+	    xi != i || xui != ui ||
+	    xl != l || xul != ul ||
+	    xf != f || xd != d ||
+	    xv != v)
+	    print("error %d\n", __LINE__);
+	c = --xv;	uc = --xd;	s = --xf;	us = --xul;
+	i = --xl;	ui = --xui;	l = --xi;	ul = --xus;
+	f = --xs;	d = --xuc;	v = --xc;
+	if (c != 0.0 || uc != 0 ||
+	    s != 0 || us != 0.0 ||
+	    i != 0.0 || ui != 0 ||
+	    l != 0 || ul != 0.0 ||
+	    f != 0.0 || d != 0 ||
+	    v != 0)
+	    print("error %d\n", __LINE__);
+    }
+    /* float comparisons may vary due to conversion... */
+    void t5() {
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x7f;
+	c_A_c(c);
+	if (c != -0x02)		print("error %d\n", __LINE__);
+	c_A_uc(uc);
+	if (c !=  0x7d)		print("error %d\n", __LINE__);
+	c_A_s(s);
+	if (c != -0x04)		print("error %d\n", __LINE__);
+	c_A_us(us);
+	if (c !=  0x7b)		print("error %d\n", __LINE__);
+	c_A_i(i);
+	if (c != -0x06)		print("error %d\n", __LINE__);
+	c_A_ui(ui);
+	if (c !=  0x79)		print("error %d\n", __LINE__);
+	c_A_l(l);
+	if (c != -0x08)		print("error %d\n", __LINE__);
+	c_A_ul(ul);
+	if (c !=  0x77)		print("error %d\n", __LINE__);
+	c_A_f(f);
+	if (c != -0x0a)		print("error %d\n", __LINE__);
+	c_A_d(d);
+	if (c !=  0x75)		print("error %d\n", __LINE__);
+	c_A_v(v);
+	if (c != -0x0c)		print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x81;
+	uc_A_c(c);
+	if (uc != 0x02)		print("error %d\n", __LINE__);
+	uc_A_uc(uc);
+	if (uc != 0x04)		print("error %d\n", __LINE__);
+	uc_A_s(s);
+	if (uc != 0x85)		print("error %d\n", __LINE__);
+	uc_A_us(us);
+	if (uc != 0x06)		print("error %d\n", __LINE__);
+	uc_A_i(i);
+	if (uc != 0x87)		print("error %d\n", __LINE__);
+	uc_A_ui(ui);
+	if (uc != 0x08)		print("error %d\n", __LINE__);
+	uc_A_l(l);
+	if (uc != 0x89)		print("error %d\n", __LINE__);
+	uc_A_ul(ul);
+	if (uc != 0x0a)		print("error %d\n", __LINE__);
+	uc_A_f(f);
+	if (uc != 0x8b)		print("error %d\n", __LINE__);
+	uc_A_d(d);
+	if (uc != 0x0c)		print("error %d\n", __LINE__);
+	uc_A_v(v);
+	if (uc != 0x8d)		print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x8001;
+	s_A_c(c);
+	if (s != -0x7ffe)		print("error %d\n", __LINE__);
+	s_A_uc(uc);
+	if (s != -0x7ffd)		print("error %d\n", __LINE__);
+	s_A_s(s);
+	if (s !=  0x0006)		print("error %d\n", __LINE__);
+	s_A_us(us);
+	if (s != -0x7ff9)		print("error %d\n", __LINE__);
+	s_A_i(i);
+	if (s !=  0x0008)		print("error %d\n", __LINE__);
+	s_A_ui(ui);
+	if (s != -0x7ff7)		print("error %d\n", __LINE__);
+	s_A_l(l);
+	if (s !=  0x000a)		print("error %d\n", __LINE__);
+	s_A_ul(ul);
+	if (s != -0x7ff5)		print("error %d\n", __LINE__);
+	s_A_f(f);
+	if (s !=  0x000c)		print("error %d\n", __LINE__);
+	s_A_d(d);
+	if (s != -0x7ff3)		print("error %d\n", __LINE__);
+	s_A_v(v);  if (s !=  0x000e)	print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x7fff;
+	us_A_c(c);
+	if (us != 0x7ffe)		print("error %d\n", __LINE__);
+	us_A_uc(uc);
+	if (us != 0x80fd)		print("error %d\n", __LINE__);
+	us_A_s(s);
+	if (us != 0x00fc)		print("error %d\n", __LINE__);
+	us_A_us(us);
+	if (us != 0x01f8)		print("error %d\n", __LINE__);
+	us_A_i(i);
+	if (us != 0x81f7)		print("error %d\n", __LINE__);
+	us_A_ui(ui);
+	if (us != 0x01f6)		print("error %d\n", __LINE__);
+	us_A_l(l);
+	if (us != 0x81f5)		print("error %d\n", __LINE__);
+	us_A_ul(ul);
+	if (us != 0x01f4)		print("error %d\n", __LINE__);
+	us_A_f(f);
+	if (us != 0x81f3)		print("error %d\n", __LINE__);
+	us_A_d(d);
+	if (us != 0x01f2)		print("error %d\n", __LINE__);
+	us_A_v(v);
+	if (us != 0x81f1)		print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0xa5a5a5a5;
+	i_A_c(c);
+	if (i != -0x5a5a5ab6)		print("error %d\n", __LINE__);
+	i_A_uc(uc);
+	if (i != -0x5a5a5a11)		print("error %d\n", __LINE__);
+	i_A_s(s);
+	if (i != -0x5a5ab46c)		print("error %d\n", __LINE__);
+	i_A_us(us);
+	if (i != -0x5a5a0ec7)		print("error %d\n", __LINE__);
+	i_A_i(i);
+	if (i !=  0x4b4be272)		print("error %d\n", __LINE__);
+	i_A_ui(ui);
+	if (i != -0x0f0e77e9)		print("error %d\n", __LINE__);
+	i_A_l(l);
+	if (i != -0x6968d244)		print("error %d\n", __LINE__);
+	i_A_ul(ul);
+	if (i !=  0x3c3cd361)		print("error %d\n", __LINE__);
+	/* truncate overflow */
+	if (i_A_f(f), i == -0x80000000) {
+	    i_A_d(d);
+	    if (i !=  0x25a5a5a5)	print("error %d\n", __LINE__);
+	    i_A_v(v);
+	    if (i != -0x34b4b4b6)	print("error %d\n", __LINE__);
+	}
+	else {
+	    if (i != 0x7fffffff)	print("error %d\n", __LINE__);
+	    i_A_d(d);
+	    if (i !=  0x7fffffff)	print("error %d\n", __LINE__);
+	    i_A_v(v);
+	    if (i !=  0x25a5a5a4)	print("error %d\n", __LINE__);
+	}
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x80007ffe;
+	ui_A_c(c);
+	if (ui != 0x80007ffc)		print("error %d\n", __LINE__);
+	ui_A_uc(uc);
+	if (ui != 0x800080fa)		print("error %d\n", __LINE__);
+	ui_A_s(s);
+	if (ui != 0x800100f8)		print("error %d\n", __LINE__);
+	ui_A_us(us);
+	if (ui != 0x800180f6)		print("error %d\n", __LINE__);
+	ui_A_i(i);
+	if (ui != 0x000200f4)		print("error %d\n", __LINE__);
+	ui_A_ui(ui);
+	if (ui != 0x000401e8)		print("error %d\n", __LINE__);
+	ui_A_l(l);
+	if (ui != 0x800481e6)		print("error %d\n", __LINE__);
+	ui_A_ul(ul);
+	if (ui != 0x000501e4)		print("error %d\n", __LINE__);
+	/* truncate overflow */
+	if (ui_A_f(f), ui == 0x80000000) {
+	    ui_A_d(d);
+	    if (ui != 0x80000000)	print("error %d\n", __LINE__);
+	    ui_A_v(v);
+	    if (ui != 0x00007ffe)	print("error %d\n", __LINE__);
+	}
+	else {
+	    if (ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	    ui_A_d(d);
+	    if (ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	    ui_A_v(v);
+	    if (ui != 0x00007ffd)	print("error %d\n", __LINE__);
+	}
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0xfffffffffffffffe;
+	l_S_c(c);
+	if (l !=  0x0000000000000000)	print("error %d\n", __LINE__);
+	l_S_uc(uc);
+	if (l != -0x00000000000000fe)	print("error %d\n", __LINE__);
+	l_S_s(s);
+	if (l != -0x00000000000000fc)	print("error %d\n", __LINE__);
+	l_S_us(us);
+	if (l != -0x00000000000100fa)	print("error %d\n", __LINE__);
+	l_S_i(i);
+	if (l != -0x00000000000100f8)	print("error %d\n", __LINE__);
+	l_S_ui(ui);
+	if (l != -0x00000001000100f6)	print("error %d\n", __LINE__);
+	l_S_l(l);
+	if (l !=  0x0000000000000000)	print("error %d\n", __LINE__);
+	l_S_ul(ul);
+	if (l !=  0x0000000000000002)	print("error %d\n", __LINE__);
+	if (l_S_f(f), l == -0x8000000000000000) {
+	    l_S_d(d);
+	    if (l != -0x8000000000000000)print("error %d\n", __LINE__);
+	    l_S_v(v);
+	    if (l != -0x7ffffffffffffffe)print("error %d\n", __LINE__);
+	}
+	else {
+	    if (l != 0x0000000000000001)print("error %d\n", __LINE__);
+	    l_S_d(d);
+	    if (l != 0x0000000000000800)print("error %d\n", __LINE__);
+	    l_S_v(v);
+	    if (l != 0x0000000000000802)print("error %d\n", __LINE__);
+	}
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x8000000000000001;
+	ul_S_c(c);
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_S_uc(uc);
+	if (ul != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+	ul_S_s(s);
+	if (ul != 0x7ffffffffffffffe)	print("error %d\n", __LINE__);
+	ul_S_us(us);
+	if (ul != 0x7ffffffffffffffd)	print("error %d\n", __LINE__);
+	ul_S_i(i);
+	if (ul != 0x7ffffffffffffffc)	print("error %d\n", __LINE__);
+	ul_S_ui(ui);
+	if (ul != 0x7ffffffffffffffb)	print("error %d\n", __LINE__);
+	ul_S_l(l);
+	if (ul != 0xfffffffffffffffa)	print("error %d\n", __LINE__);
+	ul_S_ul(ul);
+	if (ul != 0x0000000000000000)	print("error %d\n", __LINE__);
+	ul_S_f(f);
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_S_d(d);
+	if (ul != 0x0000000000000000)	print("error %d\n", __LINE__);
+	ul_S_v(v);
+	if (ul != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x800000.0;
+	f_S_c(c);
+	if (f !=  0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_uc(uc);
+	if (f !=  0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_s(s);
+	if (f !=  0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_us(us);
+	if (f !=  0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_i(i);
+	if (f != -0x0000000.0)		print("error %d\n", __LINE__);
+	f_S_ui(ui);
+	if (f != -0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_l(l);
+	if (f != -0x1000000.0)		print("error %d\n", __LINE__);
+	f_S_ul(ul);
+	if (f != -0x1800000.0)		print("error %d\n", __LINE__);
+	f_S_f(f);
+	if (f !=  0x0000000.0)		print("error %d\n", __LINE__);
+	f_S_d(d);
+	if (f != -0x0800000.0)		print("error %d\n", __LINE__);
+	f_S_v(v);
+	if (f != -0x1000000.0)		print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0xffff.0;
+	d_S_c(c);
+	if (d !=  0x10000.0)		print("error %d\n", __LINE__);
+	d_S_uc(uc);
+	if (d !=  0x0ff01.0)		print("error %d\n", __LINE__);
+	d_S_s(s);
+	if (d !=  0x0ff02.0)		print("error %d\n", __LINE__);
+	d_S_us(us);
+	if (d != -0x000fd.0)		print("error %d\n", __LINE__);
+	d_S_i(i);
+	if (d != -0x100fc.0)		print("error %d\n", __LINE__);
+	d_S_ui(ui);
+	if (d != -0x200fb.0)		print("error %d\n", __LINE__);
+	d_S_l(l);
+	if (d != -0x300fa.0)		print("error %d\n", __LINE__);
+	d_S_ul(ul);
+	if (d != -0x400f9.0)		print("error %d\n", __LINE__);
+	d_S_f(f);
+	if (d != -0x500f8.0)		print("error %d\n", __LINE__);
+	d_S_d(d);
+	if (d !=  0x00000.0)		print("error %d\n", __LINE__);
+	d_S_v(v);
+	if (d != -0x0ffff.0)		print("error %d\n", __LINE__);
+	c = uc = s = us = i = ui = l = ul = f = d = v = 0x7fffffffffffffff;
+	v_S_c(c);
+	if (v !=  0x8000000000000000)	print("error %d\n", __LINE__);
+	v_S_uc(uc);
+	if (v !=  0x7fffffffffffff01)	print("error %d\n", __LINE__);
+	v_S_s(s);
+	if (v !=  0x7fffffffffffff02)	print("error %d\n", __LINE__);
+	v_S_us(us);
+	if (v !=  0x7ffffffffffeff03)	print("error %d\n", __LINE__);
+	v_S_i(i);
+	if (v !=  0x7ffffffffffeff04)	print("error %d\n", __LINE__);
+	v_S_ui(ui);
+	if (v !=  0x7ffffffefffeff05)	print("error %d\n", __LINE__);
+	v_S_l(l);
+	if (v != -0x00000001000100fa)	print("error %d\n", __LINE__);
+	v_S_ul(ul);
+	if (v != -0x80000001000100f9)	print("error %d\n", __LINE__);
+	v_S_f(f);
+	if (v != -0x10000000100010000.0 || typeof(v) != typeof(0.0))
+	    print("error %d\n", __LINE__);
+	v_S_d(d);
+	if (v != -0x18000000100010000.0)print("error %d\n", __LINE__);
+	v_S_v(v);
+	if (v !=  0.0)			print("error %d\n", __LINE__);
+    }
+};
+t46_c_t t46_class = {};
+t46_class.t0();
+t46_class.t1();
+t46_class.t2();
+t46_class.t3();
+t46_class.t4();
+t46_class.t5();
+/* Equivalent of previous tests using global variables. */
+int8_t		t46_c;	uint8_t		t46_uc;
+int16_t		t46_s;	uint16_t	t46_us;
+int32_t		t46_i;	uint32_t	t46_ui;
+int64_t		t46_l;	uint64_t	t46_ul;
+float32_t	t46_f;	float64_t	t46_d;
+auto		t46_v;
+int32_t		t46_gi;	uint32_t	t46_gui;
+int64_t		t46_gl;	uint64_t	t46_gul;
+float32_t	t46_gf;	float64_t	t46_gd;
+auto		t46_gv;
+for (t46_ul = 0x7ffffffffffffff0; t46_ul < 0x8000000000010000.0; t46_ul++)
+    ;
+if (t46_ul != 0x8000000000010000.0)		print("error %d\n", __LINE__);
+int8_t t46_c_c_I()	{ return t46_c++; }
+int8_t t46_c_uc_I()	{ return t46_uc++; }
+int16_t t46_s_s_I()	{ return t46_s++; }
+int16_t t46_s_us_I()	{ return t46_us++; }
+int32_t t46_i_i_I()	{ return t46_i++; }
+int32_t t46_i_ui_I()	{ return t46_ui++; }
+int64_t t46_l_l_I()	{ return t46_l++; }
+int64_t t46_l_ul_I()	{ return t46_ul++; }
+float32_t t46_f_f_I()	{ return t46_f++; }
+float64_t t46_d_d_I()	{ return t46_d++; }
+auto t46_v_v_I()	{ return t46_v++; }
+int8_t t46_c_c_D()	{ return t46_c--; }
+int8_t t46_c_uc_D()	{ return t46_uc--; }
+int16_t t46_s_s_D()	{ return t46_s--; }
+int16_t t46_s_us_D()	{ return t46_us--; }
+int32_t t46_i_i_D()	{ return t46_i--; }
+int32_t t46_i_ui_D()	{ return t46_ui--; }
+int64_t t46_l_l_D()	{ return t46_l--; }
+int64_t t46_l_ul_D()	{ return t46_ul--; }
+float32_t t46_f_f_D()	{ return t46_f--; }
+float64_t t46_d_d_D()	{ return t46_d--; }
+auto t46_v_v_D()	{ return t46_v--; }
+int8_t t46_c_I_c()	{ return ++t46_c; }
+int8_t t46_c_I_uc()	{ return ++t46_uc; }
+int16_t t46_s_I_s()	{ return ++t46_s; }
+int16_t t46_s_I_us()	{ return ++t46_us; }
+int32_t t46_i_I_i()	{ return ++t46_i; }
+int32_t t46_i_I_ui()	{ return ++t46_ui; }
+int64_t t46_l_I_l()	{ return ++t46_l; }
+int64_t t46_l_I_ul()	{ return ++t46_ul; }
+float32_t t46_f_I_f()	{ return ++t46_f; }
+float64_t t46_d_I_d()	{ return ++t46_d; }
+auto t46_v_I_v()	{ return ++t46_v; }
+int8_t t46_c_D_c()	{ return --t46_c; }
+int8_t t46_c_D_uc()	{ return --t46_uc; }
+int16_t t46_s_D_s()	{ return --t46_s; }
+int16_t t46_s_D_us()	{ return --t46_us; }
+int32_t t46_i_D_i()	{ return --t46_i; }
+int32_t t46_i_D_ui()	{ return --t46_ui; }
+int64_t t46_l_D_l()	{ return --t46_l; }
+int64_t t46_l_D_ul()	{ return --t46_ul; }
+float32_t t46_f_D_f()	{ return --t46_f; }
+float64_t t46_d_D_d()	{ return --t46_d; }
+auto t46_v_D_v()	{ return --t46_v; }
+void t46_c_A_c(int8_t a)	{ t46_c += a; }
+void t46_c_A_uc(uint8_t a)	{ t46_c += a; }
+void t46_c_A_s(int16_t a)	{ t46_c += a; }
+void t46_c_A_us(uint16_t a)	{ t46_c += a; }
+void t46_c_A_i(int32_t a)	{ t46_c += a; }
+void t46_c_A_ui(uint32_t a)	{ t46_c += a; }
+void t46_c_A_l(int64_t a)	{ t46_c += a; }
+void t46_c_A_ul(uint64_t a)	{ t46_c += a; }
+void t46_c_A_f(float32_t a)	{ t46_c += a; }
+void t46_c_A_d(float64_t a)	{ t46_c += a; }
+void t46_c_A_v(auto a)		{ t46_c += a; }
+void t46_uc_A_c(int8_t a)	{ t46_uc += a; }
+void t46_uc_A_uc(uint8_t a)	{ t46_uc += a; }
+void t46_uc_A_s(int16_t a)	{ t46_uc += a; }
+void t46_uc_A_us(uint16_t a)	{ t46_uc += a; }
+void t46_uc_A_i(int32_t a)	{ t46_uc += a; }
+void t46_uc_A_ui(uint32_t a)	{ t46_uc += a; }
+void t46_uc_A_l(int64_t a)	{ t46_uc += a; }
+void t46_uc_A_ul(uint64_t a)	{ t46_uc += a; }
+void t46_uc_A_f(float32_t a)	{ t46_uc += a; }
+void t46_uc_A_d(float64_t a)	{ t46_uc += a; }
+void t46_uc_A_v(auto a)		{ t46_uc += a; }
+void t46_s_A_c(int8_t a)	{ t46_s += a; }
+void t46_s_A_uc(uint8_t a)	{ t46_s += a; }
+void t46_s_A_s(int16_t a)	{ t46_s += a; }
+void t46_s_A_us(uint16_t a)	{ t46_s += a; }
+void t46_s_A_i(int32_t a)	{ t46_s += a; }
+void t46_s_A_ui(uint32_t a)	{ t46_s += a; }
+void t46_s_A_l(int64_t a)	{ t46_s += a; }
+void t46_s_A_ul(uint64_t a)	{ t46_s += a; }
+void t46_s_A_f(float32_t a)	{ t46_s += a; }
+void t46_s_A_d(float64_t a)	{ t46_s += a; }
+void t46_s_A_v(auto a)		{ t46_s += a; }
+void t46_us_A_c(int8_t a)	{ t46_us += a; }
+void t46_us_A_uc(uint8_t a)	{ t46_us += a; }
+void t46_us_A_s(int16_t a)	{ t46_us += a; }
+void t46_us_A_us(uint16_t a)	{ t46_us += a; }
+void t46_us_A_i(int32_t a)	{ t46_us += a; }
+void t46_us_A_ui(uint32_t a)	{ t46_us += a; }
+void t46_us_A_l(int64_t a)	{ t46_us += a; }
+void t46_us_A_ul(uint64_t a)	{ t46_us += a; }
+void t46_us_A_f(float32_t a)	{ t46_us += a; }
+void t46_us_A_d(float64_t a)	{ t46_us += a; }
+void t46_us_A_v(auto a)		{ t46_us += a; }
+void t46_i_A_c(int8_t a)	{ t46_i += a; }
+void t46_i_A_uc(uint8_t a)	{ t46_i += a; }
+void t46_i_A_s(int16_t a)	{ t46_i += a; }
+void t46_i_A_us(uint16_t a)	{ t46_i += a; }
+void t46_i_A_i(int32_t a)	{ t46_i += a; }
+void t46_i_A_ui(uint32_t a)	{ t46_i += a; }
+void t46_i_A_l(int64_t a)	{ t46_i += a; }
+void t46_i_A_ul(uint64_t a)	{ t46_i += a; }
+void t46_i_A_f(float32_t a)	{ t46_i += a; }
+void t46_i_A_d(float64_t a)	{ t46_i += a; }
+void t46_i_A_v(auto a)		{ t46_i += a; }
+void t46_ui_A_c(int8_t a)	{ t46_ui += a; }
+void t46_ui_A_uc(uint8_t a)	{ t46_ui += a; }
+void t46_ui_A_s(int16_t a)	{ t46_ui += a; }
+void t46_ui_A_us(uint16_t a)	{ t46_ui += a; }
+void t46_ui_A_i(int32_t a)	{ t46_ui += a; }
+void t46_ui_A_ui(uint32_t a)	{ t46_ui += a; }
+void t46_ui_A_l(int64_t a)	{ t46_ui += a; }
+void t46_ui_A_ul(uint64_t a)	{ t46_ui += a; }
+void t46_ui_A_f(float32_t a)	{ t46_ui += a; }
+void t46_ui_A_d(float64_t a)	{ t46_ui += a; }
+void t46_ui_A_v(auto a)		{ t46_ui += a; }
+void t46_l_S_c(int8_t a)	{ t46_l -= a; }
+void t46_l_S_uc(uint8_t a)	{ t46_l -= a; }
+void t46_l_S_s(int16_t a)	{ t46_l -= a; }
+void t46_l_S_us(uint16_t a)	{ t46_l -= a; }
+void t46_l_S_i(int32_t a)	{ t46_l -= a; }
+void t46_l_S_ui(uint32_t a)	{ t46_l -= a; }
+void t46_l_S_l(int64_t a)	{ t46_l -= a; }
+void t46_l_S_ul(uint64_t a)	{ t46_l -= a; }
+void t46_l_S_f(float32_t a)	{ t46_l -= a; }
+void t46_l_S_d(float64_t a)	{ t46_l -= a; }
+void t46_l_S_v(auto a)		{ t46_l -= a; }
+void t46_ul_S_c(int8_t a)	{ t46_ul -= a; }
+void t46_ul_S_uc(uint8_t a)	{ t46_ul -= a; }
+void t46_ul_S_s(int16_t a)	{ t46_ul -= a; }
+void t46_ul_S_us(uint16_t a)	{ t46_ul -= a; }
+void t46_ul_S_i(int32_t a)	{ t46_ul -= a; }
+void t46_ul_S_ui(uint32_t a)	{ t46_ul -= a; }
+void t46_ul_S_l(int64_t a)	{ t46_ul -= a; }
+void t46_ul_S_ul(uint64_t a)	{ t46_ul -= a; }
+void t46_ul_S_f(float32_t a)	{ t46_ul -= a; }
+void t46_ul_S_d(float64_t a)	{ t46_ul -= a; }
+void t46_ul_S_v(auto a)		{ t46_ul -= a; }
+void t46_f_S_c(int8_t a)	{ t46_f -= a; }
+void t46_f_S_uc(uint8_t a)	{ t46_f -= a; }
+void t46_f_S_s(int16_t a)	{ t46_f -= a; }
+void t46_f_S_us(uint16_t a)	{ t46_f -= a; }
+void t46_f_S_i(int32_t a)	{ t46_f -= a; }
+void t46_f_S_ui(uint32_t a)	{ t46_f -= a; }
+void t46_f_S_l(int64_t a)	{ t46_f -= a; }
+void t46_f_S_ul(uint64_t a)	{ t46_f -= a; }
+void t46_f_S_f(float32_t a)	{ t46_f -= a; }
+void t46_f_S_d(float64_t a)	{ t46_f -= a; }
+void t46_f_S_v(auto a)		{ t46_f -= a; }
+void t46_d_S_c(int8_t a)	{ t46_d -= a; }
+void t46_d_S_uc(uint8_t a)	{ t46_d -= a; }
+void t46_d_S_s(int16_t a)	{ t46_d -= a; }
+void t46_d_S_us(uint16_t a)	{ t46_d -= a; }
+void t46_d_S_i(int32_t a)	{ t46_d -= a; }
+void t46_d_S_ui(uint32_t a)	{ t46_d -= a; }
+void t46_d_S_l(int64_t a)	{ t46_d -= a; }
+void t46_d_S_ul(uint64_t a)	{ t46_d -= a; }
+void t46_d_S_f(float32_t a)	{ t46_d -= a; }
+void t46_d_S_d(float64_t a)	{ t46_d -= a; }
+void t46_d_S_v(auto a)		{ t46_d -= a; }
+void t46_v_S_c(int8_t a)	{ t46_v -= a; }
+void t46_v_S_uc(uint8_t a)	{ t46_v -= a; }
+void t46_v_S_s(int16_t a)	{ t46_v -= a; }
+void t46_v_S_us(uint16_t a)	{ t46_v -= a; }
+void t46_v_S_i(int32_t a)	{ t46_v -= a; }
+void t46_v_S_ui(uint32_t a)	{ t46_v -= a; }
+void t46_v_S_l(int64_t a)	{ t46_v -= a; }
+void t46_v_S_ul(uint64_t a)	{ t46_v -= a; }
+void t46_v_S_f(float32_t a)	{ t46_v -= a; }
+void t46_v_S_d(float64_t a)	{ t46_v -= a; }
+void t46_v_S_v(auto a)		{ t46_v -= a; }
+void t46_reset() {
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0;
+}
+t46_ul = 0;
+void t46_t0() {
+    /* assuming first call (basically to have v as null) */
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c_c_I() != 0.0 || t46_c_uc_I() != 0 ||
+	t46_s_s_I() != 0 || t46_s_us_I() != 0.0 ||
+	t46_i_i_I() != 0.0 || t46_i_ui_I() != 0 ||
+	t46_l_l_I() != 0 || t46_l_ul_I() != 0.0 ||
+	t46_f_f_I() != 0.0 || t46_d_d_I() != 0 ||
+	t46_v_v_I() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 1 || t46_uc != 1.0 ||
+	t46_s != 1.0 || t46_us != 1 ||
+	t46_i != 1 || t46_ui != 1.0 ||
+	t46_l != 1.0 || t46_ul != 1 ||
+	t46_f != 1 || t46_d != 1.0 ||
+	t46_v != 1.0)
+	print("error %d\n", __LINE__);
+    if (t46_c_D_c() != 0 || t46_c_D_uc() != 0.0 ||
+	t46_s_D_s() != 0.0 || t46_s_D_us() != 0 ||
+	t46_i_D_i() != 0 || t46_i_D_ui() != 0.0 ||
+	t46_l_D_l() != 0.0 || t46_l_D_ul() != 0 ||
+	t46_f_D_f() != 0 || t46_d_D_d() != 0.0 ||
+	t46_v_D_v() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+}
+void t46_t1() {
+    t46_reset();
+    if (t46_c_c_I() != 0.0 || t46_c_uc_I() != 0 ||
+	t46_s_s_I() != 0 || t46_s_us_I() != 0.0 ||
+	t46_i_i_I() != 0.0 || t46_i_ui_I() != 0 ||
+	t46_l_l_I() != 0 || t46_l_ul_I() != 0.0 ||
+	t46_f_f_I() != 0.0 || t46_d_d_I() != 0 ||
+	t46_v_v_I() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 1 || t46_uc != 1.0 ||
+	t46_s != 1.0 || t46_us != 1 ||
+	t46_i != 1 || t46_ui != 1.0 ||
+	t46_l != 1.0 || t46_ul != 1 ||
+	t46_f != 1 || t46_d != 1.0 ||
+	t46_v != 1.0)
+	print("error %d\n", __LINE__);
+    if (t46_c_D_c() != 0 || t46_c_D_uc() != 0.0 ||
+	t46_s_D_s() != 0.0 || t46_s_D_us() != 0 ||
+	t46_i_D_i() != 0 || t46_i_D_ui() != 0.0 ||
+	t46_l_D_l() != 0.0 || t46_l_D_ul() != 0 ||
+	t46_f_D_f() != 0 || t46_d_D_d() != 0.0 ||
+	t46_v_D_v() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+}
+void t46_t2() {
+    t46_reset();
+    t46_ul = 0x7fffffffffffffff;
+    if (t46_l_ul_I() != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+    if (t46_l_ul_I() != -0x8000000000000000)	print("error %d\n", __LINE__);
+    if (t46_l_ul_I() != -0x7fffffffffffffff)	print("error %d\n", __LINE__);
+    if (t46_l_D_ul() != -0x7fffffffffffffff)	print("error %d\n", __LINE__);
+    if (t46_l_D_ul() != -0x8000000000000000)	print("error %d\n", __LINE__);
+    if (t46_ul != 0x8000000000000000)		print("error %d\n", __LINE__);
+}
+void t46_t3() {
+    t46_reset();
+    if (t46_c_c_D() != 0.0 || t46_c_uc_D() != 0 ||
+	t46_s_s_D() != 0 || t46_s_us_D() != 0.0 ||
+	t46_i_i_D() != 0.0 || t46_i_ui_D() != 0 ||
+	t46_l_l_D() != 0 || t46_l_ul_D() != 0.0 ||
+	t46_f_f_D() != 0.0 || t46_d_d_D() != 0 ||
+	t46_v_v_D() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != -1 || t46_uc != 0xff.0 ||
+	t46_s != -1.0 || t46_us != 0xffff ||
+	t46_i != -1 || t46_ui != 0xffffffff.0 ||
+	t46_l != -1.0 || t46_ul != 0xffffffffffffffff ||
+	t46_f != -1 || t46_d != -1.0 ||
+	t46_v != -1.0)
+	print("error %d\n", __LINE__);
+    if (t46_c_I_c() != 0 || t46_c_I_uc() != 0.0 ||
+	t46_s_I_s() != 0.0 || t46_s_I_us() != 0 ||
+	t46_i_I_i() != 0 || t46_i_I_ui() != 0.0 ||
+	t46_l_I_l() != 0.0 || t46_l_I_ul() != 0 ||
+	t46_f_I_f() != 0 || t46_d_I_d() != 0.0 ||
+	t46_v_I_v() != 0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+}
+void t46_t4() {
+    int8_t		xc;	uint8_t		xuc;
+    int16_t		xs;	uint16_t	xus;
+    int32_t		xi;	uint32_t	xui;
+    int64_t		xl;	uint64_t	xul;
+    float32_t		xf;	float64_t	xd;
+    auto		xv;
+    t46_reset();
+    xc = t46_c++;	xuc = t46_uc++;	xs = t46_s++;	xus = t46_us++;
+    xi = t46_i++;	xui = t46_ui++;	xl = t46_l++;	xul = t46_ul++;
+    xf = t46_f++;	xd = t46_d++;	xv = t46_v++;
+    if (xc != 0 || xuc != 0.0 ||
+	xs != 0.0 || xus != 0 ||
+	xi != 0 || xui != 0.0 ||
+	xl != 0.0 || xul != 0 ||
+	xf != 0 || xd != 0.0 ||
+	xv != 0.0)
+	print("error %d\n", __LINE__);
+    if (t46_c != 1 || t46_uc != 1.0 ||
+	t46_s != 1.0 || t46_us != 1 ||
+	t46_i != 1 || t46_ui != 1.0 ||
+	t46_l != 1.0 || t46_ul != 1 ||
+	t46_f != 1 || t46_d != 1.0 ||
+	t46_v != 1.0)
+	print("error %d\n", __LINE__);
+    xc = t46_c--;	xuc = t46_uc--;	xs = t46_s--;	xus = t46_us--;
+    xi = t46_i--;	xui = t46_ui--;	xl = t46_l--;	xul = t46_ul--;
+    xf = t46_f--;	xd = t46_d--;	xv = t46_v--;
+    if (xc != 1.0 || xuc != 1 ||
+	xs != 1 || xus != 1.0 ||
+	xi != 1.0 || xui != 1 ||
+	xl != 1 || xul != 1.0 ||
+	xf != 1.0 || xd != 1 ||
+	xv != 1)
+	print("error %d\n", __LINE__);
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+    xc = ++t46_c;	xuc = ++t46_uc;	xs = ++t46_s;	xus = ++t46_us;
+    xi = ++t46_i;	xui = ++t46_ui;	xl = ++t46_l;	xul = ++t46_ul;
+    xf = ++t46_f;	xd = ++t46_d;	xv = ++t46_v;
+    if (xc != t46_c || xuc != t46_uc ||
+	xs != t46_s || xus != t46_us ||
+	xi != t46_i || xui != t46_ui ||
+	xl != t46_l || xul != t46_ul ||
+	xf != t46_f || xd != t46_d ||
+	xv != t46_v)
+	print("error %d\n", __LINE__);
+    t46_c = --xv;	t46_uc = --xd;	t46_s = --xf;	t46_us = --xul;
+    t46_i = --xl;	t46_ui = --xui;	t46_l = --xi;	t46_ul = --xus;
+    t46_f = --xs;	t46_d = --xuc;	t46_v = --xc;
+    if (t46_c != 0.0 || t46_uc != 0 ||
+	t46_s != 0 || t46_us != 0.0 ||
+	t46_i != 0.0 || t46_ui != 0 ||
+	t46_l != 0 || t46_ul != 0.0 ||
+	t46_f != 0.0 || t46_d != 0 ||
+	t46_v != 0)
+	print("error %d\n", __LINE__);
+}
+/* float comparisons may vary due to conversion... */
+void t46_t5() {
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x7f;
+    t46_c_A_c(t46_c);
+    if (t46_c != -0x02)			print("error %d\n", __LINE__);
+    t46_c_A_uc(t46_uc);
+    if (t46_c !=  0x7d)			print("error %d\n", __LINE__);
+    t46_c_A_s(t46_s);
+    if (t46_c != -0x04)			print("error %d\n", __LINE__);
+    t46_c_A_us(t46_us);
+    if (t46_c !=  0x7b)			print("error %d\n", __LINE__);
+    t46_c_A_i(t46_i);
+    if (t46_c != -0x06)			print("error %d\n", __LINE__);
+    t46_c_A_ui(t46_ui);
+    if (t46_c !=  0x79)			print("error %d\n", __LINE__);
+    t46_c_A_l(t46_l);
+    if (t46_c != -0x08)			print("error %d\n", __LINE__);
+    t46_c_A_ul(t46_ul);
+    if (t46_c !=  0x77)			print("error %d\n", __LINE__);
+    t46_c_A_f(t46_f);
+    if (t46_c != -0x0a)			print("error %d\n", __LINE__);
+    t46_c_A_d(t46_d);
+    if (t46_c !=  0x75)			print("error %d\n", __LINE__);
+    t46_c_A_v(t46_v);
+    if (t46_c != -0x0c)			print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x81;
+    t46_uc_A_c(t46_c);
+    if (t46_uc != 0x02)			print("error %d\n", __LINE__);
+    t46_uc_A_uc(t46_uc);
+    if (t46_uc != 0x04)			print("error %d\n", __LINE__);
+    t46_uc_A_s(t46_s);
+    if (t46_uc != 0x85)			print("error %d\n", __LINE__);
+    t46_uc_A_us(t46_us);
+    if (t46_uc != 0x06)			print("error %d\n", __LINE__);
+    t46_uc_A_i(t46_i);
+    if (t46_uc != 0x87)			print("error %d\n", __LINE__);
+    t46_uc_A_ui(t46_ui);
+    if (t46_uc != 0x08)			print("error %d\n", __LINE__);
+    t46_uc_A_l(t46_l);
+    if (t46_uc != 0x89)			print("error %d\n", __LINE__);
+    t46_uc_A_ul(t46_ul);
+    if (t46_uc != 0x0a)			print("error %d\n", __LINE__);
+    t46_uc_A_f(t46_f);
+    if (t46_uc != 0x8b)			print("error %d\n", __LINE__);
+    t46_uc_A_d(t46_d);
+    if (t46_uc != 0x0c)			print("error %d\n", __LINE__);
+    t46_uc_A_v(t46_v);
+    if (t46_uc != 0x8d)			print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x8001;
+    t46_s_A_c(t46_c);
+    if (t46_s != -0x7ffe)		print("error %d\n", __LINE__);
+    t46_s_A_uc(t46_uc);
+    if (t46_s != -0x7ffd)		print("error %d\n", __LINE__);
+    t46_s_A_s(t46_s);
+    if (t46_s !=  0x0006)		print("error %d\n", __LINE__);
+    t46_s_A_us(t46_us);
+    if (t46_s != -0x7ff9)		print("error %d\n", __LINE__);
+    t46_s_A_i(t46_i);
+    if (t46_s !=  0x0008)		print("error %d\n", __LINE__);
+    t46_s_A_ui(t46_ui);
+    if (t46_s != -0x7ff7)		print("error %d\n", __LINE__);
+    t46_s_A_l(t46_l);
+    if (t46_s !=  0x000a)		print("error %d\n", __LINE__);
+    t46_s_A_ul(t46_ul);
+    if (t46_s != -0x7ff5)		print("error %d\n", __LINE__);
+    t46_s_A_f(t46_f);
+    if (t46_s !=  0x000c)		print("error %d\n", __LINE__);
+    t46_s_A_d(t46_d);
+    if (t46_s != -0x7ff3)		print("error %d\n", __LINE__);
+    t46_s_A_v(t46_v);
+    if (t46_s !=  0x000e)		print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x7fff;
+    t46_us_A_c(t46_c);
+    if (t46_us != 0x7ffe)		print("error %d\n", __LINE__);
+    t46_us_A_uc(t46_uc);
+    if (t46_us != 0x80fd)		print("error %d\n", __LINE__);
+    t46_us_A_s(t46_s);
+    if (t46_us != 0x00fc)		print("error %d\n", __LINE__);
+    t46_us_A_us(t46_us);
+    if (t46_us != 0x01f8)		print("error %d\n", __LINE__);
+    t46_us_A_i(t46_i);
+    if (t46_us != 0x81f7)		print("error %d\n", __LINE__);
+    t46_us_A_ui(t46_ui);
+    if (t46_us != 0x01f6)		print("error %d\n", __LINE__);
+    t46_us_A_l(t46_l);
+    if (t46_us != 0x81f5)		print("error %d\n", __LINE__);
+    t46_us_A_ul(t46_ul);
+    if (t46_us != 0x01f4)		print("error %d\n", __LINE__);
+    t46_us_A_f(t46_f);
+    if (t46_us != 0x81f3)		print("error %d\n", __LINE__);
+    t46_us_A_d(t46_d);
+    if (t46_us != 0x01f2)		print("error %d\n", __LINE__);
+    t46_us_A_v(t46_v);
+    if (t46_us != 0x81f1)		print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0xa5a5a5a5;
+    t46_i_A_c(t46_c);
+    if (t46_i != -0x5a5a5ab6)		print("error %d\n", __LINE__);
+    t46_i_A_uc(t46_uc);
+    if (t46_i != -0x5a5a5a11)		print("error %d\n", __LINE__);
+    t46_i_A_s(t46_s);
+    if (t46_i != -0x5a5ab46c)		print("error %d\n", __LINE__);
+    t46_i_A_us(t46_us);
+    if (t46_i != -0x5a5a0ec7)		print("error %d\n", __LINE__);
+    t46_i_A_i(t46_i);
+    if (t46_i !=  0x4b4be272)		print("error %d\n", __LINE__);
+    t46_i_A_ui(t46_ui);
+    if (t46_i != -0x0f0e77e9)		print("error %d\n", __LINE__);
+    t46_i_A_l(t46_l);
+    if (t46_i != -0x6968d244)		print("error %d\n", __LINE__);
+    t46_i_A_ul(t46_ul);
+    if (t46_i !=  0x3c3cd361)		print("error %d\n", __LINE__);
+    /* truncate overflow */
+    if (t46_i_A_f(t46_f), t46_i == -0x80000000) {
+	t46_i_A_d(t46_d);
+	if (t46_i !=  0x25a5a5a5)	print("error %d\n", __LINE__);
+	t46_i_A_v(t46_v);
+	if (t46_i != -0x34b4b4b6)	print("error %d\n", __LINE__);
+    }
+    else {
+	if (t46_i != 0x7fffffff)	print("error %d\n", __LINE__);
+	t46_i_A_d(t46_d);
+	if (t46_i !=  0x7fffffff)	print("error %d\n", __LINE__);
+	t46_i_A_v(t46_v);
+	if (t46_i !=  0x25a5a5a4)	print("error %d\n", __LINE__);
+    }
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x80007ffe;
+    t46_ui_A_c(t46_c);
+    if (t46_ui != 0x80007ffc)		print("error %d\n", __LINE__);
+    t46_ui_A_uc(t46_uc);
+    if (t46_ui != 0x800080fa)		print("error %d\n", __LINE__);
+    t46_ui_A_s(t46_s);
+    if (t46_ui != 0x800100f8)		print("error %d\n", __LINE__);
+    t46_ui_A_us(t46_us);
+    if (t46_ui != 0x800180f6)		print("error %d\n", __LINE__);
+    t46_ui_A_i(t46_i);
+    if (t46_ui != 0x000200f4)		print("error %d\n", __LINE__);
+    t46_ui_A_ui(t46_ui);
+    if (t46_ui != 0x000401e8)		print("error %d\n", __LINE__);
+    t46_ui_A_l(t46_l);
+    if (t46_ui != 0x800481e6)		print("error %d\n", __LINE__);
+    t46_ui_A_ul(t46_ul);
+    if (t46_ui != 0x000501e4)		print("error %d\n", __LINE__);
+    /* truncate overflow */
+    if (t46_ui_A_f(t46_f), t46_ui == 0x80000000) {
+	t46_ui_A_d(t46_d);
+	if (t46_ui != 0x80000000)	print("error %d\n", __LINE__);
+	t46_ui_A_v(t46_v);
+	if (t46_ui != 0x00007ffe)	print("error %d\n", __LINE__);
+    }
+    else {
+	if (t46_ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	t46_ui_A_d(t46_d);
+	if (t46_ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	t46_ui_A_v(t46_v);
+	if (t46_ui != 0x00007ffd)	print("error %d\n", __LINE__);
+    }
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0xfffffffffffffffe;
+    t46_l_S_c(t46_c);
+    if (t46_l !=  0x0000000000000000)	print("error %d\n", __LINE__);
+    t46_l_S_uc(t46_uc);
+    if (t46_l != -0x00000000000000fe)	print("error %d\n", __LINE__);
+    t46_l_S_s(t46_s);
+    if (t46_l != -0x00000000000000fc)	print("error %d\n", __LINE__);
+    t46_l_S_us(t46_us);
+    if (t46_l != -0x00000000000100fa)	print("error %d\n", __LINE__);
+    t46_l_S_i(t46_i);
+    if (t46_l != -0x00000000000100f8)	print("error %d\n", __LINE__);
+    t46_l_S_ui(t46_ui);
+    if (t46_l != -0x00000001000100f6)	print("error %d\n", __LINE__);
+    t46_l_S_l(t46_l);
+    if (t46_l !=  0x0000000000000000)	print("error %d\n", __LINE__);
+    t46_l_S_ul(t46_ul);
+    if (t46_l !=  0x0000000000000002)	print("error %d\n", __LINE__);
+    if (t46_l_S_f(t46_f), t46_l == -0x8000000000000000) {
+	t46_l_S_d(t46_d);
+	if (t46_l != -0x8000000000000000)print("error %d\n", __LINE__);
+	t46_l_S_v(t46_v);
+	if (t46_l != -0x7ffffffffffffffe)print("error %d\n", __LINE__);
+    }
+    else {
+	if (t46_l != 0x0000000000000001)print("error %d\n", __LINE__);
+	t46_l_S_d(t46_d);
+	if (t46_l != 0x0000000000000800)print("error %d\n", __LINE__);
+	t46_l_S_v(t46_v);
+	if (t46_l != 0x0000000000000802)print("error %d\n", __LINE__);
+    }
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x8000000000000001;
+    t46_ul_S_c(t46_c);
+    if (t46_ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+    t46_ul_S_uc(t46_uc);
+    if (t46_ul != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+    t46_ul_S_s(t46_s);
+    if (t46_ul != 0x7ffffffffffffffe)	print("error %d\n", __LINE__);
+    t46_ul_S_us(t46_us);
+    if (t46_ul != 0x7ffffffffffffffd)	print("error %d\n", __LINE__);
+    t46_ul_S_i(t46_i);
+    if (t46_ul != 0x7ffffffffffffffc)	print("error %d\n", __LINE__);
+    t46_ul_S_ui(t46_ui);
+    if (t46_ul != 0x7ffffffffffffffb)	print("error %d\n", __LINE__);
+    t46_ul_S_l(t46_l);
+    if (t46_ul != 0xfffffffffffffffa)	print("error %d\n", __LINE__);
+    t46_ul_S_ul(t46_ul);
+    if (t46_ul != 0x0000000000000000)	print("error %d\n", __LINE__);
+    t46_ul_S_f(t46_f);
+    if (t46_ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+    t46_ul_S_d(t46_d);
+    if (t46_ul != 0x0000000000000000)	print("error %d\n", __LINE__);
+    t46_ul_S_v(t46_v);
+    if (t46_ul != 0x7fffffffffffffff)	print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x800000.0;
+    t46_f_S_c(t46_c);
+    if (t46_f !=  0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_uc(t46_uc);
+    if (t46_f !=  0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_s(t46_s);
+    if (t46_f !=  0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_us(t46_us);
+    if (t46_f !=  0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_i(t46_i);
+    if (t46_f != -0x0000000.0)		print("error %d\n", __LINE__);
+    t46_f_S_ui(t46_ui);
+    if (t46_f != -0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_l(t46_l);
+    if (t46_f != -0x1000000.0)		print("error %d\n", __LINE__);
+    t46_f_S_ul(t46_ul);
+    if (t46_f != -0x1800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_f(t46_f);
+    if (t46_f !=  0x0000000.0)		print("error %d\n", __LINE__);
+    t46_f_S_d(t46_d);
+    if (t46_f != -0x0800000.0)		print("error %d\n", __LINE__);
+    t46_f_S_v(t46_v);
+    if (t46_f != -0x1000000.0)		print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0xffff.0;
+    t46_d_S_c(t46_c);
+    if (t46_d !=  0x10000.0)		print("error %d\n", __LINE__);
+    t46_d_S_uc(t46_uc);
+    if (t46_d !=  0x0ff01.0)		print("error %d\n", __LINE__);
+    t46_d_S_s(t46_s);
+    if (t46_d !=  0x0ff02.0)		print("error %d\n", __LINE__);
+    t46_d_S_us(t46_us);
+    if (t46_d != -0x000fd.0)		print("error %d\n", __LINE__);
+    t46_d_S_i(t46_i);
+    if (t46_d != -0x100fc.0)		print("error %d\n", __LINE__);
+    t46_d_S_ui(t46_ui);
+    if (t46_d != -0x200fb.0)		print("error %d\n", __LINE__);
+    t46_d_S_l(t46_l);
+    if (t46_d != -0x300fa.0)		print("error %d\n", __LINE__);
+    t46_d_S_ul(t46_ul);
+    if (t46_d != -0x400f9.0)		print("error %d\n", __LINE__);
+    t46_d_S_f(t46_f);
+    if (t46_d != -0x500f8.0)		print("error %d\n", __LINE__);
+    t46_d_S_d(t46_d);
+    if (t46_d !=  0x00000.0)		print("error %d\n", __LINE__);
+    t46_d_S_v(t46_v);
+    if (t46_d != -0x0ffff.0)		print("error %d\n", __LINE__);
+    t46_c = t46_uc = t46_s = t46_us = t46_i = t46_ui =
+	t46_l = t46_ul = t46_f = t46_d = t46_v = 0x7fffffffffffffff;
+    t46_v_S_c(t46_c);
+    if (t46_v !=  0x8000000000000000)	print("error %d\n", __LINE__);
+    t46_v_S_uc(t46_uc);
+    if (t46_v !=  0x7fffffffffffff01)	print("error %d\n", __LINE__);
+    t46_v_S_s(t46_s);
+    if (t46_v !=  0x7fffffffffffff02)	print("error %d\n", __LINE__);
+    t46_v_S_us(t46_us);
+    if (t46_v !=  0x7ffffffffffeff03)	print("error %d\n", __LINE__);
+    t46_v_S_i(t46_i);
+    if (t46_v !=  0x7ffffffffffeff04)	print("error %d\n", __LINE__);
+    t46_v_S_ui(t46_ui);
+    if (t46_v !=  0x7ffffffefffeff05)	print("error %d\n", __LINE__);
+    t46_v_S_l(t46_l);
+    if (t46_v != -0x00000001000100fa)	print("error %d\n", __LINE__);
+    t46_v_S_ul(t46_ul);
+    if (t46_v != -0x80000001000100f9)	print("error %d\n", __LINE__);
+    t46_v_S_f(t46_f);
+    if (t46_v != -0x10000000100010000.0 || typeof(t46_v) != typeof(0.0))
+	print("error %d\n", __LINE__);
+    t46_v_S_d(t46_d);
+    if (t46_v != -0x18000000100010000.0)print("error %d\n", __LINE__);
+    t46_v_S_v(t46_v);
+    if (t46_v !=  0.0)			print("error %d\n", __LINE__);
+}
+t46_t0();
+t46_t1();
+t46_t2();
+t46_t3();
+t46_t4();
+t46_t5();
+class t46_c2_t {
+    int32_t	i;	uint32_t	ui;
+    int64_t	l;	uint64_t	ul;
+    float32_t	f;	float64_t	d;
+    auto	v;
+    int32_t	ci;	uint32_t	cui;
+    int64_t	cl;	uint64_t	cul;
+    float32_t	cf;	float64_t	cd;
+    auto	cv;
+    void i_Ag_i()	{ i += t46_i; }
+    void i_Ag_ui()	{ i += t46_ui; }
+    void i_Ag_l()	{ i += t46_l; }
+    void i_Ag_ul()	{ i += t46_ul; }
+    void i_Ag_f()	{ i += t46_f; }
+    void i_Ag_d()	{ i += t46_d; }
+    void i_Ag_v()	{ i += t46_v; }
+    void ui_Ag_i()	{ ui += t46_i; }
+    void ui_Ag_ui()	{ ui += t46_ui; }
+    void ui_Ag_l()	{ ui += t46_l; }
+    void ui_Ag_ul()	{ ui += t46_ul; }
+    void ui_Ag_f()	{ ui += t46_f; }
+    void ui_Ag_d()	{ ui += t46_d; }
+    void ui_Ag_v()	{ ui += t46_v; }
+    void l_Ag_i()	{ l += t46_i; }
+    void l_Ag_ui()	{ l += t46_ui; }
+    void l_Ag_l()	{ l += t46_l; }
+    void l_Ag_ul()	{ l += t46_ul; }
+    void l_Ag_f()	{ l += t46_f; }
+    void l_Ag_d()	{ l += t46_d; }
+    void l_Ag_v()	{ l += t46_v; }
+    void ul_Ag_i()	{ ul += t46_i; }
+    void ul_Ag_ui()	{ ul += t46_ui; }
+    void ul_Ag_l()	{ ul += t46_l; }
+    void ul_Ag_ul()	{ ul += t46_ul; }
+    void ul_Ag_f()	{ ul += t46_f; }
+    void ul_Ag_d()	{ ul += t46_d; }
+    void ul_Ag_v()	{ ul += t46_v; }
+    void f_Ag_i()	{ f += t46_i; }
+    void f_Ag_ui()	{ f += t46_ui; }
+    void f_Ag_l()	{ f += t46_l; }
+    void f_Ag_ul()	{ f += t46_ul; }
+    void f_Ag_f()	{ f += t46_f; }
+    void f_Ag_d()	{ f += t46_d; }
+    void f_Ag_v()	{ f += t46_v; }
+    void d_Ag_i()	{ d += t46_i; }
+    void d_Ag_ui()	{ d += t46_ui; }
+    void d_Ag_l()	{ d += t46_l; }
+    void d_Ag_ul()	{ d += t46_ul; }
+    void d_Ag_f()	{ d += t46_f; }
+    void d_Ag_d()	{ d += t46_d; }
+    void d_Ag_v()	{ d += t46_v; }
+    void v_Ag_i()	{ v += t46_i; }
+    void v_Ag_ui()	{ v += t46_ui; }
+    void v_Ag_l()	{ v += t46_l; }
+    void v_Ag_ul()	{ v += t46_ul; }
+    void v_Ag_f()	{ v += t46_f; }
+    void v_Ag_d()	{ v += t46_d; }
+    void v_Ag_v()	{ v += t46_v; }
+    void i_gA_i()	{ t46_i += i; }
+    void i_gA_ui()	{ t46_i += ui; }
+    void i_gA_l()	{ t46_i += l; }
+    void i_gA_ul()	{ t46_i += ul; }
+    void i_gA_f()	{ t46_i += f; }
+    void i_gA_d()	{ t46_i += d; }
+    void i_gA_v()	{ t46_i += v; }
+    void ui_gA_i()	{ t46_ui += i; }
+    void ui_gA_ui()	{ t46_ui += ui; }
+    void ui_gA_l()	{ t46_ui += l; }
+    void ui_gA_ul()	{ t46_ui += ul; }
+    void ui_gA_f()	{ t46_ui += f; }
+    void ui_gA_d()	{ t46_ui += d; }
+    void ui_gA_v()	{ t46_ui += v; }
+    void l_gA_i()	{ t46_l += i; }
+    void l_gA_ui()	{ t46_l += ui; }
+    void l_gA_l()	{ t46_l += l; }
+    void l_gA_ul()	{ t46_l += ul; }
+    void l_gA_f()	{ t46_l += f; }
+    void l_gA_d()	{ t46_l += d; }
+    void l_gA_v()	{ t46_l += v; }
+    void ul_gA_i()	{ t46_ul += i; }
+    void ul_gA_ui()	{ t46_ul += ui; }
+    void ul_gA_l()	{ t46_ul += l; }
+    void ul_gA_ul()	{ t46_ul += ul; }
+    void ul_gA_f()	{ t46_ul += f; }
+    void ul_gA_d()	{ t46_ul += d; }
+    void ul_gA_v()	{ t46_ul += v; }
+    void f_gA_i()	{ t46_f += i; }
+    void f_gA_ui()	{ t46_f += ui; }
+    void f_gA_l()	{ t46_f += l; }
+    void f_gA_ul()	{ t46_f += ul; }
+    void f_gA_f()	{ t46_f += f; }
+    void f_gA_d()	{ t46_f += d; }
+    void f_gA_v()	{ t46_f += v; }
+    void d_gA_i()	{ t46_d += i; }
+    void d_gA_ui()	{ t46_d += ui; }
+    void d_gA_l()	{ t46_d += l; }
+    void d_gA_ul()	{ t46_d += ul; }
+    void d_gA_f()	{ t46_d += f; }
+    void d_gA_d()	{ t46_d += d; }
+    void d_gA_v()	{ t46_d += v; }
+    void v_gA_i()	{ t46_v += i; }
+    void v_gA_ui()	{ t46_v += ui; }
+    void v_gA_l()	{ t46_v += l; }
+    void v_gA_ul()	{ t46_v += ul; }
+    void v_gA_f()	{ t46_v += f; }
+    void v_gA_d()	{ t46_v += d; }
+    void v_gA_v()	{ t46_v += v; }
+    void i_I_i()	{ i = i + 1; }
+    void i_I_ui()	{ i = ui + 1; }
+    void i_I_l()	{ i = l + 1; }
+    void i_I_ul()	{ i = ul + 1; }
+    void i_I_f()	{ i = f + 1; }
+    void i_I_d()	{ i = d + 1; }
+    void i_I_v()	{ i = v + 1; }
+    void ui_I_i()	{ ui = i + 1; }
+    void ui_I_ui()	{ ui = ui + 1; }
+    void ui_I_l()	{ ui = l + 1; }
+    void ui_I_ul()	{ ui = ul + 1; }
+    void ui_I_f()	{ ui = f + 1; }
+    void ui_I_d()	{ ui = d + 1; }
+    void ui_I_v()	{ ui = v + 1; }
+    void l_I_i()	{ l = i + 1; }
+    void l_I_ui()	{ l = ui + 1; }
+    void l_I_l()	{ l = l + 1; }
+    void l_I_ul()	{ l = ul + 1; }
+    void l_I_f()	{ l = f + 1; }
+    void l_I_d()	{ l = d + 1; }
+    void l_I_v()	{ l = v + 1; }
+    void ul_I_i()	{ ul = i + 1; }
+    void ul_I_ui()	{ ul = ui + 1; }
+    void ul_I_l()	{ ul = l + 1; }
+    void ul_I_ul()	{ ul = ul + 1; }
+    void ul_I_f()	{ ul = f + 1; }
+    void ul_I_d()	{ ul = d + 1; }
+    void ul_I_v()	{ ul = v + 1; }
+    void f_I_i()	{ f = i + 1; }
+    void f_I_ui()	{ f = ui + 1; }
+    void f_I_l()	{ f = l + 1; }
+    void f_I_ul()	{ f = ul + 1; }
+    void f_I_f()	{ f = f + 1; }
+    void f_I_d()	{ f = d + 1; }
+    void f_I_v()	{ f = v + 1; }
+    void d_I_i()	{ d = i + 1; }
+    void d_I_ui()	{ d = ui + 1; }
+    void d_I_l()	{ d = l + 1; }
+    void d_I_ul()	{ d = ul + 1; }
+    void d_I_f()	{ d = f + 1; }
+    void d_I_d()	{ d = d + 1; }
+    void d_I_v()	{ d = v + 1; }
+    void v_I_i()	{ v = i + 1; }
+    void v_I_ui()	{ v = ui + 1; }
+    void v_I_l()	{ v = l + 1; }
+    void v_I_ul()	{ v = ul + 1; }
+    void v_I_f()	{ v = f + 1; }
+    void v_I_d()	{ v = d + 1; }
+    void v_I_v()	{ v = v + 1; }
+    void i_Ig_i()	{ i = t46_i + 1; }
+    void i_Ig_ui()	{ i = t46_ui + 1; }
+    void i_Ig_l()	{ i = t46_l + 1; }
+    void i_Ig_ul()	{ i = t46_ul + 1; }
+    void i_Ig_f()	{ i = t46_f + 1; }
+    void i_Ig_d()	{ i = t46_d + 1; }
+    void i_Ig_v()	{ i = t46_v + 1; }
+    void ui_Ig_i()	{ ui = t46_i + 1; }
+    void ui_Ig_ui()	{ ui = t46_ui + 1; }
+    void ui_Ig_l()	{ ui = t46_l + 1; }
+    void ui_Ig_ul()	{ ui = t46_ul + 1; }
+    void ui_Ig_f()	{ ui = t46_f + 1; }
+    void ui_Ig_d()	{ ui = t46_d + 1; }
+    void ui_Ig_v()	{ ui = t46_v + 1; }
+    void l_Ig_i()	{ l = t46_i + 1; }
+    void l_Ig_ui()	{ l = t46_ui + 1; }
+    void l_Ig_l()	{ l = t46_l + 1; }
+    void l_Ig_ul()	{ l = t46_ul + 1; }
+    void l_Ig_f()	{ l = t46_f + 1; }
+    void l_Ig_d()	{ l = t46_d + 1; }
+    void l_Ig_v()	{ l = t46_v + 1; }
+    void ul_Ig_i()	{ ul = t46_i + 1; }
+    void ul_Ig_ui()	{ ul = t46_ui + 1; }
+    void ul_Ig_l()	{ ul = t46_l + 1; }
+    void ul_Ig_ul()	{ ul = t46_ul + 1; }
+    void ul_Ig_f()	{ ul = t46_f + 1; }
+    void ul_Ig_d()	{ ul = t46_d + 1; }
+    void ul_Ig_v()	{ ul = t46_v + 1; }
+    void f_Ig_i()	{ f = t46_i + 1; }
+    void f_Ig_ui()	{ f = t46_ui + 1; }
+    void f_Ig_l()	{ f = t46_l + 1; }
+    void f_Ig_ul()	{ f = t46_ul + 1; }
+    void f_Ig_f()	{ f = t46_f + 1; }
+    void f_Ig_d()	{ f = t46_d + 1; }
+    void f_Ig_v()	{ f = t46_v + 1; }
+    void d_Ig_i()	{ d = t46_i + 1; }
+    void d_Ig_ui()	{ d = t46_ui + 1; }
+    void d_Ig_l()	{ d = t46_l + 1; }
+    void d_Ig_ul()	{ d = t46_ul + 1; }
+    void d_Ig_f()	{ d = t46_f + 1; }
+    void d_Ig_d()	{ d = t46_d + 1; }
+    void d_Ig_v()	{ d = t46_v + 1; }
+    void v_Ig_i()	{ v = t46_i + 1; }
+    void v_Ig_ui()	{ v = t46_ui + 1; }
+    void v_Ig_l()	{ v = t46_l + 1; }
+    void v_Ig_ul()	{ v = t46_ul + 1; }
+    void v_Ig_f()	{ v = t46_f + 1; }
+    void v_Ig_d()	{ v = t46_d + 1; }
+    void v_Ig_v()	{ v = t46_v + 1; }
+    void i_gI_i()	{ t46_i = i + 1; }
+    void i_gI_ui()	{ t46_i = ui + 1; }
+    void i_gI_l()	{ t46_i = l + 1; }
+    void i_gI_ul()	{ t46_i = ul + 1; }
+    void i_gI_f()	{ t46_i = f + 1; }
+    void i_gI_d()	{ t46_i = d + 1; }
+    void i_gI_v()	{ t46_i = v + 1; }
+    void ui_gI_i()	{ t46_ui = i + 1; }
+    void ui_gI_ui()	{ t46_ui = ui + 1; }
+    void ui_gI_l()	{ t46_ui = l + 1; }
+    void ui_gI_ul()	{ t46_ui = ul + 1; }
+    void ui_gI_f()	{ t46_ui = f + 1; }
+    void ui_gI_d()	{ t46_ui = d + 1; }
+    void ui_gI_v()	{ t46_ui = v + 1; }
+    void l_gI_i()	{ t46_l = i + 1; }
+    void l_gI_ui()	{ t46_l = ui + 1; }
+    void l_gI_l()	{ t46_l = l + 1; }
+    void l_gI_ul()	{ t46_l = ul + 1; }
+    void l_gI_f()	{ t46_l = f + 1; }
+    void l_gI_d()	{ t46_l = d + 1; }
+    void l_gI_v()	{ t46_l = v + 1; }
+    void ul_gI_i()	{ t46_ul = i + 1; }
+    void ul_gI_ui()	{ t46_ul = ui + 1; }
+    void ul_gI_l()	{ t46_ul = l + 1; }
+    void ul_gI_ul()	{ t46_ul = ul + 1; }
+    void ul_gI_f()	{ t46_ul = f + 1; }
+    void ul_gI_d()	{ t46_ul = d + 1; }
+    void ul_gI_v()	{ t46_ul = v + 1; }
+    void f_gI_i()	{ t46_f = i + 1; }
+    void f_gI_ui()	{ t46_f = ui + 1; }
+    void f_gI_l()	{ t46_f = l + 1; }
+    void f_gI_ul()	{ t46_f = ul + 1; }
+    void f_gI_f()	{ t46_f = f + 1; }
+    void f_gI_d()	{ t46_f = d + 1; }
+    void f_gI_v()	{ t46_f = v + 1; }
+    void d_gI_i()	{ t46_d = i + 1; }
+    void d_gI_ui()	{ t46_d = ui + 1; }
+    void d_gI_l()	{ t46_d = l + 1; }
+    void d_gI_ul()	{ t46_d = ul + 1; }
+    void d_gI_f()	{ t46_d = f + 1; }
+    void d_gI_d()	{ t46_d = d + 1; }
+    void d_gI_v()	{ t46_d = v + 1; }
+    void v_gI_i()	{ t46_v = i + 1; }
+    void v_gI_ui()	{ t46_v = ui + 1; }
+    void v_gI_l()	{ t46_v = l + 1; }
+    void v_gI_ul()	{ t46_v = ul + 1; }
+    void v_gI_f()	{ t46_v = f + 1; }
+    void v_gI_d()	{ t46_v = d + 1; }
+    void v_gI_v()	{ t46_v = v + 1; }
+    void x7f()		{
+	i = ui = t46_i = t46_ui = 0x7fffffff;
+	l = ul = t46_l = t46_ul = 0x7fffffffffffffff;
+	f = t46_f = 0x7f.0;
+	d = t46_d = 0x7fff.0;
+	v = t46_v = 0x7fffffffffffffffffffffff;
+    }
+    void c_x7f()	{
+	i = ui = 0x7fffffff;
+	l = ul = 0x7fffffffffffffff;
+	f = 0x7f.0;
+	d = 0x7fff.0;
+	v = 0x7fffffffffffffffffffffff;
+    }
+    void g_x7f()	{
+	t46_i = t46_ui = 0x7fffffff;
+	t46_l = t46_ul = 0x7fffffffffffffff;
+	t46_f = 0x7f.0;
+	t46_d = 0x7fff.0;
+	t46_v = 0x7fffffffffffffffffffffff;
+    }
+    void c_x80()	{
+	i = ui = 0x80000000;
+	l = ul = 0x8000000000000000;
+	f = 0x80.0;
+	d = 0x8000.0;
+	v = 0x800000000000000000000000;
+    }
+    void g_x80()	{
+	t46_i = t46_ui = 0x80000000;
+	t46_l = t46_ul = 0x8000000000000000;
+	t46_f = 0x80.0;
+	t46_d = 0x8000.0;
+	t46_v = 0x800000000000000000000000;
+    }
+    void c_x81()	{
+	i = ui = 0x80000001;
+	l = ul = 0x8000000000000001;
+	f = 0x81.0;
+	d = 0x8001.0;
+	v = 0x800000000000000000000001;
+    }
+    void g_x81()	{
+	t46_i = t46_ui = 0x80000001;
+	t46_l = t46_ul = 0x8000000000000001;
+	t46_f = 0x81.0;
+	t46_d = 0x8001.0;
+	t46_v = 0x800000000000000000000001;
+    }
+    void t0(int32_t xi, uint32_t xui, int64_t xl, uint64_t xul,
+	    float32_t xf, float64_t xd, auto xv) {
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	i_Ag_i();
+	if (i != -0x00000002)		print("error %d\n", __LINE__);
+	i_Ag_ui();
+	if (i !=  0x7fffffff)		print("error %d\n", __LINE__);
+	i_Ag_l();
+	if (i !=  0x7ffffffe)		print("error %d\n", __LINE__);
+	i_Ag_ul();
+	if (i !=  0x7fffffff)		print("error %d\n", __LINE__);
+	i_Ag_f();
+	if (i == -0x80000000) {
+	    i_Ag_d();
+	    if (i != -0x7f000000)	print("error %d\n", __LINE__);
+	    i_Ag_v();
+	    if (i != -0x7f000001)	print("error %d\n", __LINE__);
+	}
+	else if (i == 0x7fffffff) {
+	    i_Ag_d();
+	    if (i != 0x7fffffff)	print("error %d\n", __LINE__);
+	    i_Ag_v();
+	    if (i != 0x7ffffffe)	print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	ui_Ag_i();
+	if (ui != 0x00000000)		print("error %d\n", __LINE__);
+	ui_Ag_ui();
+	if (ui != 0x80000001)		print("error %d\n", __LINE__);
+	ui_Ag_l();
+	if (ui != 0x80000000)		print("error %d\n", __LINE__);
+	ui_Ag_ul();
+	if (ui != 0x80000001)		print("error %d\n", __LINE__);
+	ui_Ag_f();
+	if (ui == 0x80000000) {
+	    ui_Ag_d();
+	    if (ui != 0x80000000)	print("error %d\n", __LINE__);
+	    ui_Ag_v();
+	    if (ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	}
+	else if (ui == 0x7fffffff) {
+	    ui_Ag_d();
+	    if (ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	    ui_Ag_v();
+	    if (ui != 0x7ffffffe)	print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	l_Ag_i();
+	if (l != -0x7fffffff80000002)	print("error %d\n", __LINE__);
+	l_Ag_ui();
+	if (l != -0x7fffffff00000001)	print("error %d\n", __LINE__);
+	l_Ag_l();
+	if (l !=  0x00000000fffffffe)	print("error %d\n", __LINE__);
+	l_Ag_ul();
+	if (l != -0x7fffffff00000001)	print("error %d\n", __LINE__);
+	l_Ag_f();
+	if (l != -0x7fffffff00000000)	print("error %d\n", __LINE__);
+	l_Ag_d();
+	if (l != -0x7ffffffeff000000)	print("error %d\n", __LINE__);
+	l_Ag_v();
+	if (l !=  0x1000000100ffffff)	print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	ul_Ag_i();
+	if (ul != 0x8000000080000000)	print("error %d\n", __LINE__);
+	ul_Ag_ui();
+	if (ul != 0x8000000100000001)	print("error %d\n", __LINE__);
+	ul_Ag_l();
+	if (ul != 0x0000000100000000)	print("error %d\n", __LINE__);
+	ul_Ag_ul();
+	if (ul != 0x8000000100000001)	print("error %d\n", __LINE__);
+	ul_Ag_f();
+	if (ul == 0x8000000000000000) {
+	    ul_Ag_d();
+	    if (ul != 0x8000000000000000)print("error %d\n", __LINE__);
+	    ul_Ag_v();
+	    if (ul != 0x0fffffffffffffff)print("error %d\n", __LINE__);
+	}
+	else if (ul == 0x8000000100000000) {
+	    ul_Ag_d();
+	    if (ul != 0x8000000101000000)print("error %d\n", __LINE__);
+	    ul_Ag_v();
+	    if (ul != 0x1000000100ffffff)print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	f_Ag_i();
+	if (f != 0x00000000080000100.0)	print("error %d\n", __LINE__);
+	f_Ag_ui();
+	if (f != 0x00000000100000200.0)	print("error %d\n", __LINE__);
+	f_Ag_l();
+	if (f != 0x08000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ag_ul();
+	if (f != 0x10000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ag_f();
+	if (f != 0x10000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ag_d();
+	if (f != 0x10000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ag_v();
+	if (f != 0x19000000000000000.0)	print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	d_Ag_i();
+	if (d != 0x00000000080ffffff.0)	print("error %d\n", __LINE__);
+	d_Ag_ui();
+	if (d != 0x00000000101000000.0)	print("error %d\n", __LINE__);
+	d_Ag_l();
+	if (d != 0x08000000101000000.0)	print("error %d\n", __LINE__);
+	d_Ag_ul();
+	if (d != 0x10000000101000000.0)	print("error %d\n", __LINE__);
+	d_Ag_f();
+	if (d != 0x10000000101000000.0)	print("error %d\n", __LINE__);
+	d_Ag_d();
+	if (d != 0x10000000102000000.0)	print("error %d\n", __LINE__);
+	d_Ag_v();
+	if (d != 0x19000000102000000.0)	print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	v_Ag_i();
+	if (v != 0x0900000007ffffffe  )	print("error %d\n", __LINE__);
+	v_Ag_ui();
+	if (v != 0x090000000ffffffff  )	print("error %d\n", __LINE__);
+	v_Ag_l();
+	if (v != 0x110000000fffffffe  )	print("error %d\n", __LINE__);
+	v_Ag_ul();
+	if (v != 0x190000000ffffffff  )	print("error %d\n", __LINE__);
+	v_Ag_f();
+	if (v != 0x190000000fffff000.0)	print("error %d\n", __LINE__);
+	v_Ag_d();
+	if (v != 0x19000000100fff000.0)	print("error %d\n", __LINE__);
+	v_Ag_v();
+	if (v != 0x22000000100ffe000.0)	print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	i_gA_i();
+	if (t46_i != -0x00000002)	print("error %d\n", __LINE__);
+	i_gA_ui();
+	if (t46_i !=  0x7fffffff)	print("error %d\n", __LINE__);
+	i_gA_l();
+	if (t46_i !=  0x7ffffffe)	print("error %d\n", __LINE__);
+	i_gA_ul();
+	if (t46_i !=  0x7fffffff)	print("error %d\n", __LINE__);
+	i_gA_f();
+	if (t46_i == -0x80000000) {
+	    i_gA_d();
+	    if (t46_i != -0x7f000000)	print("error %d\n", __LINE__);
+	    i_gA_v();
+	    if (t46_i != -0x7f000001)	print("error %d\n", __LINE__);
+	}
+	else if (t46_i == 0x7fffffff) {
+	    i_gA_d();
+	    if (t46_i != 0x7fffffff)	print("error %d\n", __LINE__);
+	    i_gA_v();
+	    if (t46_i != 0x7ffffffe)	print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	ui_gA_i();
+	if (t46_ui != 0x00000000)	print("error %d\n", __LINE__);
+	ui_gA_ui();
+	if (t46_ui != 0x80000001)	print("error %d\n", __LINE__);
+	ui_gA_l();
+	if (t46_ui != 0x80000000)	print("error %d\n", __LINE__);
+	ui_gA_ul();
+	if (t46_ui != 0x80000001)	print("error %d\n", __LINE__);
+	ui_gA_f();
+	if (t46_ui == 0x80000000) {
+	    ui_gA_d();
+	    if (t46_ui != 0x80000000)	print("error %d\n", __LINE__);
+	    ui_gA_v();
+	    if (t46_ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	}
+	else if (t46_ui == 0x7fffffff) {
+	    ui_gA_d();
+	    if (t46_ui != 0x7fffffff)	print("error %d\n", __LINE__);
+	    ui_gA_v();
+	    if (t46_ui != 0x7ffffffe)	print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	l_gA_i();
+	if (t46_l != -0x7fffffff80000002)print("error %d\n", __LINE__);
+	l_gA_ui();
+	if (t46_l != -0x7fffffff00000001)print("error %d\n", __LINE__);
+	l_gA_l();
+	if (t46_l !=  0x00000000fffffffe)print("error %d\n", __LINE__);
+	l_gA_ul();
+	if (t46_l != -0x7fffffff00000001)print("error %d\n", __LINE__);
+	l_gA_f();
+	if (t46_l != -0x7fffffff00000000)print("error %d\n", __LINE__);
+	l_gA_d();
+	if (t46_l != -0x7ffffffeff000000)print("error %d\n", __LINE__);
+	l_gA_v();
+	if (t46_l !=  0x1000000100ffffff)print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	ul_gA_i();
+	if (t46_ul != 0x8000000080000000)print("error %d\n", __LINE__);
+	ul_gA_ui();
+	if (t46_ul != 0x8000000100000001)print("error %d\n", __LINE__);
+	ul_gA_l();
+	if (t46_ul != 0x0000000100000000)print("error %d\n", __LINE__);
+	ul_gA_ul();
+	if (t46_ul != 0x8000000100000001)print("error %d\n", __LINE__);
+	ul_gA_f();
+	if (t46_ul == 0x8000000000000000) {
+	    ul_gA_d();
+	    if (t46_ul != 0x8000000000000000)print("error %d\n", __LINE__);
+	    ul_gA_v();
+	    if (t46_ul != 0x0fffffffffffffff)print("error %d\n", __LINE__);
+	}
+	else if (t46_ul == 0x8000000100000000) {
+	    ul_gA_d();
+	    if (t46_ul != 0x8000000101000000)print("error %d\n", __LINE__);
+	    ul_gA_v();
+	    if (t46_ul != 0x1000000100ffffff)print("error %d\n", __LINE__);
+	}
+	else				print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	f_gA_i();
+	if (t46_f != 0x00000000080000100.0)print("error %d\n", __LINE__);
+	f_gA_ui();
+	if (t46_f != 0x00000000100000200.0)print("error %d\n", __LINE__);
+	f_gA_l();
+	if (t46_f != 0x08000000000000000.0)print("error %d\n", __LINE__);
+	f_gA_ul();
+	if (t46_f != 0x10000000000000000.0)print("error %d\n", __LINE__);
+	f_gA_f();
+	if (t46_f != 0x10000000000000000.0)print("error %d\n", __LINE__);
+	f_gA_d();
+	if (t46_f != 0x10000000000000000.0)print("error %d\n", __LINE__);
+	f_gA_v();
+	if (t46_f != 0x19000000000000000.0)print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	d_gA_i();
+	if (t46_d != 0x00000000080ffffff.0)print("error %d\n", __LINE__);
+	d_gA_ui();
+	if (t46_d != 0x00000000101000000.0)print("error %d\n", __LINE__);
+	d_gA_l();
+	if (t46_d != 0x08000000101000000.0)print("error %d\n", __LINE__);
+	d_gA_ul();
+	if (t46_d != 0x10000000101000000.0)print("error %d\n", __LINE__);
+	d_gA_f();
+	if (t46_d != 0x10000000101000000.0)print("error %d\n", __LINE__);
+	d_gA_d();
+	if (t46_d != 0x10000000102000000.0)print("error %d\n", __LINE__);
+	d_gA_v();
+	if (t46_d != 0x19000000102000000.0)print("error %d\n", __LINE__);
+	i = t46_i = xi;		ui = t46_ui = xui;
+	l = t46_l = xl;		ul = t46_ul = xul;
+	f = t46_f = xf;		d = t46_d = xd;
+	v = t46_v = xv;
+	v_gA_i();
+	if (t46_v != 0x0900000007ffffffe  )print("error %d\n", __LINE__);
+	v_gA_ui();
+	if (t46_v != 0x090000000ffffffff  )print("error %d\n", __LINE__);
+	v_gA_l();
+	if (t46_v != 0x110000000fffffffe  )print("error %d\n", __LINE__);
+	v_gA_ul();
+	if (t46_v != 0x190000000ffffffff  )print("error %d\n", __LINE__);
+	v_gA_f();
+	if (t46_v != 0x190000000fffff000.0)print("error %d\n", __LINE__);
+	v_gA_d();
+	if (t46_v != 0x19000000100fff000.0)print("error %d\n", __LINE__);
+	v_gA_v();
+	if (t46_v != 0x22000000100ffe000.0)print("error %d\n", __LINE__);
+    }
+    void t1() {
+	x7f();
+	i_I_i();
+	if (i != -0x80000000)		print("error %d\n", __LINE__);
+	i_I_ui();
+	if (i != -0x80000000)		print("error %d\n", __LINE__);
+	i_I_l();
+	if (i !=  0)			print("error %d\n", __LINE__);
+	i_I_ul();
+	if (i !=  0)			print("error %d\n", __LINE__);
+	i_I_f();
+	if (i !=  0x80)			print("error %d\n", __LINE__);
+	i_I_d();
+	if (i !=  0x8000)		print("error %d\n", __LINE__);
+	i_I_v();
+	if (i !=  0x00000000)		print("error %d\n", __LINE__);
+	x7f();
+	ui_I_i();
+	if (ui != 0x80000000)		print("error %d\n", __LINE__);
+	x7f();
+	ui_I_ui();
+	if (ui != 0x80000000)		print("error %d\n", __LINE__);
+	ui_I_l();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	ui_I_ul();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	ui_I_f();
+	if (ui != 0x80)			print("error %d\n", __LINE__);
+	ui_I_d();
+	if (ui != 0x8000)		print("error %d\n", __LINE__);
+	ui_I_v();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	x7f();
+	l_I_i();
+	if (l !=  0x80000000)		print("error %d\n", __LINE__);
+	l_I_ui();
+	if (l !=  0x80000000)		print("error %d\n", __LINE__);
+	x7f();
+	l_I_l();
+	if (l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_I_ul();
+	if (l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_I_f();
+	if (l !=  0x80)			print("error %d\n", __LINE__);
+	l_I_d();
+	if (l !=  0x8000)		print("error %d\n", __LINE__);
+	l_I_v();
+	if (l !=  0)			print("error %d\n", __LINE__);
+	x7f();
+	ul_I_i();
+	if (ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_I_ui();
+	if (ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_I_l();
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	x7f();
+	ul_I_ul();
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_I_f();
+	if (ul != 0x80)			print("error %d\n", __LINE__);
+	ul_I_d();
+	if (ul != 0x8000)		print("error %d\n", __LINE__);
+	ul_I_v();
+	if (ul != 0)		print("error %d\n", __LINE__);
+	x7f();
+	f_I_i();
+	if (f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_I_ui();
+	if (f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_I_l();
+	if (f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	f_I_ul();
+	if (f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	x7f();
+	f_I_f();
+	if (f != 0x80.0)		print("error %d\n", __LINE__);
+	f_I_d();
+	if (f != 0x8000.0)		print("error %d\n", __LINE__);
+	f_I_v();
+	if (f != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	x7f();
+	d_I_i();
+	if (d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_I_ui();
+	if (d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_I_l();
+	if (d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_I_ul();
+	if (d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_I_f();
+	if (d != 0x80.0)		print("error %d\n", __LINE__);
+	x7f();
+	d_I_d();
+	if (d != 0x8000.0)		print("error %d\n", __LINE__);
+	d_I_v();
+	if (d != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	x7f();
+	v_I_i();
+	if (v != 0x80000000)		print("error %d\n", __LINE__);
+	v_I_ui();
+	if (v != 0x80000000)		print("error %d\n", __LINE__);
+	v_I_l();
+	if (v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_I_ul();
+	if (v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_I_f();
+	if (v != 0x80.0)		print("error %d\n", __LINE__);
+	v_I_d();
+	if (v != 0x8000.0)		print("error %d\n", __LINE__);
+	x7f();
+	v_I_v();
+	if (v != 0x800000000000000000000000)
+	    print("error %d\n", __LINE__);
+	i_Ig_i();
+	if (i != -0x80000000)		print("error %d\n", __LINE__);
+	i_Ig_ui();
+	if (i != -0x80000000)		print("error %d\n", __LINE__);
+	i_Ig_l();
+	if (i !=  0)			print("error %d\n", __LINE__);
+	i_Ig_ul();
+	if (i !=  0)			print("error %d\n", __LINE__);
+	i_Ig_f();
+	if (i !=  0x80)			print("error %d\n", __LINE__);
+	i_Ig_d();
+	if (i !=  0x8000)		print("error %d\n", __LINE__);
+	i_Ig_v();
+	if (i !=  0x00000000)		print("error %d\n", __LINE__);
+	ui_Ig_i();
+	if (ui != 0x80000000)		print("error %d\n", __LINE__);
+	ui_Ig_ui();
+	if (ui != 0x80000000)		print("error %d\n", __LINE__);
+	ui_Ig_l();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	ui_Ig_ul();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	ui_Ig_f();
+	if (ui != 0x80)			print("error %d\n", __LINE__);
+	ui_Ig_d();
+	if (ui != 0x8000)		print("error %d\n", __LINE__);
+	ui_Ig_v();
+	if (ui != 0)			print("error %d\n", __LINE__);
+	l_Ig_i();
+	if (l !=  0x80000000)		print("error %d\n", __LINE__);
+	l_Ig_ui();
+	if (l !=  0x80000000)		print("error %d\n", __LINE__);
+	l_Ig_l();
+	if (l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_Ig_ul();
+	if (l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_Ig_f();
+	if (l !=  0x80)			print("error %d\n", __LINE__);
+	l_Ig_d();
+	if (l !=  0x8000)		print("error %d\n", __LINE__);
+	l_Ig_v();
+	if (l !=  0)			print("error %d\n", __LINE__);
+	ul_Ig_i();
+	if (ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_Ig_ui();
+	if (ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_Ig_l();
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_Ig_ul();
+	if (ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_Ig_f();
+	if (ul != 0x80)			print("error %d\n", __LINE__);
+	ul_Ig_d();
+	if (ul != 0x8000)		print("error %d\n", __LINE__);
+	ul_Ig_v();
+	if (ul != 0)		print("error %d\n", __LINE__);
+	f_Ig_i();
+	if (f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_Ig_ui();
+	if (f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_Ig_l();
+	if (f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ig_ul();
+	if (f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	f_Ig_f();
+	if (f != 0x80.0)		print("error %d\n", __LINE__);
+	f_Ig_d();
+	if (f != 0x8000.0)		print("error %d\n", __LINE__);
+	f_Ig_v();
+	if (f != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	d_Ig_i();
+	if (d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_Ig_ui();
+	if (d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_Ig_l();
+	if (d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_Ig_ul();
+	if (d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_Ig_f();
+	if (d != 0x80.0)		print("error %d\n", __LINE__);
+	d_Ig_d();
+	if (d != 0x8000.0)		print("error %d\n", __LINE__);
+	d_Ig_v();
+	if (d != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	v_Ig_i();
+	if (v != 0x80000000)		print("error %d\n", __LINE__);
+	v_Ig_ui();
+	if (v != 0x80000000)		print("error %d\n", __LINE__);
+	v_Ig_l();
+	if (v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_Ig_ul();
+	if (v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_Ig_f();
+	if (v != 0x80.0)		print("error %d\n", __LINE__);
+	v_Ig_d();
+	if (v != 0x8000.0)		print("error %d\n", __LINE__);
+	v_Ig_v();
+	if (v != 0x800000000000000000000000)
+	    print("error %d\n", __LINE__);
+	x7f();
+	i_gI_i();
+	if (t46_i != -0x80000000)	print("error %d\n", __LINE__);
+	i_gI_ui();
+	if (t46_i != -0x80000000)	print("error %d\n", __LINE__);
+	i_gI_l();
+	if (t46_i !=  0)		print("error %d\n", __LINE__);
+	i_gI_ul();
+	if (t46_i !=  0)		print("error %d\n", __LINE__);
+	i_gI_f();
+	if (t46_i !=  0x80)		print("error %d\n", __LINE__);
+	i_gI_d();
+	if (t46_i !=  0x8000)		print("error %d\n", __LINE__);
+	i_gI_v();
+	if (t46_i !=  0x00000000)	print("error %d\n", __LINE__);
+	ui_gI_i();
+	if (t46_ui != 0x80000000)	print("error %d\n", __LINE__);
+	ui_gI_ui();
+	if (t46_ui != 0x80000000)	print("error %d\n", __LINE__);
+	ui_gI_l();
+	if (t46_ui != 0)		print("error %d\n", __LINE__);
+	ui_gI_ul();
+	if (t46_ui != 0)		print("error %d\n", __LINE__);
+	ui_gI_f();
+	if (t46_ui != 0x80)		print("error %d\n", __LINE__);
+	ui_gI_d();
+	if (t46_ui != 0x8000)		print("error %d\n", __LINE__);
+	ui_gI_v();
+	if (t46_ui != 0)		print("error %d\n", __LINE__);
+	l_gI_i();
+	if (t46_l !=  0x80000000)		print("error %d\n", __LINE__);
+	l_gI_ui();
+	if (t46_l !=  0x80000000)		print("error %d\n", __LINE__);
+	l_gI_l();
+	if (t46_l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_gI_ul();
+	if (t46_l != -0x8000000000000000)	print("error %d\n", __LINE__);
+	l_gI_f();
+	if (t46_l !=  0x80)			print("error %d\n", __LINE__);
+	l_gI_d();
+	if (t46_l !=  0x8000)			print("error %d\n", __LINE__);
+	l_gI_v();
+	if (t46_l !=  0)			print("error %d\n", __LINE__);
+	ul_gI_i();
+	if (t46_ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_gI_ui();
+	if (t46_ul != 0x80000000)		print("error %d\n", __LINE__);
+	ul_gI_l();
+	if (t46_ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_gI_ul();
+	if (t46_ul != 0x8000000000000000)	print("error %d\n", __LINE__);
+	ul_gI_f();
+	if (t46_ul != 0x80)			print("error %d\n", __LINE__);
+	ul_gI_d();
+	if (t46_ul != 0x8000)			print("error %d\n", __LINE__);
+	ul_gI_v();
+	if (t46_ul != 0)			print("error %d\n", __LINE__);
+	f_gI_i();
+	if (t46_f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_gI_ui();
+	if (t46_f != 0x80000000.0)		print("error %d\n", __LINE__);
+	f_gI_l();
+	if (t46_f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	f_gI_ul();
+	if (t46_f != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	f_gI_f();
+	if (t46_f != 0x80.0)			print("error %d\n", __LINE__);
+	f_gI_d();
+	if (t46_f != 0x8000.0)			print("error %d\n", __LINE__);
+	f_gI_v();
+	if (t46_f != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	d_gI_i();
+	if (t46_d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_gI_ui();
+	if (t46_d != 0x80000000.0)		print("error %d\n", __LINE__);
+	d_gI_l();
+	if (t46_d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_gI_ul();
+	if (t46_d != 0x8000000000000000.0)	print("error %d\n", __LINE__);
+	d_gI_f();
+	if (t46_d != 0x80.0)			print("error %d\n", __LINE__);
+	d_gI_d();
+	if (t46_d != 0x8000.0)			print("error %d\n", __LINE__);
+	d_gI_v();
+	if (t46_d != 0x800000000000000000000000.0)
+	    print("error %d\n", __LINE__);
+	v_gI_i();
+	if (t46_v != 0x80000000)		print("error %d\n", __LINE__);
+	v_gI_ui();
+	if (t46_v != 0x80000000)		print("error %d\n", __LINE__);
+	v_gI_l();
+	if (t46_v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_gI_ul();
+	if (t46_v != 0x8000000000000000)	print("error %d\n", __LINE__);
+	v_gI_f();
+	if (t46_v != 0x80.0)			print("error %d\n", __LINE__);
+	v_gI_d();
+	if (t46_v != 0x8000.0)			print("error %d\n", __LINE__);
+	v_gI_v();
+	if (t46_v != 0x800000000000000000000000)
+	    print("error %d\n", __LINE__);
+    }
+    void t2(int32_t i7f, uint32_t ui7f,	int64_t l7f, uint64_t ul7f,
+	    float32_t f7f, float64_t d7f, auto v7f,
+	    int32_t i80, uint32_t ui80,	int64_t l80, uint64_t ul80,
+	    float32_t f80, float64_t d80, auto v80,
+	    int32_t i81, uint32_t ui81,	int64_t l81, uint64_t ul81,
+	    float32_t f81, float64_t d81, auto v81) {
+	int32_t		xi;	uint32_t	xui;
+	int64_t		xl;	uint64_t	xul;
+	float32_t	xf;	float64_t	xd;
+	auto		xv;
+	c_x7f();	g_x80();
+	if (i != i)		print("error %d\n", __LINE__);
+	if (i != ui)		print("error %d\n", __LINE__);
+	if (i >= l)		print("error %d\n", __LINE__);
+	if (i >= ul)		print("error %d\n", __LINE__);
+	if (i <= f)		print("error %d\n", __LINE__);
+	if (i <= d)		print("error %d\n", __LINE__);
+	if (i >= v)		print("error %d\n", __LINE__);
+	if (i != i7f)		print("error %d\n", __LINE__);
+	if (i != ui7f)		print("error %d\n", __LINE__);
+	if (i >= l7f)		print("error %d\n", __LINE__);
+	if (i >= ul7f)		print("error %d\n", __LINE__);
+	if (i <= f7f)		print("error %d\n", __LINE__);
+	if (i <= d7f)		print("error %d\n", __LINE__);
+	if (i >= v7f)		print("error %d\n", __LINE__);
+	if (i <= t46_i)		print("error %d\n", __LINE__);
+	if (i >= t46_ui)	print("error %d\n", __LINE__);
+	if (i <= t46_l)		print("error %d\n", __LINE__);
+	if (i >= t46_ul)	print("error %d\n", __LINE__);
+	if (i <= t46_f)		print("error %d\n", __LINE__);
+	if (i <= t46_d)		print("error %d\n", __LINE__);
+	if (i >= t46_v)		print("error %d\n", __LINE__);
+	if (i <= i80)		print("error %d\n", __LINE__);
+	if (i >= ui80)		print("error %d\n", __LINE__);
+	if (i <= l80)		print("error %d\n", __LINE__);
+	if (i >= ul80)		print("error %d\n", __LINE__);
+	if (i <= f80)		print("error %d\n", __LINE__);
+	if (i <= d80)		print("error %d\n", __LINE__);
+	if (i >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (i != i)		print("error %d\n", __LINE__);
+	if (i == ui)		print("error %d\n", __LINE__);
+	if (i <= l)		print("error %d\n", __LINE__);
+	if (i >= ul)		print("error %d\n", __LINE__);
+	if (i >= f)		print("error %d\n", __LINE__);
+	if (i >= d)		print("error %d\n", __LINE__);
+	if (i >= v)		print("error %d\n", __LINE__);
+	if (i != i80)		print("error %d\n", __LINE__);
+	if (i == ui80)		print("error %d\n", __LINE__);
+	if (i <= l80)		print("error %d\n", __LINE__);
+	if (i >= ul80)		print("error %d\n", __LINE__);
+	if (i >= f80)		print("error %d\n", __LINE__);
+	if (i >= d80)		print("error %d\n", __LINE__);
+	if (i >= v80)		print("error %d\n", __LINE__);
+	if (i >= t46_i)		print("error %d\n", __LINE__);
+	if (i >= t46_ui)	print("error %d\n", __LINE__);
+	if (i <= t46_l)		print("error %d\n", __LINE__);
+	if (i >= t46_ul)	print("error %d\n", __LINE__);
+	if (i >= t46_f)		print("error %d\n", __LINE__);
+	if (i >= t46_d)		print("error %d\n", __LINE__);
+	if (i >= t46_v)		print("error %d\n", __LINE__);
+	if (i >= i81)		print("error %d\n", __LINE__);
+	if (i >= ui81)		print("error %d\n", __LINE__);
+	if (i <= l81)		print("error %d\n", __LINE__);
+	if (i >= ul81)		print("error %d\n", __LINE__);
+	if (i >= f81)		print("error %d\n", __LINE__);
+	if (i >= d81)		print("error %d\n", __LINE__);
+	if (i >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (ui != i)		print("error %d\n", __LINE__);
+	if (ui != ui)		print("error %d\n", __LINE__);
+	if (ui >= l)		print("error %d\n", __LINE__);
+	if (ui >= ul)		print("error %d\n", __LINE__);
+	if (ui <= f)		print("error %d\n", __LINE__);
+	if (ui <= d)		print("error %d\n", __LINE__);
+	if (ui >= v)		print("error %d\n", __LINE__);
+	if (ui != i7f)		print("error %d\n", __LINE__);
+	if (ui != ui7f)		print("error %d\n", __LINE__);
+	if (ui >= l7f)		print("error %d\n", __LINE__);
+	if (ui >= ul7f)		print("error %d\n", __LINE__);
+	if (ui <= f7f)		print("error %d\n", __LINE__);
+	if (ui <= d7f)		print("error %d\n", __LINE__);
+	if (ui >= v7f)		print("error %d\n", __LINE__);
+	if (ui <= t46_i)	print("error %d\n", __LINE__);
+	if (ui >= t46_ui)	print("error %d\n", __LINE__);
+	if (ui <= t46_l)	print("error %d\n", __LINE__);
+	if (ui >= t46_ul)	print("error %d\n", __LINE__);
+	if (ui <= t46_f)	print("error %d\n", __LINE__);
+	if (ui <= t46_d)	print("error %d\n", __LINE__);
+	if (ui >= t46_v)	print("error %d\n", __LINE__);
+	if (ui <= i80)		print("error %d\n", __LINE__);
+	if (ui >= ui80)		print("error %d\n", __LINE__);
+	if (ui <= l80)		print("error %d\n", __LINE__);
+	if (ui >= ul80)		print("error %d\n", __LINE__);
+	if (ui <= f80)		print("error %d\n", __LINE__);
+	if (ui <= d80)		print("error %d\n", __LINE__);
+	if (ui >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (ui == i)		print("error %d\n", __LINE__);
+	if (ui != ui)		print("error %d\n", __LINE__);
+	if (ui <= l)		print("error %d\n", __LINE__);
+	if (ui >= ul)		print("error %d\n", __LINE__);
+	if (ui <= f)		print("error %d\n", __LINE__);
+	if (ui <= d)		print("error %d\n", __LINE__);
+	if (ui >= v)		print("error %d\n", __LINE__);
+	if (ui == i80)		print("error %d\n", __LINE__);
+	if (ui != ui80)		print("error %d\n", __LINE__);
+	if (ui <= l80)		print("error %d\n", __LINE__);
+	if (ui >= ul80)		print("error %d\n", __LINE__);
+	if (ui <= f80)		print("error %d\n", __LINE__);
+	if (ui <= d80)		print("error %d\n", __LINE__);
+	if (ui >= v80)		print("error %d\n", __LINE__);
+	if (ui <= t46_i)	print("error %d\n", __LINE__);
+	if (ui >= t46_ui)	print("error %d\n", __LINE__);
+	if (ui <= t46_l)	print("error %d\n", __LINE__);
+	if (ui >= t46_ul)	print("error %d\n", __LINE__);
+	if (ui <= t46_f)	print("error %d\n", __LINE__);
+	if (ui <= t46_d)	print("error %d\n", __LINE__);
+	if (ui >= t46_v)	print("error %d\n", __LINE__);
+	if (ui <= i81)		print("error %d\n", __LINE__);
+	if (ui >= ui81)		print("error %d\n", __LINE__);
+	if (ui <= l81)		print("error %d\n", __LINE__);
+	if (ui >= ul81)		print("error %d\n", __LINE__);
+	if (ui <= f81)		print("error %d\n", __LINE__);
+	if (ui <= d81)		print("error %d\n", __LINE__);
+	if (ui >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (l <= i)		print("error %d\n", __LINE__);
+	if (l <= ui)		print("error %d\n", __LINE__);
+	if (l != l)		print("error %d\n", __LINE__);
+	if (l > ul)		print("error %d\n", __LINE__);
+	if (l <= f)		print("error %d\n", __LINE__);
+	if (l <= d)		print("error %d\n", __LINE__);
+	if (l >= v)		print("error %d\n", __LINE__);
+	if (l <= i7f)		print("error %d\n", __LINE__);
+	if (l <= ui7f)		print("error %d\n", __LINE__);
+	if (l != l7f)		print("error %d\n", __LINE__);
+	if (l > ul7f)		print("error %d\n", __LINE__);
+	if (l <= f7f)		print("error %d\n", __LINE__);
+	if (l <= d7f)		print("error %d\n", __LINE__);
+	if (l >= v7f)		print("error %d\n", __LINE__);
+	if (l <= t46_i)		print("error %d\n", __LINE__);
+	if (l <= t46_ui)	print("error %d\n", __LINE__);
+	if (l <= t46_l)		print("error %d\n", __LINE__);
+	if (l >= t46_ul)	print("error %d\n", __LINE__);
+	if (l <= t46_f)		print("error %d\n", __LINE__);
+	if (l <= t46_d)		print("error %d\n", __LINE__);
+	if (l >= t46_v)		print("error %d\n", __LINE__);
+	if (l <= i80)		print("error %d\n", __LINE__);
+	if (l <= ui80)		print("error %d\n", __LINE__);
+	if (l <= l80)		print("error %d\n", __LINE__);
+	if (l >= ul80)		print("error %d\n", __LINE__);
+	if (l <= f80)		print("error %d\n", __LINE__);
+	if (l <= d80)		print("error %d\n", __LINE__);
+	if (l >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (l >= i)		print("error %d\n", __LINE__);
+	if (l >= ui)		print("error %d\n", __LINE__);
+	if (l != l)		print("error %d\n", __LINE__);
+	if (l >= ul)		print("error %d\n", __LINE__);
+	if (l >= f)		print("error %d\n", __LINE__);
+	if (l >= d)		print("error %d\n", __LINE__);
+	if (l >= v)		print("error %d\n", __LINE__);
+	if (l >= i80)		print("error %d\n", __LINE__);
+	if (l == ui80)		print("error %d\n", __LINE__);
+	if (l != l80)		print("error %d\n", __LINE__);
+	if (l >= ul80)		print("error %d\n", __LINE__);
+	if (l >= f80)		print("error %d\n", __LINE__);
+	if (l >= d80)		print("error %d\n", __LINE__);
+	if (l >= v80)		print("error %d\n", __LINE__);
+	if (l >= t46_i)		print("error %d\n", __LINE__);
+	if (l >= t46_ui)	print("error %d\n", __LINE__);
+	if (l >= t46_l)		print("error %d\n", __LINE__);
+	if (l >= t46_ul)	print("error %d\n", __LINE__);
+	if (l >= t46_f)		print("error %d\n", __LINE__);
+	if (l >= t46_d)		print("error %d\n", __LINE__);
+	if (l >= t46_v)		print("error %d\n", __LINE__);
+	if (l >= i81)		print("error %d\n", __LINE__);
+	if (l >= ui81)		print("error %d\n", __LINE__);
+	if (l >= l81)		print("error %d\n", __LINE__);
+	if (l >= ul81)		print("error %d\n", __LINE__);
+	if (l >= f81)		print("error %d\n", __LINE__);
+	if (l >= d81)		print("error %d\n", __LINE__);
+	if (l >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (ul <= i)		print("error %d\n", __LINE__);
+	if (ul <= ui)		print("error %d\n", __LINE__);
+	if (ul != l)		print("error %d\n",__LINE__);
+	if (ul != ul)		print("error %d\n", __LINE__);
+	if (ul <= f)		print("error %d\n", __LINE__);
+	if (ul <= d)		print("error %d\n", __LINE__);
+	if (ul >= v)		print("error %d\n", __LINE__);
+	if (ul <= i7f)		print("error %d\n", __LINE__);
+	if (ul <= ui7f)		print("error %d\n", __LINE__);
+	if (ul != l7f)		print("error %d\n", __LINE__);
+	if (ul != ul7f)		print("error %d\n", __LINE__);
+	if (ul <= f7f)		print("error %d\n", __LINE__);
+	if (ul <= d7f)		print("error %d\n", __LINE__);
+	if (ul >= v7f)		print("error %d\n", __LINE__);
+	if (ul <= t46_i)	print("error %d\n", __LINE__);
+	if (ul <= t46_ui)	print("error %d\n", __LINE__);
+	if (ul <= t46_l)	print("error %d\n", __LINE__);
+	if (ul >= t46_ul)	print("error %d\n", __LINE__);
+	if (ul <= t46_f)	print("error %d\n", __LINE__);
+	if (ul <= t46_d)	print("error %d\n", __LINE__);
+	if (ul >= t46_v)	print("error %d\n", __LINE__);
+	if (ul <= i80)		print("error %d\n", __LINE__);
+	if (ul <= ui80)		print("error %d\n", __LINE__);
+	if (ul <= l80)		print("error %d\n", __LINE__);
+	if (ul >= ul80)		print("error %d\n", __LINE__);
+	if (ul <= f80)		print("error %d\n", __LINE__);
+	if (ul <= d80)		print("error %d\n", __LINE__);
+	if (ul >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (ul == i)		print("error %d\n", __LINE__);
+	if (ul == ui)		print("error %d\n", __LINE__);
+	if (ul <= l)		print("error %d\n", __LINE__);
+	if (ul != ul)		print("error %d\n", __LINE__);
+	if (ul <= f)		print("error %d\n", __LINE__);
+	if (ul <= d)		print("error %d\n", __LINE__);
+	if (ul >= v)		print("error %d\n", __LINE__);
+	if (ul == i80)		print("error %d\n", __LINE__);
+	if (ul == ui80)		print("error %d\n", __LINE__);
+	if (ul <= l80)		print("error %d\n", __LINE__);
+	if (ul != ul80)		print("error %d\n", __LINE__);
+	if (ul <= f80)		print("error %d\n", __LINE__);
+	if (ul <= d80)		print("error %d\n", __LINE__);
+	if (ul >= v80)		print("error %d\n", __LINE__);
+	if (ul <= t46_i)	print("error %d\n", __LINE__);
+	if (ul < t46_ui)	print("error %d\n", __LINE__);
+	if (ul <= t46_l)	print("error %d\n", __LINE__);
+	if (ul >= t46_ul)	print("error %d\n", __LINE__);
+	if (ul <= t46_f)	print("error %d\n", __LINE__);
+	if (ul <= t46_d)	print("error %d\n", __LINE__);
+	if (ul >= t46_v)	print("error %d\n", __LINE__);
+	if (ul <= i81)		print("error %d\n", __LINE__);
+	if (ul < ui81)		print("error %d\n", __LINE__);
+	if (ul <= l81)		print("error %d\n", __LINE__);
+	if (ul >= ul81)		print("error %d\n", __LINE__);
+	if (ul <= f81)		print("error %d\n", __LINE__);
+	if (ul <= d81)		print("error %d\n", __LINE__);
+	if (ul >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (f > i)		print("error %d\n", __LINE__);
+	if (f > ui)		print("error %d\n", __LINE__);
+	if (f >= l)		print("error %d\n", __LINE__);
+	if (f >= ul)		print("error %d\n", __LINE__);
+	if (f != f)		print("error %d\n", __LINE__);
+	if (f > d)		print("error %d\n", __LINE__);
+	if (f > v)		print("error %d\n", __LINE__);
+	if (f > i7f)		print("error %d\n", __LINE__);
+	if (f > ui7f)		print("error %d\n", __LINE__);
+	if (f >= l7f)		print("error %d\n", __LINE__);
+	if (f >= ul7f)		print("error %d\n", __LINE__);
+	if (f != f7f)		print("error %d\n", __LINE__);
+	if (f > d7f)		print("error %d\n", __LINE__);
+	if (f > v7f)		print("error %d\n", __LINE__);
+	if (f < t46_i)		print("error %d\n", __LINE__);
+	if (f > t46_ui)		print("error %d\n", __LINE__);
+	if (f < t46_l)		print("error %d\n", __LINE__);
+	if (f > t46_ul)		print("error %d\n", __LINE__);
+	if (f > t46_f)		print("error %d\n", __LINE__);
+	if (f > t46_d)		print("error %d\n", __LINE__);
+	if (f > t46_v)		print("error %d\n", __LINE__);
+	if (f < i80)		print("error %d\n", __LINE__);
+	if (f > ui80)		print("error %d\n", __LINE__);
+	if (f < l80)		print("error %d\n", __LINE__);
+	if (f > ul80)		print("error %d\n", __LINE__);
+	if (f > f80)		print("error %d\n", __LINE__);
+	if (f > d80)		print("error %d\n", __LINE__);
+	if (f > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (f < i)		print("error %d\n", __LINE__);
+	if (f > ui)		print("error %d\n", __LINE__);
+	if (f < l)		print("error %d\n", __LINE__);
+	if (f >= ul)		print("error %d\n", __LINE__);
+	if (f != f)		print("error %d\n", __LINE__);
+	if (f >= d)		print("error %d\n", __LINE__);
+	if (f >= v)		print("error %d\n", __LINE__);
+	if (f < i80)		print("error %d\n", __LINE__);
+	if (f > ui80)		print("error %d\n", __LINE__);
+	if (f < l80)		print("error %d\n", __LINE__);
+	if (f >= ul80)		print("error %d\n", __LINE__);
+	if (f != f80)		print("error %d\n", __LINE__);
+	if (f >= d80)		print("error %d\n", __LINE__);
+	if (f >= v80)		print("error %d\n", __LINE__);
+	if (f < t46_i)		print("error %d\n", __LINE__);
+	if (f >= t46_ui)	print("error %d\n", __LINE__);
+	if (f < t46_l)		print("error %d\n", __LINE__);
+	if (f >= t46_ul)	print("error %d\n", __LINE__);
+	if (f >= t46_f)		print("error %d\n", __LINE__);
+	if (f >= t46_d)		print("error %d\n", __LINE__);
+	if (f >= t46_v)		print("error %d\n", __LINE__);
+	if (f < i81)		print("error %d\n", __LINE__);
+	if (f >= ui81)		print("error %d\n", __LINE__);
+	if (f < l81)		print("error %d\n", __LINE__);
+	if (f >= ul81)		print("error %d\n", __LINE__);
+	if (f >= f81)		print("error %d\n", __LINE__);
+	if (f >= d81)		print("error %d\n", __LINE__);
+	if (f >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (d > i)		print("error %d\n", __LINE__);
+	if (d > ui)		print("error %d\n", __LINE__);
+	if (d >= l)		print("error %d\n", __LINE__);
+	if (d >= ul)		print("error %d\n", __LINE__);
+	if (d <= f)		print("error %d\n", __LINE__);
+	if (d != d)		print("error %d\n", __LINE__);
+	if (d > v)		print("error %d\n", __LINE__);
+	if (d > i7f)		print("error %d\n", __LINE__);
+	if (d > ui7f)		print("error %d\n", __LINE__);
+	if (d >= l7f)		print("error %d\n", __LINE__);
+	if (d >= ul7f)		print("error %d\n", __LINE__);
+	if (d <= f7f)		print("error %d\n", __LINE__);
+	if (d != d7f)		print("error %d\n", __LINE__);
+	if (d > v7f)		print("error %d\n", __LINE__);
+	if (d < t46_i)		print("error %d\n", __LINE__);
+	if (d > t46_ui)		print("error %d\n", __LINE__);
+	if (d < t46_l)		print("error %d\n", __LINE__);
+	if (d > t46_ul)		print("error %d\n", __LINE__);
+	if (d < t46_f)		print("error %d\n", __LINE__);
+	if (d > t46_d)		print("error %d\n", __LINE__);
+	if (d > t46_v)		print("error %d\n", __LINE__);
+	if (d < i80)		print("error %d\n", __LINE__);
+	if (d > ui80)		print("error %d\n", __LINE__);
+	if (d < l80)		print("error %d\n", __LINE__);
+	if (d > ul80)		print("error %d\n", __LINE__);
+	if (d < f80)		print("error %d\n", __LINE__);
+	if (d > d80)		print("error %d\n", __LINE__);
+	if (d > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (d < i)		print("error %d\n", __LINE__);
+	if (d > ui)		print("error %d\n", __LINE__);
+	if (d < l)		print("error %d\n", __LINE__);
+	if (d >= ul)		print("error %d\n", __LINE__);
+	if (d <= f)		print("error %d\n", __LINE__);
+	if (d != d)		print("error %d\n", __LINE__);
+	if (d >= v)		print("error %d\n", __LINE__);
+	if (d < i80)		print("error %d\n", __LINE__);
+	if (d > ui80)		print("error %d\n", __LINE__);
+	if (d < l80)		print("error %d\n", __LINE__);
+	if (d >= ul80)		print("error %d\n", __LINE__);
+	if (d <= f80)		print("error %d\n", __LINE__);
+	if (d != d80)		print("error %d\n", __LINE__);
+	if (d >= v80)		print("error %d\n", __LINE__);
+	if (d < t46_i)		print("error %d\n", __LINE__);
+	if (d >= t46_ui)	print("error %d\n", __LINE__);
+	if (d < t46_l)		print("error %d\n", __LINE__);
+	if (d >= t46_ul)	print("error %d\n", __LINE__);
+	if (d <= t46_f)		print("error %d\n", __LINE__);
+	if (d >= t46_d)		print("error %d\n", __LINE__);
+	if (d >= t46_v)		print("error %d\n", __LINE__);
+	if (d < i81)		print("error %d\n", __LINE__);
+	if (d >= ui81)		print("error %d\n", __LINE__);
+	if (d < l81)		print("error %d\n", __LINE__);
+	if (d >= ul81)		print("error %d\n", __LINE__);
+	if (d <= f81)		print("error %d\n", __LINE__);
+	if (d >= d81)		print("error %d\n", __LINE__);
+	if (d >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (v < i)		print("error %d\n", __LINE__);
+	if (v < ui)		print("error %d\n", __LINE__);
+	if (v <= l)		print("error %d\n", __LINE__);
+	if (v <= ul)		print("error %d\n", __LINE__);
+	if (v <= f)		print("error %d\n", __LINE__);
+	if (v <= d)		print("error %d\n", __LINE__);
+	if (v != v)		print("error %d\n", __LINE__);
+	if (v < i7f)		print("error %d\n", __LINE__);
+	if (v < ui7f)		print("error %d\n", __LINE__);
+	if (v <= l7f)		print("error %d\n", __LINE__);
+	if (v <= ul7f)		print("error %d\n", __LINE__);
+	if (v <= f7f)		print("error %d\n", __LINE__);
+	if (v <= d7f)		print("error %d\n", __LINE__);
+	if (v != v7f)		print("error %d\n", __LINE__);
+	if (v < t46_i)		print("error %d\n", __LINE__);
+	if (v < t46_ui)		print("error %d\n", __LINE__);
+	if (v < t46_l)		print("error %d\n", __LINE__);
+	if (v < t46_ul)		print("error %d\n", __LINE__);
+	if (v < t46_f)		print("error %d\n", __LINE__);
+	if (v < t46_d)		print("error %d\n", __LINE__);
+	if (v > t46_v)		print("error %d\n", __LINE__);
+	if (v < i80)		print("error %d\n", __LINE__);
+	if (v < ui80)		print("error %d\n", __LINE__);
+	if (v < l80)		print("error %d\n", __LINE__);
+	if (v < ul80)		print("error %d\n", __LINE__);
+	if (v < f80)		print("error %d\n", __LINE__);
+	if (v < d80)		print("error %d\n", __LINE__);
+	if (v > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (v < i)		print("error %d\n", __LINE__);
+	if (v < ui)		print("error %d\n", __LINE__);
+	if (v < l)		print("error %d\n", __LINE__);
+	if (v <= ul)		print("error %d\n", __LINE__);
+	if (v <= f)		print("error %d\n", __LINE__);
+	if (v <= d)		print("error %d\n", __LINE__);
+	if (v != v)		print("error %d\n", __LINE__);
+	if (v < i80)		print("error %d\n", __LINE__);
+	if (v < ui80)		print("error %d\n", __LINE__);
+	if (v < l80)		print("error %d\n", __LINE__);
+	if (v <= ul80)		print("error %d\n", __LINE__);
+	if (v <= f80)		print("error %d\n", __LINE__);
+	if (v <= d80)		print("error %d\n", __LINE__);
+	if (v != v80)		print("error %d\n", __LINE__);
+	if (v < t46_i)		print("error %d\n", __LINE__);
+	if (v <= t46_ui)	print("error %d\n", __LINE__);
+	if (v < t46_l)		print("error %d\n", __LINE__);
+	if (v <= t46_ul)	print("error %d\n", __LINE__);
+	if (v <= t46_f)		print("error %d\n", __LINE__);
+	if (v <= t46_d)		print("error %d\n", __LINE__);
+	if (v >= t46_v)		print("error %d\n", __LINE__);
+	if (v < i81)		print("error %d\n", __LINE__);
+	if (v <= ui81)		print("error %d\n", __LINE__);
+	if (v < l81)		print("error %d\n", __LINE__);
+	if (v <= ul81)		print("error %d\n", __LINE__);
+	if (v <= f81)		print("error %d\n", __LINE__);
+	if (v <= d81)		print("error %d\n", __LINE__);
+	if (v >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (i7f != i)		print("error %d\n", __LINE__);
+	if (i7f != ui)		print("error %d\n", __LINE__);
+	if (i7f >= l)		print("error %d\n", __LINE__);
+	if (i7f >= ul)		print("error %d\n", __LINE__);
+	if (i7f <= f)		print("error %d\n", __LINE__);
+	if (i7f <= d)		print("error %d\n", __LINE__);
+	if (i7f >= v)		print("error %d\n", __LINE__);
+	if (i7f <= t46_i)	print("error %d\n", __LINE__);
+	if (i7f >= t46_ui)	print("error %d\n", __LINE__);
+	if (i7f <= t46_l)	print("error %d\n", __LINE__);
+	if (i7f >= t46_ul)	print("error %d\n", __LINE__);
+	if (i7f <= t46_f)	print("error %d\n", __LINE__);
+	if (i7f <= t46_d)	print("error %d\n", __LINE__);
+	if (i7f >= t46_v)	print("error %d\n", __LINE__);
+	if (i7f <= i80)		print("error %d\n", __LINE__);
+	if (i7f >= ui80)	print("error %d\n", __LINE__);
+	if (i7f <= l80)		print("error %d\n", __LINE__);
+	if (i7f >= ul80)	print("error %d\n", __LINE__);
+	if (i7f <= f80)		print("error %d\n", __LINE__);
+	if (i7f <= d80)		print("error %d\n", __LINE__);
+	if (i7f >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (i80 != i)		print("error %d\n", __LINE__);
+	if (i80 == ui)		print("error %d\n", __LINE__);
+	if (i80 <= l)		print("error %d\n", __LINE__);
+	if (i80 >= ul)		print("error %d\n", __LINE__);
+	if (i80 >= f)		print("error %d\n", __LINE__);
+	if (i80 >= d)		print("error %d\n", __LINE__);
+	if (i80 >= v)		print("error %d\n", __LINE__);
+	if (i80 >= t46_i)	print("error %d\n", __LINE__);
+	if (i80 >= t46_ui)	print("error %d\n", __LINE__);
+	if (i80 <= t46_l)	print("error %d\n", __LINE__);
+	if (i80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (i80 >= t46_f)	print("error %d\n", __LINE__);
+	if (i80 >= t46_d)	print("error %d\n", __LINE__);
+	if (i80 >= t46_v)	print("error %d\n", __LINE__);
+	if (i80 >= i81)		print("error %d\n", __LINE__);
+	if (i80 >= ui81)	print("error %d\n", __LINE__);
+	if (i80 <= l81)		print("error %d\n", __LINE__);
+	if (i80 >= ul81)	print("error %d\n", __LINE__);
+	if (i80 >= f81)		print("error %d\n", __LINE__);
+	if (i80 >= d81)		print("error %d\n", __LINE__);
+	if (i80 >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (ui7f != i)		print("error %d\n", __LINE__);
+	if (ui7f != ui)		print("error %d\n", __LINE__);
+	if (ui7f >= l)		print("error %d\n", __LINE__);
+	if (ui7f >= ul)		print("error %d\n", __LINE__);
+	if (ui7f <= f)		print("error %d\n", __LINE__);
+	if (ui7f <= d)		print("error %d\n", __LINE__);
+	if (ui7f >= v)		print("error %d\n", __LINE__);
+	if (ui7f <= t46_i)	print("error %d\n", __LINE__);
+	if (ui7f >= t46_ui)	print("error %d\n", __LINE__);
+	if (ui7f <= t46_l)	print("error %d\n", __LINE__);
+	if (ui7f >= t46_ul)	print("error %d\n", __LINE__);
+	if (ui7f <= t46_f)	print("error %d\n", __LINE__);
+	if (ui7f <= t46_d)	print("error %d\n", __LINE__);
+	if (ui7f >= t46_v)	print("error %d\n", __LINE__);
+	if (ui7f <= i80)	print("error %d\n", __LINE__);
+	if (ui7f >= ui80)	print("error %d\n", __LINE__);
+	if (ui7f <= l80)	print("error %d\n", __LINE__);
+	if (ui7f >= ul80)	print("error %d\n", __LINE__);
+	if (ui7f <= f80)	print("error %d\n", __LINE__);
+	if (ui7f <= d80)	print("error %d\n", __LINE__);
+	if (ui7f >= v80)	print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (ui80 == i)		print("error %d\n", __LINE__);
+	if (ui80 != ui)		print("error %d\n", __LINE__);
+	if (ui80 <= l)		print("error %d\n", __LINE__);
+	if (ui80 >= ul)		print("error %d\n", __LINE__);
+	if (ui80 <= f)		print("error %d\n", __LINE__);
+	if (ui80 <= d)		print("error %d\n", __LINE__);
+	if (ui80 >= v)		print("error %d\n", __LINE__);
+	if (ui80 <= t46_i)	print("error %d\n", __LINE__);
+	if (ui80 >= t46_ui)	print("error %d\n", __LINE__);
+	if (ui80 <= t46_l)	print("error %d\n", __LINE__);
+	if (ui80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (ui80 <= t46_f)	print("error %d\n", __LINE__);
+	if (ui80 <= t46_d)	print("error %d\n", __LINE__);
+	if (ui80 >= t46_v)	print("error %d\n", __LINE__);
+	if (ui80 <= i81)	print("error %d\n", __LINE__);
+	if (ui80 >= ui81)	print("error %d\n", __LINE__);
+	if (ui80 <= l81)	print("error %d\n", __LINE__);
+	if (ui80 >= ul81)	print("error %d\n", __LINE__);
+	if (ui80 <= f81)	print("error %d\n", __LINE__);
+	if (ui80 <= d81)	print("error %d\n", __LINE__);
+	if (ui80 >= v81)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (l7f <= i)		print("error %d\n", __LINE__);
+	if (l7f <= ui)		print("error %d\n", __LINE__);
+	if (l7f != l)		print("error %d\n", __LINE__);
+	if (l7f > ul)		print("error %d\n", __LINE__);
+	if (l7f <= f)		print("error %d\n", __LINE__);
+	if (l7f <= d)		print("error %d\n", __LINE__);
+	if (l7f >= v)		print("error %d\n", __LINE__);
+	if (l7f <= t46_i)	print("error %d\n", __LINE__);
+	if (l7f <= t46_ui)	print("error %d\n", __LINE__);
+	if (l7f <= t46_l)	print("error %d\n", __LINE__);
+	if (l7f >= t46_ul)	print("error %d\n", __LINE__);
+	if (l7f <= t46_f)	print("error %d\n", __LINE__);
+	if (l7f <= t46_d)	print("error %d\n", __LINE__);
+	if (l7f >= t46_v)	print("error %d\n", __LINE__);
+	if (l7f <= i80)		print("error %d\n", __LINE__);
+	if (l7f <= ui80)	print("error %d\n", __LINE__);
+	if (l7f <= l80)		print("error %d\n", __LINE__);
+	if (l7f >= ul80)	print("error %d\n", __LINE__);
+	if (l7f <= f80)		print("error %d\n", __LINE__);
+	if (l7f <= d80)		print("error %d\n", __LINE__);
+	if (l7f >= v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (l80 >= i)		print("error %d\n", __LINE__);
+	if (l80 >= ui)		print("error %d\n", __LINE__);
+	if (l80 != l)		print("error %d\n", __LINE__);
+	if (l80 >= ul)		print("error %d\n", __LINE__);
+	if (l80 >= f)		print("error %d\n", __LINE__);
+	if (l80 >= d)		print("error %d\n", __LINE__);
+	if (l80 >= v)		print("error %d\n", __LINE__);
+	if (l80 >= t46_i)	print("error %d\n", __LINE__);
+	if (l80 >= t46_ui)	print("error %d\n", __LINE__);
+	if (l80 >= t46_l)	print("error %d\n", __LINE__);
+	if (l80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (l80 >= t46_f)	print("error %d\n", __LINE__);
+	if (l80 >= t46_d)	print("error %d\n", __LINE__);
+	if (l80 >= t46_v)	print("error %d\n", __LINE__);
+	if (l80 >= i81)		print("error %d\n", __LINE__);
+	if (l80 >= ui81)	print("error %d\n", __LINE__);
+	if (l80 >= l81)		print("error %d\n", __LINE__);
+	if (l80 >= ul81)	print("error %d\n", __LINE__);
+	if (l80 >= f81)		print("error %d\n", __LINE__);
+	if (l80 >= d81)		print("error %d\n", __LINE__);
+	if (l80 >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (ul7f <= i)		print("error %d\n", __LINE__);
+	if (ul7f <= ui)		print("error %d\n", __LINE__);
+	if (ul7f != l)		print("error %d\n",__LINE__);
+	if (ul7f != ul)		print("error %d\n", __LINE__);
+	if (ul7f <= f)		print("error %d\n", __LINE__);
+	if (ul7f <= d)		print("error %d\n", __LINE__);
+	if (ul7f >= v)		print("error %d\n", __LINE__);
+	if (ul7f <= t46_i)	print("error %d\n", __LINE__);
+	if (ul7f <= t46_ui)	print("error %d\n", __LINE__);
+	if (ul7f <= t46_l)	print("error %d\n", __LINE__);
+	if (ul7f >= t46_ul)	print("error %d\n", __LINE__);
+	if (ul7f <= t46_f)	print("error %d\n",__LINE__);
+	if (ul7f <= t46_d)	print("error %d\n", __LINE__);
+	if (ul7f >= t46_v)	print("error %d\n", __LINE__);
+	if (ul7f <= i80)	print("error %d\n", __LINE__);
+	if (ul7f <= ui80)	print("error %d\n", __LINE__);
+	if (ul7f <= l80)	print("error %d\n", __LINE__);
+	if (ul7f >= ul80)	print("error %d\n", __LINE__);
+	if (ul7f <= f80)	print("error %d\n", __LINE__);
+	if (ul7f <= d80)	print("error %d\n", __LINE__);
+	if (ul7f >= v80)	print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (ul80 == i)		print("error %d\n", __LINE__);
+	if (ul80 == ui)		print("error %d\n", __LINE__);
+	if (ul80 <= l)		print("error %d\n", __LINE__);
+	if (ul80 != ul)		print("error %d\n", __LINE__);
+	if (ul80 <= f)		print("error %d\n", __LINE__);
+	if (ul80 <= d)		print("error %d\n", __LINE__);
+	if (ul80 >= v)		print("error %d\n", __LINE__);
+	if (ul80 <= t46_i)	print("error %d\n", __LINE__);
+	if (ul80 < t46_ui)	print("error %d\n", __LINE__);
+	if (ul80 <= t46_l)	print("error %d\n", __LINE__);
+	if (ul80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (ul80 <= t46_f)	print("error %d\n", __LINE__);
+	if (ul80 <= t46_d)	print("error %d\n", __LINE__);
+	if (ul80 >= t46_v)	print("error %d\n", __LINE__);
+	if (ul80 <= i81)	print("error %d\n", __LINE__);
+	if (ul80 < ui81)	print("error %d\n", __LINE__);
+	if (ul80 <= l81)	print("error %d\n", __LINE__);
+	if (ul80 >= ul81)	print("error %d\n", __LINE__);
+	if (ul80 <= f81)	print("error %d\n", __LINE__);
+	if (ul80 <= d81)	print("error %d\n", __LINE__);
+	if (ul80 >= v81)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (f7f > i)		print("error %d\n", __LINE__);
+	if (f7f > ui)		print("error %d\n", __LINE__);
+	if (f7f >= l)		print("error %d\n", __LINE__);
+	if (f7f >= ul)		print("error %d\n", __LINE__);
+	if (f7f != f)		print("error %d\n", __LINE__);
+	if (f7f > d)		print("error %d\n", __LINE__);
+	if (f7f > v)		print("error %d\n", __LINE__);
+	if (f7f < t46_i)	print("error %d\n", __LINE__);
+	if (f7f > t46_ui)	print("error %d\n", __LINE__);
+	if (f7f < t46_l)	print("error %d\n", __LINE__);
+	if (f7f > t46_ul)	print("error %d\n", __LINE__);
+	if (f7f > t46_f)	print("error %d\n", __LINE__);
+	if (f7f > t46_d)	print("error %d\n", __LINE__);
+	if (f7f > t46_v)	print("error %d\n", __LINE__);
+	if (f7f < i80)		print("error %d\n", __LINE__);
+	if (f7f > ui80)		print("error %d\n", __LINE__);
+	if (f7f < l80)		print("error %d\n", __LINE__);
+	if (f7f > ul80)		print("error %d\n", __LINE__);
+	if (f7f > f80)		print("error %d\n", __LINE__);
+	if (f7f > d80)		print("error %d\n", __LINE__);
+	if (f7f > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (f80 < i)		print("error %d\n", __LINE__);
+	if (f80 > ui)		print("error %d\n", __LINE__);
+	if (f80 < l)		print("error %d\n", __LINE__);
+	if (f80 >= ul)		print("error %d\n", __LINE__);
+	if (f80 != f)		print("error %d\n", __LINE__);
+	if (f80 >= d)		print("error %d\n", __LINE__);
+	if (f80 >= v)		print("error %d\n", __LINE__);
+	if (f80 < t46_i)	print("error %d\n", __LINE__);
+	if (f80 >= t46_ui)	print("error %d\n", __LINE__);
+	if (f80 < t46_l)	print("error %d\n", __LINE__);
+	if (f80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (f80 >= t46_f)	print("error %d\n", __LINE__);
+	if (f80 >= t46_d)	print("error %d\n", __LINE__);
+	if (f80 >= t46_v)	print("error %d\n", __LINE__);
+	if (f80 < i81)		print("error %d\n", __LINE__);
+	if (f80 >= ui81)	print("error %d\n", __LINE__);
+	if (f80 < l81)		print("error %d\n", __LINE__);
+	if (f80 >= ul81)	print("error %d\n", __LINE__);
+	if (f80 >= f81)		print("error %d\n", __LINE__);
+	if (f80 >= d81)		print("error %d\n", __LINE__);
+	if (f80 >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (d7f > i)		print("error %d\n", __LINE__);
+	if (d7f > ui)		print("error %d\n", __LINE__);
+	if (d7f >= l)		print("error %d\n", __LINE__);
+	if (d7f >= ul)		print("error %d\n", __LINE__);
+	if (d7f <= f)		print("error %d\n", __LINE__);
+	if (d7f != d)		print("error %d\n", __LINE__);
+	if (d7f > v)		print("error %d\n", __LINE__);
+	if (d7f < t46_i)	print("error %d\n", __LINE__);
+	if (d7f > t46_ui)	print("error %d\n", __LINE__);
+	if (d7f < t46_l)	print("error %d\n", __LINE__);
+	if (d7f > t46_ul)	print("error %d\n", __LINE__);
+	if (d7f < t46_f)	print("error %d\n", __LINE__);
+	if (d7f > t46_d)	print("error %d\n", __LINE__);
+	if (d7f > t46_v)	print("error %d\n", __LINE__);
+	if (d7f < i80)		print("error %d\n", __LINE__);
+	if (d7f > ui80)		print("error %d\n", __LINE__);
+	if (d7f < l80)		print("error %d\n", __LINE__);
+	if (d7f > ul80)		print("error %d\n", __LINE__);
+	if (d7f < f80)		print("error %d\n", __LINE__);
+	if (d7f > d80)		print("error %d\n", __LINE__);
+	if (d7f > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (d80 < i)		print("error %d\n", __LINE__);
+	if (d80 > ui)		print("error %d\n", __LINE__);
+	if (d80 < l)		print("error %d\n", __LINE__);
+	if (d80 >= ul)		print("error %d\n", __LINE__);
+	if (d80 <= f)		print("error %d\n", __LINE__);
+	if (d80 != d)		print("error %d\n", __LINE__);
+	if (d80 >= v)		print("error %d\n", __LINE__);
+	if (d80 < t46_i)	print("error %d\n", __LINE__);
+	if (d80 >= t46_ui)	print("error %d\n", __LINE__);
+	if (d80 < t46_l)	print("error %d\n", __LINE__);
+	if (d80 >= t46_ul)	print("error %d\n", __LINE__);
+	if (d80 <= t46_f)	print("error %d\n", __LINE__);
+	if (d80 >= t46_d)	print("error %d\n", __LINE__);
+	if (d80 >= t46_v)	print("error %d\n", __LINE__);
+	if (d80 < i81)		print("error %d\n", __LINE__);
+	if (d80 >= ui81)	print("error %d\n", __LINE__);
+	if (d80 < l81)		print("error %d\n", __LINE__);
+	if (d80 >= ul81)	print("error %d\n", __LINE__);
+	if (d80 <= f81)		print("error %d\n", __LINE__);
+	if (d80 >= d81)		print("error %d\n", __LINE__);
+	if (d80 >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (v7f < i)		print("error %d\n", __LINE__);
+	if (v7f < ui)		print("error %d\n", __LINE__);
+	if (v7f <= l)		print("error %d\n", __LINE__);
+	if (v7f <= ul)		print("error %d\n", __LINE__);
+	if (v7f <= f)		print("error %d\n", __LINE__);
+	if (v7f <= d)		print("error %d\n", __LINE__);
+	if (v7f != v)		print("error %d\n", __LINE__);
+	if (v7f < t46_i)	print("error %d\n", __LINE__);
+	if (v7f < t46_ui)	print("error %d\n", __LINE__);
+	if (v7f < t46_l)	print("error %d\n", __LINE__);
+	if (v7f < t46_ul)	print("error %d\n", __LINE__);
+	if (v7f < t46_f)	print("error %d\n", __LINE__);
+	if (v7f < t46_d)	print("error %d\n", __LINE__);
+	if (v7f > t46_v)	print("error %d\n", __LINE__);
+	if (v7f < i80)		print("error %d\n", __LINE__);
+	if (v7f < ui80)		print("error %d\n", __LINE__);
+	if (v7f < l80)		print("error %d\n", __LINE__);
+	if (v7f < ul80)		print("error %d\n", __LINE__);
+	if (v7f < f80)		print("error %d\n", __LINE__);
+	if (v7f < d80)		print("error %d\n", __LINE__);
+	if (v7f > v80)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (v80 < i)		print("error %d\n", __LINE__);
+	if (v80 < ui)		print("error %d\n", __LINE__);
+	if (v80 < l)		print("error %d\n", __LINE__);
+	if (v80 <= ul)		print("error %d\n", __LINE__);
+	if (v80 <= f)		print("error %d\n", __LINE__);
+	if (v80 <= d)		print("error %d\n", __LINE__);
+	if (v80 != v)		print("error %d\n", __LINE__);
+	if (v80 < t46_i)	print("error %d\n", __LINE__);
+	if (v80 <= t46_ui)	print("error %d\n", __LINE__);
+	if (v80 < t46_l)	print("error %d\n", __LINE__);
+	if (v80 <= t46_ul)	print("error %d\n", __LINE__);
+	if (v80 <= t46_f)	print("error %d\n", __LINE__);
+	if (v80 <= t46_d)	print("error %d\n", __LINE__);
+	if (v80 >= t46_v)	print("error %d\n", __LINE__);
+	if (v80 < i81)		print("error %d\n", __LINE__);
+	if (v80 <= ui81)	print("error %d\n", __LINE__);
+	if (v80 < l81)		print("error %d\n", __LINE__);
+	if (v80 <= ul81)	print("error %d\n", __LINE__);
+	if (v80 <= f81)		print("error %d\n", __LINE__);
+	if (v80 <= d81)		print("error %d\n", __LINE__);
+	if (v80 >= v81)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_i > i)		print("error %d\n", __LINE__);
+	if (t46_i > ui)		print("error %d\n", __LINE__);
+	if (t46_i > l)		print("error %d\n", __LINE__);
+	if (t46_i > ul)		print("error %d\n", __LINE__);
+	if (t46_i > f)		print("error %d\n", __LINE__);
+	if (t46_i > d)		print("error %d\n", __LINE__);
+	if (t46_i > v)		print("error %d\n", __LINE__);
+	if (t46_i > i7f)	print("error %d\n", __LINE__);
+	if (t46_i > ui7f)	print("error %d\n", __LINE__);
+	if (t46_i > l7f)	print("error %d\n", __LINE__);
+	if (t46_i > ul7f)	print("error %d\n", __LINE__);
+	if (t46_i > f7f)	print("error %d\n", __LINE__);
+	if (t46_i > d7f)	print("error %d\n", __LINE__);
+	if (t46_i > v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_ui < i)		print("error %d\n", __LINE__);
+	if (t46_ui == ui)	print("error %d\n", __LINE__);
+	if (t46_ui > l)		print("error %d\n", __LINE__);
+	if (t46_ui > ul)	print("error %d\n", __LINE__);
+	if (t46_ui < f)		print("error %d\n", __LINE__);
+	if (t46_ui < d)		print("error %d\n", __LINE__);
+	if (t46_ui > v)		print("error %d\n", __LINE__);
+	if (t46_ui == i7f)	print("error %d\n", __LINE__);
+	if (t46_ui == ui7f)	print("error %d\n", __LINE__);
+	if (t46_ui > l7f)	print("error %d\n", __LINE__);
+	if (t46_ui > ul7f)	print("error %d\n", __LINE__);
+	if (t46_ui < f7f)	print("error %d\n", __LINE__);
+	if (t46_ui < d7f)	print("error %d\n", __LINE__);
+	if (t46_ui > v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_l > i)		print("error %d\n", __LINE__);
+	if (t46_l > ui)		print("error %d\n", __LINE__);
+	if (t46_l == l)		print("error %d\n", __LINE__);
+	if (t46_l > ul)		print("error %d\n", __LINE__);
+	if (t46_l > f)		print("error %d\n", __LINE__);
+	if (t46_l > d)		print("error %d\n", __LINE__);
+	if (t46_l > v)		print("error %d\n", __LINE__);
+	if (t46_l > i7f)	print("error %d\n", __LINE__);
+	if (t46_l > ui7f)	print("error %d\n", __LINE__);
+	if (t46_l == l7f)	print("error %d\n", __LINE__);
+	if (t46_l > ul7f)	print("error %d\n", __LINE__);
+	if (t46_l > f7f)	print("error %d\n", __LINE__);
+	if (t46_l > d7f)	print("error %d\n", __LINE__);
+	if (t46_l > v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_ul <= i)	print("error %d\n", __LINE__);
+	if (t46_ul <= ui)	print("error %d\n", __LINE__);
+	if (t46_ul <= l)	print("error %d\n",__LINE__);
+	if (t46_ul <= ul)	print("error %d\n", __LINE__);
+	if (t46_ul <= f)	print("error %d\n", __LINE__);
+	if (t46_ul <= d)	print("error %d\n", __LINE__);
+	if (t46_ul >= v)	print("error %d\n", __LINE__);
+	if (t46_ul <= i7f)	print("error %d\n", __LINE__);
+	if (t46_ul <= ui7f)	print("error %d\n", __LINE__);
+	if (t46_ul <= l7f)	print("error %d\n", __LINE__);
+	if (t46_ul <= ul7f)	print("error %d\n", __LINE__);
+	if (t46_ul <= f7f)	print("error %d\n", __LINE__);
+	if (t46_ul <= d7f)	print("error %d\n", __LINE__);
+	if (t46_ul >= v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_f > i)		print("error %d\n", __LINE__);
+	if (t46_f > ui)		print("error %d\n", __LINE__);
+	if (t46_f > l)		print("error %d\n", __LINE__);
+	if (t46_f > ul)		print("error %d\n", __LINE__);
+	if (t46_f == f)		print("error %d\n", __LINE__);
+	if (t46_f > d)		print("error %d\n", __LINE__);
+	if (t46_f > v)		print("error %d\n", __LINE__);
+	if (t46_f > i7f)	print("error %d\n", __LINE__);
+	if (t46_f > ui7f)	print("error %d\n", __LINE__);
+	if (t46_f > l7f)	print("error %d\n", __LINE__);
+	if (t46_f > ul7f)	print("error %d\n", __LINE__);
+	if (t46_f == f7f)	print("error %d\n", __LINE__);
+	if (t46_f > d7f)	print("error %d\n", __LINE__);
+	if (t46_f > v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_d > i)		print("error %d\n", __LINE__);
+	if (t46_d > ui)		print("error %d\n", __LINE__);
+	if (t46_d > l)		print("error %d\n", __LINE__);
+	if (t46_d > ul)		print("error %d\n", __LINE__);
+	if (t46_d <= f)		print("error %d\n", __LINE__);
+	if (t46_d <= d)		print("error %d\n", __LINE__);
+	if (t46_d > v)		print("error %d\n", __LINE__);
+	if (t46_d > i7f)	print("error %d\n", __LINE__);
+	if (t46_d > ui7f)	print("error %d\n", __LINE__);
+	if (t46_d > l7f)	print("error %d\n", __LINE__);
+	if (t46_d > ul7f)	print("error %d\n", __LINE__);
+	if (t46_d <= f7f)	print("error %d\n", __LINE__);
+	if (t46_d <= d7f)	print("error %d\n", __LINE__);
+	if (t46_d > v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_v <= i)		print("error %d\n", __LINE__);
+	if (t46_v < ui)		print("error %d\n", __LINE__);
+	if (t46_v < l)		print("error %d\n", __LINE__);
+	if (t46_v <= ul)	print("error %d\n", __LINE__);
+	if (t46_v < f)		print("error %d\n", __LINE__);
+	if (t46_v <= d)		print("error %d\n", __LINE__);
+	if (t46_v == v)		print("error %d\n", __LINE__);
+	if (t46_v <= i7f)	print("error %d\n", __LINE__);
+	if (t46_v < ui7f)	print("error %d\n", __LINE__);
+	if (t46_v < l7f)	print("error %d\n", __LINE__);
+	if (t46_v <= ul7f)	print("error %d\n", __LINE__);
+	if (t46_v < f7f)	print("error %d\n", __LINE__);
+	if (t46_v <= d7f)	print("error %d\n", __LINE__);
+	if (t46_v == v7f)	print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (xi = i != i, xi)		print("error %d\n", __LINE__);
+	if (xui = i != ui, xui)		print("error %d\n", __LINE__);
+	if (xl = i >= l, xl)		print("error %d\n", __LINE__);
+	if (xul = i >= ul, xul)		print("error %d\n", __LINE__);
+	if (xf = i <= f, xf)		print("error %d\n", __LINE__);
+	if (xd = i <= d, xd)		print("error %d\n", __LINE__);
+	if (xv = i >= v, xv)		print("error %d\n", __LINE__);
+	if (xui = i != i7f, xui)	print("error %d\n", __LINE__);
+	if (xl = i != ui7f, xl)		print("error %d\n", __LINE__);
+	if (xul = i >= l7f, xul)	print("error %d\n", __LINE__);
+	if (xf = i >= ul7f, xf)		print("error %d\n", __LINE__);
+	if (xd = i <= f7f, xd)		print("error %d\n", __LINE__);
+	if (xv = i <= d7f, xv)		print("error %d\n", __LINE__);
+	if (xi = i >= v7f, xi)		print("error %d\n", __LINE__);
+	if (xl = i <= t46_i, xl)	print("error %d\n", __LINE__);
+	if (xul = i >= t46_ui, xul)	print("error %d\n", __LINE__);
+	if (xf = i <= t46_l, xf)	print("error %d\n", __LINE__);
+	if (xd = i >= t46_ul, xd)	print("error %d\n", __LINE__);
+	if (xv = i <= t46_f, xv)	print("error %d\n", __LINE__);
+	if (xi = i <= t46_d, xi)	print("error %d\n", __LINE__);
+	if (xui = i >= t46_v, xui)	print("error %d\n", __LINE__);
+	if (xul = i <= i80, xul)	print("error %d\n", __LINE__);
+	if (xf = i >= ui80, xf)		print("error %d\n", __LINE__);
+	if (xd = i <= l80, xd)		print("error %d\n", __LINE__);
+	if (xv = i >= ul80, xv)		print("error %d\n", __LINE__);
+	if (xi = i <= f80, xi)		print("error %d\n", __LINE__);
+	if (xui = i <= d80, xui)	print("error %d\n", __LINE__);
+	if (xl = i >= v80, xl)		print("error %d\n", __LINE__);
+	c_x80();	g_x81();
+	if (xf = i != i, xf)		print("error %d\n", __LINE__);
+	if (xd = i == ui, xd)		print("error %d\n", __LINE__);
+	if (xv = i <= l, xv)		print("error %d\n", __LINE__);
+	if (xi = i >= ul, xi)		print("error %d\n", __LINE__);
+	if (xui = i >= f, xui)		print("error %d\n", __LINE__);
+	if (xl = i >= d, xl)		print("error %d\n", __LINE__);
+	if (xul = i >= v, xul)		print("error %d\n", __LINE__);
+	if (xd = i != i80, xd)		print("error %d\n", __LINE__);
+	if (xv = i == ui80, xv)		print("error %d\n", __LINE__);
+	if (xi = i <= l80, xi)		print("error %d\n", __LINE__);
+	if (xui = i >= ul80, xui)	print("error %d\n", __LINE__);
+	if (xl = i >= f80, xl)		print("error %d\n", __LINE__);
+	if (xul = i >= d80, xul)	print("error %d\n", __LINE__);
+	if (xf = i >= v80, xf)		print("error %d\n", __LINE__);
+	if (xv = i >= t46_i, xv)	print("error %d\n", __LINE__);
+	if (xi = i >= t46_ui, xi)	print("error %d\n", __LINE__);
+	if (xui = i <= t46_l, xui)	print("error %d\n", __LINE__);
+	if (xl = i >= t46_ul, xl)	print("error %d\n", __LINE__);
+	if (xul = i >= t46_f, xul)	print("error %d\n", __LINE__);
+	if (xf = i >= t46_d, xf)	print("error %d\n", __LINE__);
+	if (xd = i >= t46_v, xd)	print("error %d\n", __LINE__);
+	if (ci = i >= i81, ci)		print("error %d\n", __LINE__);
+	if (cui = i >= ui81, cui)	print("error %d\n", __LINE__);
+	if (cl = i <= l81, cl)		print("error %d\n", __LINE__);
+	if (cul = i >= ul81, cul)	print("error %d\n", __LINE__);
+	if (cf = i >= f81, cf)		print("error %d\n", __LINE__);
+	if (cd = i >= d81, cd)		print("error %d\n", __LINE__);
+	if (cv = i >= v81, cv)		print("error %d\n", __LINE__);
+	c_x7f();	g_x80();
+	if (t46_gi = ui != i, t46_gi)		print("error %d\n", __LINE__);
+	if (t46_gui = ui != ui, t46_gui)	print("error %d\n", __LINE__);
+	if (t46_gl = ui >= l, t46_gl)		print("error %d\n", __LINE__);
+	if (t46_gul = ui >= ul, t46_gul)	print("error %d\n", __LINE__);
+	if (t46_gf = ui <= f, t46_gf)		print("error %d\n", __LINE__);
+	if (t46_gd = ui <= d, t46_gd)		print("error %d\n", __LINE__);
+	if (t46_gv = ui >= v, t46_gv)		print("error %d\n", __LINE__);
+	c_x7f();
+	if (i != 0x7fffffff)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (i <= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (i == 0x80000000)			print("error %d\n", __LINE__);
+	if (i > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (i <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (i >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (i >= 0x80000001)			print("error %d\n", __LINE__);
+	if (i >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (i < 0x8001.0)			print("error %d\n", __LINE__);
+	if (i > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ui != 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ui <= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ui == 0x80000000)			print("error %d\n", __LINE__);
+	if (ui > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ui <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ui >= 0x80000001)			print("error %d\n", __LINE__);
+	if (ui >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ui < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ui > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (l <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (l < 0x7fff.0)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (l == 0x80000000)			print("error %d\n", __LINE__);
+	if (l > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (l <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (l >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (l < 0x80000001)			print("error %d\n", __LINE__);
+	if (l > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (l < 0x8001.0)			print("error %d\n", __LINE__);
+	if (l > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ul <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ul > 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ul < 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ul > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ul == 0x80000000)			print("error %d\n", __LINE__);
+	if (ul > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ul <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ul >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ul < 0x80000001)			print("error %d\n", __LINE__);
+	if (ul > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ul < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ul > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (f >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (f >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (f != 0x7f.0)			print("error %d\n", __LINE__);
+	if (f > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (f == 0x80000000)			print("error %d\n", __LINE__);
+	if (f > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (f > 0x80.0)				print("error %d\n", __LINE__);
+	if (f >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (f >= 0x80000001)			print("error %d\n", __LINE__);
+	if (f >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (f > 0x8001.0)			print("error %d\n", __LINE__);
+	if (f > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (d >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (d >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (d != 0x7fff.0)			print("error %d\n", __LINE__);
+	if (d > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (d == 0x80000000)			print("error %d\n", __LINE__);
+	if (d > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (d > 0x8000.0)			print("error %d\n", __LINE__);
+	if (d >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (d >= 0x80000001)			print("error %d\n", __LINE__);
+	if (d >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (d > 0x8001.0)			print("error %d\n", __LINE__);
+	if (d > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (v < 0x7fffffff)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (v == 0x7f.0)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (v == 0x80000000)			print("error %d\n", __LINE__);
+	if (v < 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (v <= 0x80.0)			print("error %d\n", __LINE__);
+	if (v > 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (v <= 0x80000001)			print("error %d\n", __LINE__);
+	if (v <= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (v < 0x8001.0)			print("error %d\n", __LINE__);
+	if (v >= 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	c_x80();
+	if (i >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (i >= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (i == 0x80000000)			print("error %d\n", __LINE__);
+	if (i > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (i >= 0x8000.0)			print("error %d\n", __LINE__);
+	if (i >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (i >= 0x80000001)			print("error %d\n", __LINE__);
+	if (i >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (i > 0x8001.0)			print("error %d\n", __LINE__);
+	if (i > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ui <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ui <= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ui != 0x80000000)			print("error %d\n", __LINE__);
+	if (ui > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ui <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ui >= 0x80000001)			print("error %d\n", __LINE__);
+	if (ui >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ui < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ui > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (l >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (l > 0x7fff.0)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (l == 0x80000000)			print("error %d\n", __LINE__);
+	if (l == 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (l >= 0x8000.0)			print("error %d\n", __LINE__);
+	if (l >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (l > 0x80000001)			print("error %d\n", __LINE__);
+	if (l > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (l > 0x8001.0)			print("error %d\n", __LINE__);
+	if (l > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ul <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ul < 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ul < 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ul > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ul == 0x80000000)			print("error %d\n", __LINE__);
+	if (ul != 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ul <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ul >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ul < 0x80000001)			print("error %d\n", __LINE__);
+	if (ul > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ul < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ul > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (f >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (f >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (f == 0x7f.0)			print("error %d\n", __LINE__);
+	if (f > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (f == 0x80000000)			print("error %d\n", __LINE__);
+	if (f == 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (f != 0x80.0)			print("error %d\n", __LINE__);
+	if (f >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (f >= 0x80000001)			print("error %d\n", __LINE__);
+	if (f >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (f > 0x8001.0)			print("error %d\n", __LINE__);
+	if (f > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (d >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (d >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (d == 0x7fff.0)			print("error %d\n", __LINE__);
+	if (d > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (d == 0x80000000)			print("error %d\n", __LINE__);
+	if (d > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (d != 0x8000.0)			print("error %d\n", __LINE__);
+	if (d >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (d >= 0x80000001)			print("error %d\n", __LINE__);
+	if (d >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (d > 0x8001.0)			print("error %d\n", __LINE__);
+	if (d > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (v < 0x7fffffff)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (v == 0x7f.0)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (v == 0x80000000)			print("error %d\n", __LINE__);
+	if (v < 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (v <= 0x80.0)			print("error %d\n", __LINE__);
+	if (v != 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (v <= 0x80000001)			print("error %d\n", __LINE__);
+	if (v <= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (v < 0x8001.0)			print("error %d\n", __LINE__);
+	if (v >= 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	c_x81();
+	if (i >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (i >= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (i >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (i == 0x80000000)			print("error %d\n", __LINE__);
+	if (i > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (i >= 0x8000.0)			print("error %d\n", __LINE__);
+	if (i >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (i >= 0x80000001)			print("error %d\n", __LINE__);
+	if (i >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (i > 0x8001.0)			print("error %d\n", __LINE__);
+	if (i > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ui <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ui <= 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ui == 0x80000000)			print("error %d\n", __LINE__);
+	if (ui > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ui <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ui >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ui != 0x80000001)			print("error %d\n", __LINE__);
+	if (ui >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ui < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ui > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (l >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (l > 0x7fff.0)			print("error %d\n", __LINE__);
+	if (l > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (l == 0x80000000)			print("error %d\n", __LINE__);
+	if (l == 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (l >= 0x8000.0)			print("error %d\n", __LINE__);
+	if (l >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (l > 0x80000001)			print("error %d\n", __LINE__);
+	if (l > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (l > 0x8001.0)			print("error %d\n", __LINE__);
+	if (l > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (ul <= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (ul < 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (ul < 0x7fff.0)			print("error %d\n", __LINE__);
+	if (ul > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (ul == 0x80000000)			print("error %d\n", __LINE__);
+	if (ul == 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (ul <= 0x8000.0)			print("error %d\n", __LINE__);
+	if (ul >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (ul < 0x80000001)			print("error %d\n", __LINE__);
+	if (ul > 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (ul < 0x8001.0)			print("error %d\n", __LINE__);
+	if (ul > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (f >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (f >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (f == 0x7f.0)			print("error %d\n", __LINE__);
+	if (f > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (f == 0x80000000)			print("error %d\n", __LINE__);
+	if (f == 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (f == 0x80.0)			print("error %d\n", __LINE__);
+	if (f >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (f >= 0x80000001)			print("error %d\n", __LINE__);
+	if (f >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (f > 0x8001.0)			print("error %d\n", __LINE__);
+	if (f > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (d >= 0x7fffffff)			print("error %d\n", __LINE__);
+	if (d >= 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (d == 0x7fff.0)			print("error %d\n", __LINE__);
+	if (d > 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (d == 0x80000000)			print("error %d\n", __LINE__);
+	if (d > 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (d == 0x8000.0)			print("error %d\n", __LINE__);
+	if (d >= 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (d >= 0x80000001)			print("error %d\n", __LINE__);
+	if (d >= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (d > 0x8001.0)			print("error %d\n", __LINE__);
+	if (d > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+	if (v < 0x7fffffff)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffff)		print("error %d\n", __LINE__);
+	if (v == 0x7f.0)			print("error %d\n", __LINE__);
+	if (v < 0x7fffffffffffffffffffffff)	print("error %d\n", __LINE__);
+	if (v == 0x80000000)			print("error %d\n", __LINE__);
+	if (v < 0x8000000000000000)		print("error %d\n", __LINE__);
+	if (v <= 0x80.0)			print("error %d\n", __LINE__);
+	if (v == 0x800000000000000000000000)	print("error %d\n", __LINE__);
+	if (v <= 0x80000001)			print("error %d\n", __LINE__);
+	if (v <= 0x8000000000000001)		print("error %d\n", __LINE__);
+	if (v < 0x8001.0)			print("error %d\n", __LINE__);
+	if (v > 0x800000000000000000000001)	print("error %d\n", __LINE__);
+    }
+};
+t46_c2_t t46_class2 = {};
+/* use arguments to force no otimization as it is not done currently */
+t46_class2.t0(0x7fffffff, 0x80000001,
+	      0x7fffffffffffffff, 0x8000000000000001,
+	      0x100.0, 0x1000000.0, 0x8fffffffffffffff);
+t46_class2.t1();
+t46_class2.t2(0x7fffffff, 0x7fffffff, 0x7fffffffffffffff, 0x7fffffffffffffff,
+	      0x7f.0, 0x7fff.0, 0x7fffffffffffffffffffffff,
+	      0x80000000, 0x80000000, 0x8000000000000000, 0x8000000000000000,
+	      0x80.0, 0x8000.0, 0x800000000000000000000000,
+	      0x80000001, 0x80000001, 0x8000000000000001, 0x8000000000000001,
+	      0x81.0, 0x8001.0, 0x800000000000000000000001);

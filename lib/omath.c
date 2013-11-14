@@ -37,6 +37,28 @@ typedef union {
  * Implementation
  */
 oword_t
+ompz_get_w(ompz_t z)
+{
+    mp_size_t		n;
+    mp_ptr		p;
+    oword_t		w;
+
+    p = z->_mp_d;
+    n = z->_mp_size;
+
+    if (n > 0)
+	w = p[0];
+    else if (n < 0) {
+	w = p[0];
+	w = -w;
+    }
+    else
+	w = 0;
+
+    return (w);
+}
+
+oword_t
 ompq_get_w(ompq_t q)
 {
     GET_THREAD_SELF();
@@ -104,7 +126,7 @@ ompz_set_sisi(ompz_t z, oint32_t l, oint32_t h)
 	mpz_add_ui(z, z, l);
     }
     else
-	mpz_set_si(z, l);
+	mpz_set_ui(z, l);
 }
 
 void

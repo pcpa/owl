@@ -1755,12 +1755,36 @@ storei(ooperand_t *op, otype_t type, jit_int32_t base, oword_t offset)
 	case t_int8:		case t_uint8:
 	case t_int16:		case t_uint16:
 	case t_int32:		case t_uint32:
+	    if (otype == t_single)
+		jit_truncr_f_i(GPR[regno], FPR[regno]);
+	    else if (otype == t_float)
+		jit_truncr_d_i(GPR[regno], FPR[regno]);
+	    break;
+#if __WORDSIZE == 64
 	case t_int64:		case t_uint64:
 	    if (otype == t_single)
 		jit_truncr_f(GPR[regno], FPR[regno]);
 	    else if (otype == t_float)
 		jit_truncr_d(GPR[regno], FPR[regno]);
 	    break;
+#else
+	case t_int64:		case t_uint64:
+	    if (otype == t_single || otype == t_float) {
+		if (otype == t_single)
+		    jit_extr_f_d(FPR[regno], FPR[regno]);
+		jit_addi(GPR[regno], base, offset);
+		sync_d(regno);
+		load_r_w(regno, JIT_R0);
+		jit_prepare();
+		jit_pushargr(JIT_R0);
+		jit_pushargr(GPR[regno]);
+		emit_finish(ovm_store_i64, 0);
+		if (otype == t_single)
+		    jit_extr_d_f(FPR[regno], FPR[regno]);
+		return;
+	    }
+	    break;
+#endif
 	case t_single:
 	    if (otype == t_half || otype == t_word)
 		jit_extr_f(FPR[regno], GPR[regno]);
@@ -1917,12 +1941,36 @@ storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset)
 	case t_int8:		case t_uint8:
 	case t_int16:		case t_uint16:
 	case t_int32:		case t_uint32:
+	    if (otype == t_single)
+		jit_truncr_f_i(GPR[regno], FPR[regno]);
+	    else if (otype == t_float)
+		jit_truncr_d_i(GPR[regno], FPR[regno]);
+	    break;
+#if __WORDSIZE == 64
 	case t_int64:		case t_uint64:
 	    if (otype == t_single)
 		jit_truncr_f(GPR[regno], FPR[regno]);
 	    else if (otype == t_float)
 		jit_truncr_d(GPR[regno], FPR[regno]);
 	    break;
+#else
+	case t_int64:		case t_uint64:
+	    if (otype == t_single || otype == t_float) {
+		if (otype == t_single)
+		    jit_extr_f_d(FPR[regno], FPR[regno]);
+		jit_addi(GPR[regno], base, offset);
+		sync_d(regno);
+		load_r_w(regno, JIT_R0);
+		jit_prepare();
+		jit_pushargr(JIT_R0);
+		jit_pushargr(GPR[regno]);
+		emit_finish(ovm_store_i64, 0);
+		if (otype == t_single)
+		    jit_extr_d_f(FPR[regno], FPR[regno]);
+		return;
+	    }
+	    break;
+#endif
 	case t_single:
 	    if (otype == t_half || otype == t_word)
 		jit_extr_f(FPR[regno], GPR[regno]);
@@ -3266,8 +3314,10 @@ static void
 sync_ww(oword_t regno)
 {
     jit_node_t		*jump;
-    jit_node_t		*zjmp;
-    jit_node_t		*njmp;
+    jit_node_t		*zhjmp;
+    jit_node_t		*pljmp;
+    jit_node_t		*nhjmp;
+    jit_node_t		*nljmp;
     oword_t		 offset;
     switch (regno) {
 	case 0:		offset = offsetof(othread_t, r0);	break;
@@ -3276,46 +3326,48 @@ sync_ww(oword_t regno)
 	case 3:		offset = offsetof(othread_t, r3);	break;
 	default:	abort();
     }
-    if (cfg_optsize) {
-	jit_addi(JIT_R0, JIT_V0, offset);
-	jit_prepare();
-	jit_pushargr(JIT_R0);
-	jit_pushargr(GPR[regno]);
-	emit_finish(ovm_load_ww, mask1(regno));
+    if (!cfg_optsize) {
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+	jit_ldxi(JIT_R0, GPR[regno], 4);
+#  else
+	jit_ldr(JIT_R0, GPR[regno]);
+#  endif
+	zhjmp = jit_bnei(JIT_R0, 0);
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+	jit_ldr(JIT_R0, GPR[regno]);
+#  else
+	jit_ldxi(JIT_R0, GPR[regno], 4);
+#  endif
+	/* done if top word is zero and low word is positive */
+	pljmp = jit_bgei(JIT_R0, 0);
+	/* convert to mpz */
+	jump = jit_jmpi();
+	/* top word is not zero */
+	jit_patch(zhjmp);
+	nhjmp = jit_bnei(JIT_R0, -1);
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+	jit_ldxi(JIT_R0, GPR[regno], 4);
+#  else
+	jit_ldr(JIT_R0, GPR[regno]);
+#  endif
+	/* done if top word is -1 and low word is negative */
+	nljmp = jit_bgei(JIT_R0, 0);
+	/* Convert to mpz */
+	jit_patch(jump);
+	jit_patch(nhjmp);
     }
-    else {
-#  if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi(JIT_R0, GPR[regno], 4);
-#  else
-	jit_ldr(JIT_R0, GPR[regno]);
-#  endif
-	zjmp = jit_beqi(JIT_R0, 0);
-	njmp = jit_beqi(JIT_R0, -1);
-	/* does not fit in a word */
-	jit_addi(JIT_R0, JIT_V0,
-		 offset + offsetof(oregister_t, qq) +
-		 offsetof(__cqq_struct, re) + offsetof(__mpq_struct, _mp_num));
-	jit_prepare();
-	jit_pushargr(JIT_R0);
-#  if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldr(JIT_R0, GPR[regno]);
-#  else
-	jit_ldxi(JIT_R0, GPR[regno], 4);
-#  endif
-	jit_pushargr(JIT_R0);
-#  if __BYTE_ORDER == __LITTLE_ENDIAN
-	jit_ldxi(JIT_R0, GPR[regno], 4);
-#  else
-	jit_ldr (JIT_R0, GPR[regno]);
-#  endif
-	jit_pushargr(JIT_R0);
-	emit_finish(ompz_set_sisi, mask1(regno));
-	jit_movi(JIT_R0, t_mpz);
-	jit_stxi_i(offsetof(oregister_t, t), JIT_V0, JIT_R0);
+
+    jit_addi(JIT_R0, JIT_V0, offset);
+    jit_prepare();
+    jit_pushargr(JIT_R0);
+    jit_pushargr(GPR[regno]);
+    emit_finish(ovm_load_ww, mask1(regno));
+
+    if (!cfg_optsize) {
 	jump = jit_jmpi();
 	/* fits in a word */
-	jit_patch(zjmp);
-	jit_patch(njmp);
+	jit_patch(pljmp);
+	jit_patch(nljmp);
 #  if __BYTE_ORDER == __LITTLE_ENDIAN
 	jit_ldr (GPR[regno], GPR[regno]);
 #  else
@@ -3386,7 +3438,7 @@ sync_uwuw(oword_t regno)
 	jit_pushargr(JIT_R0);
 	emit_finish(ompz_set_uiui, mask1(regno));
 	jit_movi(JIT_R0, t_mpz);
-	jit_stxi_i(offsetof(oregister_t, t), JIT_V0, JIT_R0);
+	jit_stxi_i(offset + offsetof(oregister_t, t), JIT_V0, JIT_R0);
 	jit_patch(jump);
     }
 }

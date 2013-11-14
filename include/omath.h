@@ -56,7 +56,8 @@
  * Prototypes
  */
 #define ofloat_get_w(f)			(oword_t)(f)
-#define ompz_get_w(z)			(oword_t)mpz_get_ui(z)
+extern oword_t
+ompz_get_w(ompz_t z);
 
 extern oword_t
 ompq_get_w(ompq_t q);
