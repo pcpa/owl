@@ -101,11 +101,11 @@ emit_binary_setup(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    ;
 	else if (tok != tok_mul2 && tok != tok_div2 &&
 		 tok != tok_shl  && tok != tok_shr) {
-	    if (rty == t_single) {
-		jit_extr_f(FPR[lreg], GPR[lreg]);
-		emit_set_type(lop, t_single);
-	    }
-	    else if (rty == t_float) {
+	    if (rty == t_single || rty == t_float) {
+		if (rty == t_single) {
+		    jit_extr_f_d(FPR[rreg], FPR[rreg]);
+		    emit_set_type(rop, t_float);
+		}
 		jit_extr_d(FPR[lreg], GPR[lreg]);
 		emit_set_type(lop, t_float);
 	    }
@@ -134,8 +134,10 @@ emit_binary_setup(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 		    emit_load(rop);
 		    rreg = rop->u.w;
 		}
-		jit_extr_f(FPR[rreg], GPR[rreg]);
-		emit_set_type(rop, t_single);
+		jit_extr_f_d(FPR[lreg], FPR[lreg]);
+		emit_set_type(lop, t_float);
+		jit_extr_d(FPR[rreg], GPR[rreg]);
+		emit_set_type(rop, t_float);
 	    }
 	}
 	else if (rty == t_single)
