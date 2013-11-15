@@ -30,6 +30,33 @@ emit_neg(oast_t *ast);
 
 static void
 emit_inc_dec(oast_t *ast);
+
+static void
+emit_integer_p(oast_t *ast);
+
+static void
+emit_rational_p(oast_t *ast);
+
+static void
+emit_float_p(oast_t *ast);
+
+static void
+emit_real_p(oast_t *ast);
+
+static void
+emit_complex_p(oast_t *ast);
+
+static void
+emit_number_p(oast_t *ast);
+
+static void
+emit_finite_p(oast_t *ast);
+
+static void
+emit_inf_p(oast_t *ast);
+
+static void
+emit_nan_p(oast_t *ast);
 #endif
 
 #if defined(CODE)
@@ -45,6 +72,33 @@ emit_unary(oast_t *ast)
 	    break;
 	case tok_neg:
 	    emit_neg(ast);
+	    break;
+	case tok_integer_p:
+	    emit_integer_p(ast);
+	    break;
+	case tok_rational_p:
+	    emit_rational_p(ast);
+	    break;
+	case tok_float_p:
+	    emit_float_p(ast);
+	    break;
+	case tok_real_p:
+	    emit_real_p(ast);
+	    break;
+	case tok_complex_p:
+	    emit_complex_p(ast);
+	    break;
+	case tok_number_p:
+	    emit_number_p(ast);
+	    break;
+	case tok_finite_p:
+	    emit_finite_p(ast);
+	    break;
+	case tok_inf_p:
+	    emit_inf_p(ast);
+	    break;
+	case tok_nan_p:
+	    emit_nan_p(ast);
 	    break;
 	default:
 	    abort();
@@ -320,5 +374,303 @@ emit_inc_dec(oast_t *ast)
 	    operand_copy(bop, pop);
 	operand_unget(1);
     }
+}
+
+static void
+emit_integer_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_integer_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_rational_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_rational_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_float_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_float_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_real_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_real_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_complex_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_complex_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_number_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	case t_single:		case t_float:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_number_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_finite_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 1);
+	    break;
+	case t_single:
+	    jit_prepare();
+	    jit_pushargr_f(FPR[regno]);
+	    emit_finish(finitef, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    break;
+	case t_float:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(finite, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_finite_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_inf_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*njmp;
+    jit_node_t		*ijmp;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	case t_single:
+	    jit_stxi_f(scratch, JIT_FP, FPR[regno]);
+	    jit_prepare();
+	    jit_pushargr_f(FPR[regno]);
+	    emit_finish(isinff, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    ijmp = jit_beqi(GPR[regno], 0);
+	    /* signbit */
+	    jit_ldxi_i(GPR[regno], JIT_FP, scratch);
+	    jit_rshi(GPR[regno], GPR[regno], 31);
+	    /* if not zero must be -1 after shift */
+	    njmp = jit_bnei(GPR[regno], 0);
+	    jit_movi(GPR[regno], 1);
+	    jit_patch(ijmp);
+	    jit_patch(njmp);
+	    break;
+	case t_float:
+	    jit_stxi_d(scratch, JIT_FP, FPR[regno]);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(isinf, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    ijmp = jit_beqi(GPR[regno], 0);
+	    jit_ldxi_i(GPR[regno], JIT_FP, scratch
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+		       + 4
+#endif
+		       );
+	    jit_rshi(GPR[regno], GPR[regno], 31);
+	    /* if not zero must be -1 after shift */
+	    njmp = jit_bnei(GPR[regno], 0);
+	    jit_movi(GPR[regno], 1);
+	    jit_patch(ijmp);
+	    jit_patch(njmp);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_inf_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
+}
+
+static void
+emit_nan_p(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jit_movi(GPR[regno], 0);
+	    break;
+	case t_single:
+	    jit_prepare();
+	    jit_pushargr_f(FPR[regno]);
+	    emit_finish(isnanf, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    break;
+	case t_float:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(isnan, mask1(regno));
+	    jit_retval(GPR[regno]);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_nan_p, mask1(regno));
+	    load_w(regno);
+	    break;
+    }
+    emit_set_type(op, t_half);
 }
 #endif

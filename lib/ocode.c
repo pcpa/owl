@@ -133,6 +133,11 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_com:		case tok_plus:
 	case tok_neg:		case tok_not:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:
 	    oeval_ast(ast->l.ast);
 	    ofold(ast);
 	    break;

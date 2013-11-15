@@ -203,6 +203,11 @@ realize(oast_t *ast)
 	case tok_plus:		case tok_neg:
 	case tok_inc:		case tok_dec:
 	case tok_sizeof:	case tok_typeof:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:
 	    realize(ast->l.ast);
 	    ast->offset = ast->l.ast->offset;
 	    break;

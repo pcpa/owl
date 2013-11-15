@@ -1723,6 +1723,157 @@ ovm_o_rem(oregister_t *l, oregister_t *r)
     }
 }
 
+void
+ovm_integer_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:	case t_word:
+	case t_mpz:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_rational_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:	case t_word:
+	case t_mpz:	case t_rat:
+	case t_mpq:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_float_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_float:	case t_mpr:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_real_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:	case t_word:
+	case t_float:	case t_mpz:
+	case t_rat:	case t_mpq:
+	case t_mpr:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_complex_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_cdd:	case t_cqq:
+	case t_mpc:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_number_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:	case t_word:
+	case t_float:	case t_mpz:
+	case t_rat:	case t_mpq:
+	case t_mpr:	case t_cdd:
+	case t_cqq:	case t_mpc:
+	    r->v.w = 1;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_finite_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:	case t_word:
+	case t_mpz:	case t_rat:
+	case t_mpq:
+	    r->v.w = 1;
+	    break;
+	case t_float:
+	    r->v.w = finite(r->v.d) ? 1 : 0;
+	    break;
+	case t_mpr:
+	    r->v.w = mpfr_number_p(orr(r)) ? 1 : 0;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_inf_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_float:
+	    r->v.w = isinf(r->v.d) ? signbit(r->v.d) ? -1 : 1 : 0;
+	    break;
+	case t_mpr:
+	    r->v.w = mpfr_inf_p(orr(r)) ? mpfr_signbit(orr(r)) ? -1 : 1 : 0;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_nan_p(oregister_t *r)
+{
+    switch (r->t) {
+	case t_float:
+	    r->v.w = isnan(r->v.d) ? 1 : 0;
+	    break;
+	case t_mpr:
+	    r->v.w = mpfr_nan_p(orr(r)) ? 1 : 0;
+	    break;
+	default:
+	    r->v.w = 0;
+	    break;
+    }
+    r->t = t_word;
+}
+
 #if __WORDSIZE == 32
 void
 ovm_load_ww(oregister_t *r, oint64_t *p)

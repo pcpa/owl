@@ -54,6 +54,33 @@ extern void
 oeval_boolean(oast_t *ast);
 
 extern oobject_t
+oeval_integer_p(void);
+
+extern oobject_t
+oeval_rational_p(void);
+
+extern oobject_t
+oeval_float_p(void);
+
+extern oobject_t
+oeval_real_p(void);
+
+extern oobject_t
+oeval_complex_p(void);
+
+extern oobject_t
+oeval_number_p(void);
+
+extern oobject_t
+oeval_finite_p(void);
+
+extern oobject_t
+oeval_inf_p(void);
+
+extern oobject_t
+oeval_nan_p(void);
+
+extern oobject_t
 oeval_neg(void);
 
 extern oobject_t

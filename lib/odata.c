@@ -109,6 +109,11 @@ odata(oast_t *ast)
 	case tok_postinc:	case tok_postdec:
 	case tok_com:		case tok_plus:
 	case tok_neg:		case tok_not:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:
 	    odata(ast->l.ast);
 	    break;
 	case tok_init:

@@ -115,6 +115,11 @@ ofold(oast_t *ast)
     switch (ast->token) {
 	case tok_com:		case tok_plus:
 	case tok_neg:		case tok_not:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:
 	    oeval_unary(ast);
 	    break;
 	case tok_andand:	case tok_oror:
@@ -364,6 +369,11 @@ oeval_unary(oast_t *ast)
 	    }
 	    return;
 	case tok_neg:		case tok_not:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:
 	    lnum = ast->l.ast->token == tok_number;
 	    break;
 	case tok_com:
@@ -382,6 +392,15 @@ oeval_unary(oast_t *ast)
 	case tok_neg:		object = oeval_neg();		break;
 	case tok_not:		object = oeval_not();		break;
 	case tok_com:		object = oeval_com();		break;
+	case tok_integer_p:	object = oeval_integer_p();	break;
+	case tok_rational_p:	object = oeval_rational_p();	break;
+	case tok_float_p:	object = oeval_float_p();	break;
+	case tok_real_p:	object = oeval_real_p();	break;
+	case tok_complex_p:	object = oeval_complex_p();	break;
+	case tok_number_p:	object = oeval_number_p();	break;
+	case tok_finite_p:	object = oeval_finite_p();	break;
+	case tok_inf_p:		object = oeval_inf_p();		break;
+	case tok_nan_p:		object = oeval_nan_p();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -584,6 +603,184 @@ oeval_boolean(oast_t *ast)
 #undef boolean_true
 #undef boolean_left
 #undef boolean_right
+
+oobject_t
+oeval_integer_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_void:	case t_word:
+	case t_mpz:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_rational_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_void:	case t_word:
+	case t_mpz:	case t_rat:
+	case t_mpq:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_float_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_float:	case t_mpr:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_real_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_void:	case t_word:
+	case t_float:	case t_mpz:
+	case t_rat:	case t_mpq:
+	case t_mpr:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_complex_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_cdd:	case t_cqq:
+	case t_mpc:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_number_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_void:	case t_word:
+	case t_float:	case t_mpz:
+	case t_rat:	case t_mpq:
+	case t_mpr:	case t_cdd:
+	case t_cqq:	case t_mpc:
+	    w = 1;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_finite_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_void:	case t_word:
+	case t_mpz:	case t_rat:
+	case t_mpq:
+	    w = 1;
+	    break;
+	case t_float:
+	    w = finite(pdp(1)) ? 1 : 0;
+	    break;
+	case t_mpr:
+	    w = mpfr_number_p(mpr(1)) ? 1 : 0;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_inf_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_float:
+	    w = isinf(pdp(1)) ? signbit(pdp(1)) ? -1 : 1 : 0;
+	    break;
+	case t_mpr:
+	    w = mpfr_inf_p(mpr(1)) ? mpfr_signbit(mpr(1)) ? -1 : 1 : 0;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_nan_p(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_float:
+	    w = isnan(pdp(1)) ? 1 : 0;
+	    break;
+	case t_mpr:
+	    w = mpfr_nan_p(mpr(1)) ? 1 : 0;
+	    break;
+	default:
+	    w = 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
 
 oobject_t
 oeval_neg(void)

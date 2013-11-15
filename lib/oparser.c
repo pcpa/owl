@@ -1722,7 +1722,11 @@ unary(void)
 	case tok_subtypeof:	case tok_renew:
 	    return (unary_binary(token));
 	case tok_sizeof:	case tok_new:
-	case tok_typeof:
+	case tok_typeof:	case tok_integer_p:
+	case tok_rational_p:	case tok_float_p:
+	case tok_real_p:	case tok_complex_p:
+	case tok_number_p:	case tok_finite_p:
+	case tok_inf_p:		case tok_nan_p:
 	    return (unary_unary(token));
 	case tok_ellipsis:
 	    if (lookahead() == tok_obrack)
@@ -1835,7 +1839,11 @@ unary_value(otoken_t token)
 	case tok_number:	case tok_symbol:
 	case tok_string:	case tok_add:
 	case tok_sub:		case tok_not:
-	case tok_com:
+	case tok_com:		case tok_integer_p:
+	case tok_rational_p:	case tok_float_p:
+	case tok_real_p:	case tok_complex_p:
+	case tok_number_p:	case tok_finite_p:
+	case tok_inf_p:		case tok_nan_p:
 	case tok_atan2:		case tok_pow:
 	case tok_hypot:		case tok_complex:
 	case tok_ellipsis:

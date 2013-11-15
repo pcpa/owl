@@ -483,6 +483,25 @@ ovm_o_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_o_rem(oregister_t *l, oregister_t *r);
 
+extern void
+ovm_integer_p(oregister_t *r);
+extern void
+ovm_rational_p(oregister_t *r);
+extern void
+ovm_float_p(oregister_t *r);
+extern void
+ovm_real_p(oregister_t *r);
+extern void
+ovm_complex_p(oregister_t *r);
+extern void
+ovm_number_p(oregister_t *r);
+extern void
+ovm_finite_p(oregister_t *r);
+extern void
+ovm_inf_p(oregister_t *r);
+extern void
+ovm_nan_p(oregister_t *r);
+
 #  if __WORDSIZE == 32
 extern void
 ovm_load_ww(oregister_t *r, oint64_t *p);
