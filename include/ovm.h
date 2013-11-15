@@ -502,6 +502,21 @@ ovm_inf_p(oregister_t *r);
 extern void
 ovm_nan_p(oregister_t *r);
 
+extern void
+ovm_num(oregister_t *r);
+extern void
+ovm_den(oregister_t *r);
+extern void
+ovm_real(oregister_t *r);
+extern void
+ovm_imag(oregister_t *r);
+
+extern void
+ovm_signbit(oregister_t *r);
+
+extern void
+ovm_abs(oregister_t *r);
+
 #  if __WORDSIZE == 32
 extern void
 ovm_load_ww(oregister_t *r, oint64_t *p);

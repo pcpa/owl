@@ -1874,6 +1874,213 @@ ovm_nan_p(oregister_t *r)
     r->t = t_word;
 }
 
+void
+ovm_num(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	    break;
+	case t_rat:
+	    r->t = t_word;
+	    r->v.w = rat_num(r->v.r);
+	    break;
+	case t_mpq:
+	    r->t = t_mpz;
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_rational_number);
+	    break;
+    }
+}
+
+void
+ovm_den(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:		case t_word:
+	case t_mpz:
+	    r->t = t_word;
+	    r->v.w = 1;
+	    break;
+	case t_rat:
+	    r->t = t_word;
+	    r->v.w = rat_den(r->v.r);
+	    break;
+	case t_mpq:
+	    r->t = t_mpz;
+	    mpz_swap(ozr(r), mpq_denref(oqr(r)));
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_rational_number);
+	    break;
+    }
+}
+
+void
+ovm_real(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_float:
+	case t_mpz:		case t_rat:
+	case t_mpq:		case t_mpr:
+	    break;
+	case t_cdd:
+	    r->t = t_float;
+	    break;
+	case t_cqq:
+	    r->t = t_mpq;
+	    check_mpq(r);
+	    break;
+	case t_mpc:
+	    r->t = t_mpr;
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_imag(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:		case t_word:
+	case t_float:		case t_mpz:
+	case t_rat:		case t_mpq:
+	case t_mpr:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_cdd:
+	    r->t = t_float;
+	    r->v.d = imag(r->v.dd);
+	    break;
+	case t_cqq:
+	    r->t = t_mpq;
+	    mpq_swap(oqr(r), oqi(r));
+	    check_mpq(r);
+	    break;
+	case t_mpc:
+	    r->t = t_mpr;
+	    mpfr_swap(orr(r), ori(r));
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_signbit(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->v.w = 0;
+	    break;
+	case t_word:
+	    r->v.w = r->v.w < 0;
+	    break;
+	case t_float:
+	    r->v.w = signbit(r->v.d) != 0;
+	    break;
+	case t_rat:
+	    r->v.w = rat_sgn(r->v.r) < 0;
+	    break;
+	case t_mpz:
+	    r->v.w = mpz_sgn(ozr(r)) < 0;
+	    break;
+	case t_mpq:
+	    r->v.w = mpq_sgn(oqr(r)) < 0;
+	    break;
+	case t_mpr:
+	    r->v.w = mpfr_signbit(orr(r)) != 0;
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+    r->t = t_word;
+}
+
+void
+ovm_abs(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:
+	    if (likely(r->v.w != MININT)) {
+		if (r->v.w < 0)
+		    r->v.w = -r->v.w;
+	    }
+	    else {
+		mpz_set_ui(ozr(r), MININT);
+		r->t = t_mpz;
+	    }
+	    break;
+	case t_float:
+	    r->v.d = fabs(r->v.d);
+	    break;
+	case t_rat:
+	    if (likely(rat_num(r->v.r) != MININT)) {
+		if (r->v.w < 0)
+		    rat_num(r->v.r) = -rat_num(r->v.r);
+	    }
+	    else {
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		r->t = t_mpq;
+	    }
+	    break;
+	case t_mpz:
+	    mpz_abs(ozr(r), ozr(r));
+	    check_mpz(r);
+	    break;
+	case t_mpq:
+	    mpq_abs(oqr(r), oqr(r));
+	    check_mpq(r);
+	    break;
+	case t_mpr:
+	    mpfr_abs(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	    r->t = t_float;
+	    r->v.d = cabs(r->v.dd);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		r->t = t_float;
+		r->v.d = cabs(r->v.dd);
+	    }
+	    else {
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		mpc_abs(orr(r), occ(r), thr_rndc);
+		r->t = t_mpr;
+	    }
+	    break;
+	case t_mpc:
+	    mpc_abs(orr(r), occ(r), thr_rndc);
+	    r->t = t_mpr;
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
 #if __WORDSIZE == 32
 void
 ovm_load_ww(oregister_t *r, oint64_t *p)

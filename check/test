@@ -38184,3 +38184,207 @@ if (!nan_p(t47_nan))		print("error %d\n", __LINE__);
 if (nan_p(t47_infL))		print("error %d\n", __LINE__);
 if (nan_p(t47_ninfL))		print("error %d\n", __LINE__);
 if (!nan_p(t47_nanL))		print("error %d\n", __LINE__);
+if (num(1) != 1)		print("error %d\n", __LINE__);
+if (num(1/2) != 1)		print("error %d\n", __LINE__);
+if (num(0x800000000000000000000000000000000) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (num(0x800000000000000000000000000000000/5) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (num(t47_sc) != -1)		print("error %d\n", __LINE__);
+if (num(t47_uc) != 1)		print("error %d\n", __LINE__);
+if (num(t47_ss) != -2)		print("error %d\n", __LINE__);
+if (num(t47_us) != 2)		print("error %d\n", __LINE__);
+if (num(t47_si) != -4)		print("error %d\n", __LINE__);
+if (num(t47_ui) != 4)		print("error %d\n", __LINE__);
+if (num(t47_sl) != -8)		print("error %d\n", __LINE__);
+if (num(t47_ul) != 8)		print("error %d\n", __LINE__);
+if (num(t47_w) != 1)		print("error %d\n", __LINE__);
+if (num(t47_x) != 1)		print("error %d\n", __LINE__);
+if (num(t47_z) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (num(t47_q) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (den(1) != 1)		print("error %d\n", __LINE__);
+if (den(1/2) != 2)		print("error %d\n", __LINE__);
+if (den(0x800000000000000000000000000000000) != 1)
+    print("error %d\n", __LINE__);
+if (den(0x800000000000000000000000000000000/5) != 5)
+    print("error %d\n", __LINE__);
+if (den(t47_sc) != 1)		print("error %d\n", __LINE__);
+if (den(t47_uc) != 1)		print("error %d\n", __LINE__);
+if (den(t47_ss) != 1)		print("error %d\n", __LINE__);
+if (den(t47_us) != 1)		print("error %d\n", __LINE__);
+if (den(t47_si) != 1)		print("error %d\n", __LINE__);
+if (den(t47_ui) != 1)		print("error %d\n", __LINE__);
+if (den(t47_sl) != 1)		print("error %d\n", __LINE__);
+if (den(t47_ul) != 1)		print("error %d\n", __LINE__);
+if (den(t47_w) != 1)		print("error %d\n", __LINE__);
+if (den(t47_x) != 2)		print("error %d\n", __LINE__);
+if (den(t47_z) != 1) 		print("error %d\n", __LINE__);
+if (den(t47_q) != 5)		print("error %d\n", __LINE__);
+if (real(1) != 1)		print("error %d\n", __LINE__);
+if (real(1.0) != 1.0)		print("error %d\n", __LINE__);
+if (real(1/2) != 1/2)		print("error %d\n", __LINE__);
+if (real(0x800000000000000000000000000000000) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (real(0x800000000000000000000000000000000/5) != 0x800000000000000000000000000000000/5)
+    print("error %d\n", __LINE__);
+if (real(1.0L) != 1L)		print("error %d\n", __LINE__);
+if (real(1.0*I) != 0.0)		print("error %d\n", __LINE__);
+if (real(I) != 0)		print("error %d\n", __LINE__);
+if (real(1L*I) != 0L)		print("error %d\n", __LINE__);
+if (real(inf) != inf)		print("error %d\n", __LINE__);
+if (real(-inf) != -inf)		print("error %d\n", __LINE__);
+if (real(inf*1L) != inf)	print("error %d\n", __LINE__);
+if (real(-inf*1L) != -inf)	print("error %d\n", __LINE__);
+if (real(t47_sc) != -1)		print("error %d\n", __LINE__);
+if (real(t47_uc) != 1)		print("error %d\n", __LINE__);
+if (real(t47_ss) != -2)		print("error %d\n", __LINE__);
+if (real(t47_us) != 2)		print("error %d\n", __LINE__);
+if (real(t47_si) != -4)		print("error %d\n", __LINE__);
+if (real(t47_ui) != 4)		print("error %d\n", __LINE__);
+if (real(t47_sl) != -8)		print("error %d\n", __LINE__);
+if (real(t47_ul) != 8)		print("error %d\n", __LINE__);
+if (real(t47_sf) != 1/4.0)	print("error %d\n", __LINE__);
+if (real(t47_df) != 1/8)	print("error %d\n", __LINE__);
+if (real(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
+if (real(t47_df_inf) != inf)	print("error %d\n", __LINE__);
+if (real(t47_sf_ninf) != -inf)	print("error %d\n", __LINE__);
+if (real(t47_df_ninf) != -inf)	print("error %d\n", __LINE__);
+if (real(t47_w) != 1)		print("error %d\n", __LINE__);
+if (real(t47_f) != 1)		print("error %d\n", __LINE__);
+if (real(t47_x) != 1/2)		print("error %d\n", __LINE__);
+if (real(t47_z) != 0x800000000000000000000000000000000)
+   print("error %d\n", __LINE__);
+if (real(t47_q) != 0x800000000000000000000000000000000/5)
+    print("error %d\n", __LINE__);
+if (real(t47_r) != 1L)		print("error %d\n", __LINE__);
+if (real(t47_dd) != 0)		print("error %d\n", __LINE__);
+if (real(t47_qq) != 0)		print("error %d\n", __LINE__);
+if (real(t47_cc) != 0)		print("error %d\n", __LINE__);
+if (real(t47_inf) != inf)	print("error %d\n", __LINE__);
+if (real(t47_ninf) != -inf)	print("error %d\n", __LINE__);
+if (real(t47_infL) != t47_infL)	print("error %d\n", __LINE__);
+if (real(t47_ninfL) != t47_ninfL)
+    print("error %d\n", __LINE__);
+if (imag(1) != 0)		print("error %d\n", __LINE__);
+if (imag(1.0) != 0.0)		print("error %d\n", __LINE__);
+if (imag(1/2) != 0)		print("error %d\n", __LINE__);
+if (imag(0x800000000000000000000000000000000) != 0)
+    print("error %d\n", __LINE__);
+if (imag(0x800000000000000000000000000000000/5) != 0)
+    print("error %d\n", __LINE__);
+if (imag(1.0L) != 0L)		print("error %d\n", __LINE__);
+if (imag(1.0*I) != 1.0)		print("error %d\n", __LINE__);
+if (imag(I) != 1)		print("error %d\n", __LINE__);
+if (imag(1L*I) != 1L)		print("error %d\n", __LINE__);
+if (imag(inf) != 0)		print("error %d\n", __LINE__);
+if (imag(-inf) != 0)		print("error %d\n", __LINE__);
+if (imag(inf*1L) != 0)		print("error %d\n", __LINE__);
+if (imag(-inf*1L) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_sc) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_uc) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_ss) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_us) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_si) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_ui) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_sl) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_ul) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_sf) != 0.0)	print("error %d\n", __LINE__);
+if (imag(t47_df) != 0.0)	print("error %d\n", __LINE__);
+if (imag(t47_sf_inf) != 0)	print("error %d\n", __LINE__);
+if (imag(t47_df_inf) != 0)	print("error %d\n", __LINE__);
+if (imag(t47_sf_ninf) != 0)	print("error %d\n", __LINE__);
+if (imag(t47_df_ninf) != 0)	print("error %d\n", __LINE__);
+if (imag(t47_w) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_f) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_x) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_z) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_q) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_r) != 0L)		print("error %d\n", __LINE__);
+if (imag(t47_dd) != 1.0)	print("error %d\n", __LINE__);
+if (imag(t47_qq) != 1)		print("error %d\n", __LINE__);
+if (imag(t47_cc) != 1L)		print("error %d\n", __LINE__);
+if (imag(t47_inf) != 0)		print("error %d\n", __LINE__);
+if (imag(t47_ninf) != 0)	print("error %d\n", __LINE__);
+if (imag(t47_infL) != 0L)	print("error %d\n", __LINE__);
+if (imag(t47_ninfL) != 0L)	print("error %d\n", __LINE__);
+if (signbit(1))			print("error %d\n", __LINE__);
+if (signbit(1.0))		print("error %d\n", __LINE__);
+if (signbit(1/2))		print("error %d\n", __LINE__);
+if (signbit(0x800000000000000000000000000000000))
+    print("error %d\n", __LINE__);
+if (signbit(0x800000000000000000000000000000000/5) != 0)
+    print("error %d\n", __LINE__);
+if (signbit(1.0L))		print("error %d\n", __LINE__);
+if (signbit(inf))		print("error %d\n", __LINE__);
+if (!signbit(-inf))		print("error %d\n", __LINE__);
+if (!signbit(t47_sc))		print("error %d\n", __LINE__);
+if (signbit(t47_uc))		print("error %d\n", __LINE__);
+if (!signbit(t47_ss))		print("error %d\n", __LINE__);
+if (signbit(t47_us))		print("error %d\n", __LINE__);
+if (!signbit(t47_si))		print("error %d\n", __LINE__);
+if (signbit(t47_ui))		print("error %d\n", __LINE__);
+if (!signbit(t47_sl))		print("error %d\n", __LINE__);
+if (signbit(t47_ul))		print("error %d\n", __LINE__);
+if (signbit(t47_sf))		print("error %d\n", __LINE__);
+if (signbit(t47_df))		print("error %d\n", __LINE__);
+if (signbit(t47_sf_inf))	print("error %d\n", __LINE__);
+if (signbit(t47_df_inf))	print("error %d\n", __LINE__);
+if (!signbit(t47_sf_ninf))	print("error %d\n", __LINE__);
+if (!signbit(t47_df_ninf))	print("error %d\n", __LINE__);
+if (signbit(t47_w))		print("error %d\n", __LINE__);
+if (signbit(t47_f))		print("error %d\n", __LINE__);
+if (signbit(t47_x))		print("error %d\n", __LINE__);
+if (signbit(t47_z))		print("error %d\n", __LINE__);
+if (signbit(t47_q))		print("error %d\n", __LINE__);
+if (signbit(t47_r))		print("error %d\n", __LINE__);
+if (signbit(t47_inf))		print("error %d\n", __LINE__);
+if (!signbit(t47_ninf))		print("error %d\n", __LINE__);
+if (signbit(t47_infL))		print("error %d\n", __LINE__);
+if (!signbit(t47_ninfL))	print("error %d\n", __LINE__);
+if (abs(1) != 1)		print("error %d\n", __LINE__);
+if (abs(-1.0) != 1.0)		print("error %d\n", __LINE__);
+if (abs(1/2) != 1/2)		print("error %d\n", __LINE__);
+if (abs(-0x800000000000000000000000000000000) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (abs(0x800000000000000000000000000000000/5) != 0x800000000000000000000000000000000/5)
+    print("error %d\n", __LINE__);
+if (abs(1.0L) != 1.0L)		print("error %d\n", __LINE__);
+if (abs(1.0*I) != 1.0)		print("error %d\n", __LINE__);
+if (abs(I) != 1)		print("error %d\n", __LINE__);
+if (abs(1L*I) != 1L)		print("error %d\n", __LINE__);
+if (abs(inf) != inf)		print("error %d\n", __LINE__);
+if (abs(-inf) != inf)		print("error %d\n", __LINE__);
+if (abs(inf*1L) != inf)		print("error %d\n", __LINE__);
+if (abs(-inf*1L) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_sc) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_uc) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_ss) != 2)		print("error %d\n", __LINE__);
+if (abs(t47_us) != 2)		print("error %d\n", __LINE__);
+if (abs(t47_si) != 4)		print("error %d\n", __LINE__);
+if (abs(t47_ui) != 4)		print("error %d %d\n", t47_ui, __LINE__);
+if (abs(t47_sl) != 8)		print("error %d\n", __LINE__);
+if (abs(t47_ul) != 8)		print("error %d\n", __LINE__);
+if (abs(t47_sf) != 1/4.0)	print("error %d\n", __LINE__);
+if (abs(t47_df) != 1/8)		print("error %d\n", __LINE__);
+if (abs(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_df_inf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_sf_ninf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_df_ninf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_w) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_f) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_x) != 1/2)		print("error %d\n", __LINE__);
+if (abs(t47_z) != 0x800000000000000000000000000000000)
+    print("error %d\n", __LINE__);
+if (abs(t47_q) != 0x800000000000000000000000000000000/5)
+    print("error %d\n", __LINE__);
+if (abs(t47_r) != 1L)		print("error %d\n", __LINE__);
+if (abs(t47_dd) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_qq) != 1)		print("error %d\n", __LINE__);
+if (abs(t47_cc) != 1L)		print("error %d\n", __LINE__);
+if (abs(t47_inf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_ninf) != inf)	print("error %d\n", __LINE__);
+if (abs(t47_infL) != t47_infL)	print("error %d\n", __LINE__);
+if (abs(t47_ninfL) != t47_infL)
+    print("error %d\n", __LINE__);

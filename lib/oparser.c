@@ -1727,6 +1727,9 @@ unary(void)
 	case tok_real_p:	case tok_complex_p:
 	case tok_number_p:	case tok_finite_p:
 	case tok_inf_p:		case tok_nan_p:
+	case tok_num:		case tok_den:
+	case tok_real:		case tok_imag:
+	case tok_signbit:	case tok_abs:
 	    return (unary_unary(token));
 	case tok_ellipsis:
 	    if (lookahead() == tok_obrack)
@@ -1844,6 +1847,9 @@ unary_value(otoken_t token)
 	case tok_real_p:	case tok_complex_p:
 	case tok_number_p:	case tok_finite_p:
 	case tok_inf_p:		case tok_nan_p:
+	case tok_num:		case tok_den:
+	case tok_real:		case tok_imag:
+	case tok_signbit:	case tok_abs:
 	case tok_atan2:		case tok_pow:
 	case tok_hypot:		case tok_complex:
 	case tok_ellipsis:

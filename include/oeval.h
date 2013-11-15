@@ -81,6 +81,24 @@ extern oobject_t
 oeval_nan_p(void);
 
 extern oobject_t
+oeval_num(void);
+
+extern oobject_t
+oeval_den(void);
+
+extern oobject_t
+oeval_real(void);
+
+extern oobject_t
+oeval_imag(void);
+
+extern oobject_t
+oeval_signbit(void);
+
+extern oobject_t
+oeval_abs(void);
+
+extern oobject_t
 oeval_neg(void);
 
 extern oobject_t

@@ -34,6 +34,7 @@
 #define _rat(v)		(orat_t)v
 #define _prat(v)	*(rat_t *)v
 #define rat(v)		_rat(N(v))
+#define prat(v)		_prat(N(v))
 #define get_rat(n)	oget_rat(P(n))
 
 #define _mpz(v)		(ompz_t)(v)
@@ -71,6 +72,9 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue);
 
 static void
 check_real(oast_t *ast);
+
+static void
+check_rational(oast_t *ast);
 
 static void
 check_integer(oast_t *ast);
@@ -119,7 +123,10 @@ ofold(oast_t *ast)
 	case tok_float_p:	case tok_real_p:
 	case tok_complex_p:	case tok_number_p:
 	case tok_finite_p:	case tok_inf_p:
-	case tok_nan_p:
+	case tok_nan_p:		case tok_num:
+	case tok_den:		case tok_real:
+	case tok_imag:		case tok_signbit:
+	case tok_abs:
 	    oeval_unary(ast);
 	    break;
 	case tok_andand:	case tok_oror:
@@ -373,12 +380,21 @@ oeval_unary(oast_t *ast)
 	case tok_float_p:	case tok_real_p:
 	case tok_complex_p:	case tok_number_p:
 	case tok_finite_p:	case tok_inf_p:
-	case tok_nan_p:
+	case tok_nan_p:		case tok_real:
+	case tok_imag:		case tok_abs:
 	    lnum = ast->l.ast->token == tok_number;
 	    break;
 	case tok_com:
 	    if ((lnum = ast->l.ast->token == tok_number))
 		check_integer(ast->l.ast);
+	    break;
+	case tok_num:		case tok_den:
+	    if ((lnum = ast->l.ast->token == tok_number))
+		check_rational(ast->l.ast);
+	    break;
+	case tok_signbit:
+	    if ((lnum = ast->l.ast->token == tok_number))
+		check_real(ast->l.ast);
 	    break;
 	default:
 	    abort();
@@ -401,6 +417,12 @@ oeval_unary(oast_t *ast)
 	case tok_finite_p:	object = oeval_finite_p();	break;
 	case tok_inf_p:		object = oeval_inf_p();		break;
 	case tok_nan_p:		object = oeval_nan_p();		break;
+	case tok_num:		object = oeval_num();		break;
+	case tok_den:		object = oeval_den();		break;
+	case tok_real:		object = oeval_real();		break;
+	case tok_imag:		object = oeval_imag();		break;
+	case tok_signbit:	object = oeval_signbit();	break;
+	case tok_abs:		object = oeval_abs();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -627,9 +649,8 @@ oeval_rational_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
-	case t_void:	case t_word:
-	case t_mpz:	case t_rat:
-	case t_mpq:
+	case t_word:	case t_mpz:
+	case t_rat:	case t_mpq:
 	    w = 1;
 	    break;
 	default:
@@ -663,10 +684,9 @@ oeval_real_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
-	case t_void:	case t_word:
-	case t_float:	case t_mpz:
-	case t_rat:	case t_mpq:
-	case t_mpr:
+	case t_word:	case t_float:
+	case t_mpz:	case t_rat:
+	case t_mpq:	case t_mpr:
 	    w = 1;
 	    break;
 	default:
@@ -701,11 +721,11 @@ oeval_number_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
-	case t_void:	case t_word:
-	case t_float:	case t_mpz:
-	case t_rat:	case t_mpq:
-	case t_mpr:	case t_cdd:
-	case t_cqq:	case t_mpc:
+	case t_word:	case t_float:
+	case t_mpz:	case t_rat:
+	case t_mpq:	case t_mpr:
+	case t_cdd:	case t_cqq:
+	case t_mpc:
 	    w = 1;
 	    break;
 	default:
@@ -722,9 +742,8 @@ oeval_finite_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
-	case t_void:	case t_word:
-	case t_mpz:	case t_rat:
-	case t_mpq:
+	case t_word:	case t_mpz:
+	case t_rat:	case t_mpq:
 	    w = 1;
 	    break;
 	case t_float:
@@ -780,6 +799,227 @@ oeval_nan_p(void)
     get_word(0);
     pwp(0) = w;
     return (cleanup());
+}
+
+oobject_t
+oeval_num(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_word(0);
+	    pwp(0) = orat_num(rat(1));
+	    break;
+	default:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpq_numref(mpq(1)));
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_den(void)
+{
+    switch (otype(N(1))) {
+	case t_word:		case t_mpz:
+	    get_word(0);
+	    pwp(0) = 1;
+	    break;
+	case t_rat:
+	    get_word(0);
+	    pwp(0) = orat_den(rat(1));
+	    break;
+	default:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpq_denref(mpq(1)));
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_real(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = pdp(1);
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_rat(0);
+	    prat(0) = prat(1);
+	    break;
+	case t_mpq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), mpq(1));
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_set(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_float(0);
+	    pdp(0) = real(pddp(1));
+	    break;
+	case t_cqq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), cqq_realref(cqq(1)));
+	    break;
+	default:
+	    get_mpr(0);
+	    mpc_real(mpr(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_imag(void)
+{
+    switch (otype(N(1))) {
+	case t_word:		case t_mpz:
+	case t_rat:		case t_mpq:
+	    get_word(0);
+	    pwp(0) = 0;
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = 0.0;
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_set_ui(mpr(0), 0, thr_rnd);
+	    break;
+	case t_cdd:
+	    get_float(0);
+	    pdp(0) = imag(pddp(1));
+	    break;
+	case t_cqq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), cqq_imagref(cqq(1)));
+	    break;
+	default:
+	    get_mpr(0);
+	    mpc_imag(mpr(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_signbit(void)
+{
+    oword_t		w;
+    switch (otype(N(1))) {
+	case t_word:
+	    w = pwp(1) < 0;
+	    break;
+	case t_float:
+	    w = signbit(pdp(1)) != 0;
+	    break;
+	case t_rat:
+	    w = orat_sgn(rat(1)) < 0;
+	    break;
+	case t_mpz:
+	    w = mpz_sgn(mpz(1)) < 0;
+	    break;
+	case t_mpq:
+	    w = mpq_sgn(mpq(1)) < 0;
+	    break;
+	default:
+	    w = mpfr_signbit(mpr(1)) != 0;
+	    break;
+    }
+    get_word(0);
+    pwp(0) = w;
+    return (cleanup());
+}
+
+oobject_t
+oeval_abs(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) != MININT) {
+		get_word(0);
+		pwp(0) = pwp(1) < 0 ? -pwp(1) : pwp(1);
+	    }
+	    else {
+		get_mpz(0);
+		mpz_set_ui(mpz(0), MININT);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = fabs(pdp(1));
+	    break;
+	case t_rat:
+	    if (likely(orat_num(rat(1)) != MININT)) {
+		get_rat(0);
+		orat_num(rat(0)) = orat_num(rat(1)) < 0 ?
+		    -orat_num(rat(1)) : orat_num(rat(1));
+		orat_den(rat(0)) = orat_den(rat(1));
+	    }
+	    else {
+		get_mpq(0);
+		mpq_set_si(mpq(0), orat_num(rat(1)), orat_den(rat(1)));
+	    }
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_abs(mpz(0), mpz(1));
+	    break;
+	case t_mpq:
+	    get_mpq(0);
+	    mpq_abs(mpq(0), mpq(1));
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_abs(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_float(0);
+	    pdp(0) = cabs(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(2);
+		real(pddp(2)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(2)) = mpq_get_d(cqq_imagref(cqq(1)));
+		get_float(0);
+		pdp(0) = cabs(pddp(2));
+	    }
+	    else {
+		get_mpc(2);
+		mpc_set_q_q(mpc(2), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		get_mpr(0);
+		mpc_abs(mpr(0), mpc(2), thr_rndc);
+	    }
+	    collect(2);
+	    break;
+	default:
+	    get_mpr(0);
+	    mpc_abs(mpr(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
 }
 
 oobject_t
@@ -2562,6 +2802,20 @@ check_real(oast_t *ast)
 		break;
 	    default:
 		oparse_error(ast, "not a real number %A", ast);
+	}
+    }
+}
+
+static void
+check_rational(oast_t *ast)
+{
+    if (ast->l.value) {
+	switch (otype(ast->l.value)) {
+	    case t_word:	case t_rat:
+	    case t_mpz:		case t_mpq:
+		break;
+	    default:
+		oparse_error(ast, "not a rational number %A", ast);
 	}
     }
 }
