@@ -56,6 +56,8 @@
     write_ast_unary(string, length, value, indent, format)
 #define print_ast_binary(string, length, value)				\
     write_ast_binary(string, length, value, indent, format)
+#define print_ast_unary_function(string, length, value)			\
+    write_ast_unary_function(string, length, value, indent, format)
 #define print_ast_binary_function(string, length, value)		\
     write_ast_binary_function(string, length, value, indent, format)
 #define print_ast_comma_list(value)					\
@@ -104,6 +106,10 @@ write_ast_unary(char *string, oword_t length,
 static oword_t
 write_ast_binary(char *string, oword_t length,
 		 oast_t *ast, oint32_t indent, oformat_t *format);
+
+static oword_t
+write_ast_unary_function(char *string, oword_t length,
+			 oast_t *ast, oint32_t indent, oformat_t *format);
 
 static oword_t
 write_ast_binary_function(char *string, oword_t length,
@@ -791,14 +797,10 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast_binary_function("subtypeof", 9, ast);
 	    break;
 	case tok_sizeof:
-	    bytes += dputs("sizeof(", 7);
-	    bytes += print_ast(ast->l.ast);
-	    dputc(')');		++bytes;
+	    bytes += print_ast_unary_function("sizeof", 6, ast);
 	    break;
 	case tok_typeof:
-	    bytes += dputs("typeof(", 7);
-	    bytes += print_ast(ast->l.ast);
-	    dputc(')');		++bytes;
+	    bytes += print_ast_unary_function("typeof", 6, ast);
 	    break;
 	case tok_new:
 	    bytes += dputs("new(", 4);
@@ -807,6 +809,51 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    else
 		bytes += print_ast(ast->l.ast);
 	    dputc(')');		++bytes;
+	    break;
+	case tok_integer_p:
+	    bytes += print_ast_unary_function("integer_p", 9, ast);
+	    break;
+	case tok_rational_p:
+	    bytes += print_ast_unary_function("rational_p", 10, ast);
+	    break;
+	case tok_float_p:
+	    bytes += print_ast_unary_function("float_p", 7, ast);
+	    break;
+	case tok_real_p:
+	    bytes += print_ast_unary_function("real_p", 6, ast);
+	    break;
+	case tok_complex_p:
+	    bytes += print_ast_unary_function("complex_p", 9, ast);
+	    break;
+	case tok_number_p:
+	    bytes += print_ast_unary_function("number_p", 8, ast);
+	    break;
+	case tok_finite_p:
+	    bytes += print_ast_unary_function("finite_p", 8, ast);
+	    break;
+	case tok_inf_p:
+	    bytes += print_ast_unary_function("inf_p", 6, ast);
+	    break;
+	case tok_nan_p:
+	    bytes += print_ast_unary_function("nan_p", 6, ast);
+	    break;
+	case tok_num:
+	    bytes += print_ast_unary_function("num", 3, ast);
+	    break;
+	case tok_den:
+	    bytes += print_ast_unary_function("den", 3, ast);
+	    break;
+	case tok_real:
+	    bytes += print_ast_unary_function("real", 4, ast);
+	    break;
+	case tok_imag:
+	    bytes += print_ast_unary_function("imag", 4, ast);
+	    break;
+	case tok_signbit:
+	    bytes += print_ast_unary_function("signbit", 7, ast);
+	    break;
+	case tok_abs:
+	    bytes += print_ast_unary_function("abs", 3, ast);
 	    break;
 	case tok_goto:
 	    bytes += dputs("goto ", 5);
@@ -1142,6 +1189,20 @@ write_ast_binary(char *string, oword_t length,
     bytes += dputs(string, length);
     dputc(' ');		++bytes;
     bytes += print_ast(ast->r.ast);
+
+    return (bytes);
+}
+
+static oword_t
+write_ast_unary_function(char *string, oword_t length,
+			 oast_t *ast, oint32_t indent, oformat_t *format)
+{
+    oword_t		bytes;
+
+    bytes = dputs(string, length);
+    dputc('(');		++bytes;
+    bytes += print_ast(ast->l.ast);
+    dputc(')');		++bytes;
 
     return (bytes);
 }
