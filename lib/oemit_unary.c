@@ -26,6 +26,9 @@ static void
 emit_com(oast_t *ast);
 
 static void
+emit_plus(oast_t *ast);
+
+static void
 emit_neg(oast_t *ast);
 
 static void
@@ -87,6 +90,9 @@ emit_unary(oast_t *ast)
 	    break;
 	case tok_com:
 	    emit_com(ast);
+	    break;
+	case tok_plus:
+	    emit_plus(ast);
 	    break;
 	case tok_neg:
 	    emit_neg(ast);
@@ -195,6 +201,29 @@ emit_com(oast_t *ast)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_com, mask1(regno));
+	    break;
+    }
+}
+
+static void
+emit_plus(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	case t_single:		case t_float:
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_plus, mask1(regno));
 	    break;
     }
 }

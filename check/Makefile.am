@@ -17,4 +17,4 @@
 
 AM_CFLAGS = @OWL_CFLAGS@
 
-EXTRA_DIST = test
+EXTRA_DIST = math test

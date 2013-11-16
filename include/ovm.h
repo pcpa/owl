@@ -157,6 +157,9 @@ extern void
 ovm_com(oregister_t *r);
 
 extern void
+ovm_plus(oregister_t *r);
+
+extern void
 ovm_neg(oregister_t *r);
 
 extern void

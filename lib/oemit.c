@@ -690,20 +690,20 @@ get_token(oast_t *ast)
 {
     switch (ast->token) {
 	case tok_not:		case tok_com:
-	case tok_neg:		case tok_integer_p:
-	case tok_rational_p:	case tok_float_p:
-	case tok_real_p:	case tok_complex_p:
-	case tok_number_p:	case tok_finite_p:
-	case tok_inf_p:		case tok_nan_p:
-	case tok_num:		case tok_den:
-	case tok_real:		case tok_imag:
-	case tok_signbit:	case tok_abs:
-	case tok_andand:	case tok_oror:
-	case tok_lt:		case tok_le:
-	case tok_eq:		case tok_ge:
-	case tok_gt:		case tok_ne:
-	case tok_and:		case tok_or:
-	case tok_xor:
+	case tok_plus:		case tok_neg:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:		case tok_num:
+	case tok_den:		case tok_real:
+	case tok_imag:		case tok_signbit:
+	case tok_abs:		case tok_andand:
+	case tok_oror:		case tok_lt:
+	case tok_le:		case tok_eq:
+	case tok_ge:		case tok_gt:
+	case tok_ne:		case tok_and:
+	case tok_or:		case tok_xor:
 	case tok_shl:		case tok_shr:
 	case tok_mul2:		case tok_div2:
 	case tok_add:		case tok_sub:
@@ -796,20 +796,16 @@ emit(oast_t *ast)
 		emit_vector(ast, null, null);
 	    break;
 	case tok_not:		case tok_com:
-	case tok_neg:		case tok_integer_p:
-	case tok_rational_p:	case tok_float_p:
-	case tok_real_p:	case tok_complex_p:
-	case tok_number_p:	case tok_finite_p:
-	case tok_inf_p:		case tok_nan_p:
-	case tok_num:		case tok_den:
-	case tok_real:		case tok_imag:
-	case tok_signbit:	case tok_abs:
+	case tok_neg:		case tok_plus:
+	case tok_integer_p:	case tok_rational_p:
+	case tok_float_p:	case tok_real_p:
+	case tok_complex_p:	case tok_number_p:
+	case tok_finite_p:	case tok_inf_p:
+	case tok_nan_p:		case tok_num:
+	case tok_den:		case tok_real:
+	case tok_imag:		case tok_signbit:
+	case tok_abs:
 	    emit_unary(ast);
-	    break;
-	case tok_plus:
-	    emit(ast->l.ast);
-	    op = operand_top();
-	    emit_load(op);
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc: 	case tok_postdec:

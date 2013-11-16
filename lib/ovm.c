@@ -372,6 +372,25 @@ ovm_com(oregister_t *r)
 }
 
 void
+ovm_plus(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:	case t_float:
+	case t_mpz:	case t_rat:
+	case t_mpq:	case t_mpr:
+	case t_cdd:	case t_cqq:
+	case t_mpc:
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
 ovm_neg(oregister_t *r)
 {
     switch (r->t) {
