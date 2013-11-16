@@ -430,6 +430,7 @@ scan_chr(void)
 	 ch = getc_quoted()) {
 	if (ch == '\n')
 	    return (eof);
+	++bytes;
 	if (bytes < sizeof(oword_t))
 	    thread_self->r0.v.w = (thread_self->r0.v.w << 8) | (ch & 0xff);
 	else {
@@ -440,7 +441,6 @@ scan_chr(void)
 	    mpz_mul_2exp(thr_zr, thr_zr, 8);
 	    mpz_add_ui(thr_zr, thr_zr, ch & 0xff);
 	}
-	++bytes;
     }
     if (bytes == sizeof(oword_t) && mpz_fits_slong_p(thr_zr)) {
 	thread_self->r0.v.w = mpz_get_si(thr_zr);
