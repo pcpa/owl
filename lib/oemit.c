@@ -398,7 +398,6 @@ finish_emit(void)
 void
 oemit(void)
 {
-    jit_int32_t		 frame;
     oint32_t		 offset;
     orecord_t		*record;
     jit_node_t		*thread;

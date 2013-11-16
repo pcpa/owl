@@ -23,7 +23,7 @@ static void
 store_exception(jit_int32_t regval, jit_int32_t ipreg);
 
 static void
-unwind_exception(jit_int32_t regval);
+unwind_exception(jit_int32_t regval, obool_t unsafe);
 
 static void
 emit_catch(oast_t *ast, jit_node_t *final);
@@ -84,10 +84,11 @@ store_exception(jit_int32_t regval, jit_int32_t ipreg)
 }
 
 static void
-unwind_exception(jit_int32_t regval)
+unwind_exception(jit_int32_t regval, obool_t unsafe)
 {
-    jit_int32_t		frame;
-    jit_int32_t		stack;
+    jit_int32_t		 frame;
+    jit_int32_t		 stack;
+    jit_node_t		*equal;
 
     /* Need to restore and resync thread state */
     frame = GPR[FRAME] != JIT_NOREG ? GPR[FRAME] : JIT_R0;
@@ -96,8 +97,44 @@ unwind_exception(jit_int32_t regval)
     jit_ldxi(frame, regval, offsetof(oexception_t, fp));
     jit_stxi(offsetof(othread_t, fp), JIT_V0, frame);
     /* Restore sp */
-    jit_ldxi(stack, regval, offsetof(oexception_t, sp));
-    jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+    if (unsafe) {
+	/* If throw may be from another vm stack frame, need to
+	 * zero memory, or it may later be cast to the wrong object;
+	 * the logic is somewhat optimized, to zero memory before
+	 * function return instead of function call, but exceptions
+	 * break all rules. */
+	if (GPR[STACK] != JIT_NOREG) {
+	    jit_ldxi(GPR[STACK], regval, offsetof(oexception_t, sp));
+	    jit_ldxi(JIT_R1, JIT_V0, offsetof(othread_t, sp));
+	    equal = jit_beqr(GPR[STACK], JIT_R1);
+	    jit_subr(JIT_R0, GPR[STACK], JIT_R1);
+	    jit_prepare();
+	    jit_pushargr(JIT_R1);
+	    jit_pushargi(0);
+	    jit_pushargr(JIT_R0);
+	    jit_finishi(memset);
+	    jit_patch(equal);
+	    jit_stxi(offsetof(othread_t, sp), JIT_V0, GPR[STACK]);
+	}
+	else {
+	    jit_ldxi(JIT_R0, regval, offsetof(oexception_t, sp));
+	    jit_ldxi(JIT_R1, JIT_V0, offsetof(othread_t, sp));
+	    equal = jit_beqr(JIT_R0, JIT_R1);
+	    jit_subr(JIT_R0, JIT_R0, JIT_R1);
+	    jit_prepare();
+	    jit_pushargr(JIT_R1);
+	    jit_pushargi(0);
+	    jit_pushargr(JIT_R0);
+	    jit_finishi(memset);
+	    jit_ldxi(JIT_R0, regval, offsetof(oexception_t, sp));
+	    jit_patch(equal);
+	    jit_stxi(offsetof(othread_t, sp), JIT_V0, JIT_R0);
+	}
+    }
+    else {
+	jit_ldxi(stack, regval, offsetof(oexception_t, sp));
+	jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+    }
     /* Restore this (if there is a this register) */
     if (GPR[THIS] != JIT_NOREG)
 	jit_ldxi(GPR[THIS], regval, offsetof(oexception_t, th));
@@ -159,7 +196,7 @@ emit_try(oast_t *ast)
 
     /* Unwind if no exception happened */
     load_exception(GPR[0], ast->offset);
-    unwind_exception(GPR[0]);
+    unwind_exception(GPR[0], false);
     /* Done */
     jmp = jit_jmpi();
     final = jit_forward();
@@ -170,7 +207,7 @@ emit_try(oast_t *ast)
 
     /* Unwind before proceeding */
     jit_ldxi(GPR[0], JIT_V0, offsetof(othread_t, ex));
-    unwind_exception(GPR[0]);
+    unwind_exception(GPR[0], true);
 
     /* Dispatch exception */
     vector = ast->l.value;
