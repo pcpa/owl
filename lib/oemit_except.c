@@ -169,7 +169,7 @@ emit_try(oast_t *ast)
     jit_patch(hnd);
 
     /* Unwind before proceeding */
-    load_exception(GPR[0], ast->offset);
+    jit_ldxi(GPR[0], JIT_V0, offsetof(othread_t, ex));
     unwind_exception(GPR[0]);
 
     /* Dispatch exception */

@@ -398,11 +398,13 @@ finish_emit(void)
 void
 oemit(void)
 {
+    jit_int32_t		 frame;
     oint32_t		 offset;
     orecord_t		*record;
     jit_node_t		*thread;
     jit_node_t		*execute;
     jit_node_t		*handler;
+    jit_node_t		*reenter;
     jit_node_t		*exception;
 
     assert(current_record == root_record);
@@ -420,6 +422,10 @@ oemit(void)
 	if (GPR[offset] != JIT_NOREG)
 	    SPL[offset] = jit_allocai(sizeof(jit_word_t));
     }
+
+    /* Initialize before any exception handling */
+    if (GPR[GLOBAL] != JIT_NOREG)
+	jit_movi(GPR[GLOBAL], (oword_t)gd);
 
     /* Call sigsetjmp when starting thread to set exception handler */
     jit_prepare();
@@ -461,7 +467,11 @@ oemit(void)
 
     jit_patch(handler);
 
-    /* XXX Add code here for exception dispatch XXX */
+    /* Get pointer to exception handler (GPR[1] must be callee save) */
+    jit_ldxi(GPR[1], JIT_V0, offsetof(othread_t, ex));
+    /* Prepare to reenter if there is a handler */
+    reenter = jit_bnei(GPR[1], 0);
+
     exception = jit_bgei_u(JIT_R1, except_unhandled_exception);
     jit_prepare();
     jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, ip));
@@ -478,6 +488,20 @@ oemit(void)
     jit_pushargr(JIT_R0);
     jit_pushargi((oword_t)"unknown");
     jit_finishi(oabort);
+
+    /* Attempt to reenter from vm exception */
+    jit_patch(reenter);
+    /* ovm_raise sets r0.t == t_word and r0.v.w == exception_value */
+    load_r(0);
+    jit_addi(JIT_R0, JIT_V0, offsetof(othread_t, ev));
+    jit_prepare();
+    jit_pushargr(GPR[0]);
+    jit_pushargr(JIT_R0);
+    jit_pushargi(t_void);
+    jit_finishi(ovm_store);
+    /* Jump to try catch type switch */
+    jit_ldxi(JIT_R0, GPR[1], offsetof(oexception_t, ip));
+    jit_jmpr(JIT_R0);
 
     /* Not reentering from exception, dispatch to thread start */
     jit_patch(execute);
@@ -510,8 +534,6 @@ oemit(void)
     current_function->address = jit_name("");
     if (GPR[FRAME] != JIT_NOREG)
 	jit_ldxi(GPR[FRAME], JIT_V0, offsetof(othread_t, fp));
-    if (GPR[GLOBAL] != JIT_NOREG)
-	jit_movi(GPR[GLOBAL], (oword_t)gd);
     if (GPR[STACK] != JIT_NOREG)
 	jit_ldxi(GPR[STACK], JIT_V0, offsetof(othread_t, sp));
     emit_stat(root_record->function->ast->c.ast->l.ast);
@@ -787,6 +809,8 @@ emit(oast_t *ast)
 	    break;
 	case tok_plus:
 	    emit(ast->l.ast);
+	    op = operand_top();
+	    emit_load(op);
 	    break;
 	case tok_inc:		case tok_dec:
 	case tok_postinc: 	case tok_postdec:
