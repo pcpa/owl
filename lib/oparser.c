@@ -1048,6 +1048,15 @@ get_try_block(oast_t *ast)
 	    case tok_catch:		case tok_finally:
 		ast->t.ast = block;
 		return;
+	    case tok_switch:
+		if (ast->token == tok_break)
+		    return;
+		break;
+	    case tok_do:		case tok_while:
+	    case tok_for:
+		if (ast->token == tok_break || ast->token == tok_continue)
+		    return;
+		break;
 	    default:
 		break;
 	}
