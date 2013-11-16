@@ -264,13 +264,13 @@ ofunction_start_locs(ofunction_t *function)
 {
     assert(!function->local);
 #if __WORDSIZE == 32
-    function->record->length = (function->record->length + 3) & ~3;
+    function->record->length = (function->record->length + 3) & -4;
     if (function->varargs)
-	function->varargs = function->record->offset & ~3;
+	function->varargs = (function->record->offset + 3) & -4;
 #else
-    function->record->length = (function->record->length + 7) & ~7;
+    function->record->length = (function->record->length + 7) & -8;
     if (function->varargs)
-	function->varargs = function->record->offset & ~7;
+	function->varargs = (function->record->offset + 7) & -8;
 #endif
     function->frame = function->record->length;
     function->record->offset = 0;
