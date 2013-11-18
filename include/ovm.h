@@ -233,6 +233,8 @@ extern void
 ovm_v_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_v_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_v_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_w_lt(oregister_t *l, oregister_t *r);
@@ -264,6 +266,8 @@ extern void
 ovm_w_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_w_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_w_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_d_lt(oregister_t *l, oregister_t *r);
@@ -291,6 +295,8 @@ extern void
 ovm_trunc_d(oregister_t *r, ofloat_t d);
 extern void
 ovm_d_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_d_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_z_lt(oregister_t *l, oregister_t *r);
@@ -322,6 +328,8 @@ extern void
 ovm_z_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_z_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_z_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_x_lt(oregister_t *l, oregister_t *r);
@@ -347,6 +355,8 @@ extern void
 ovm_x_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_x_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_x_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_q_lt(oregister_t *l, oregister_t *r);
@@ -372,6 +382,8 @@ extern void
 ovm_q_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_q_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_q_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_r_lt(oregister_t *l, oregister_t *r);
@@ -399,6 +411,8 @@ extern void
 ovm_trunc_r(oregister_t *r, ompr_t v);
 extern void
 ovm_r_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_r_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_dd_eq(oregister_t *l, oregister_t *r);
@@ -485,6 +499,8 @@ extern void
 ovm_o_trunc2(oregister_t *l, oregister_t *r);
 extern void
 ovm_o_rem(oregister_t *l, oregister_t *r);
+extern void
+ovm_o_complex(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_integer_p(oregister_t *r);
@@ -504,7 +520,6 @@ extern void
 ovm_inf_p(oregister_t *r);
 extern void
 ovm_nan_p(oregister_t *r);
-
 extern void
 ovm_num(oregister_t *r);
 extern void
@@ -513,12 +528,64 @@ extern void
 ovm_real(oregister_t *r);
 extern void
 ovm_imag(oregister_t *r);
-
 extern void
 ovm_signbit(oregister_t *r);
-
 extern void
 ovm_abs(oregister_t *r);
+extern void
+ovm_signum(oregister_t *r);
+extern void
+ovm_rational(oregister_t *r);
+extern void
+ovm_arg(oregister_t *r);
+extern void
+ovm_conj(oregister_t *r);
+extern void
+ovm_floor(oregister_t *r);
+extern void
+ovm_trunc(oregister_t *r);
+extern void
+ovm_round(oregister_t *r);
+extern void
+ovm_ceil(oregister_t *r);
+extern void
+ovm_sqrt(oregister_t *r);
+extern void
+ovm_cbrt(oregister_t *r);
+extern void
+ovm_sin(oregister_t *r);
+extern void
+ovm_cos(oregister_t *r);
+extern void
+ovm_tan(oregister_t *r);
+extern void
+ovm_asin(oregister_t *r);
+extern void
+ovm_acos(oregister_t *r);
+extern void
+ovm_atan(oregister_t *r);
+extern void
+ovm_sinh(oregister_t *r);
+extern void
+ovm_cosh(oregister_t *r);
+extern void
+ovm_tanh(oregister_t *r);
+extern void
+ovm_asinh(oregister_t *r);
+extern void
+ovm_acosh(oregister_t *r);
+extern void
+ovm_atanh(oregister_t *r);
+extern void
+ovm_proj(oregister_t *r);
+extern void
+ovm_exp(oregister_t *r);
+extern void
+ovm_log(oregister_t *r);
+extern void
+ovm_log2(oregister_t *r);
+extern void
+ovm_log10(oregister_t *r);
 
 #  if __WORDSIZE == 32
 extern void

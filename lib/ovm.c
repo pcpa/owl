@@ -86,6 +86,8 @@ vm_signal_handler(int signo)
 	    write(STDERR_FILENO, "unexpected signal\n", 18);
 	    _exit(EXIT_FAILURE);
     }
+    thread_self->r0.t = t_word;
+    thread_self->r0.v.w = thread_self->xcpt;
     /* While information in the stack */
     search_instruction_pointer();
     siglongjmp(thread_self->env, 1);
@@ -907,6 +909,7 @@ ovm_inc(oregister_t *r)
 		rat_num(r->v.r) += rat_den(r->v.r);
 		break;
 	    }
+	    r->t = t_mpq;
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	    /* FALLTHROUGH */
 	case t_mpq:		case t_cqq:
@@ -955,6 +958,7 @@ ovm_dec(oregister_t *r)
 		rat_num(r->v.r) -= rat_den(r->v.r);
 		break;
 	    }
+	    r->t = t_mpq;
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	    /* FALLTHROUGH */
 	case t_mpq:		case t_cqq:
@@ -1743,6 +1747,37 @@ ovm_o_rem(oregister_t *l, oregister_t *r)
 }
 
 void
+ovm_o_complex(oregister_t *l, oregister_t *r)
+{
+    switch (l->t) {
+	case t_void:
+	    ovm_v_complex(l, r);
+	    break;
+	case t_word:
+	    ovm_w_complex(l, r);
+	    break;
+	case t_float:
+	    ovm_d_complex(l, r);
+	    break;
+	case t_rat:
+	    ovm_x_complex(l, r);
+	    break;
+	case t_mpz:
+	    ovm_z_complex(l, r);
+	    break;
+	case t_mpq:
+	    ovm_q_complex(l, r);
+	    break;
+	case t_mpr:
+	    ovm_r_complex(l, r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
 ovm_integer_p(oregister_t *r)
 {
     switch (r->t) {
@@ -2093,6 +2128,2693 @@ ovm_abs(oregister_t *r)
 	case t_mpc:
 	    mpc_abs(orr(r), occ(r), thr_rndc);
 	    r->t = t_mpr;
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_signum(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:
+	    r->v.w = r->v.w ? r->v.w > 0 ? 1 : -1 : 0;
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d)))
+		r->v.d = r->v.d ? r->v.d > 0.0 ? 1.0 : -1.0 : 0.0;
+	    break;
+	case t_mpz:
+	    r->t = t_word;
+	    r->v.w = mpz_sgn(ozr(r));
+	    break;
+	case t_rat:
+	    r->t = t_word;
+	    if (rat_num(r->v.r))
+		r->v.w = rat_num(r->v.r) > 0 ? 1 : -1;
+	    else
+		r->v.w = 0;
+	    break;
+	case t_mpq:
+	    r->t = t_word;
+	    r->v.w = mpq_sgn(oqr(r));
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r))))
+		mpfr_set_si(orr(r), mpfr_sgn(orr(r)), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd /= cabs(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		r->t = t_cdd;
+		goto cdd;
+	    }
+	    else {
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		r->t = t_mpc;
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpfr_hypot(thr_rr, orr(r), ori(r), thr_rnd);
+	    mpfr_div(orr(r), orr(r), thr_rr, thr_rnd);
+	    mpfr_div(ori(r), ori(r), thr_rr, thr_rnd);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_rational(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	case t_rat:		case t_mpq:
+	    break;
+	case t_float:
+	    if (unlikely(!finite(r->v.d)))
+		ovm_raise(except_not_a_finite_real_number);
+	    r->t = t_mpq;
+	    mpq_set_d(oqr(r), r->v.d);
+	    check_mpq(r);
+	    break;
+	case t_mpr:
+	    if (unlikely(!mpfr_number_p(orr(r))))
+		ovm_raise(except_not_a_finite_real_number);
+	    r->t = t_mpq;
+	    mpfr_get_f(thr_f, orr(r), thr_rnd);
+	    mpq_set_f(oqr(r), thr_f);
+	    check_mpq(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
+ovm_arg(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = r->v.w >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		r->t = t_mpr;
+		if (r->v.w >= 0)
+		    mpfr_set_ui(orr(r), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d)))
+		r->v.d = r->v.d >= 0.0 ? 0.0 : M_PI;
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = mpz_sgn(ozr(r)) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		r->t = t_mpr;
+		if (mpz_sgn(ozr(r)) >= 0)
+		    mpfr_set_ui(orr(r), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = rat_num(r->v.r) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		r->t = t_mpr;
+		if (rat_num(r->v.r) >= 0)
+		    mpfr_set_ui(orr(r), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = mpq_sgn(oqr(r)) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		r->t = t_mpr;
+		if (mpq_sgn(oqr(r)) >= 0)
+		    mpfr_set_ui(orr(r), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (mpfr_sgn(orr(r)) >= 0)
+		    mpfr_set_ui(orr(r), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(r), thr_rnd);
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->t = t_float;
+	    r->v.d = carg(r->v.dd);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    r->t = t_mpr;
+	    mpc_arg(orr(r), occ(r), thr_rndc);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_conj(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_float:
+	case t_rat:		case t_mpz:
+	case t_mpq:		case t_mpr:
+	    break;
+	case t_cdd:
+	    r->v.dd = conj(r->v.dd);
+	    break;
+	case t_cqq:
+	    mpq_neg(oqi(r), oqi(r));
+	    break;
+	case t_mpc:
+	    mpfr_neg(ori(r), ori(r), thr_rnd);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_floor(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	    break;
+	case t_float:
+	    r->v.d = floor(r->v.d);
+	    if ((oword_t)r->v.d == r->v.d) {
+		r->t = t_word;
+		r->v.w = r->v.d;
+	    }
+	    else {
+		mpz_set_d(ozr(r), r->v.d);
+		check_mpz(r);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	    /* FALLTHROUGH */
+	case t_mpq:
+	    r->t = t_mpz;
+	    mpz_fdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    check_mpz(r);
+	    break;
+	case t_mpr:
+	    r->t = t_mpz;
+	    mpfr_floor(orr(r), orr(r));
+	    ompz_set_r(ozr(r), orr(r));
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
+ovm_trunc(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	    break;
+	case t_float:
+	    r->v.d = trunc(r->v.d);
+	    if ((oword_t)r->v.d == r->v.d) {
+		r->t = t_word;
+		r->v.w = r->v.d;
+	    }
+	    else {
+		r->t = t_mpz;
+		mpz_set_d(ozr(r), r->v.d);
+		check_mpz(r);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	    /* FALLTHROUGH */
+	case t_mpq:
+	    r->t = t_mpz;
+	    mpz_tdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    check_mpz(r);
+	    break;
+	case t_mpr:
+	    r->t = t_mpz;
+	    mpfr_trunc(orr(r), orr(r));
+	    ompz_set_r(ozr(r), orr(r));
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
+ovm_round(oregister_t *r)
+{
+    GET_THREAD_SELF()
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	    break;
+	case t_float:
+	    r->v.d = round(r->v.d);
+	    if ((oword_t)r->v.d == r->v.d) {
+		r->t = t_word;
+		r->v.w = r->v.d;
+	    }
+	    else {
+		r->t = t_mpz;
+		mpz_set_d(ozr(r), r->v.d);
+		check_mpz(r);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	    /* FALLTHROUGH */
+	case t_mpq:
+	    r->t = t_mpz;
+	    if (mpq_sgn(oqr(r)) > 0) {
+		mpz_cdiv_qr(ozr(r), thr_zr, ozr(r), mpq_denref(oqr(r)));
+		mpz_mul_2exp(thr_zr, thr_zr, 1);
+		if (mpz_cmpabs(thr_zr, mpq_denref(oqr(r))) > 0)
+		    mpz_sub_ui(ozr(r), ozr(r), 1);
+	    }
+	    else {
+		mpz_fdiv_qr(ozr(r), thr_zr, ozr(r), mpq_denref(oqr(r)));
+		mpz_mul_2exp(thr_zr, thr_zr, 1);
+		if (mpz_cmpabs(thr_zr, mpq_denref(oqr(r))) > 0)
+		    mpz_add_ui(ozr(r), ozr(r), 1);
+	    }
+	    check_mpz(r);
+	    break;
+	case t_mpr:
+	    r->t = t_mpz;
+	    mpfr_round(orr(r), orr(r));
+	    ompz_set_r(ozr(r), orr(r));
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
+ovm_ceil(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	    break;
+	case t_float:
+	    r->v.d = ceil(r->v.d);
+	    if ((oword_t)r->v.d == r->v.d) {
+		r->t = t_word;
+		r->v.w = r->v.d;
+	    }
+	    else {
+		r->t = t_mpz;
+		mpz_set_d(ozr(r), r->v.d);
+		check_mpz(r);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	    /* FALLTHROUGH */
+	case t_mpq:
+	    r->t = t_mpz;
+	    mpz_cdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    check_mpz(r);
+	    break;
+	case t_mpr:
+	    r->t = t_mpz;
+	    mpfr_ceil(orr(r), orr(r));
+	    ompz_set_r(ozr(r), orr(r));
+	    check_mpz(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+	    break;
+    }
+}
+
+void
+ovm_sqrt(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		if (r->v.w >= 0) {
+		    r->t = t_float;
+		    r->v.d = sqrt(r->v.w);
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.w;
+		    imag(r->v.dd) = 0;
+		    r->v.dd = csqrt(r->v.dd);
+		}
+	    }
+	    else if (r->v.w >= 0) {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_sqrt(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		mpc_sqrt(occ(r), occ(r), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (likely(r->v.d >= 0.0))
+		    r->v.d = sqrt(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0;
+		    r->v.dd = csqrt(r->v.dd);
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (mpz_sgn(ozr(r)) >= 0) {
+		    r->t = t_float;
+		    r->v.d = sqrt(mpz_get_d(ozr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpz_get_d(ozr(r));
+		    imag(r->v.dd) = 0;
+		    r->v.dd = csqrt(r->v.dd);
+		}
+	    }
+	    else if (mpz_sgn(ozr(r)) >= 0) {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_sqrt(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		mpc_sqrt(occ(r), occ(r), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (rat_sgn(r->v.r) >= 0) {
+		    r->t = t_float;
+		    r->v.d = sqrt(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = rat_get_d(r->v.r);
+		    imag(r->v.dd) = 0;
+		    r->v.dd = csqrt(r->v.dd);
+		}
+	    }
+	    else {
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		if (mpfr_sgn(orr(r)) >= 0)
+		    mpfr_sqrt(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    mpc_sqrt(occ(r), occ(r), thr_rndc);
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (mpq_sgn(oqr(r)) >= 0) {
+		    r->t = t_float;
+		    r->v.d = sqrt(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpq_get_d(oqr(r));
+		    imag(r->v.dd) = 0;
+		    r->v.dd = csqrt(r->v.dd);
+		}
+	    }
+	    else if (mpq_sgn(oqr(r)) >= 0) {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_sqrt(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		mpc_sqrt(occ(r), occ(r), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (mpfr_sgn(orr(r)) >= 0)
+		    mpfr_sqrt(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    mpc_sqrt(occ(r), occ(r), thr_rndc);
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = csqrt(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_sqrt(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_cbrt(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cbrt(r->v.w);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_cbrt(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = cbrt(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cbrt(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_cbrt(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cbrt(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cbrt(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cbrt(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cbrt(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_cbrt(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = ccbrt(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_cbrt(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_sin(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sin(r->v.w);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_sin(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = sin(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sin(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_sin(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sin(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_sin(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sin(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_sin(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_sin(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = csin(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_sin(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_cos(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 1.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 1, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cos(r->v.w);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_cos(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = cos(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cos(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_cos(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cos(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cos(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cos(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cos(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_cos(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = ccos(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_cos(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_tan(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tan(r->v.w);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_tan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = tan(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tan(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_tan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tan(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_tan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tan(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_tan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_tan(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = ctan(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_tan(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_asin(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(thr_rr, 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (r->v.w <= 1 && r->v.w >= -1) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = asin(r->v.w);
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		    mpfr_asin(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = r->v.w;
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (fabs(r->v.d) <= 1.0)
+		    r->v.d = asin(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpz_get_d(ozr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if ((rat_sgn(r->v.r) >= 0 && orat_cmp_si(&r->v.r,  1) <= 0) ||
+		(rat_sgn(r->v.r) <  0 && orat_cmp_si(&r->v.r, -1) >= 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = asin(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_asin(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = rat_get_d(r->v.r);
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(oqr(r)) >= 0 && mpq_cmp_ui(oqr(r),  1, 1) <= 0) ||
+		(mpq_sgn(oqr(r)) <  0 && mpq_cmp_si(oqr(r), -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = asin(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_asin(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if ((mpfr_sgn(orr(r)) >= 0 && mpfr_cmp_ui(orr(r),  1) <= 0) ||
+		    (mpfr_sgn(orr(r)) <  0 && mpfr_cmp_si(orr(r), -1) >= 0))
+		    mpfr_asin(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = casin(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_asin(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_acos(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = acos(0.0);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(thr_rr, 0, thr_rnd);
+		mpfr_acos(orr(r), orr(r), thr_rnd);
+		break;
+	    }
+	    break;
+	case t_word:
+	    if (r->v.w <= 1 && r->v.w >= -1) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acos(r->v.w);
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		    mpfr_acos(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = r->v.w;
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (fabs(r->v.d) <= 1.0)
+		    r->v.d = acos(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpz_get_d(ozr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if ((rat_sgn(r->v.r) >= 0 && orat_cmp_si(&r->v.r,  1) <= 0) ||
+		(rat_sgn(r->v.r) <  0 && orat_cmp_si(&r->v.r, -1) >= 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acos(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_acos(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = rat_get_d(r->v.r);
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(oqr(r)) >= 0 && mpq_cmp_ui(oqr(r),  1, 1) <= 0) ||
+		(mpq_sgn(oqr(r)) <  0 && mpq_cmp_si(oqr(r), -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acos(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_acos(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if ((mpfr_sgn(orr(r)) >= 0 && mpfr_cmp_ui(orr(r), 1) <= 0) ||
+		    (mpfr_sgn(orr(r)) <  0 && mpfr_cmp_si(orr(r), -1) >= 0))
+		    mpfr_acos(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = cacos(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_acos(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_atan(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = atan(r->v.w);
+	    }
+	    else {
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_atan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = atan(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = atan(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_atan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = atan(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_atan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = atan(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_atan(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_atan(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = catan(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_atan(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_sinh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sinh(r->v.w);
+	    }
+	    else {
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_sinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = sinh(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sinh(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_sinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sinh(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_sinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = sinh(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_sinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_sinh(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = csinh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_sinh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_cosh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 1.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 1, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cosh(r->v.w);
+	    }
+	    else {
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_cosh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = cosh(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cosh(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_cosh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cosh(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cosh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = cosh(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_cosh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_cosh(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = ccosh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_cosh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_tanh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tanh(r->v.w);
+	    }
+	    else {
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_tanh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = tanh(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tanh(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_tanh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tanh(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_tanh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = tanh(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_tanh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_tanh(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = ctanh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_tanh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_asinh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 0.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(orr(r), 0, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = asinh(r->v.w);
+	    }
+	    else {
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_asinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = asinh(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = asinh(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_asinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = asinh(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_asinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = asinh(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_asinh(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_asinh(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = casinh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_asinh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_acosh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = 0;
+		imag(r->v.dd) = 0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_ui(occ(r), 0, thr_rnd);
+		goto mpc;
+	    }
+	    break;
+	case t_word:
+	    if (r->v.w >= 1) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acosh(r->v.w);
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		    mpfr_acosh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.w;
+		    imag(r->v.dd) = 0;
+		    goto cdd;
+		}
+		else {
+		    r->t = t_mpc;
+		    mpc_set_si(occ(r), r->v.w, thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (r->v.d >= 1.0)
+		    r->v.d = acosh(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (mpz_sgn(ozr(r)) > 0) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acosh(mpz_get_d(ozr(r)));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		    mpfr_acosh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpz_get_d(ozr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+		else {
+		    r->t = t_mpr;
+		    mpc_set_z(occ(r), ozr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_rat:
+	    if (orat_cmp_si(&r->v.r, 1) >= 0) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acosh(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_acosh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    r->t = t_cdd;
+		    real(r->v.dd) = rat_get_d(r->v.r);
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+		else {
+		    r->t = t_mpr;
+		    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		    mpc_set_q(occ(r), oqr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (mpq_cmp_ui(oqr(r), 1, 1) >= 0) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = acosh(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_acosh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpq_get_d(oqr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+		else {
+		    r->t = t_mpr;
+		    mpc_set_q(occ(r), oqr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (mpfr_cmp_ui(orr(r), 1) >= 0) {
+		    mpfr_acosh(orr(r), orr(r), thr_rnd);
+		}
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = cacosh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_acosh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_atanh(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = atanh(0.0);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(thr_rr, 0, thr_rnd);
+		mpfr_atanh(orr(r), orr(r), thr_rnd);
+		break;
+	    }
+	    break;
+	case t_word:
+	    if (!r->v.w) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = atanh(r->v.w);
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		    mpfr_atanh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = r->v.w;
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (fabs(r->v.d) < 1.0)
+		    r->v.d = atanh(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpz_get_d(ozr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if ((rat_sgn(r->v.r) >= 0 && orat_cmp_si(&r->v.r,  1) < 0) ||
+		(rat_sgn(r->v.r) <  0 && orat_cmp_si(&r->v.r, -1) > 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = atanh(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_atanh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = rat_get_d(r->v.r);
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(oqr(r)) >= 0 && mpq_cmp_ui(oqr(r),  1, 1) < 0) ||
+		(mpq_sgn(oqr(r)) <  0 && mpq_cmp_si(oqr(r), -1, 1) > 0)) {
+		if (!cfg_float_format) {
+		    r->t = t_float;
+		    r->v.d = atanh(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_atanh(orr(r), orr(r), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if ((mpfr_sgn(orr(r)) >= 0 && mpfr_cmp_ui(orr(r),  1) < 0) ||
+		    (mpfr_sgn(orr(r)) <  0 && mpfr_cmp_si(orr(r), -1) > 0))
+		    mpfr_atanh(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = catanh(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_atanh(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_proj(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    r->t = t_word;
+	    r->v.w = 0;
+	    break;
+	case t_word:		case t_mpz:
+	case t_rat:		case t_mpq:
+	case t_cqq:
+	    break;
+	case t_float:
+	    if (unlikely(isinf(r->v.d)))
+		r->v.d = INFINITY;
+	    break;
+	case t_mpr:
+	    if (unlikely(mpfr_inf_p(orr(r))))
+		mpfr_set_inf(orr(r), 1);
+	    break;
+	case t_cdd:
+	    r->v.dd = cproj(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_mpc:
+	    mpc_proj(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_exp(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = 1.0;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_ui(thr_rr, 1, thr_rnd);
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = exp(r->v.w);
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_exp(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    r->v.d = exp(r->v.d);
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = exp(mpz_get_d(ozr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_exp(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = exp(rat_get_d(r->v.r));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_exp(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = exp(mpq_get_d(oqr(r)));
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_exp(orr(r), orr(r), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    mpfr_exp(orr(r), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = cexp(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_exp(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_log(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = -INFINITY;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_inf(thr_rr, -1);
+		break;
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		if (likely(r->v.w >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log(r->v.w);
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.w;
+		    imag(r->v.dd) = 0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(r->v.w >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_log(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (likely(r->v.d >= 0.0))
+		    r->v.d = log(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (likely(mpz_sgn(ozr(r)) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log(mpz_get_d(ozr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpz_get_d(ozr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpz_sgn(ozr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_log(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (likely(rat_sgn(r->v.r) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = rat_get_d(r->v.r);
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else {
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_log(orr(r), orr(r), thr_rnd);
+		}
+		else {
+		    r->t = t_mpc;
+		    mpc_set_q(occ(r), oqr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpq_get_d(oqr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_log(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (likely(mpfr_sgn(orr(r)) >= 0))
+		    mpfr_log(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = clog(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_log(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_log2(oregister_t *r)
+{
+    GET_THREAD_SELF()
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = -INFINITY;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_inf(thr_rr, -1);
+		break;
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		if (likely(r->v.w >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log2(r->v.w);
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.w;
+		    imag(r->v.dd) = 0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(r->v.w >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_log2(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (likely(r->v.d >= 0.0))
+		    r->v.d = log2(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (likely(mpz_sgn(ozr(r))) >= 0) {
+		    r->t = t_float;
+		    r->v.d = log2(mpz_get_d(ozr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpz_get_d(ozr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpz_sgn(ozr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_log2(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (likely(rat_sgn(r->v.r) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log2(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = rat_get_d(r->v.r);
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else {
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_log2(orr(r), orr(r), thr_rnd);
+		}
+		else {
+		    r->t = t_mpc;
+		    mpc_set_q(occ(r), oqr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log2(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpq_get_d(oqr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_log2(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (likely(mpfr_sgn(orr(r)) >= 0))
+		    mpfr_log2(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = clog2(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_log2(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+	    break;
+    }
+}
+
+void
+ovm_log10(oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    if (!cfg_float_format) {
+		r->t = t_float;
+		r->v.d = -INFINITY;
+	    }
+	    else {
+		r->t = t_mpr;
+		mpfr_set_inf(thr_rr, -1);
+		break;
+	    }
+	    break;
+	case t_word:
+	    if (!cfg_float_format) {
+		if (likely(r->v.w >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log10(r->v.w);
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.w;
+		    imag(r->v.dd) = 0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(r->v.w >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_si(orr(r), r->v.w, thr_rnd);
+		mpfr_log10(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_si(occ(r), r->v.w, thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_float:
+	    if (likely(!isnan(r->v.d))) {
+		if (likely(r->v.d >= 0.0))
+		    r->v.d = log10(r->v.d);
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = r->v.d;
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (likely(mpz_sgn(ozr(r)) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log10(mpz_get_d(ozr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpz_get_d(ozr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpz_sgn(ozr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_z(orr(r), ozr(r), thr_rnd);
+		mpfr_log10(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_z(occ(r), ozr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (likely(rat_sgn(r->v.r) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log10(rat_get_d(r->v.r));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = rat_get_d(r->v.r);
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else {
+		mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_mpr;
+		    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		    mpfr_log10(orr(r), orr(r), thr_rnd);
+		}
+		else {
+		    r->t = t_mpc;
+		    mpc_set_q(occ(r), oqr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		    r->t = t_float;
+		    r->v.d = log10(mpq_get_d(oqr(r)));
+		}
+		else {
+		    r->t = t_cdd;
+		    real(r->v.dd) = mpq_get_d(oqr(r));
+		    imag(r->v.dd) = 0.0;
+		    goto cdd;
+		}
+	    }
+	    else if (likely(mpq_sgn(oqr(r)) >= 0)) {
+		r->t = t_mpr;
+		mpfr_set_q(orr(r), oqr(r), thr_rnd);
+		mpfr_log10(orr(r), orr(r), thr_rnd);
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q(occ(r), oqr(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpr:
+	    if (likely(!mpfr_nan_p(orr(r)))) {
+		if (likely(mpfr_sgn(orr(r)) >= 0))
+		    mpfr_log10(orr(r), orr(r), thr_rnd);
+		else {
+		    r->t = t_mpc;
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	    break;
+	case t_cdd:
+	cdd:
+	    r->v.dd = clog10(r->v.dd);
+	    check_cdd(r);
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		r->t = t_cdd;
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = mpq_get_d(oqi(r));
+		goto cdd;
+	    }
+	    else {
+		r->t = t_mpc;
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	mpc:
+	    mpc_log10(occ(r), occ(r), thr_rndc);
+	    check_mpc(r);
 	    break;
 	default:
 	    ovm_raise(except_not_a_number);

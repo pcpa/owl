@@ -698,7 +698,21 @@ get_token(oast_t *ast)
 	case tok_nan_p:		case tok_num:
 	case tok_den:		case tok_real:
 	case tok_imag:		case tok_signbit:
-	case tok_abs:		case tok_andand:
+	case tok_abs:		case tok_signum:
+	case tok_rational:	case tok_arg:
+	case tok_conj:		case tok_floor:
+	case tok_trunc:		case tok_round:
+	case tok_ceil:		case tok_sqrt:
+	case tok_cbrt:		case tok_sin:
+	case tok_cos:		case tok_tan:
+	case tok_asin:		case tok_acos:
+	case tok_atan:		case tok_sinh:
+	case tok_cosh:		case tok_tanh:
+	case tok_asinh:		case tok_acosh:
+	case tok_atanh:		case tok_proj:
+	case tok_exp:		case tok_log:
+	case tok_log2:		case tok_log10:
+	case tok_andand:
 	case tok_oror:		case tok_lt:
 	case tok_le:		case tok_eq:
 	case tok_ge:		case tok_gt:
@@ -709,6 +723,7 @@ get_token(oast_t *ast)
 	case tok_add:		case tok_sub:
 	case tok_mul:		case tok_div:
 	case tok_trunc2:	case tok_rem:
+	case tok_complex:
 	    return (ast->token);
 	case tok_andset:	case tok_orset:
 	case tok_xorset:
@@ -804,7 +819,20 @@ emit(oast_t *ast)
 	case tok_nan_p:		case tok_num:
 	case tok_den:		case tok_real:
 	case tok_imag:		case tok_signbit:
-	case tok_abs:
+	case tok_abs:		case tok_signum:
+	case tok_rational:	case tok_arg:
+	case tok_conj:		case tok_floor:
+	case tok_trunc:		case tok_round:
+	case tok_ceil:		case tok_sqrt:
+	case tok_cbrt:		case tok_sin:
+	case tok_cos:		case tok_tan:
+	case tok_asin:		case tok_acos:
+	case tok_atan:		case tok_sinh:
+	case tok_cosh:		case tok_tanh:
+	case tok_asinh:		case tok_acosh:
+	case tok_atanh:		case tok_proj:
+	case tok_exp:		case tok_log:
+	case tok_log2:		case tok_log10:
 	    emit_unary(ast);
 	    break;
 	case tok_inc:		case tok_dec:
@@ -826,6 +854,7 @@ emit(oast_t *ast)
 	case tok_add:		case tok_sub:
 	case tok_mul:		case tok_div:
 	case tok_trunc2:	case tok_rem:
+	case tok_complex:
 	    emit_binary(ast);
 	    break;
 	case tok_set:

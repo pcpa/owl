@@ -855,6 +855,87 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	case tok_abs:
 	    bytes += print_ast_unary_function("abs", 3, ast);
 	    break;
+	case tok_signum:
+	    bytes += print_ast_unary_function("signum", 6, ast);
+	    break;
+	case tok_rational:
+	    bytes += print_ast_unary_function("rational", 8, ast);
+	    break;
+	case tok_arg:
+	    bytes += print_ast_unary_function("arg", 3, ast);
+	    break;
+	case tok_conj:
+	    bytes += print_ast_unary_function("conj", 4, ast);
+	    break;
+	case tok_floor:
+	    bytes += print_ast_unary_function("floor", 5, ast);
+	    break;
+	case tok_trunc:
+	    bytes += print_ast_unary_function("trunc", 5, ast);
+	    break;
+	case tok_round:
+	    bytes += print_ast_unary_function("round", 5, ast);
+	    break;
+	case tok_ceil:
+	    bytes += print_ast_unary_function("ceil", 4, ast);
+	    break;
+	case tok_sqrt:
+	    bytes += print_ast_unary_function("sqrt", 4, ast);
+	    break;
+	case tok_cbrt:
+	    bytes += print_ast_unary_function("cbrt", 4, ast);
+	    break;
+	case tok_sin:
+	    bytes += print_ast_unary_function("sin", 3, ast);
+	    break;
+	case tok_cos:
+	    bytes += print_ast_unary_function("cos", 3, ast);
+	    break;
+	case tok_tan:
+	    bytes += print_ast_unary_function("tan", 3, ast);
+	    break;
+	case tok_asin:
+	    bytes += print_ast_unary_function("asin", 4, ast);
+	    break;
+	case tok_acos:
+	    bytes += print_ast_unary_function("acos", 4, ast);
+	    break;
+	case tok_atan:
+	    bytes += print_ast_unary_function("atan", 4, ast);
+	    break;
+	case tok_sinh:
+	    bytes += print_ast_unary_function("sinh", 4, ast);
+	    break;
+	case tok_cosh:
+	    bytes += print_ast_unary_function("cosh", 4, ast);
+	    break;
+	case tok_tanh:
+	    bytes += print_ast_unary_function("tanh", 4, ast);
+	    break;
+	case tok_asinh:
+	    bytes += print_ast_unary_function("asinh", 5, ast);
+	    break;
+	case tok_acosh:
+	    bytes += print_ast_unary_function("acosh", 5, ast);
+	    break;
+	case tok_atanh:
+	    bytes += print_ast_unary_function("atanh", 5, ast);
+	    break;
+	case tok_proj:
+	    bytes += print_ast_unary_function("proj", 4, ast);
+	    break;
+	case tok_exp:
+	    bytes += print_ast_unary_function("exp", 3, ast);
+	    break;
+	case tok_log:
+	    bytes += print_ast_unary_function("log", 3, ast);
+	    break;
+	case tok_log2:
+	    bytes += print_ast_unary_function("log2", 4, ast);
+	    break;
+	case tok_log10:
+	    bytes += print_ast_unary_function("log10", 5, ast);
+	    break;
 	case tok_goto:
 	    bytes += dputs("goto ", 5);
 	    bytes += print_obj(ast->l.ast->l.value);

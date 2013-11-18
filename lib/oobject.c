@@ -206,6 +206,7 @@ init_object(void)
 
     cqq_init(&thread_main->qq);
     mpc_init2(&thread_main->cc, thr_prc);
+    mpf_init(&thread_main->f);
     onew_vector((oobject_t *)&thread_main->vec, t_uint8, BUFSIZ);
 
 #define init_register(N)						\
@@ -239,6 +240,7 @@ finish_object(void)
     rtti_vector = null;
     cqq_clear(&thread_main->qq);
     mpc_clear(&thread_main->cc);
+    mpf_clear(&thread_main->f);
 
 #define finish_register(N)						\
     do {								\

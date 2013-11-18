@@ -487,3 +487,32 @@ ovm_r_rem(oregister_t *l, oregister_t *r)
     }
     mpfr_fmod(orr(l), orr(l), orr(r), thr_rnd);
 }
+
+void
+ovm_r_complex(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    return;
+	case t_word:
+	    mpfr_set_si(ori(l), r->v.w, thr_rnd);
+	    break;
+	case t_float:
+	    mpfr_set_d(ori(l), r->v.d, thr_rnd);
+	    break;
+	case t_mpz:
+	    mpfr_set_z(ori(l), ozr(r), thr_rnd);
+	    break;
+	case t_mpq:
+	    mpfr_set_q(ori(l), oqr(r), thr_rnd);
+	    check_cqq(l);
+	    break;
+	case t_mpr:
+	    mpfr_set(ori(l), orr(r), thr_rnd);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+    }
+    l->t = t_mpc;
+    check_mpc(l);
+}

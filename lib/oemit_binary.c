@@ -54,6 +54,9 @@ emit_trunc2(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
 
 static void
 emit_rem(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
+
+static void
+emit_complex(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
 #endif
 
 #if defined(CODE)
@@ -240,6 +243,9 @@ emit_binary_next(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    break;
 	case tok_rem:
 	    emit_rem(lop, tok, rop);
+	    break;
+	case tok_complex:
+	    emit_complex(lop, tok, rop);
 	    break;
 	default:
 	    abort();
@@ -1256,6 +1262,85 @@ emit_rem(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
     emit_finish(function, mask1(lreg));
     if (done)
 	jit_patch(done);
+    emit_set_type(lop, t_void);
+finish:
+    operand_unget(1);
+}
+
+static void
+emit_complex(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
+{
+    otype_t		 lty;
+    otype_t		 rty;
+    oword_t		 lreg;
+    oword_t		 rreg;
+    oobject_t		 function;
+
+    lreg = lop->u.w;
+    switch (rop->t) {
+	case t_half:	case t_word:
+	case t_single:	case t_float:
+	    rreg = -1;
+	    break;
+	default:
+	    rreg = rop->u.w;
+	    break;
+    }
+    lty = emit_get_type(lop);
+    rty = emit_get_type(rop);
+    if (lty == t_half || lty == t_word) {
+	sync_w(lreg);
+	if (rty == t_half || rty == t_word) {
+	    if (rreg == -1) {
+		if (rop->u.w == 0)
+		    goto finish;
+		emit_load(rop);
+		rreg = rop->u.w;
+	    }
+	    sync_w(rreg);
+	}
+	else
+	    assert(rty == t_void);
+	function = ovm_w_complex;
+    }
+    else if (lty == t_single) {
+	if (rreg == -1) {
+	    if (rop->u.d == 0)
+		goto finish;
+	    emit_load(rop);
+	    rreg = rop->u.w;
+	}
+	jit_extr_f_d(FPR[lreg], FPR[lreg]);
+	sync_d(lreg);
+	if (rty == t_single)
+	    jit_extr_f_d(FPR[rreg], FPR[rreg]);
+	else
+	    assert(rty == t_float);
+	sync_d(rreg);
+	function = ovm_d_complex;
+    }
+    else if (lty == t_float) {
+	if (rreg == -1) {
+	    if (rop->u.d == 0)
+		goto finish;
+	    emit_load(rop);
+	    rreg = rop->u.w;
+	}
+	sync_d(lreg);
+	if (rty == t_float)
+	    sync_d(rreg);
+	function = ovm_d_complex;
+    }
+    else {
+	assert(lty == t_void);
+	function = ovm_o_complex;
+    }
+    load_r(lreg);
+    load_r_w(rreg, JIT_R0);
+    jit_prepare();
+    jit_pushargr(GPR[lreg]);
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
     emit_set_type(lop, t_void);
 finish:
     operand_unget(1);

@@ -74,6 +74,9 @@ static void
 check_real(oast_t *ast);
 
 static void
+check_real_finite(oast_t *ast);
+
+static void
 check_rational(oast_t *ast);
 
 static void
@@ -126,7 +129,20 @@ ofold(oast_t *ast)
 	case tok_nan_p:		case tok_num:
 	case tok_den:		case tok_real:
 	case tok_imag:		case tok_signbit:
-	case tok_abs:
+	case tok_abs:		case tok_signum:
+	case tok_rational:	case tok_arg:
+	case tok_conj:		case tok_floor:
+	case tok_trunc:		case tok_round:
+	case tok_ceil:		case tok_sqrt:
+	case tok_cbrt:		case tok_sin:
+	case tok_cos:		case tok_tan:
+	case tok_asin:		case tok_acos:
+	case tok_atan:		case tok_sinh:
+	case tok_cosh:		case tok_tanh:
+	case tok_asinh:		case tok_acosh:
+	case tok_atanh:		case tok_proj:
+	case tok_exp:		case tok_log:
+	case tok_log2:		case tok_log10:
 	    oeval_unary(ast);
 	    break;
 	case tok_andand:	case tok_oror:
@@ -382,6 +398,17 @@ oeval_unary(oast_t *ast)
 	case tok_finite_p:	case tok_inf_p:
 	case tok_nan_p:		case tok_real:
 	case tok_imag:		case tok_abs:
+	case tok_signum:	case tok_arg:
+	case tok_conj:		case tok_sqrt:
+	case tok_cbrt:		case tok_sin:
+	case tok_cos:		case tok_tan:
+	case tok_asin:		case tok_acos:
+	case tok_atan:		case tok_sinh:
+	case tok_cosh:		case tok_tanh:
+	case tok_asinh:		case tok_acosh:
+	case tok_atanh:		case tok_proj:
+	case tok_exp:		case tok_log:
+	case tok_log2:		case tok_log10:
 	    lnum = ast->l.ast->token == tok_number;
 	    break;
 	case tok_com:
@@ -395,6 +422,12 @@ oeval_unary(oast_t *ast)
 	case tok_signbit:
 	    if ((lnum = ast->l.ast->token == tok_number))
 		check_real(ast->l.ast);
+	    break;
+	case tok_rational:	case tok_floor:
+	case tok_trunc:		case tok_round:
+	case tok_ceil:
+	    if ((lnum = ast->l.ast->token == tok_number))
+		check_real_finite(ast->l.ast);
 	    break;
 	default:
 	    abort();
@@ -423,6 +456,33 @@ oeval_unary(oast_t *ast)
 	case tok_imag:		object = oeval_imag();		break;
 	case tok_signbit:	object = oeval_signbit();	break;
 	case tok_abs:		object = oeval_abs();		break;
+	case tok_signum:	object = oeval_signum();	break;
+	case tok_rational:	object = oeval_rational();	break;
+	case tok_arg:		object = oeval_arg();		break;
+	case tok_conj:		object = oeval_conj();		break;
+	case tok_floor:		object = oeval_floor();		break;
+	case tok_trunc:		object = oeval_trunc();		break;
+	case tok_round:		object = oeval_round();		break;
+	case tok_ceil:		object = oeval_ceil();		break;
+	case tok_sqrt:		object = oeval_sqrt();		break;
+	case tok_cbrt:		object = oeval_cbrt();		break;
+	case tok_sin:		object = oeval_sin();		break;
+	case tok_cos:		object = oeval_cos();		break;
+	case tok_tan:		object = oeval_tan();		break;
+	case tok_asin:		object = oeval_asin();		break;
+	case tok_acos:		object = oeval_acos();		break;
+	case tok_atan:		object = oeval_atan();		break;
+	case tok_sinh:		object = oeval_sinh();		break;
+	case tok_cosh:		object = oeval_cosh();		break;
+	case tok_tanh:		object = oeval_tanh();		break;
+	case tok_asinh:		object = oeval_asinh();		break;
+	case tok_acosh:		object = oeval_acosh();		break;
+	case tok_atanh:		object = oeval_atanh();		break;
+	case tok_proj:		object = oeval_proj();		break;
+	case tok_exp:		object = oeval_exp();		break;
+	case tok_log:		object = oeval_log();		break;
+	case tok_log2:		object = oeval_log2();		break;
+	case tok_log10:		object = oeval_log10();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -970,7 +1030,7 @@ oeval_abs(void)
 	    pdp(0) = fabs(pdp(1));
 	    break;
 	case t_rat:
-	    if (likely(orat_num(rat(1)) != MININT)) {
+	    if (orat_num(rat(1)) != MININT) {
 		get_rat(0);
 		orat_num(rat(0)) = orat_num(rat(1)) < 0 ?
 		    -orat_num(rat(1)) : orat_num(rat(1));
@@ -1017,6 +1077,2635 @@ oeval_abs(void)
 	default:
 	    get_mpr(0);
 	    mpc_abs(mpr(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_signum(void)
+{
+   switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1) ? pwp(1) > 0 ? 1 : -1 : 0;
+	    break;
+	case t_float:
+	    get_float(0);
+	    if (!isnan(pdp(1)))
+		pdp(0) = pdp(1) ? pdp(1) > 0.0 ? 1.0 : -1.0 : 0.0;
+	    else
+		pdp(0) = NAN;
+	    break;
+	case t_mpz:
+	    get_word(0);
+	    pwp(0) = mpz_sgn(mpz(1));
+	    break;
+	case t_rat:
+	    get_word(0);
+	    if (orat_num(rat(1)))
+		pwp(0) = orat_num(rat(1)) > 0 ? 1 : -1;
+	    else
+		pwp(0) = 0;
+	    break;
+	case t_mpq:
+	    get_word(0);
+	    pwp(0) = mpq_sgn(mpq(1));
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1)))
+		mpfr_set_si(mpr(0), mpfr_sgn(mpr(1)), thr_rnd);
+	    else
+		mpfr_set_nan(mpr(0));
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = pddp(1) / cabs(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) /= cabs(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpfr_hypot(thr_rr, mpc_realref(mpc(0)),
+			   mpc_imagref(mpc(0)), thr_rnd);
+		mpfr_div(mpc_realref(mpc(0)),
+			 mpc_realref(mpc(0)), thr_rr, thr_rnd);
+		mpfr_div(mpc_imagref(mpc(0)),
+			 mpc_imagref(mpc(0)), thr_rr, thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpfr_hypot(thr_rr, mpc_realref(mpc(1)),
+		       mpc_imagref(mpc(1)), thr_rnd);
+	    mpfr_div(mpc_realref(mpc(0)),
+		     mpc_realref(mpc(0)), thr_rr, thr_rnd);
+	    mpfr_div(mpc_imagref(mpc(0)),
+		     mpc_imagref(mpc(0)), thr_rr, thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_rational(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_rat(0);
+	    orat_num(rat(0)) = orat_num(rat(1));
+	    orat_den(rat(0)) = orat_den(rat(1));
+	    break;
+	case t_mpq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), mpq(1));
+	    break;
+	case t_float:
+	    get_mpq(0);
+	    mpq_set_d(mpq(0), pdp(1));
+	    break;
+	default:
+	    get_mpq(0);
+	    mpfr_get_f(thr_f, mpr(1), thr_rnd);
+	    mpq_set_f(mpq(0), thr_f);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_arg(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = pwp(1) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		get_mpr(0);
+		if (pwp(1))
+		    mpfr_set_ui(mpr(0), 0, thr_rnd);
+		else
+		    mpfr_const_pi(mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    if (!isnan(pdp(1)))
+		pdp(0) = pdp(1) >= 0.0 ? 0.0 : M_PI;
+	    else
+		pdp(0) = NAN;
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = mpz_sgn(mpz(1)) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		get_mpr(0);
+		if (mpz_sgn(mpz(1)) >= 0)
+		    mpfr_set_ui(mpr(0), 0, thr_rnd);
+		else
+		    mpfr_const_pi(mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = orat_num(rat(1)) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		get_mpr(0);
+		if (orat_num(rat(1)) >= 0)
+		    mpfr_set_ui(mpr(0), 0, thr_rnd);
+		else
+		    mpfr_const_pi(mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = mpq_sgn(mpq(1)) >= 0 ? 0.0 : M_PI;
+	    }
+	    else {
+		get_mpr(0);
+		if (mpq_sgn(mpq(1)) >= 0)
+		    mpfr_set_ui(mpr(0), 0, thr_rnd);
+		else
+		    mpfr_const_pi(mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_sgn(mpr(1)) >= 0)
+		    mpfr_set_ui(mpr(0), 0, thr_rnd);
+		else
+		    mpfr_const_pi(mpr(0), thr_rnd);
+	    }
+	    else
+		mpfr_set_nan(mpr(0));
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = carg(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = carg(pddp(0));
+	    }
+	    else {
+		get_mpr(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_arg(mpr(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpr(0);
+	    mpc_arg(mpr(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_conj(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = pdp(1);
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_rat(0);
+	    orat_num(rat(0)) = orat_num(rat(1));
+	    orat_den(rat(0)) = orat_den(rat(1));
+	    break;
+	case t_mpq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), mpq(1));
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_set(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = conj(pddp(1));
+	    break;
+	case t_cqq:
+	    get_cqq(0);
+	    mpq_set(cqq_realref(cqq(0)), cqq_realref(cqq(1)));
+	    mpq_neg(cqq_imagref(cqq(0)), cqq_imagref(cqq(1)));
+	    break;
+	default:
+	    get_mpc(0);
+	    mpfr_set(mpc_realref(mpc(0)), mpc_realref(mpc(1)), thr_rnd);
+	    mpfr_neg(mpc_imagref(mpc(0)), mpc_imagref(mpc(1)), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_floor(void)
+{
+    GET_THREAD_SELF()
+    ofloat_t		d;
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    d = floor(pdp(1));
+	    if ((oword_t)d == d) {
+		get_word(0);
+		pwp(0) = d;
+	    }
+	    else {
+		get_mpz(0);
+		mpz_set_d(mpz(0), d);
+	    }
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_mpz(0);
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    mpz_fdiv_q(mpz(0), thr_zr, thr_zs);
+	    break;
+	case t_mpq:
+	    get_mpz(0);
+	    mpz_fdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
+	    break;
+	default:
+	    get_mpr(2);
+	    mpfr_floor(mpr(2), mpr(1));
+	    get_mpz(0);
+	    ompz_set_r(mpz(0), mpr(2));
+	    collect(2);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_trunc(void)
+{
+    GET_THREAD_SELF()
+    ofloat_t		d;
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    d = trunc(pdp(1));
+	    if ((oword_t)d == d) {
+		get_word(0);
+		pwp(0) = d;
+	    }
+	    else {
+		get_mpz(0);
+		mpz_set_d(mpz(0), d);
+	    }
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_mpz(0);
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    mpz_tdiv_q(mpz(0), thr_zr, thr_zs);
+	    break;
+	case t_mpq:
+	    get_mpz(0);
+	    mpz_tdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
+	    break;
+	default:
+	    get_mpr(2);
+	    mpfr_trunc(mpr(2), mpr(1));
+	    get_mpz(0);
+	    ompz_set_r(mpz(0), mpr(2));
+	    collect(2);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_round(void)
+{
+    GET_THREAD_SELF()
+    ofloat_t		d;
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    d = round(pdp(1));
+	    if ((oword_t)d == d) {
+		get_word(0);
+		pwp(0) = d;
+	    }
+	    else {
+		get_mpz(0);
+		mpz_set_d(mpz(0), d);
+	    }
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_mpz(0);
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    if (orat_sgn(rat(1)) > 0) {
+		mpz_cdiv_qr(mpz(0), thr_zr, thr_zr, thr_zs);
+		mpz_mul_2exp(thr_zi, thr_zi, 1);
+		if (mpz_cmpabs(thr_zi, thr_zs) > 0)
+		    mpz_sub_ui(mpz(0), mpz(0), 1);
+	    }
+	    else {
+		mpz_fdiv_qr(mpz(0), thr_zr, thr_zr, thr_zs);
+		mpz_mul_2exp(thr_zi, thr_zi, 1);
+		if (mpz_cmpabs(thr_zi, thr_zs) > 0)
+		    mpz_add_ui(mpz(0), mpz(0), 1);
+	    }
+	    break;
+	case t_mpq:
+	    get_mpz(0);
+	    if (mpq_sgn(mpq(1)) > 0) {
+		mpz_cdiv_qr(mpz(0), thr_zr,
+			    mpq_numref(mpq(1)), mpq_denref(mpq(1)));
+		mpz_mul_2exp(thr_zr, thr_zr, 1);
+		if (mpz_cmpabs(thr_zr, mpq_denref(mpq(1))) > 0)
+		    mpz_sub_ui(mpz(0), mpz(0), 1);
+	    }
+	    else {
+		mpz_fdiv_qr(mpz(0), thr_zr,
+			    mpq_numref(mpq(1)), mpq_denref(mpq(1)));
+		mpz_mul_2exp(thr_zr, thr_zr, 1);
+		if (mpz_cmpabs(thr_zr, mpq_denref(mpq(1))) > 0)
+		    mpz_add_ui(mpz(0), mpz(0), 1);
+	    }
+	    break;
+	default:
+	    get_mpr(2);
+	    mpfr_round(mpr(2), mpr(1));
+	    get_mpz(0);
+	    ompz_set_r(mpz(0), mpr(2));
+	    collect(2);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_ceil(void)
+{
+    GET_THREAD_SELF()
+    ofloat_t		d;
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    d = ceil(pdp(1));
+	    if ((oword_t)d == d) {
+		get_word(0);
+		pwp(0) = d;
+	    }
+	    else {
+		get_mpz(0);
+		mpz_set_d(mpz(0), d);
+	    }
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_mpz(0);
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    mpz_cdiv_q(mpz(0), thr_zr, thr_zs);
+	    break;
+	case t_mpq:
+	    get_mpz(0);
+	    mpz_cdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
+	    break;
+	default:
+	    get_mpr(2);
+	    mpfr_ceil(mpr(2), mpr(1));
+	    get_mpz(0);
+	    ompz_set_r(mpz(0), mpr(2));
+	    collect(2);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_sqrt(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		if (pwp(1) >= 0) {
+		    get_float(0);
+		    pdp(0) = sqrt(pwp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pwp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = csqrt(pddp(0));
+		}
+	    }
+	    else if (pwp(1) >= 0) {
+		get_mpc(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_sqrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 0.0) {
+		    get_float(0);
+		    pdp(0) = sqrt(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = csqrt(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (mpz_sgn(mpz(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = sqrt(mpz_get_d(mpz(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpz_get_d(mpz(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = csqrt(pddp(0));
+		}
+	    }
+	    else if (mpz_sgn(mpz(1)) >= 0) {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_sqrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (orat_sgn(rat(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = sqrt(orat_get_d(rat(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = orat_get_d(rat(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = csqrt(pddp(0));
+		}
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpc(0);
+		mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (mpq_sgn(mpq(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = sqrt(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpq_get_d(mpq(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = csqrt(pddp(0));
+		}
+	    }
+	    else if (mpq_sgn(mpq(1)) >= 0) {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_sqrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_sgn(mpr(1)) >= 0) {
+		    get_mpr(0);
+		    mpfr_sqrt(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = csqrt(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = csqrt(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_sqrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_sqrt(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_cbrt(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cbrt(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_cbrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = cbrt(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cbrt(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_cbrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cbrt(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_cbrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cbrt(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_cbrt(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_cbrt(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = ccbrt(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = ccbrt(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_cbrt(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_cbrt(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_sin(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sin(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_sin(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = sin(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sin(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_sin(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sin(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_sin(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sin(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_sin(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_sin(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = csin(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = csin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_sin(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_sin(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_cos(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cos(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_cos(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = cos(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cos(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_cos(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cos(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_cos(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cos(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_cos(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_cos(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = ccos(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = ccos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_cos(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_cos(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_tan(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tan(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_tan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = tan(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tan(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_tan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tan(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_tan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tan(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_tan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_tan(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = ctan(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = ctan(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_tan(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_tan(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_asin(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) <= 1 && pwp(1) >= -1) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = asin(pwp(1));
+		}
+		else {
+		    get_mpc(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_asin(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = casin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_asin(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (fabs(pdp(1)) <= 1.0) {
+		    get_float(0);
+		    pdp(0) = asin(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = casin(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpz_get_d(mpz(1));
+		imag(pddp(0)) = 0;
+		pddp(0) = casin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_asin(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    if ((mpq_sgn(thr_qr) >= 0 && mpq_cmp_ui(thr_qr,  1, 1) <= 0) ||
+		(mpq_sgn(thr_qr) <  0 && mpq_cmp_si(thr_qr, -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = asin(mpq_get_d(thr_qr));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_asin(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(thr_qr);
+		imag(pddp(0)) = 0.0;
+		pddp(0) = casin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		mpc_asin(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(mpq(1)) >= 0 && mpq_cmp_ui(mpq(1),  1, 1) <= 0) ||
+		(mpq_sgn(mpq(1)) <  0 && mpq_cmp_si(mpq(1), -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = asin(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		    mpfr_asin(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(mpq(1));
+		imag(pddp(0)) = 0.0;
+		pddp(0) = casin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_asin(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if ((mpfr_sgn(mpr(1)) >= 0 && mpfr_cmp_ui(mpr(1), 1) <= 0) ||
+		    (mpfr_sgn(mpr(1)) <  0 && mpfr_cmp_si(mpr(1), -1) >= 0)) {
+		    get_mpr(0);
+		    mpfr_asin(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_asin(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = casin(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = casin(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_asin(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_asin(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_acos(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) <= 1 && pwp(1) >= -1) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acos(pwp(1));
+		}
+		else {
+		    get_mpc(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_acos(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = cacos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_acos(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 0.0) {
+		    get_float(0);
+		    pdp(0) = acos(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = cacos(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpz_get_d(mpz(1));
+		imag(pddp(0)) = 0;
+		pddp(0) = cacos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_acos(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    if ((mpq_sgn(thr_qr) >= 0 && mpq_cmp_ui(thr_qr,  1, 1) <= 0) ||
+		(mpq_sgn(thr_qr) <  0 && mpq_cmp_si(thr_qr, -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acos(mpq_get_d(thr_qr));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_acos(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(thr_qr);
+		imag(pddp(0)) = 0.0;
+		pddp(0) = cacos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		mpc_acos(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(mpq(1)) >= 0 && mpq_cmp_ui(mpq(1),  1, 1) <= 0) ||
+		(mpq_sgn(mpq(1)) <  0 && mpq_cmp_si(mpq(1), -1, 1) >= 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acos(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		    mpfr_acos(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(mpq(1));
+		imag(pddp(0)) = 0.0;
+		pddp(0) = cacos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_acos(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if ((mpfr_sgn(mpr(1)) >= 0 && mpfr_cmp_ui(mpr(1), 1) <= 0) ||
+		    (mpfr_sgn(mpr(1)) <  0 && mpfr_cmp_si(mpr(1), -1) >= 0)) {
+		    get_mpr(0);
+		    mpfr_acos(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_acos(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = cacos(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = cacos(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_acos(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_acos(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_atan(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_atan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = atan(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_atan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_atan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_atan(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_atan(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = catan(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = catan(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_atan(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_atan(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_sinh(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sinh(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_sinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = sinh(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sinh(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_sinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sinh(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_sinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = sinh(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_sinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_sinh(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = csinh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = csinh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_sinh(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_sinh(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_cosh(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cosh(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_cosh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = cosh(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cosh(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_cosh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cosh(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_cosh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = cosh(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_cosh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_cosh(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = ccosh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = ccosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_cosh(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_cosh(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_tanh(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tanh(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_tanh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = tanh(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tanh(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_tanh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tanh(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_tanh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = tanh(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_tanh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_tanh(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = ctanh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = ctanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_tanh(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_tanh(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_asinh(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = asinh(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_asinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = asinh(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = asinh(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_asinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = asinh(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_asinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = asinh(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_asinh(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_asinh(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = casinh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = casinh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_asinh(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_asinh(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_acosh(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) >= 1) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acosh(pwp(1));
+		}
+		else {
+		    get_mpc(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_acosh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = cacosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_acosh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 1.0) {
+		    get_float(0);
+		    pdp(0) = acosh(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = cacosh(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (mpz_sgn(mpz(1)) > 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acosh(mpz_get_d(mpz(1)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		    mpfr_acosh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		    get_cdd(0);
+		real(pddp(0)) = mpz_get_d(mpz(1));
+		imag(pddp(0)) = 0;
+		pddp(0) = cacosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_acosh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    if (mpq_cmp_si(thr_qr,  1, 1) >= 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acosh(mpq_get_d(thr_qr));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_acosh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(thr_qr);
+		imag(pddp(0)) = 0.0;
+		pddp(0) = cacosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		mpc_acosh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpq:
+	    if (mpq_sgn(mpq(1)) >= 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = acosh(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		    mpfr_acosh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(mpq(1));
+		imag(pddp(0)) = 0.0;
+		pddp(0) = cacosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_acosh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_cmp_ui(mpr(1), 1) >= 0) {
+		    get_mpr(0);
+		    mpfr_acosh(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_acosh(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = cacosh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = cacosh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_acosh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_acosh(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_atanh(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) < 1 && pwp(1) > -1) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = atanh(pwp(1));
+		}
+		else {
+		    get_mpc(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_atanh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = catanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_atanh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (fabs(pdp(1)) < 1.0) {
+		    get_float(0);
+		    pdp(0) = atanh(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = catanh(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpz_get_d(mpz(1));
+		imag(pddp(0)) = 0;
+		pddp(0) = catanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_atanh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    if ((mpq_sgn(thr_qr) >= 0 && mpq_cmp_ui(thr_qr,  1, 1) < 0) ||
+		(mpq_sgn(thr_qr) <  0 && mpq_cmp_si(thr_qr, -1, 1) > 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = atanh(mpq_get_d(thr_qr));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_atanh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(thr_qr);
+		imag(pddp(0)) = 0.0;
+		pddp(0) = catanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		mpc_atanh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpq:
+	    if ((mpq_sgn(mpq(1)) >= 0 && mpq_cmp_ui(mpq(1),  1, 1) < 0) ||
+		(mpq_sgn(mpq(1)) <  0 && mpq_cmp_si(mpq(1), -1, 1) > 0)) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = atanh(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		    mpfr_atanh(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(mpq(1));
+		imag(pddp(0)) = 0.0;
+		pddp(0) = catanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_atanh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if ((mpfr_sgn(mpr(1)) >= 0 && mpfr_cmp_ui(mpr(1),  1) < 0) ||
+		    (mpfr_sgn(mpr(1)) <  0 && mpfr_cmp_si(mpr(1), -1) > 0)) {
+		    get_mpr(0);
+		    mpfr_atanh(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_atanh(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = catanh(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = catanh(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_atanh(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_atanh(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_proj(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    get_word(0);
+	    pwp(0) = pwp(1);
+	    break;
+	case t_float:
+	    get_float(0);
+	    if (isinf(pdp(1)))
+		pdp(0) = INFINITY;	/* positive */
+	    else
+		pdp(0) = pdp(1);
+	    break;
+	case t_mpz:
+	    get_mpz(0);
+	    mpz_set(mpz(0), mpz(1));
+	    break;
+	case t_rat:
+	    get_rat(0);
+	    orat_num(rat(0)) = orat_num(rat(1));
+	    orat_den(rat(0)) = orat_den(rat(1));
+	    break;
+	case t_mpq:
+	    get_mpq(0);
+	    mpq_set(mpq(0), mpq(1));
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (mpfr_inf_p(mpr(1)))
+		mpfr_set_inf(mpr(0), 1);
+	    else
+		mpfr_set(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = cproj(pddp(1));
+	    break;
+	case t_cqq:
+	    get_cqq(0);
+	    mpq_set(cqq_realref(cqq(0)), cqq_realref(cqq(1)));
+	    mpq_set(cqq_imagref(cqq(0)), cqq_imagref(cqq(1)));
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_proj(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_exp(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = exp(pwp(1));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		mpfr_exp(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = exp(pdp(1));
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = exp(mpz_get_d(mpz(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_exp(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = exp(orat_get_d(rat(1)));
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		get_mpr(0);
+		mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		mpfr_exp(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = exp(mpq_get_d(mpq(1)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_exp(mpr(0), mpr(0), thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_exp(mpr(0), mpr(1), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = cexp(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = cexp(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_exp(mpc(0), mpc(0), thr_rnd);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_exp(mpc(0), mpc(1), thr_rndc);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_log(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) >= 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = log(pwp(1));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_log(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = clog(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_log(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 0.0) {
+		    get_float(0);
+		    pdp(0) = log(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (mpz_sgn(mpz(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log(mpz_get_d(mpz(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpz_get_d(mpz(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = cexp(pddp(0));
+		}
+	    }
+	    else if (mpz_sgn(mpz(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_log(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_log(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (orat_sgn(rat(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log(orat_get_d(rat(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = orat_get_d(rat(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = cexp(pddp(0));
+		}
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		if (orat_sgn(rat(0)) >= 0) {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_log(mpr(0), mpr(0), thr_rndc);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		    mpc_log(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (mpq_sgn(mpq(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpq_get_d(mpq(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog(pddp(0));
+		}
+	    }
+	    else if (mpq_sgn(mpq(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_log(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_log(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_sgn(mpr(1)) >= 0) {
+		    get_mpr(0);
+		    mpfr_log(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_log(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = clog(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = clog(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_log(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_log(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_log2(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) >= 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = log2(pwp(1));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_log2(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = clog2(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_log2(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 0.0) {
+		    get_float(0);
+		    pdp(0) = log2(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog2(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (mpz_sgn(mpz(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log2(mpz_get_d(mpz(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpz_get_d(mpz(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog2(pddp(0));
+		}
+	    }
+	    else if (mpz_sgn(mpz(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_log2(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_log2(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (orat_sgn(rat(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log2(orat_get_d(rat(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = orat_get_d(rat(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog2(pddp(0));
+		}
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		if (orat_sgn(rat(0)) >= 0) {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_log2(mpr(0), mpr(0), thr_rndc);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		    mpc_log2(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (mpq_sgn(mpq(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log2(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpq_get_d(mpq(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog2(pddp(0));
+		}
+	    }
+	    else if (mpq_sgn(mpq(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_exp(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_log2(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_sgn(mpr(1)) >= 0) {
+		    get_mpr(0);
+		    mpfr_log2(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_log2(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = clog2(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = clog2(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_log2(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_log2(mpc(0), mpc(1), thr_rnd);
+	    break;
+    }
+    return (canonicalize());
+}
+
+oobject_t
+oeval_log10(void)
+{
+    GET_THREAD_SELF()
+    switch (otype(N(1))) {
+	case t_word:
+	    if (pwp(1) >= 0) {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = log10(pwp(1));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_si(mpr(0), pwp(1), thr_rnd);
+		    mpfr_log10(mpr(0), mpr(0), thr_rnd);
+		}
+	    }
+	    else if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = pwp(1);
+		imag(pddp(0)) = 0;
+		pddp(0) = clog10(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_si(mpc(0), pwp(1), thr_rndc);
+		mpc_log10(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_float:
+	    if (!isnan(pdp(1))) {
+		if (pdp(1) >= 0.0) {
+		    get_float(0);
+		    pdp(0) = log10(pdp(1));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = pdp(1);
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog10(pddp(0));
+		}
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = NAN;
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		if (mpz_sgn(mpz(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log10(mpz_get_d(mpz(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpz_get_d(mpz(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog10(pddp(0));
+		}
+	    }
+	    else if (mpz_sgn(mpz(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
+		mpfr_log10(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_z(mpc(0), mpz(1), thr_rndc);
+		mpc_log10(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		if (orat_sgn(rat(1)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log10(orat_get_d(rat(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = orat_get_d(rat(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog10(pddp(0));
+		}
+	    }
+	    else {
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		if (orat_sgn(rat(0)) >= 0) {
+		    get_mpr(0);
+		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
+		    mpfr_log10(mpr(0), mpr(0), thr_rndc);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_q(mpc(0), thr_qr, thr_rndc);
+		    mpc_log10(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		if (mpq_sgn(mpq(0)) >= 0) {
+		    get_float(0);
+		    pdp(0) = log10(mpq_get_d(mpq(1)));
+		}
+		else {
+		    get_cdd(0);
+		    real(pddp(0)) = mpq_get_d(mpq(1));
+		    imag(pddp(0)) = 0;
+		    pddp(0) = clog10(pddp(0));
+		}
+	    }
+	    else if (mpq_sgn(mpq(0)) >= 0) {
+		get_mpr(0);
+		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
+		mpfr_log10(mpr(0), mpr(0), thr_rndc);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q(mpc(0), mpq(1), thr_rndc);
+		mpc_log10(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    if (!mpfr_nan_p(mpr(1))) {
+		if (mpfr_sgn(mpr(1)) >= 0) {
+		    get_mpr(0);
+		    mpfr_log10(mpr(0), mpr(1), thr_rnd);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		    mpc_log10(mpc(0), mpc(0), thr_rndc);
+		}
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_nan(mpr(0));
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = clog10(pddp(1));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		real(pddp(0)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(0)) = mpq_get_d(cqq_imagref(cqq(1)));
+		pddp(0) = clog10(pddp(0));
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_log10(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	default:
+	    get_mpc(0);
+	    mpc_log10(mpc(0), mpc(1), thr_rnd);
 	    break;
     }
     return (canonicalize());
@@ -2285,7 +4974,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_cqq:
 		    coerced(1);		get_cqq(1);
-		    cqq_set_si(cqq(1), _pwp(lvalue), 1);
+		    cqq_set_si(cqq(1), _pwp(lvalue), 0);
 		    N(2) = rvalue;
 		    break;
 		default:
@@ -2802,6 +5491,29 @@ check_real(oast_t *ast)
 		break;
 	    default:
 		oparse_error(ast, "not a real number %A", ast);
+	}
+    }
+}
+
+static void
+check_real_finite(oast_t *ast)
+{
+    if (ast->l.value) {
+	switch (otype(ast->l.value)) {
+	    case t_word:	case t_rat:
+	    case t_mpz:		case t_mpq:
+		break;
+	    case t_float:
+		if (!finite(_pwp(ast->l.value)))
+		    goto fail;
+		break;
+	    case t_mpr:
+		if (!mpfr_number_p(_mpr(ast->l.value)))
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		oparse_error(ast, "not a finite real number %A", ast);
 	}
     }
 }

@@ -75,6 +75,42 @@ AC_TRY_LINK([#include <complex.h>]
 AC_MSG_RESULT([$mpc_set_dc_ok])
 LIBS=$save_LIBS
 
+AC_MSG_CHECKING([for clog2 support])
+clog2_ok=yes
+save_LIBS=$LIBS
+LIBS="$LIBS -lm"
+AC_TRY_LINK([#include <complex.h>],
+		[return = clog2(1.0);],
+	AC_DEFINE([HAVE_CLOG2], 1,
+		[Define to 1 if clog2 is available.]),
+	[clog2_ok=no])
+AC_MSG_RESULT([$clog2_ok])
+LIBS=$save_LIBS
+
+AC_MSG_CHECKING([for clog10 support])
+clog10_ok=yes
+save_LIBS=$LIBS
+LIBS="$LIBS -lm"
+AC_TRY_LINK([#include <complex.h>],
+		[return = clog10(1.0);],
+	AC_DEFINE([HAVE_CLOG10], 1,
+		[Define to 1 if clog10 is available.]),
+	[clog10_ok=no])
+AC_MSG_RESULT([$clog10_ok])
+LIBS=$save_LIBS
+
+AC_MSG_CHECKING([for sincos support])
+sincos_ok=yes
+save_LIBS=$LIBS
+LIBS="$LIBS -lm"
+AC_TRY_LINK([double a, b;],
+		[sincos(1.0, &a, &b);],
+	AC_DEFINE([HAVE_SINCOS], 1,
+		[Define to 1 if sincos is available.]),
+	[sincos_ok=no])
+AC_MSG_RESULT([$sincos_ok])
+LIBS=$save_LIBS
+
 AC_CHECK_HEADER([execinfo.h],
 	[AC_DEFINE([HAVE_EXECINFO_H], 1,
 		[Define to 1 if you have the <execinfo.h> header file.])],)

@@ -28,9 +28,11 @@
 #define thr_qi				cqq_imagref(thr_qq)
 #define thr_zr				mpq_numref(thr_qr)
 #define thr_zs				mpq_denref(thr_qr)
+#define thr_zi				mpq_numref(thr_qi)
 #define thr_cc				&thread_self->cc
 #define thr_rr				mpc_realref(thr_cc)
 #define thr_ri				mpc_imagref(thr_cc)
+#define thr_f				&thread_self->f
 
 #define thr_prc				mpfr_get_default_prec()
 #ifdef MPFR_RNDN
@@ -55,6 +57,19 @@
 /*
  * Prototypes
  */
+#if !HAVE_CLOG2
+extern complex double
+clog2(complex double dd);
+#endif
+
+#if !HAVE_CLOG10
+extern complex double
+clog10(complex double dd);
+#endif
+
+extern complex double
+ccbrt(complex double a);
+
 #define ofloat_get_w(f)			(oword_t)(f)
 extern oword_t
 ompz_get_w(ompz_t z);
@@ -111,7 +126,35 @@ ompr_get_sl(ompr_t r);
 #define ocqq_get_sl(qq)			ompq_get_ll(cqq_realref(qq))
 #define ompc_get_sl(qq)			ompr_get_ll(mpc_realref(qq))
 
+extern void
+ompz_set_r(ompz_t z, ompr_t r);
+
 extern oword_t
 ow_mul_w_w(oword_t a, oword_t b);
+
+/*
+Not available in mpc
+ */
+#undef mpc_cbrt
+#define mpc_cbrt(a, b, c)		ompc_cbrt(a, b)
+extern void
+ompc_cbrt(ompc_t c, ompc_t a);
+
+/*
+Not available in mpc
+ */
+#undef mpc_log2
+#define mpc_log2(a, b, c)		ompc_log2(a, b)
+extern void
+ompc_log2(ompc_t c, ompc_t a);
+
+/*
+Only available in newer mpc versions, but has problems
+https://gforge.inria.fr/tracker/index.php?func=detail&aid=16651&group_id=131&atid=607
+ */
+#undef mpc_log10
+#define mpc_log10(a, b, c)		ompc_log10(a, b)
+extern void
+ompc_log10(ompc_t c, ompc_t a);
 
 #endif /* _omath_h */

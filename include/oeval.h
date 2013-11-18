@@ -99,6 +99,87 @@ extern oobject_t
 oeval_abs(void);
 
 extern oobject_t
+oeval_signum(void);
+
+extern oobject_t
+oeval_rational(void);
+
+extern oobject_t
+oeval_arg(void);
+
+extern oobject_t
+oeval_conj(void);
+
+extern oobject_t
+oeval_floor(void);
+
+extern oobject_t
+oeval_trunc(void);
+
+extern oobject_t
+oeval_round(void);
+
+extern oobject_t
+oeval_ceil(void);
+
+extern oobject_t
+oeval_sqrt(void);
+
+extern oobject_t
+oeval_cbrt(void);
+
+extern oobject_t
+oeval_sin(void);
+
+extern oobject_t
+oeval_cos(void);
+
+extern oobject_t
+oeval_tan(void);
+
+extern oobject_t
+oeval_asin(void);
+
+extern oobject_t
+oeval_acos(void);
+
+extern oobject_t
+oeval_atan(void);
+
+extern oobject_t
+oeval_sinh(void);
+
+extern oobject_t
+oeval_cosh(void);
+
+extern oobject_t
+oeval_tanh(void);
+
+extern oobject_t
+oeval_asinh(void);
+
+extern oobject_t
+oeval_acosh(void);
+
+extern oobject_t
+oeval_atanh(void);
+
+extern oobject_t
+oeval_proj(void);
+
+extern oobject_t
+oeval_exp(void);
+
+extern oobject_t
+oeval_log(void);
+
+extern oobject_t
+oeval_log2(void);
+
+extern oobject_t
+oeval_log10(void);
+
+extern oobject_t
 oeval_neg(void);
 
 extern oobject_t

@@ -533,3 +533,44 @@ ovm_d_rem(oregister_t *l, oregister_t *r)
 	     ovm_raise(except_not_a_real_number);
     }
 }
+
+void
+ovm_d_complex(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    break;
+	case t_word:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = r->v.w;
+	    check_cdd(l);
+	    break;
+	case t_float:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = r->v.d;
+	    check_cdd(l);
+	    break;
+	case t_mpz:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = mpz_get_d(ozr(r));
+	    check_cdd(l);
+	    break;
+	case t_mpq:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = mpq_get_d(oqr(r));
+	    check_cdd(l);
+	    break;
+	case t_mpr:
+	    l->t = t_mpc;
+	    mpfr_set_d(orr(l), l->v.d, thr_rnd);
+	    mpfr_set(ori(l), orr(r), thr_rnd);
+	    check_mpc(l);
+	    break;
+	default:
+	    ovm_raise(except_not_a_real_number);
+    }
+}

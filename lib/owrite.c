@@ -214,7 +214,7 @@ oprint_wrd(ostream_t *stream, oformat_t *format, oword_t word)
     if (format->radix == 256) {
 	shift = (sizeof(oword_t) << 3) - 8;
 	mask = 0xffL << shift;
-	for (count = 8; mask; mask >>= 8, count--, shift -= 8) {
+	for (count = sizeof(oword_t); mask; mask >>= 8, count--, shift -= 8) {
 	    if (word & mask)
 		break;
 	}	    

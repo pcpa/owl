@@ -78,6 +78,87 @@ emit_signbit(oast_t *ast);
 
 static void
 emit_abs(oast_t *ast);
+
+static void
+emit_signum(oast_t *ast);
+
+static void
+emit_rational(oast_t *ast);
+
+static void
+emit_arg(oast_t *ast);
+
+static void
+emit_conj(oast_t *ast);
+
+static void
+emit_floor(oast_t *ast);
+
+static void
+emit_trunc(oast_t *ast);
+
+static void
+emit_round(oast_t *ast);
+
+static void
+emit_ceil(oast_t *ast);
+
+static void
+emit_sqrt(oast_t *ast);
+
+static void
+emit_cbrt(oast_t *ast);
+
+static void
+emit_sin(oast_t *ast);
+
+static void
+emit_cos(oast_t *ast);
+
+static void
+emit_tan(oast_t *ast);
+
+static void
+emit_asin(oast_t *ast);
+
+static void
+emit_acos(oast_t *ast);
+
+static void
+emit_atan(oast_t *ast);
+
+static void
+emit_sinh(oast_t *ast);
+
+static void
+emit_cosh(oast_t *ast);
+
+static void
+emit_tanh(oast_t *ast);
+
+static void
+emit_asinh(oast_t *ast);
+
+static void
+emit_acosh(oast_t *ast);
+
+static void
+emit_atanh(oast_t *ast);
+
+static void
+emit_proj(oast_t *ast);
+
+static void
+emit_exp(oast_t *ast);
+
+static void
+emit_log(oast_t *ast);
+
+static void
+emit_log2(oast_t *ast);
+
+static void
+emit_log10(oast_t *ast);
 #endif
 
 #if defined(CODE)
@@ -141,6 +222,87 @@ emit_unary(oast_t *ast)
 	    break;
 	case tok_abs:
 	    emit_abs(ast);
+	    break;
+	case tok_signum:
+	    emit_signum(ast);
+	    break;
+	case tok_rational:
+	    emit_rational(ast);
+	    break;
+	case tok_arg:
+	    emit_arg(ast);
+	    break;
+	case tok_conj:
+	    emit_conj(ast);
+	    break;
+	case tok_floor:
+	    emit_floor(ast);
+	    break;
+	case tok_trunc:
+	    emit_trunc(ast);
+	    break;
+	case tok_round:
+	    emit_round(ast);
+	    break;
+	case tok_ceil:
+	    emit_ceil(ast);
+	    break;
+	case tok_sqrt:
+	    emit_sqrt(ast);
+	    break;
+	case tok_cbrt:
+	    emit_cbrt(ast);
+	    break;
+	case tok_sin:
+	    emit_sin(ast);
+	    break;
+	case tok_cos:
+	    emit_cos(ast);
+	    break;
+	case tok_tan:
+	    emit_tan(ast);
+	    break;
+	case tok_asin:
+	    emit_asin(ast);
+	    break;
+	case tok_acos:
+	    emit_acos(ast);
+	    break;
+	case tok_atan:
+	    emit_atan(ast);
+	    break;
+	case tok_sinh:
+	    emit_sinh(ast);
+	    break;
+	case tok_cosh:
+	    emit_cosh(ast);
+	    break;
+	case tok_tanh:
+	    emit_tanh(ast);
+	    break;
+	case tok_asinh:
+	    emit_asinh(ast);
+	    break;
+	case tok_acosh:
+	    emit_acosh(ast);
+	    break;
+	case tok_atanh:
+	    emit_atanh(ast);
+	    break;
+	case tok_proj:
+	    emit_proj(ast);
+	    break;
+	case tok_exp:
+	    emit_exp(ast);
+	    break;
+	case tok_log:
+	    emit_log(ast);
+	    break;
+	case tok_log2:
+	    emit_log2(ast);
+	    break;
+	case tok_log10:
+	    emit_log10(ast);
 	    break;
 	default:
 	    abort();
@@ -838,7 +1000,6 @@ emit_num(oast_t *ast)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_num, mask1(regno));
-	    load_w(regno);
 	    break;
     }
 }
@@ -863,7 +1024,6 @@ emit_den(oast_t *ast)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_den, mask1(regno));
-	    load_w(regno);
 	    break;
     }
 }
@@ -891,7 +1051,6 @@ emit_real(oast_t *ast)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_real, mask1(regno));
-	    load_w(regno);
 	    break;
     }
 }
@@ -920,7 +1079,1246 @@ emit_imag(oast_t *ast)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_imag, mask1(regno));
-	    load_w(regno);
+	    break;
+    }
+}
+
+static void
+emit_signum(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    jit_node_t		*zjmp;
+    jit_node_t		*njmp;
+    jit_node_t		*pjmp;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    jump = jit_bgti(GPR[regno], 0);
+	    jit_rshi(GPR[regno], GPR[regno], __WORDSIZE - 1);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	    jit_movi(GPR[regno], 1);
+	    jit_patch(done);
+	    emit_set_type(op, t_half);
+	    break;
+	case t_single:
+	    jit_prepare();
+	    jit_pushargr_f(FPR[regno]);
+	    emit_finish(isnanf, 0);
+	    jit_retval(GPR[regno]);
+	    done = jit_bnei(GPR[regno], 0);
+	    /* could "f = f / fabs(f)" but that does not work for +-inf */
+	    zjmp = jit_bnei_f(FPR[regno], 0.0);
+	    jit_movi_f(FPR[regno], 0.0);
+	    jump = jit_jmpi();
+	    jit_patch(zjmp);
+	    njmp = jit_blti_f(FPR[regno], 0.0);
+	    jit_movi_f(FPR[regno], 1.0);
+	    pjmp = jit_jmpi();
+	    jit_patch(njmp);
+	    jit_movi_f(FPR[regno], -1.0);
+	    jit_patch(pjmp);
+	    jit_patch(jump);
+	    jit_patch(done);
+	    break;
+	case t_float:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(isnan, 0);
+	    jit_retval(GPR[regno]);
+	    done = jit_bnei(GPR[regno], 0);
+	    zjmp = jit_bnei_d(FPR[regno], 0.0);
+	    jit_movi_d(FPR[regno], 0.0);
+	    jump = jit_jmpi();
+	    jit_patch(zjmp);
+	    njmp = jit_blti_d(FPR[regno], 0.0);
+	    jit_movi_d(FPR[regno], 1.0);
+	    pjmp = jit_jmpi();
+	    jit_patch(njmp);
+	    jit_movi_d(FPR[regno], -1.0);
+	    jit_patch(pjmp);
+	    jit_patch(jump);
+	    jit_patch(done);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_signum, mask1(regno));
+	    break;
+    }
+}
+
+static void
+emit_rational(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_rational, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_arg(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 0);
+		jit_movi_d(FPR[regno], 0.0);
+		done = jit_jmpi();
+		jit_patch(jump);
+		jit_movi_d(FPR[regno], M_PI);
+		jit_patch(done);
+		emit_set_type(op, t_float);
+	    }
+	    else {
+		sync_w(regno);
+		goto next;
+	    }
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 0.0);
+	    jit_movi_d(FPR[regno], 0.0);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	    jit_movi_d(FPR[regno], M_PI);
+	    jit_patch(done);
+	    jit_patch(jord);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	next:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_arg, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_conj(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	case t_float:
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_conj, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_floor(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    oword_t		 regno;
+
+    done = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(floor, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    jit_truncr_d(GPR[regno], FPR[regno]);
+	    jit_extr_d(JIT_F0, GPR[regno]);
+	    jump = jit_bner_d(FPR[regno], JIT_F0);
+	    sync_w(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_floor, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    break;
+    }
+}
+
+static void
+emit_trunc(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    oword_t		 regno;
+
+    done = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(trunc, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    jit_truncr_d(GPR[regno], FPR[regno]);
+	    jit_extr_d(JIT_F0, GPR[regno]);
+	    jump = jit_bner_d(FPR[regno], JIT_F0);
+	    sync_w(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_trunc, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    break;
+    }
+}
+
+static void
+emit_round(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    oword_t		 regno;
+
+    done = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(round, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    jit_truncr_d(GPR[regno], FPR[regno]);
+	    jit_extr_d(JIT_F0, GPR[regno]);
+	    jump = jit_bner_d(FPR[regno], JIT_F0);
+	    sync_w(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_round, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    break;
+    }
+}
+
+static void
+emit_ceil(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    oword_t		 regno;
+
+    done = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(ceil, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    jit_truncr_d(GPR[regno], FPR[regno]);
+	    jit_extr_d(JIT_F0, GPR[regno]);
+	    jump = jit_bner_d(FPR[regno], JIT_F0);
+	    sync_w(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_ceil, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    break;
+    }
+}
+
+static void
+emit_sqrt(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 0);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(sqrt, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 0.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(sqrt, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_sqrt, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_cbrt(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(cbrt, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_cbrt, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_sin(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(sin, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_sin, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_cos(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(cos, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_cos, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_tan(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(tan, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_tan, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_asin(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*njmp;
+    jit_node_t		*pjmp;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		njmp = jit_blti(GPR[regno], -1);
+		pjmp = jit_bgti(GPR[regno],  1);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(asin, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(njmp);
+		jit_patch(pjmp);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jit_absr_d(JIT_F0, FPR[regno]);
+	    pjmp = jit_bgei_d(JIT_F0, 1.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(asin, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(pjmp);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_asin, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_acos(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*njmp;
+    jit_node_t		*pjmp;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		njmp = jit_blti(GPR[regno], -1);
+		pjmp = jit_bgti(GPR[regno],  1);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(acos, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(njmp);
+		jit_patch(pjmp);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jit_absr_d(JIT_F0, FPR[regno]);
+	    pjmp = jit_bgei_d(JIT_F0, 1.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(acos, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(pjmp);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_acos, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_atan(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(atan, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_atan, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_sinh(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(sinh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_sinh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_cosh(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(cosh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_cosh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_tanh(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(tanh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_tanh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_asinh(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(asinh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_asinh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_acosh(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 1);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(acosh, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 1.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(acosh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_acosh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_atanh(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_bnei(GPR[regno], 0);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(atanh, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jit_absr_d(JIT_F0, FPR[regno]);
+	    jump = jit_bgei_d(JIT_F0, 1.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(atanh, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_atanh, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_proj(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_bnei_d(FPR[regno], -INFINITY);
+	    jit_movi_d(FPR[regno], INFINITY);
+	    jit_patch(jord);
+	    jit_patch(jump);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_proj, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_exp(oast_t *ast)
+{
+    ooperand_t		*op;
+    oword_t		 regno;
+
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jit_extr_d(FPR[regno], GPR[regno]);
+		goto jit;
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	jit:
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(exp, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    emit_set_type(op, t_float);
+	    break;
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_exp, mask1(regno));
+	    emit_set_type(op, t_void);
+	    break;
+    }
+}
+
+static void
+emit_log(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 0);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(log, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 0.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(log, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_log, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_log2(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 0);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(log2, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 0.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(log2, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_log2, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
+	    break;
+    }
+}
+
+static void
+emit_log10(oast_t *ast)
+{
+    ooperand_t		*op;
+    jit_node_t		*jord;
+    jit_node_t		*jump;
+    jit_node_t		*done;
+    oword_t		 regno;
+
+    done = jord = null;
+    emit(ast->l.ast);
+    op = operand_top();
+    emit_load(op);
+    regno = op->u.w;
+    switch (emit_get_type(op)) {
+	case t_half:		case t_word:
+	    if (!cfg_float_format) {
+		jump = jit_blti(GPR[regno], 0);
+		jit_extr_d(FPR[regno], GPR[regno]);
+		jit_prepare();
+		jit_pushargr_d(FPR[regno]);
+		emit_finish(log10, mask1(regno));
+		jit_retval_d(FPR[regno]);
+		sync_d(regno);
+		done = jit_jmpi();
+		jit_patch(jump);
+	    }
+	    sync_w(regno);
+	    goto vm;
+	case t_single:
+	    jit_extr_f_d(FPR[regno], FPR[regno]);
+	case t_float:
+	    sync_d(regno);
+	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
+	    jump = jit_blti_d(FPR[regno], 0.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[regno]);
+	    emit_finish(log10, mask1(regno));
+	    jit_retval_d(FPR[regno]);
+	    sync_d(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
+	default:
+	vm:
+	    load_r(regno);
+	    jit_prepare();
+	    jit_pushargr(GPR[regno]);
+	    emit_finish(ovm_log10, mask1(regno));
+	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
+	    if (jord)
+		jit_patch(jord);
 	    break;
     }
 }

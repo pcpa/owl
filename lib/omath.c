@@ -36,6 +36,55 @@ typedef union {
 /*
  * Implementation
  */
+#if !HAVE_CLOG2
+complex double
+clog2(complex double dd)
+{
+    complex double	z;
+
+    real(z) = log2(hypot(real(dd), imag(dd)));
+    imag(z) = M_LOG2E * atan2(imag(dd), real(dd));
+
+    return (z);
+}
+#endif
+
+#if !HAVE_CLOG10
+complex double
+clog10(complex double dd)
+{
+    complex double	z;
+
+    real(z) = log10(hypot(real(dd), imag(dd)));
+    imag(z) = M_LOG10E * atan2(imag(dd), real(dd));
+
+    return (z);
+}
+#endif
+
+complex double
+ccbrt(complex double a)
+{
+#if !HAVE_SINCOS
+    double		f;
+#endif
+    double		d;
+    complex double	dd;
+
+    d = exp(log(cabs(a)) / 3.0);
+#if HAVE_SINCOS
+    sincos(atan2(imag(a), real(a)) / 3.0, &imag(dd), &real(dd));
+#else
+    f = atan2(imag(a), real(a)) / 3.0;
+    imag(dd) = sin(f);
+    real(dd) = cos(f);
+#endif
+    real(dd) *= d;
+    imag(dd) *= d;
+
+    return (dd);
+}
+
 oword_t
 ompz_get_w(ompz_t z)
 {
@@ -190,6 +239,14 @@ ompr_get_sl(ompr_t r)
 }
 #endif
 
+void
+ompz_set_r(ompz_t z, ompr_t r)
+{
+    if (unlikely(!mpfr_number_p(r)))
+	othread_kill(SIGFPE);
+    mpfr_get_z(z, r, GMP_RNDZ);
+}
+
 oword_t
 ow_mul_w_w(oword_t a, oword_t b)
 {
@@ -289,4 +346,74 @@ ow_mul_w_w(oword_t a, oword_t b)
     }
 
     return (MININT);
+}
+
+void
+ompc_cbrt(ompc_t c, ompc_t a)
+{
+    mpc_set_ui_ui(thr_cc, 1, 3, thr_rndc);
+    mpfr_div(thr_rr, thr_rr, thr_ri, thr_rnd);
+    mpc_pow_fr(c, a, thr_rr, thr_rndc);
+}
+
+void
+ompc_log2(ompc_t c, ompc_t a)
+{
+    GET_THREAD_SELF()
+    /*
+     *	v = hypot(r	i)
+     *	log2(v)		1/log(2)*atan2(i, r)
+     */
+
+    /* t = hypot(r+i)						*/
+    mpfr_hypot(thr_rr, mpc_realref(a), mpc_imagref(a), thr_rnd);
+
+    /* i = atan2(i, r)						*/
+    mpfr_atan2(mpc_imagref(c), mpc_imagref(a), mpc_realref(a), thr_rnd);
+
+    /* r = log2(t)						*/
+    mpfr_log2(mpc_realref(a), thr_rr, thr_rnd);
+
+    /* t = 1/log(2)						*/
+    /* t = log(2)						*/
+    mpfr_const_log2(thr_rr, thr_rnd);
+    /* t1 = 1							*/
+    mpfr_set_ui(thr_ri, 1, thr_rnd);
+    /* t = t1/t							*/
+    mpfr_div(thr_rr, thr_ri, thr_rr, thr_rnd);
+
+    /* i = t*i							*/
+    mpfr_mul(mpc_imagref(c), thr_rr, mpc_imagref(c), thr_rnd);
+}
+
+void
+ompc_log10(ompc_t c, ompc_t a)
+{
+    GET_THREAD_SELF()
+    /*
+     *	v = hypot(r	i)
+     *	log2(v)		1/log(10)*atan2(i, r)
+     */
+
+    /* t = hypot(r+i)						*/
+    mpfr_hypot(thr_rr, mpc_realref(a), mpc_imagref(a), thr_rnd);
+
+    /* i = atan2(i, r)						*/
+    mpfr_atan2(mpc_imagref(c), mpc_imagref(a), mpc_realref(a), thr_rnd);
+
+    /* r = log10(t)						*/
+    mpfr_log10(mpc_realref(a), thr_rr, thr_rnd);
+
+    /* t = 1/log(10)						*/
+    /* t = 10							*/
+    mpfr_set_ui(thr_rr, 10, thr_rnd);
+    /* t = log(t)						*/
+    mpfr_log(thr_rr, thr_rr, thr_rnd);
+    /* t1 = 1							*/
+    mpfr_set_ui(thr_ri, 1, thr_rnd);
+    /* t = t1/t							*/
+    mpfr_div(thr_rr, thr_ri, thr_rr, thr_rnd);
+
+    /* i = t*i							*/
+    mpfr_mul(mpc_imagref(c), thr_rr, mpc_imagref(c), thr_rnd);
 }

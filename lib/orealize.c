@@ -210,7 +210,20 @@ realize(oast_t *ast)
 	case tok_nan_p:		case tok_num:
 	case tok_den:		case tok_real:
 	case tok_imag:		case tok_signbit:
-	case tok_abs:
+	case tok_abs:		case tok_signum:
+	case tok_rational:	case tok_arg:
+	case tok_conj:		case tok_floor:
+	case tok_trunc:		case tok_round:
+	case tok_ceil:		case tok_sqrt:
+	case tok_cbrt:		case tok_sin:
+	case tok_cos:		case tok_tan:
+	case tok_asin:		case tok_acos:
+	case tok_atan:		case tok_sinh:
+	case tok_cosh:		case tok_tanh:
+	case tok_asinh:		case tok_acosh:
+	case tok_atanh:		case tok_proj:
+	case tok_exp:		case tok_log:
+	case tok_log2:		case tok_log10:
 	    realize(ast->l.ast);
 	    ast->offset = ast->l.ast->offset;
 	    break;
