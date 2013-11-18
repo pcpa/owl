@@ -1160,8 +1160,11 @@ static void
 emit_rational(oast_t *ast)
 {
     ooperand_t		*op;
+    jit_node_t		*jump;
+    jit_node_t		*done;
     oword_t		 regno;
 
+    done = null;
     emit(ast->l.ast);
     op = operand_top();
     emit_load(op);
@@ -1173,12 +1176,20 @@ emit_rational(oast_t *ast)
 	    jit_extr_f_d(FPR[regno], FPR[regno]);
 	case t_float:
 	    sync_d(regno);
+	    jit_truncr_d(GPR[regno], FPR[regno]);
+	    jit_extr_d(JIT_F0, GPR[regno]);
+	    jump = jit_bner_d(FPR[regno], JIT_F0);
+	    sync_w(regno);
+	    done = jit_jmpi();
+	    jit_patch(jump);
 	default:
 	    load_r(regno);
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    emit_finish(ovm_rational, mask1(regno));
 	    emit_set_type(op, t_void);
+	    if (done)
+		jit_patch(done);
 	    break;
     }
 }

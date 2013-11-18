@@ -4,4 +4,4 @@ owl
 
 C/C++ like programming language using GNU lightning
 
-For instructions more see README.
+For more instructions see the README file.
