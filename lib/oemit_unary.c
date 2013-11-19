@@ -875,16 +875,10 @@ emit_nan_p(oast_t *ast)
 	    jit_movi(GPR[regno], 0);
 	    break;
 	case t_single:
-	    jit_prepare();
-	    jit_pushargr_f(FPR[regno]);
-	    emit_finish(isnanf, mask1(regno));
-	    jit_retval(GPR[regno]);
+	    jit_unordr_f(GPR[regno], FPR[regno], FPR[regno]);
 	    break;
 	case t_float:
-	    jit_prepare();
-	    jit_pushargr_d(FPR[regno]);
-	    emit_finish(isnan, mask1(regno));
-	    jit_retval(GPR[regno]);
+	    jit_unordr_d(GPR[regno], FPR[regno], FPR[regno]);
 	    break;
 	default:
 	    load_r(regno);
@@ -1109,11 +1103,7 @@ emit_signum(oast_t *ast)
 	    emit_set_type(op, t_half);
 	    break;
 	case t_single:
-	    jit_prepare();
-	    jit_pushargr_f(FPR[regno]);
-	    emit_finish(isnanf, 0);
-	    jit_retval(GPR[regno]);
-	    done = jit_bnei(GPR[regno], 0);
+	    done = jit_bunordr_f(FPR[regno], FPR[regno]);
 	    /* could "f = f / fabs(f)" but that does not work for +-inf */
 	    zjmp = jit_bnei_f(FPR[regno], 0.0);
 	    jit_movi_f(FPR[regno], 0.0);
@@ -1129,11 +1119,7 @@ emit_signum(oast_t *ast)
 	    jit_patch(done);
 	    break;
 	case t_float:
-	    jit_prepare();
-	    jit_pushargr_d(FPR[regno]);
-	    emit_finish(isnan, 0);
-	    jit_retval(GPR[regno]);
-	    done = jit_bnei(GPR[regno], 0);
+	    done = jit_bunordr_d(FPR[regno], FPR[regno]);
 	    zjmp = jit_bnei_d(FPR[regno], 0.0);
 	    jit_movi_d(FPR[regno], 0.0);
 	    jump = jit_jmpi();
@@ -1463,10 +1449,7 @@ emit_sqrt(oast_t *ast)
 	    if (!cfg_float_format) {
 		jump = jit_blti(GPR[regno], 0);
 		jit_extr_d(FPR[regno], GPR[regno]);
-		jit_prepare();
-		jit_pushargr_d(FPR[regno]);
-		emit_finish(sqrt, mask1(regno));
-		jit_retval_d(FPR[regno]);
+		jit_sqrtr_d(FPR[regno], FPR[regno]);
 		sync_d(regno);
 		done = jit_jmpi();
 		jit_patch(jump);
@@ -1479,10 +1462,7 @@ emit_sqrt(oast_t *ast)
 	    sync_d(regno);
 	    jord = jit_bunordr_d(FPR[regno], FPR[regno]);
 	    jump = jit_blti_d(FPR[regno], 0.0);
-	    jit_prepare();
-	    jit_pushargr_d(FPR[regno]);
-	    emit_finish(sqrt, mask1(regno));
-	    jit_retval_d(FPR[regno]);
+	    jit_sqrtr_d(FPR[regno], FPR[regno]);
 	    sync_d(regno);
 	    done = jit_jmpi();
 	    jit_patch(jump);
