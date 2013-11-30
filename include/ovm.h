@@ -235,6 +235,12 @@ extern void
 ovm_v_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_v_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_v_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_v_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_v_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_w_lt(oregister_t *l, oregister_t *r);
@@ -268,6 +274,12 @@ extern void
 ovm_w_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_w_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_w_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_w_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_w_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_d_lt(oregister_t *l, oregister_t *r);
@@ -297,6 +309,12 @@ extern void
 ovm_d_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_d_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_d_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_d_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_d_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_z_lt(oregister_t *l, oregister_t *r);
@@ -330,6 +348,12 @@ extern void
 ovm_z_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_z_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_z_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_z_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_z_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_x_lt(oregister_t *l, oregister_t *r);
@@ -357,6 +381,12 @@ extern void
 ovm_x_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_x_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_x_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_x_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_x_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_q_lt(oregister_t *l, oregister_t *r);
@@ -384,6 +414,12 @@ extern void
 ovm_q_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_q_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_q_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_q_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_q_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_r_lt(oregister_t *l, oregister_t *r);
@@ -413,6 +449,12 @@ extern void
 ovm_r_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_r_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_r_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_r_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_r_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_dd_eq(oregister_t *l, oregister_t *r);
@@ -426,6 +468,12 @@ extern void
 ovm_dd_mul(oregister_t *l, oregister_t *r);
 extern void
 ovm_dd_div(oregister_t *l, oregister_t *r);
+extern void
+ovm_dd_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_dd_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_dd_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_qq_eq(oregister_t *l, oregister_t *r);
@@ -439,6 +487,12 @@ extern void
 ovm_qq_mul(oregister_t *l, oregister_t *r);
 extern void
 ovm_qq_div(oregister_t *l, oregister_t *r);
+extern void
+ovm_qq_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_qq_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_qq_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_cc_eq(oregister_t *l, oregister_t *r);
@@ -452,6 +506,12 @@ extern void
 ovm_cc_mul(oregister_t *l, oregister_t *r);
 extern void
 ovm_cc_div(oregister_t *l, oregister_t *r);
+extern void
+ovm_cc_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_cc_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_cc_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_o_lt(oregister_t *l, oregister_t *r);
@@ -501,6 +561,12 @@ extern void
 ovm_o_rem(oregister_t *l, oregister_t *r);
 extern void
 ovm_o_complex(oregister_t *l, oregister_t *r);
+extern void
+ovm_o_atan2(oregister_t *l, oregister_t *r);
+extern void
+ovm_o_pow(oregister_t *l, oregister_t *r);
+extern void
+ovm_o_hypot(oregister_t *l, oregister_t *r);
 
 extern void
 ovm_integer_p(oregister_t *r);

@@ -503,9 +503,10 @@ ovm_r_complex(oregister_t *l, oregister_t *r)
 	case t_mpz:
 	    mpfr_set_z(ori(l), ozr(r), thr_rnd);
 	    break;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	case t_mpq:
 	    mpfr_set_q(ori(l), oqr(r), thr_rnd);
-	    check_cqq(l);
 	    break;
 	case t_mpr:
 	    mpfr_set(ori(l), orr(r), thr_rnd);
@@ -515,4 +516,168 @@ ovm_r_complex(oregister_t *l, oregister_t *r)
     }
     l->t = t_mpc;
     check_mpc(l);
+}
+
+void
+ovm_r_atan2(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    mpfr_set_ui(orr(r), 0, thr_rnd);
+	    goto mpr;
+	case t_word:
+	    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+	    goto mpr;
+	case t_float:
+	    mpfr_set_d(orr(r), r->v.d, thr_rnd);
+	    goto mpr;
+	case t_mpz:
+	    mpfr_set_z(orr(r), ozr(r), thr_rnd);
+	    goto mpr;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+	    goto mpr;
+	case t_mpq:
+	    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+	    goto mpr;
+	case t_mpr:
+	mpr:
+	    mpfr_atan2(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	    if (mpfr_zero_p(orr(l))) {
+		if (real(r->v.dd) >= 0)
+		    mpfr_set_ui(orr(l), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(l), thr_rnd);
+	    }
+	    else {
+		mpc_set_d_d(occ(r), real(r->v.dd), imag(r->v.dd), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_cqq:
+	    if (mpfr_zero_p(orr(l))) {
+		if (mpq_sgn(oqr(r)) >= 0)
+		    mpfr_set_ui(orr(l), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(l), thr_rnd);
+	    }
+	    else {
+		mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+		goto mpc;
+	    }
+	    break;
+	case t_mpc:
+	    if (mpfr_zero_p(orr(l))) {
+		if (mpfr_sgn(orr(r)) >= 0)
+		    mpfr_set_ui(orr(l), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(l), thr_rnd);
+	    }
+	    else {
+	    mpc:
+		l->t = t_mpc;
+		mpc_set_fr(occ(l), orr(l), thr_rndc);
+		mpc_div(occ(l), occ(l), occ(r), thr_rndc);
+		mpc_atan(occ(l), occ(l), thr_rndc);
+		check_mpc(l);
+	    }
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_r_pow(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    mpfr_set_ui(orr(l), 1, thr_rnd);
+	    break;
+	case t_word:
+	    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+	    goto mpr;
+	case t_float:
+	    mpfr_set_d(orr(r), r->v.d, thr_rnd);
+	    goto mpr_flt;
+	case t_mpz:
+	    mpfr_set_z(orr(r), ozr(r), thr_rnd);
+	    goto mpr;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	case t_mpq:
+	    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+	    goto mpr_rat;
+	case t_mpr:
+	mpr_flt:
+	    if (mpfr_number_p(orr(r)) && !mpfr_integer_p(orr(r))) {
+	    mpr_rat:
+		if (mpfr_number_p(orr(l)) && mpfr_sgn(orr(l)) < 0) {
+		    mpc_set_fr(occ(r), orr(r), thr_rndc);
+		    goto mpc;
+		}
+	    }
+	mpr:
+	    l->t = t_mpr;
+	    mpfr_pow(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	    mpc_set_d_d(occ(r), real(r->v.dd), imag(r->v.dd), thr_rndc);
+	    goto mpc;
+	case t_cqq:
+	    mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+	case t_mpc:
+	mpc:
+	    l->t = t_mpc;
+	    mpc_set_fr(occ(l), orr(l), thr_rndc);
+	    mpc_pow(occ(l), occ(l), occ(r), thr_rndc);
+	    check_mpc(l);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_r_hypot(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    mpfr_set_ui(orr(r), 0, thr_rnd);
+	    goto mpr;
+	case t_word:
+	    mpfr_set_si(orr(r), r->v.w, thr_rnd);
+	    goto mpr;
+	case t_float:
+	    mpfr_set_d(orr(r), r->v.d, thr_rnd);
+	    goto mpr;
+	case t_mpz:
+	    mpfr_set_z(orr(r), ozr(r), thr_rnd);
+	    goto mpr;
+	case t_rat:
+	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
+	case t_mpq:
+	    mpfr_set_q(orr(r), oqr(r), thr_rnd);
+	    goto mpr;
+	case t_mpr:
+	mpr:
+	    mpfr_hypot(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	    mpc_set_d_d(occ(r), real(r->v.dd), imag(r->v.dd), thr_rndc);
+	    goto mpc;
+	case t_cqq:
+	    mpc_set_q_q(occ(r), oqr(r), oqi(r), thr_rndc);
+	case t_mpc:
+	mpc:
+	    mpfr_abs(orr(l), orr(l), thr_rnd);
+	    mpfr_hypot(ori(l), orr(r), ori(r), thr_rnd);
+	    mpfr_hypot(orr(l), orr(l), ori(l), thr_rnd);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
 }

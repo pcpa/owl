@@ -712,18 +712,19 @@ get_token(oast_t *ast)
 	case tok_atanh:		case tok_proj:
 	case tok_exp:		case tok_log:
 	case tok_log2:		case tok_log10:
-	case tok_andand:
-	case tok_oror:		case tok_lt:
-	case tok_le:		case tok_eq:
-	case tok_ge:		case tok_gt:
-	case tok_ne:		case tok_and:
-	case tok_or:		case tok_xor:
-	case tok_shl:		case tok_shr:
-	case tok_mul2:		case tok_div2:
-	case tok_add:		case tok_sub:
-	case tok_mul:		case tok_div:
-	case tok_trunc2:	case tok_rem:
-	case tok_complex:
+	case tok_andand:	case tok_oror:
+	case tok_lt:		case tok_le:
+	case tok_eq:		case tok_ge:
+	case tok_gt:		case tok_ne:
+	case tok_and:		case tok_or:
+	case tok_xor:		case tok_shl:
+	case tok_shr:		case tok_mul2:
+	case tok_div2:		case tok_add:
+	case tok_sub:		case tok_mul:
+	case tok_div:		case tok_trunc2:
+	case tok_rem:		case tok_complex:
+	case tok_atan2:		case tok_pow:
+	case tok_hypot:
 	    return (ast->token);
 	case tok_andset:	case tok_orset:
 	case tok_xorset:
@@ -854,7 +855,8 @@ emit(oast_t *ast)
 	case tok_add:		case tok_sub:
 	case tok_mul:		case tok_div:
 	case tok_trunc2:	case tok_rem:
-	case tok_complex:
+	case tok_complex:	case tok_atan2:
+	case tok_pow:		case tok_hypot:
 	    emit_binary(ast);
 	    break;
 	case tok_set:

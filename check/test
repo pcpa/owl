@@ -39602,3 +39602,99 @@ if (log10(t47_ninf) != (inf+1.3643763538418412*I))
 if (log10(t47_infL) != inf)	print("error %d\n", __LINE__);
 if (log10(t47_ninfL) != (inf+1.3643763538418412*I))
     print("error %d\n", __LINE__);
+#define t47_bin(fn,li,lr)						\
+if (fn(li, 1) != fn(lr, t47_uc) && !nan_p(real(fn(li, 1.0L))))		print("error 1 %d\n", __LINE__);	\
+if (fn(li, -2) != fn(lr, t47_ss))		print("error 2 %d\n", __LINE__);	\
+if (fn(li, 2) != fn(lr, t47_us))		print("error 3 %d\n", __LINE__);	\
+if (fn(li, -4) != fn(lr, t47_si))		print("error 4 %d\n", __LINE__);	\
+if (fn(li, 4) != fn(lr, t47_ui))		print("error 5 %d\n", __LINE__);	\
+if (fn(li, -8) != fn(lr, t47_sl))		print("error 6 %d\n", __LINE__);	\
+if (fn(li, 8) != fn(lr, t47_ul))		print("error 7 %d\n", __LINE__);	\
+if (fn(li, 1/4.0) != fn(lr, t47_sf) && !nan_p(fn(li, 1/4.0)))		print("error 8 %d\n", __LINE__);	\
+if (fn(li, 1/8.0) != fn(lr, t47_df) && !nan_p(fn(li, 1/8.0)))		print("error 9 %d\n", __LINE__);	\
+if (fn(li, inf) != fn(lr, t47_sf_inf) && !nan_p(real(fn(li, inf))))	print("error 10 %d\n", __LINE__);	\
+if (fn(li, inf) != fn(lr, t47_df_inf) && !nan_p(real(fn(li, inf))))	print("error 11 %d\n", __LINE__);	\
+if (fn(li, -inf) != fn(lr, t47_sf_ninf) && !nan_p(real(fn(li, -inf))))	print("error 12 %d\n", __LINE__);	\
+if (fn(li, -inf) != fn(lr, t47_df_ninf) && !nan_p(real(fn(li, -inf))))	print("error 13 %d\n", __LINE__);	\
+if (fn(li, 1) != fn(lr, t47_w) && !nan_p(real(fn(li, 1))))		print("error 14 %d\n", __LINE__);	\
+if (fn(li, 1.0) != fn(lr, t47_f) && !nan_p(real(fn(li, 1.0))))		print("error 15 %d\n", __LINE__);	\
+if (fn(li, 1/2) != fn(lr, t47_x))		print("error 16 %d\n", __LINE__);	\
+if (fn(li, 0x800000000000000000000000000000000) != fn(lr, t47_z))	print("error 17 %d\n", __LINE__);	\
+if (fn(li, 0x800000000000000000000000000000000/5) != fn(lr, t47_q))	print("error 18 %d\n", __LINE__);	\
+if (fn(li, 1.0L) != fn(lr, t47_r) && !nan_p(real(fn(li, 1.0L))))	print("error 19 %d\n", __LINE__);	\
+if (fn(li, 1.0*I) != fn(lr, t47_dd) && !nan_p(real(fn(li, 1.0*I))))	print("error 20 %d\n", __LINE__);	\
+if (fn(li, I) != fn(lr, t47_qq) && !nan_p(real(fn(li, 1.0*I))))		print("error 21 %d\n", __LINE__);	\
+if (fn(li, 1L*I) != fn(lr, t47_cc) && !nan_p(real(fn(li, 1L*I))))	print("error 22 %d\n", __LINE__);	\
+if (fn(li, inf) != fn(lr, t47_inf) && !nan_p(real(fn(li, inf))))	print("error 23 %d\n", __LINE__);	\
+if (fn(li, -inf) != fn(lr, t47_ninf) && !nan_p(real(fn(li, -inf))))	print("error 24 %d\n", __LINE__);	\
+if (fn(li, inf*1L) != fn(lr, t47_infL) && !nan_p(real(fn(li, inf*1L))))	print("error 25 %d\n", __LINE__);	\
+if (fn(li, -inf*1L) != fn(lr, t47_ninfL) && !nan_p(real(fn(li, -inf*1L))))	print("error 26 %d\n", __LINE__)
+t47_bin(atan2, -1, t47_sc);
+t47_bin(atan2, 1, t47_uc);
+t47_bin(atan2, -2, t47_ss);
+t47_bin(atan2, 2, t47_us);
+t47_bin(atan2, -4, t47_si);
+t47_bin(atan2, 4, t47_ui);
+t47_bin(atan2, -8, t47_sl);
+t47_bin(atan2, 8, t47_ul);
+t47_bin(atan2, 1/4.0, t47_sf);
+t47_bin(atan2, 1/8.0, t47_df);
+t47_bin(atan2, inf, t47_sf_inf);
+t47_bin(atan2, inf, t47_df_inf);
+t47_bin(atan2, -inf, t47_sf_ninf);
+t47_bin(atan2, -inf, t47_df_ninf);
+t47_bin(atan2, 1, t47_w);
+t47_bin(atan2, 1.0, t47_f);
+t47_bin(atan2, 1/2, t47_x);
+t47_bin(atan2, 0x800000000000000000000000000000000, t47_z);
+t47_bin(atan2, 0x800000000000000000000000000000000/5, t47_q);
+t47_bin(atan2, 1L, t47_r);
+t47_bin(atan2, 1.0*I, t47_dd);
+t47_bin(atan2, I, t47_qq);
+t47_bin(atan2, 1L*I, t47_cc);
+t47_bin(pow, -1, t47_sc);
+t47_bin(pow, 1, t47_uc);
+t47_bin(pow, -2, t47_ss);
+t47_bin(pow, 2, t47_us);
+t47_bin(pow, -4, t47_si);
+t47_bin(pow, 4, t47_ui);
+t47_bin(pow, -8, t47_sl);
+t47_bin(pow, 8, t47_ul);
+t47_bin(pow, 1/4.0, t47_sf);
+t47_bin(pow, 1/8.0, t47_df);
+t47_bin(pow, inf, t47_sf_inf);
+t47_bin(pow, inf, t47_df_inf);
+t47_bin(pow, -inf, t47_sf_ninf);
+t47_bin(pow, -inf, t47_df_ninf);
+t47_bin(pow, 1, t47_w);
+t47_bin(pow, 1.0, t47_f);
+t47_bin(pow, 1/2, t47_x);
+t47_bin(pow, 0x800000000000000000000000000000000, t47_z);
+t47_bin(pow, 0x800000000000000000000000000000000/5, t47_q);
+t47_bin(pow, 1L, t47_r);
+t47_bin(pow, 1.0*I, t47_dd);
+t47_bin(pow, I, t47_qq);
+t47_bin(pow, 1L*I, t47_cc);
+t47_bin(hypot, -1, t47_sc);
+t47_bin(hypot, 1, t47_uc);
+t47_bin(hypot, -2, t47_ss);
+t47_bin(hypot, 2, t47_us);
+t47_bin(hypot, -4, t47_si);
+t47_bin(hypot, 4, t47_ui);
+t47_bin(hypot, -8, t47_sl);
+t47_bin(hypot, 8, t47_ul);
+t47_bin(hypot, 1/4.0, t47_sf);
+t47_bin(hypot, 1/8.0, t47_df);
+t47_bin(hypot, inf, t47_sf_inf);
+t47_bin(hypot, inf, t47_df_inf);
+t47_bin(hypot, -inf, t47_sf_ninf);
+t47_bin(hypot, -inf, t47_df_ninf);
+t47_bin(hypot, 1, t47_w);
+t47_bin(hypot, 1.0, t47_f);
+t47_bin(hypot, 1/2, t47_x);
+t47_bin(hypot, 0x800000000000000000000000000000000, t47_z);
+t47_bin(hypot, 0x800000000000000000000000000000000/5, t47_q);
+t47_bin(hypot, 1L, t47_r);
+t47_bin(hypot, 1.0*I, t47_dd);
+t47_bin(hypot, I, t47_qq);
+t47_bin(hypot, 1L*I, t47_cc);

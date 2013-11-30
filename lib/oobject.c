@@ -269,6 +269,8 @@ finish_object(void)
 
     assert(gc_root == null);
     free(gc_root_vector);
+
+    mpfr_free_cache();
 }
 
 void

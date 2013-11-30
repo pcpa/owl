@@ -158,7 +158,12 @@ oeval_ast(oast_t *ast)
 	    ofold(ast);
 	    break;
 	case tok_atan2:		case tok_pow:
-	case tok_hypot:		case tok_subtypeof:
+	case tok_hypot:
+	    oeval_ast(ast->l.ast);
+	    oeval_ast(ast->r.ast);
+	    ofold(ast);
+	    break;
+	case tok_subtypeof:
 	    oeval_ast(ast->l.ast);
 	    oeval_ast(ast->r.ast);
 	    break;

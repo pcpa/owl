@@ -227,7 +227,7 @@ ovm_get_shift(oregister_t *r)
 	    break;
 	case t_mpr:
 	    if (!mpfr_integer_p(orr(r)) || !mpfr_fits_sint_p(orr(r), GMP_RNDZ))
-		ovm_raise(except_not_a_32_bits_integer);
+		ovm_raise(except_invalid_argument);
 	    s = mpfr_get_si(orr(r), thr_rnd);
 	    if (s < SHIFT_MIN || s > SHIFT_MAX)
 		ovm_raise(except_shift_too_large);
@@ -913,7 +913,7 @@ ovm_inc(oregister_t *r)
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	    /* FALLTHROUGH */
 	case t_mpq:		case t_cqq:
-	    mpz_add(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_add(ozr(r), ozr(r), ozs(r));
 	    break;
 	case t_mpr:		case t_mpc:
 	    mpfr_add_ui(orr(r), orr(r), 1, thr_rnd);
@@ -962,7 +962,7 @@ ovm_dec(oregister_t *r)
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	    /* FALLTHROUGH */
 	case t_mpq:		case t_cqq:
-	    mpz_sub(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_sub(ozr(r), ozr(r), ozs(r));
 	    break;
 	case t_mpr:		case t_mpc:
 	    mpfr_sub_ui(orr(r), orr(r), 1, thr_rnd);
@@ -1359,7 +1359,7 @@ ovm_div2exp(oregister_t *r, oint32_t s)
 	    break;
 	case t_mpz:
 	    r->t = t_mpq;
-	    mpz_set_ui(mpq_denref(oqr(r)), 1);
+	    mpz_set_ui(ozs(r), 1);
 	    goto mpq;
 	case t_rat:
 	    if (s < __WORDSIZE) {
@@ -1406,7 +1406,7 @@ ovm_o_shl(oregister_t *l, oregister_t *r)
     if (s >= 0)
 	ovm_shl(l, s);
     else
-	ovm_shl(l, -s);
+	ovm_shr(l, -s);
 }
 
 void
@@ -1445,7 +1445,7 @@ ovm_shl(oregister_t *r, oint32_t s)
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_fdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_fdiv_q(ozr(r), ozr(r), ozs(r));
 	    mpz_mul_2exp(ozr(r), ozr(r), s);
 	    check_mpz(r);
 	    break;
@@ -1513,7 +1513,7 @@ ovm_shr(oregister_t *r, oint32_t s)
 	    mpq_set_si(oqr(r), rat_num(r->v.r), rat_den(r->v.r));
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_fdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_fdiv_q(ozr(r), ozr(r), ozs(r));
 	    mpz_fdiv_q_2exp(ozr(r), ozr(r), s);
 	    check_mpz(r);
 	    break;
@@ -1778,6 +1778,123 @@ ovm_o_complex(oregister_t *l, oregister_t *r)
 }
 
 void
+ovm_o_atan2(oregister_t *l, oregister_t *r)
+{
+    switch (l->t) {
+	case t_void:
+	    ovm_v_atan2(l, r);
+	    break;
+	case t_word:
+	    ovm_w_atan2(l, r);
+	    break;
+	case t_float:
+	    ovm_d_atan2(l, r);
+	    break;
+	case t_mpz:
+	    ovm_z_atan2(l, r);
+	    break;
+	case t_rat:
+	    ovm_x_atan2(l, r);
+	    break;
+	case t_mpq:
+	    ovm_q_atan2(l, r);
+	    break;
+	case t_mpr:
+	    ovm_r_atan2(l, r);
+	    break;
+	case t_cdd:
+	    ovm_dd_atan2(l, r);
+	    break;
+	case t_cqq:
+	    ovm_qq_atan2(l, r);
+	    break;
+	case t_mpc:
+	    ovm_cc_atan2(l, r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_o_pow(oregister_t *l, oregister_t *r)
+{
+    switch (l->t) {
+	case t_void:
+	    ovm_v_pow(l, r);
+	    break;
+	case t_word:
+	    ovm_w_pow(l, r);
+	    break;
+	case t_float:
+	    ovm_d_pow(l, r);
+	    break;
+	case t_mpz:
+	    ovm_z_pow(l, r);
+	    break;
+	case t_rat:
+	    ovm_x_pow(l, r);
+	    break;
+	case t_mpq:
+	    ovm_q_pow(l, r);
+	    break;
+	case t_mpr:
+	    ovm_r_pow(l, r);
+	    break;
+	case t_cdd:
+	    ovm_dd_pow(l, r);
+	    break;
+	case t_cqq:
+	    ovm_qq_pow(l, r);
+	    break;
+	case t_mpc:
+	    ovm_cc_pow(l, r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_o_hypot(oregister_t *l, oregister_t *r)
+{
+    switch (l->t) {
+	case t_void:
+	    ovm_v_hypot(l, r);
+	    break;
+	case t_word:
+	    ovm_w_hypot(l, r);
+	    break;
+	case t_float:
+	    ovm_d_hypot(l, r);
+	    break;
+	case t_mpz:
+	    ovm_z_hypot(l, r);
+	    break;
+	case t_rat:
+	    ovm_x_hypot(l, r);
+	    break;
+	case t_mpq:
+	    ovm_q_hypot(l, r);
+	    break;
+	case t_mpr:
+	    ovm_r_hypot(l, r);
+	    break;
+	case t_cdd:
+	    ovm_dd_hypot(l, r);
+	    break;
+	case t_cqq:
+	    ovm_qq_hypot(l, r);
+	    break;
+	case t_mpc:
+	    ovm_cc_hypot(l, r);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
 ovm_integer_p(oregister_t *r)
 {
     switch (r->t) {
@@ -1967,7 +2084,7 @@ ovm_den(oregister_t *r)
 	    break;
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_swap(ozr(r), mpq_denref(oqr(r)));
+	    mpz_swap(ozr(r), ozs(r));
 	    check_mpz(r);
 	    break;
 	default:
@@ -2390,7 +2507,7 @@ ovm_floor(oregister_t *r)
 	    /* FALLTHROUGH */
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_fdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_fdiv_q(ozr(r), ozr(r), ozs(r));
 	    check_mpz(r);
 	    break;
 	case t_mpr:
@@ -2432,7 +2549,7 @@ ovm_trunc(oregister_t *r)
 	    /* FALLTHROUGH */
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_tdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_tdiv_q(ozr(r), ozr(r), ozs(r));
 	    check_mpz(r);
 	    break;
 	case t_mpr:
@@ -2476,15 +2593,15 @@ ovm_round(oregister_t *r)
 	case t_mpq:
 	    r->t = t_mpz;
 	    if (mpq_sgn(oqr(r)) > 0) {
-		mpz_cdiv_qr(ozr(r), thr_zr, ozr(r), mpq_denref(oqr(r)));
+		mpz_cdiv_qr(ozr(r), thr_zr, ozr(r), ozs(r));
 		mpz_mul_2exp(thr_zr, thr_zr, 1);
-		if (mpz_cmpabs(thr_zr, mpq_denref(oqr(r))) > 0)
+		if (mpz_cmpabs(thr_zr, ozs(r)) > 0)
 		    mpz_sub_ui(ozr(r), ozr(r), 1);
 	    }
 	    else {
-		mpz_fdiv_qr(ozr(r), thr_zr, ozr(r), mpq_denref(oqr(r)));
+		mpz_fdiv_qr(ozr(r), thr_zr, ozr(r), ozs(r));
 		mpz_mul_2exp(thr_zr, thr_zr, 1);
-		if (mpz_cmpabs(thr_zr, mpq_denref(oqr(r))) > 0)
+		if (mpz_cmpabs(thr_zr, ozs(r)) > 0)
 		    mpz_add_ui(ozr(r), ozr(r), 1);
 	    }
 	    check_mpz(r);
@@ -2528,7 +2645,7 @@ ovm_ceil(oregister_t *r)
 	    /* FALLTHROUGH */
 	case t_mpq:
 	    r->t = t_mpz;
-	    mpz_cdiv_q(ozr(r), ozr(r), mpq_denref(oqr(r)));
+	    mpz_cdiv_q(ozr(r), ozr(r), ozs(r));
 	    check_mpz(r);
 	    break;
 	case t_mpr:

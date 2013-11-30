@@ -135,6 +135,30 @@ cqq_div(cqq_ptr q, cqq_ptr a, cqq_ptr b)
 }
 
 void
+cqq_si_div(cqq_ptr q, long a, cqq_ptr b)
+{
+    mpq_t	q0;
+    mpq_t	q1;
+    mpq_t	q2;
+
+    mpq_init(q0);
+    mpq_init(q1);
+    mpq_init(q2);
+    mpq_set_si(q0, a, 1);
+    mpq_mul(q1, cqq_imagref(b), cqq_imagref(b));
+    mpq_mul(q2, cqq_realref(b), cqq_realref(b));
+    mpq_add(q1, q2, q1);
+    mpq_mul(cqq_imagref(q), cqq_imagref(b), q0);
+    mpq_neg(cqq_imagref(q), cqq_imagref(q));
+    mpq_div(cqq_imagref(q), cqq_imagref(q), q1);
+    mpq_mul(cqq_realref(q), q0, cqq_realref(b));
+    mpq_div(cqq_realref(q), cqq_realref(q), q1);
+    mpq_clear(q0);
+    mpq_clear(q1);
+    mpq_clear(q2);
+}
+
+void
 cqq_mul_2exp(cqq_ptr u, cqq_ptr v, int w)
 {
     mpq_mul_2exp(cqq_realref(u), cqq_realref(v), w);

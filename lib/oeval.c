@@ -156,6 +156,8 @@ ofold(oast_t *ast)
 	case tok_sub:		case tok_mul:
 	case tok_div:		case tok_trunc2:
 	case tok_rem:		case tok_complex:
+	case tok_atan2:		case tok_pow:
+	case tok_hypot:
 	    oeval_binary(ast);
 	    break;
 	case tok_mul2:		case tok_div2:
@@ -501,6 +503,8 @@ oeval_binary(oast_t *ast)
 	case tok_ne:		case tok_eq:
 	case tok_add:		case tok_sub:
 	case tok_mul:		case tok_div:
+	case tok_atan2:		case tok_pow:
+	case tok_hypot:
 	    lnum = ast->l.ast->token == tok_number;
 	    rnum = ast->r.ast->token == tok_number;
 	    break;
@@ -545,6 +549,9 @@ oeval_binary(oast_t *ast)
 	case tok_trunc2:	object = oeval_trunc2();	break;
 	case tok_rem:		object = oeval_rem();		break;
 	case tok_complex:	object = oeval_complex();	break;
+	case tok_atan2:		object = oeval_atan2();		break;
+	case tok_pow:		object = oeval_pow();		break;
+	case tok_hypot:		object = oeval_hypot();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -1064,15 +1071,14 @@ oeval_abs(void)
 		imag(pddp(2)) = mpq_get_d(cqq_imagref(cqq(1)));
 		get_float(0);
 		pdp(0) = cabs(pddp(2));
+		collect(2);
 	    }
 	    else {
-		get_mpc(2);
-		mpc_set_q_q(mpc(2), cqq_realref(cqq(1)),
+		mpc_set_q_q(thr_cc, cqq_realref(cqq(1)),
 			    cqq_imagref(cqq(1)), thr_rndc);
 		get_mpr(0);
-		mpc_abs(mpr(0), mpc(2), thr_rndc);
+		mpc_abs(mpr(0), thr_cc, thr_rndc);
 	    }
-	    collect(2);
 	    break;
 	default:
 	    get_mpr(0);
@@ -1371,11 +1377,9 @@ oeval_floor(void)
 	    mpz_fdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
 	    break;
 	default:
-	    get_mpr(2);
-	    mpfr_floor(mpr(2), mpr(1));
+	    mpfr_floor(thr_rr, mpr(1));
 	    get_mpz(0);
-	    ompz_set_r(mpz(0), mpr(2));
-	    collect(2);
+	    ompz_set_r(mpz(0), thr_rr);
 	    break;
     }
     return (canonicalize());
@@ -1416,11 +1420,9 @@ oeval_trunc(void)
 	    mpz_tdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
 	    break;
 	default:
-	    get_mpr(2);
-	    mpfr_trunc(mpr(2), mpr(1));
+	    mpfr_trunc(thr_rr, mpr(1));
 	    get_mpz(0);
-	    ompz_set_r(mpz(0), mpr(2));
-	    collect(2);
+	    ompz_set_r(mpz(0), thr_rr);
 	    break;
     }
     return (canonicalize());
@@ -1485,11 +1487,9 @@ oeval_round(void)
 	    }
 	    break;
 	default:
-	    get_mpr(2);
-	    mpfr_round(mpr(2), mpr(1));
+	    mpfr_round(thr_rr, mpr(1));
 	    get_mpz(0);
-	    ompz_set_r(mpz(0), mpr(2));
-	    collect(2);
+	    ompz_set_r(mpz(0), thr_rr);
 	    break;
     }
     return (canonicalize());
@@ -1530,11 +1530,9 @@ oeval_ceil(void)
 	    mpz_cdiv_q(mpz(0), mpq_numref(mpq(1)), mpq_denref(mpq(1)));
 	    break;
 	default:
-	    get_mpr(2);
-	    mpfr_ceil(mpr(2), mpr(1));
+	    mpfr_ceil(thr_rr, mpr(1));
 	    get_mpz(0);
-	    ompz_set_r(mpz(0), mpr(2));
-	    collect(2);
+	    ompz_set_r(mpz(0), thr_rr);
 	    break;
     }
     return (canonicalize());
@@ -4278,11 +4276,9 @@ oeval_shl(oint32_t shift)
 		}
 	    }
 	    get_mpz(0);
-	    get_mpq(2);
-	    mpq_set_si(mpq(2), orat_num(rat(1)), orat_den(rat(1)));
-	    mpz_fdiv_q(mpz(0), mpq_numref(mpq(2)), mpq_denref(mpq(2)));
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    mpz_fdiv_q(mpz(0), thr_zr, thr_zs);
 	    mpz_mul_2exp(mpz(0), mpz(0), shift);
-	    collect(2);
 	    break;
 	case t_float:
 	    get_mpz(0);
@@ -4299,14 +4295,12 @@ oeval_shl(oint32_t shift)
 	    mpz_mul_2exp(mpz(0), mpz(0), shift);
 	    break;
 	case t_mpr:
-	    get_mpr(2);
-	    mpfr_floor(mpr(2), mpr(1));
+	    mpfr_floor(thr_rr, mpr(1));
 	    get_mpz(0);
-	    if (unlikely(!mpfr_number_p(mpr(2))))
+	    if (unlikely(!mpfr_number_p(thr_rr)))
 		othread_kill(SIGFPE);
-	    mpfr_get_z(mpz(0), mpr((2)), GMP_RNDZ);
+	    mpfr_get_z(mpz(0), thr_rr, GMP_RNDZ);
 	    mpz_mul_2exp(mpz(0), mpz(0), shift);
-	    collect(2);
 	    break;
 	default:
 	    abort();
@@ -4347,11 +4341,9 @@ oeval_shr(oint32_t shift)
 		}
 	    }
 	    get_mpz(0);
-	    get_mpq(2);
-	    mpq_set_si(mpq(2), orat_num(rat(1)), orat_den(rat(1)));
-	    mpz_fdiv_q(mpz(0), mpq_numref(mpq(2)), mpq_denref(mpq(2)));
+	    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+	    mpz_fdiv_q(mpz(0), thr_zr, thr_zs);
 	    mpz_fdiv_q_2exp(mpz(0), mpz(0), shift);
-	    collect(2);
 	    break;
 	case t_mpz:
 	    get_mpz(0);
@@ -4363,14 +4355,12 @@ oeval_shr(oint32_t shift)
 	    mpz_fdiv_q_2exp(mpz(0), mpz(0), shift);
 	    break;
 	case t_mpr:
-	    get_mpr(2);
-	    mpfr_floor(mpr(2), mpr(1));
+	    mpfr_floor(thr_rr, mpr(1));
 	    get_mpz(0);
-	    if (unlikely(!mpfr_number_p(mpr(2))))
+	    if (unlikely(!mpfr_number_p(thr_rr)))
 		othread_kill(SIGFPE);
-	    mpfr_get_z(mpz(0), mpr((2)), GMP_RNDZ);
+	    mpfr_get_z(mpz(0), thr_rr, GMP_RNDZ);
 	    mpz_fdiv_q_2exp(mpz(0), mpz(0), shift);
-	    collect(2);
 	    break;
 	default:
 	    abort();
@@ -4844,6 +4834,371 @@ oeval_complex(void)
     return (canonicalize());
 }
 
+oobject_t
+oeval_atan2(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan2(pwp(1), pwp(2));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(thr_rr, pwp(1), thr_rnd);
+		mpfr_set_si(thr_ri, pwp(2), thr_rnd);
+		mpfr_atan2(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = atan2(pdp(1), pdp(2));
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan2(orat_get_d(rat(1)), orat_get_d(rat(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		mpq_set_si(thr_qi, orat_num(rat(2)), orat_den(rat(2)));
+		mpfr_set_q(thr_rr, thr_qr, thr_rnd);
+		mpfr_set_q(thr_ri, thr_qi, thr_rnd);
+		mpfr_atan2(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan2(mpz_get_d(mpz(1)), mpz_get_d(mpz(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(thr_rr, mpz(1), thr_rnd);
+		mpfr_set_z(thr_ri, mpz(2), thr_rnd);
+		mpfr_atan2(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = atan2(mpq_get_d(mpq(1)), mpq_get_d(mpq(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(thr_rr, mpq(1), thr_rnd);
+		mpfr_set_q(thr_ri, mpq(2), thr_rnd);
+		mpfr_atan2(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_atan2(mpr(0), mpr(1), mpr(2), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = catan(pddp(1) / pddp(2));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		get_cdd(3);
+		real(pddp(3)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(3)) = mpq_get_d(cqq_imagref(cqq(1)));
+		get_cdd(4);
+		real(pddp(4)) = mpq_get_d(cqq_realref(cqq(2)));
+		imag(pddp(4)) = mpq_get_d(cqq_imagref(cqq(2)));
+		pddp(0) = catan(pddp(3) / pddp(4));
+		collect(3);
+		collect(4);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_set_q_q(thr_cc, cqq_realref(cqq(2)),
+			    cqq_imagref(cqq(2)), thr_rndc);
+		mpc_div(mpc(0), mpc(0), thr_cc, thr_rndc);
+		mpc_atan(mpc(0), mpc(0), thr_rndc);
+	    }
+	    break;
+	case t_mpc:
+	    get_mpc(0);
+	    mpc_div(mpc(0), mpc(1), mpc(2), thr_rndc);
+	    mpc_atan(mpc(0), mpc(0), thr_rndc);
+	    break;
+	default:
+	    abort();
+    }
+
+    return (canonicalize());
+}
+
+oobject_t
+oeval_pow(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = pow(pwp(1), pwp(2));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(thr_rr, pwp(1), thr_rnd);
+		mpfr_set_si(thr_ri, pwp(2), thr_rnd);
+		mpfr_pow(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    if (finite(pdp(1)) && pdp(1) < 0.0 &&
+		finite(pdp(2)) && rint(pdp(2)) != pdp(2)) {
+		get_cdd(0);
+		get_cdd(3);
+		real(pddp(0)) = pdp(1);
+		imag(pddp(0)) = 0.0;
+		real(pddp(3)) = pdp(2);
+		imag(pddp(3)) = 0.0;
+		pddp(0) = cpow(pddp(0), pddp(3));
+		collect(3);
+	    }
+	    else {
+		get_float(0);
+		pdp(0) = pow(pdp(1), pdp(2));
+	    }
+	    break;
+	case t_rat:
+	    if (orat_sgn(rat(1)) < 0) {
+		if (!cfg_float_format) {
+		    get_cdd(0);
+		    real(pddp(0)) = orat_get_d(rat(1));
+		    imag(pddp(0)) = 0.0;
+		    get_cdd(3);
+		    real(pddp(3)) = orat_get_d(rat(2));
+		    imag(pddp(3)) = 0.0;
+		    pddp(0) = cpow(pddp(0), pddp(3));
+		    collect(3);
+		}
+		else {
+		    get_mpc(0);
+		    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		    mpq_set_si(thr_qi, orat_num(rat(2)), orat_den(rat(2)));
+		    mpc_set_q(mpc(0), thr_qr, thr_rnd);
+		    mpc_set_q(thr_cc, thr_qi, thr_rnd);
+		    mpc_pow(mpc(0), mpc(0), thr_cc, thr_rndc);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = pow(orat_get_d(rat(1)), orat_get_d(rat(2)));
+		}
+		else {
+		    get_mpr(0);
+		    mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		    mpq_set_si(thr_qi, orat_num(rat(2)), orat_den(rat(2)));
+		    mpfr_set_q(thr_rr, thr_qr, thr_rnd);
+		    mpfr_set_q(thr_ri, thr_qi, thr_rnd);
+		    mpfr_pow(mpr(0), thr_rr, thr_ri, thr_rnd);
+		}
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = pow(mpz_get_d(mpz(1)), mpz_get_d(mpz(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(thr_rr, mpz(1), thr_rnd);
+		mpfr_set_z(thr_ri, mpz(2), thr_rnd);
+		mpfr_pow(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (mpq_sgn(mpq(1)) < 0) {
+		if (!cfg_float_format) {
+		    get_cdd(0);
+		    real(pddp(0)) = mpq_get_d(mpq(1));
+		    imag(pddp(0)) = 0.0;
+		    get_cdd(3);
+		    real(pddp(3)) = mpq_get_d(mpq(2));
+		    imag(pddp(3)) = 0.0;
+		    pddp(0) = cpow(pddp(0), pddp(3));
+		    collect(3);
+		}
+		else {
+		    get_mpc(0);
+		    mpc_set_q(mpc(0), mpq(1), thr_rnd);
+		    mpc_set_q(thr_cc, mpq(2), thr_rnd);
+		    mpc_pow(mpc(0), mpc(0), thr_cc, thr_rndc);
+		}
+	    }
+	    else {
+		if (!cfg_float_format) {
+		    get_float(0);
+		    pdp(0) = pow(mpq_get_d(mpq(1)), mpq_get_d(mpq(2)));
+		}
+		else {
+		    get_mpr(0);
+		    mpfr_set_q(thr_rr, mpq(1), thr_rnd);
+		    mpfr_set_q(thr_ri, mpq(2), thr_rnd);
+		    mpfr_pow(mpr(0), thr_rr, thr_ri, thr_rnd);
+		}
+	    }
+	    break;
+	case t_mpr:
+	    if (mpfr_number_p(mpr(1)) && mpfr_sgn(mpr(1)) < 0 &&
+		mpfr_number_p(mpr(2)) && !mpfr_integer_p(mpr(2))) {
+		get_mpc(0);
+		mpc_set_fr(mpc(0), mpr(1), thr_rndc);
+		mpc_set_fr(thr_cc, mpr(2), thr_rndc);
+		mpc_pow(mpc(0), mpc(0), thr_cc, thr_rndc);
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_pow(mpr(0), mpr(1), mpr(2), thr_rnd);
+	    }
+	    break;
+	case t_cdd:
+	    get_cdd(0);
+	    pddp(0) = cpow(pddp(1), pddp(2));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_cdd(0);
+		get_cdd(3);
+		real(pddp(3)) = mpq_get_d(cqq_realref(cqq(1)));
+		imag(pddp(3)) = mpq_get_d(cqq_imagref(cqq(1)));
+		get_cdd(4);
+		real(pddp(4)) = mpq_get_d(cqq_realref(cqq(2)));
+		imag(pddp(4)) = mpq_get_d(cqq_imagref(cqq(2)));
+		pddp(0) = cpow(pddp(3), pddp(4));
+		collect(3);
+		collect(4);
+	    }
+	    else {
+		get_mpc(0);
+		mpc_set_q_q(mpc(0), cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpc_set_q_q(thr_cc, cqq_realref(cqq(2)),
+			    cqq_imagref(cqq(2)), thr_rndc);
+		mpc_pow(mpc(0), mpc(0), thr_cc, thr_rndc);
+	    }
+	    break;
+	case t_mpc:
+	    get_mpc(0);
+	    mpc_pow(mpc(0), mpc(1), mpc(2), thr_rndc);
+	    break;
+	default:
+	    abort();
+    }
+
+    return (canonicalize());
+}
+
+oobject_t
+oeval_hypot(void)
+{
+    switch (otype(N(1))) {
+	case t_word:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = hypot(pwp(1), pwp(2));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_si(thr_rr, pwp(1), thr_rnd);
+		mpfr_set_si(thr_ri, pwp(2), thr_rnd);
+		mpfr_hypot(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_float:
+	    get_float(0);
+	    pdp(0) = hypot(pdp(1), pdp(2));
+	    break;
+	case t_rat:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = hypot(orat_get_d(rat(1)), orat_get_d(rat(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
+		mpq_set_si(thr_qi, orat_num(rat(2)), orat_den(rat(2)));
+		mpfr_set_q(thr_rr, thr_qr, thr_rnd);
+		mpfr_set_q(thr_ri, thr_qi, thr_rnd);
+		mpfr_hypot(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpz:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = hypot(mpz_get_d(mpz(1)), mpz_get_d(mpz(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_z(thr_rr, mpz(1), thr_rnd);
+		mpfr_set_z(thr_ri, mpz(2), thr_rnd);
+		mpfr_hypot(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = hypot(mpq_get_d(mpq(1)), mpq_get_d(mpq(2)));
+	    }
+	    else {
+		get_mpr(0);
+		mpfr_set_q(thr_rr, mpq(1), thr_rnd);
+		mpfr_set_q(thr_ri, mpq(2), thr_rnd);
+		mpfr_hypot(mpr(0), thr_rr, thr_ri, thr_rnd);
+	    }
+	    break;
+	case t_mpr:
+	    get_mpr(0);
+	    mpfr_hypot(mpr(0), mpr(1), mpr(2), thr_rnd);
+	    break;
+	case t_cdd:
+	    get_float(0);
+	    pdp(0) = hypot(hypot(real(pddp(1)), imag(pddp(1))),
+			   hypot(real(pddp(2)), imag(pddp(2))));
+	    break;
+	case t_cqq:
+	    if (!cfg_float_format) {
+		get_float(0);
+		pdp(0) = hypot(hypot(mpq_get_d(cqq_realref(cqq(1))),
+				     mpq_get_d(cqq_imagref(cqq(1)))),
+			       hypot(mpq_get_d(cqq_realref(cqq(2))),
+				     mpq_get_d(cqq_imagref(cqq(2)))));
+	    }
+	    else {
+		get_mpr(0);
+		mpc_set_q_q(thr_cc, cqq_realref(cqq(1)),
+			    cqq_imagref(cqq(1)), thr_rndc);
+		mpfr_hypot(mpr(0), thr_rr, thr_ri, thr_rnd);
+		mpc_set_q_q(thr_cc, cqq_realref(cqq(2)),
+			    cqq_imagref(cqq(2)), thr_rndc);
+		mpfr_hypot(thr_rr, thr_rr, thr_ri, thr_rnd);
+		mpfr_hypot(mpr(0), mpr(0), thr_rr, thr_rnd);
+	    }
+	    break;
+	case t_mpc:
+	    get_mpr(0);
+	    mpfr_hypot(mpr(0), mpc_realref(mpc(1)),
+		       mpc_imagref(mpc(1)), thr_rnd);
+	    mpfr_hypot(thr_rr, mpc_realref(mpc(2)),
+		       mpc_imagref(mpc(2)), thr_rnd);
+	    mpfr_hypot(mpr(0), mpr(0), thr_rr, thr_rnd);
+	    break;
+	default:
+	    abort();
+    }
+
+    return (cleanup());
+}
+
 static void
 eval_unary_setup(oobject_t value)
 {
@@ -4938,7 +5293,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    N(2) = rvalue;
 		    break;
 		case t_rat:
-		    if (unlikely(_pwp(lvalue) == MININT)) {
+		    if (_pwp(lvalue) != MININT) {
 			coerced(1);	get_mpq(1);
 			mpq_set_si(mpq(1), _pwp(lvalue), 1);
 			coerced(2);	get_mpq(2);
@@ -4980,7 +5335,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		default:
 		    assert(rtype == t_mpc);
 		    coerced(1);		get_mpc(1);
-		    mpc_set_si(mpc(1), 1, thr_rndc);
+		    mpc_set_si(mpc(1), _pwp(lvalue), thr_rndc);
 		    N(2) = rvalue;
 		    break;
 	    }
@@ -5089,11 +5444,9 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_mpr:
 		    coerced(1);		get_mpr(1);
-		    mpfr_set_si(mpr(1), orat_num(_rat(lvalue)), thr_rnd);
-		    coerced(2);		get_mpr(2);
-		    mpfr_set_si(mpr(2), orat_den(_rat(lvalue)), thr_rnd);
-		    mpfr_div(mpr(1), mpr(1), mpr(2), thr_rnd);
-		    collect(2);
+		    mpq_set_si(thr_qr,
+			       orat_num(_rat(lvalue)), orat_den(_rat(lvalue)));
+		    mpfr_set_q(mpr(1), thr_qr, thr_rnd);
 		    N(2) = rvalue;
 		    break;
 		case t_cdd:
@@ -5112,14 +5465,9 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		default:
 		    assert(rtype == t_mpc);
 		    coerced(1);		get_mpc(1);
-		    coerced(2);		get_mpr(2);
-		    mpfr_set_si(mpc_realref(mpc(1)), orat_num(_rat(lvalue)),
-				thr_rnd);
-		    mpfr_set_si(mpr(2), orat_den(_rat(lvalue)), thr_rnd);
-		    mpfr_div(mpc_realref(mpc(1)), mpc_realref(mpc(1)),
-			     mpr(2), thr_rnd);
-		    mpfr_set_ui(mpc_imagref(mpc(1)), 0, thr_rnd);
-		    collect(2);
+		    mpq_set_si(thr_qr,
+			       orat_num(_rat(lvalue)), orat_den(_rat(lvalue)));
+		    mpc_set_q(mpc(1), thr_qr, thr_rndc);
 		    N(2) = rvalue;
 		    break;
 	    }
@@ -5191,7 +5539,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		case t_word:
 		    N(1) = lvalue;
 		    coerced(2);		get_mpq(2);
-		    mpq_set_ui(mpq(2), _pwp(rvalue), 1);
+		    mpq_set_si(mpq(2), _pwp(rvalue), 1);
 		    break;
 		case t_float:
 		    coerced(1);		get_float(1);
@@ -5257,11 +5605,9 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		case t_rat:
 		    N(1) = lvalue;
 		    coerced(2);		get_mpr(2);
-		    mpfr_set_si(mpr(2), orat_num(_rat(rvalue)), thr_rnd);
-		    get_mpr(3);
-		    mpfr_set_si(mpr(3), orat_den(_rat(rvalue)), thr_rnd);
-		    mpfr_div(mpr(2), mpr(2), mpr(3), thr_rnd);
-		    collect(3);
+		    mpq_set_si(thr_qr,
+			       orat_num(_rat(rvalue)), orat_den(_rat(rvalue)));
+		    mpfr_set_q(mpr(2), thr_qr, thr_rnd);
 		    break;
 		case t_mpz:
 		    N(1) = lvalue;
@@ -5270,7 +5616,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_mpq:
 		    N(1) = lvalue;
-		    coerced(1);		get_mpr(2);
+		    coerced(2);		get_mpr(2);
 		    mpfr_set_q(mpr(2), _mpq(rvalue), thr_rnd);
 		    break;
 		case t_mpr:
@@ -5287,10 +5633,10 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    coerced(1);		get_mpc(1);
 		    mpc_set_fr(mpc(1), _mpr(lvalue), thr_rndc);
 		    coerced(2);		get_mpc(2);
-		    mpfr_set_q(mpc_realref(mpc(2)), cqq_realref(_cqq(rvalue)),
-			       thr_rnd);
-		    mpfr_set_q(mpc_imagref(mpc(2)), cqq_imagref(_cqq(rvalue)),
-			       thr_rnd);
+		    mpc_set_q_q(mpc(2),
+				cqq_realref(_cqq(rvalue)),
+				cqq_imagref(_cqq(rvalue)),
+				thr_rndc);
 		    break;
 		default:
 		    assert(rtype == t_mpc);
@@ -5320,7 +5666,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		case t_rat:
 		    N(1) = lvalue;
 		    coerced(2);		get_cdd(2);
-		    pddp(2) = orat_get_d(_rat(lvalue));
+		    pddp(2) = orat_get_d(_rat(rvalue));
 		    break;
 		case t_mpz:
 		    N(1) = lvalue;
@@ -5376,11 +5722,12 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    pddp(2) = _pdp(rvalue);
 		    break;
 		case t_rat:
-		    N(1) = rvalue;
+		    N(1) = lvalue;
 		    coerced(2);		get_cqq(2);
-		    cqq_set_si(cqq(2),
+		    mpq_set_si(cqq_realref(cqq(2)),
 			       orat_num(_rat(rvalue)),
 			       orat_den(_rat(rvalue)));
+		    mpq_set_si(cqq_imagref(cqq(2)), 0, 1);
 		    break;
 		case t_mpz:
 		    N(1) = lvalue;
@@ -5393,11 +5740,11 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    cqq_set_q(cqq(2), _mpq(rvalue));
 		    break;
 		case t_mpr:
-		    get_mpc(1);
-		    mpfr_set_q(mpc_realref(mpc(1)), cqq_realref(_cqq(lvalue)),
-			       thr_rnd);
-		    mpfr_set_q(mpc_imagref(mpc(1)), cqq_imagref(_cqq(lvalue)),
-			       thr_rnd);
+		    coerced(1);		get_mpc(1);
+		    mpc_set_q_q(mpc(1),
+				cqq_realref(_cqq(lvalue)),
+				cqq_imagref(_cqq(lvalue)),
+				thr_rndc);
 		    coerced(2);		get_mpc(2);
 		    mpc_set_fr(mpc(2), _mpr(rvalue), thr_rndc);
 		    break;
@@ -5414,10 +5761,10 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		default:
 		    assert(rtype == t_mpc);
 		    coerced(1);		get_mpc(1);
-		    mpfr_set_q(mpc_realref(mpc(1)), cqq_realref(_cqq(lvalue)),
-			       thr_rnd);
-		    mpfr_set_q(mpc_imagref(mpc(1)), cqq_imagref(_cqq(lvalue)),
-			       thr_rnd);
+		    mpc_set_q_q(mpc(1),
+				cqq_realref(_cqq(lvalue)),
+				cqq_imagref(_cqq(lvalue)),
+				thr_rndc);
 		    N(2) = rvalue;
 		    break;
 	    }
@@ -5432,7 +5779,7 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_word:
 		    coerced(2);		get_mpc(2);
-		    mpc_set_si(mpc(2), _pwp(lvalue), thr_rndc);
+		    mpc_set_si(mpc(2), _pwp(rvalue), thr_rndc);
 		    break;
 		case t_float:
 		    coerced(2);		get_mpc(2);
@@ -5440,14 +5787,9 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_rat:
 		    coerced(2);		get_mpc(2);
-		    get_mpr(3);
-		    mpfr_set_si(mpc_realref(mpc(2)), orat_num(_rat(rvalue)),
-				thr_rnd);
-		    mpfr_set_si(mpr(3), orat_den(_rat(rvalue)), thr_rnd);
-		    mpfr_div(mpc_realref(mpc(2)), mpc_realref(mpc(2)),
-			     mpr(3), thr_rnd);
-		    mpfr_set_ui(mpc_imagref(mpc(2)), 0, thr_rnd);
-		    collect(3);
+		    mpq_set_si(thr_qr,
+			       orat_num(_rat(rvalue)), orat_den(_rat(rvalue)));
+		    mpc_set_q(mpc(2), thr_qr, thr_rndc);
 		    break;
 		case t_mpz:
 		    coerced(2);		get_mpc(2);
@@ -5467,10 +5809,10 @@ eval_binary_setup(oobject_t lvalue, oobject_t rvalue)
 		    break;
 		case t_cqq:
 		    coerced(2);		get_mpc(2);
-		    mpfr_set_q(mpc_realref(mpc(2)), cqq_realref(_cqq(rvalue)),
-			       thr_rnd);
-		    mpfr_set_q(mpc_imagref(mpc(2)), cqq_imagref(_cqq(rvalue)),
-			       thr_rnd);
+		    mpc_set_q_q(mpc(2),
+				cqq_realref(_cqq(rvalue)),
+				cqq_imagref(_cqq(rvalue)),
+				thr_rndc);
 		    break;
 		default:
 		    assert(rtype == t_mpc);

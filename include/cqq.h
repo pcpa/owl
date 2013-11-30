@@ -73,6 +73,9 @@ extern void
 cqq_div(cqq_ptr u, cqq_ptr v, cqq_ptr w);
 
 extern void
+cqq_si_div(cqq_ptr u, long v, cqq_ptr w);
+
+extern void
 cqq_mul_2exp(cqq_ptr u, cqq_ptr v, int w);
 
 extern void

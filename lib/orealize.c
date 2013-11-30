@@ -242,7 +242,8 @@ realize(oast_t *ast)
 	case tok_add:		case tok_sub:
 	case tok_mul:		case tok_div:
 	case tok_trunc2:	case tok_rem:
-	case tok_complex:
+	case tok_complex:	case tok_atan2:
+	case tok_pow:		case tok_hypot:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
 	    unget(1);

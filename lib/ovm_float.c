@@ -558,6 +558,12 @@ ovm_d_complex(oregister_t *l, oregister_t *r)
 	    imag(l->v.dd) = mpz_get_d(ozr(r));
 	    check_cdd(l);
 	    break;
+	case t_rat:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = rat_get_d(r->v.r);
+	    check_cdd(l);
+	    break;
 	case t_mpq:
 	    l->t = t_cdd;
 	    real(l->v.dd) = l->v.d;
@@ -572,5 +578,191 @@ ovm_d_complex(oregister_t *l, oregister_t *r)
 	    break;
 	default:
 	    ovm_raise(except_not_a_real_number);
+    }
+}
+
+void
+ovm_d_atan2(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    l->v.d = atan2(l->v.d, 0.0);
+	    break;
+	case t_word:
+	    l->v.d = atan2(l->v.d, r->v.w);
+	    break;
+	case t_float:
+	    l->v.d = atan2(l->v.d, r->v.d);
+	    break;
+	case t_mpz:
+	    l->v.d = atan2(l->v.d, mpz_get_d(ozr(r)));
+	    break;
+	case t_rat:
+	    l->v.d = atan2(l->v.d, rat_get_d(r->v.r));
+	    break;
+	case t_mpq:
+	    l->v.d = atan2(l->v.d, mpq_get_d(oqr(r)));
+	    break;
+	case t_mpr:
+	    mpfr_set_d(orr(l), l->v.d, thr_rnd);
+	    l->t = t_mpr;
+	    mpfr_atan2(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    if (l->v.d) {
+		l->t = t_cdd;
+		real(l->v.dd) = l->v.d;
+		imag(l->v.dd) = 0.0;
+		l->v.dd = catan(l->v.dd / r->v.dd);
+		check_cdd(l);
+	    }
+	    else
+		l->v.d = real(r->v.dd) >= 0 ? 0.0 : M_PI;
+	    break;
+	case t_cqq:
+	    real(r->v.dd) = mpq_get_d(oqr(r));
+	    imag(r->v.dd) = mpq_get_d(oqi(r));
+	    goto cdd;
+	case t_mpc:
+	    if (l->v.d) {
+		l->t = t_mpc;
+		mpc_set_d(occ(l), l->v.d, thr_rndc);
+		mpc_div(occ(l), occ(l), occ(r), thr_rndc);
+		mpc_atan(occ(l), occ(l), thr_rndc);
+		check_mpc(l);
+	    }
+	    else {
+		l->t = t_mpr;
+		if (mpfr_sgn(orr(r)) >= 0)
+		    mpfr_set_ui(orr(l), 0, thr_rnd);
+		else
+		    mpfr_const_pi(orr(l), thr_rnd);
+	    }
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_d_pow(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    l->t = t_float;
+	    l->v.d = 1.0;
+	    break;
+	case t_word:
+	    l->t = t_float;
+	    l->v.d = pow(l->v.d, r->v.w);
+	    break;
+	case t_float:
+	    if (finite(l->v.d) && l->v.d < 0.0 &&
+		finite(r->v.d) && rint(r->v.d) != r->v.d) {
+		real(r->v.dd) = r->v.d;
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    l->v.d = pow(l->v.d, r->v.d);
+	    break;
+	case t_mpz:
+	    l->v.d = pow(l->v.d, mpz_get_d(ozr(r)));
+	    break;
+	case t_rat:
+	    if (finite(l->v.d) && l->v.d < 0.0) {
+		real(r->v.dd) = rat_get_d(r->v.r);
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    l->v.d = pow(l->v.d, rat_get_d(r->v.r));
+	    break;
+	case t_mpq:
+	    if (finite(l->v.d) && l->v.d < 0.0) {
+		real(r->v.dd) = mpq_get_d(oqr(r));
+		imag(r->v.dd) = 0.0;
+		goto cdd;
+	    }
+	    l->v.d = pow(l->v.d, mpq_get_d(oqr(r)));
+	    break;
+	case t_mpr:
+	    if (finite(l->v.d) && l->v.d < 0.0 &&
+		mpfr_number_p(orr(r)) && !mpfr_integer_p(orr(r))) {
+		mpc_set_fr(occ(r), orr(r), thr_rndc);
+		goto mpc;
+	    }
+	    l->t = t_mpr;
+	    mpfr_set_d(orr(l), l->v.d, thr_rnd);
+	    mpfr_pow(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    l->t = t_cdd;
+	    real(l->v.dd) = l->v.d;
+	    imag(l->v.dd) = 0.0;
+	    l->v.dd = cpow(l->v.dd, r->v.dd);
+	    check_cdd(l);
+	    break;
+	case t_cqq:
+	    real(r->v.dd) = mpq_get_d(oqr(r));
+	    imag(r->v.dd) = mpq_get_d(oqi(r));
+	    goto cdd;
+	case t_mpc:
+	mpc:
+	    l->t = t_mpc;
+	    mpc_set_d(occ(l), l->v.d, thr_rndc);
+	    mpc_pow(occ(l), occ(l), occ(r), thr_rndc);
+	    check_mpc(l);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
+    }
+}
+
+void
+ovm_d_hypot(oregister_t *l, oregister_t *r)
+{
+    switch (r->t) {
+	case t_void:
+	    l->v.d = fabs(l->v.d);
+	    break;
+	case t_word:
+	    l->v.d = hypot(l->v.d, r->v.w);
+	    break;
+	case t_float:
+	    l->v.d = hypot(l->v.d, r->v.d);
+	    break;
+	case t_mpz:
+	    l->v.d = hypot(l->v.d, mpz_get_d(ozr(r)));
+	    break;
+	case t_rat:
+	    l->v.d = hypot(l->v.d, rat_get_d(r->v.r));
+	    break;
+	case t_mpq:
+	    l->v.d = hypot(l->v.d, mpq_get_d(oqr(r)));
+	    break;
+	case t_mpr:
+	    l->t = t_mpr;
+	    mpfr_set_d(orr(l), l->v.d, thr_rnd);
+	    mpfr_hypot(orr(l), orr(l), orr(r), thr_rnd);
+	    break;
+	case t_cdd:
+	cdd:
+	    l->t = t_float;
+	    l->v.d = hypot(l->v.d, hypot(real(r->v.dd), imag(r->v.dd)));
+	    break;
+	case t_cqq:
+	    real(r->v.dd) = mpq_get_d(oqr(r));
+	    imag(r->v.dd) = mpq_get_d(oqi(r));
+	    goto cdd;
+	case t_mpc:
+	    l->t = t_mpr;
+	    mpc_set_d(occ(l), l->v.d, thr_rndc);
+	    mpfr_hypot(ori(l), orr(l), ori(l), thr_rnd);
+	    mpfr_hypot(orr(l), orr(r), ori(r), thr_rnd);
+	    mpfr_hypot(orr(l), ori(l), orr(l), thr_rnd);
+	    break;
+	default:
+	    ovm_raise(except_not_a_number);
     }
 }

@@ -248,4 +248,13 @@ oeval_rem(void);
 extern oobject_t
 oeval_complex(void);
 
+extern oobject_t
+oeval_atan2(void);
+
+extern oobject_t
+oeval_pow(void);
+
+extern oobject_t
+oeval_hypot(void);
+
 #endif /* _oeval_h */

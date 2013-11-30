@@ -33,13 +33,16 @@ int
 orat_cmp(orat_t u, orat_t v)
 {
     GET_THREAD_SELF()
+    obool_t		b;
     oword_t		n;
     oword_t		d;
 
     /* if signs differ */
+    b = false;
     if (orat_num(u) < 0) {
 	if (orat_num(v) >= 0)
 	    return (-1);
+	b = true;
     }
     else if (orat_num(v) < 0)
 	return (1);
@@ -71,11 +74,13 @@ orat_cmp(orat_t u, orat_t v)
 	return (mpq_cmp(thr_qr, thr_qi));
     }
 
-    if (n < 0) {
+    if (n < 0)
 	n = -n;
+    if (d < 0)
 	d = -d;
-    }
 
+    if (b)
+	return (n < d ? 1 : n > d ? -1 : 0);
     return (n < d ? -1 : n > d ? 1 : 0);
 }
 
@@ -83,13 +88,16 @@ int
 orat_cmp_si(orat_t u, oword_t v)
 {
     GET_THREAD_SELF()
+    obool_t		b;
     oword_t		n;
     oword_t		d;
 
     /* if signs differ */
+    b = false;
     if (orat_num(u) < 0) {
 	if (v >= 0)
 	    return (-1);
+	b = true;
     }
     else if (v < 0)
 	return (1);
@@ -112,11 +120,13 @@ orat_cmp_si(orat_t u, oword_t v)
 	return (mpq_cmp(thr_qr, thr_qi));
     }
 
-    if (n < 0) {
+    if (n < 0)
 	n = -n;
+    if (d < 0)
 	d = -d;
-    }
 
+    if (b)
+	return (n < d ? 1 : n > d ? -1 : 0);
     return (n < d ? -1 : n > d ? 1 : 0);
 }
 

@@ -1357,7 +1357,7 @@ macro_date(oobject_t *pointer)
 	stream->ptr[6] = ' ';
 	stream->offset = stream->length = 7;
 	oprint_wrd(stream, &format, macro_tm->tm_year + 1900);
-	*pointer = oget_string(stream->ptr, stream->length);
+	*pointer = oget_string(stream->ptr, stream->offset);
     }
     else {
 	oread_warn("could not determine date");
@@ -1393,7 +1393,7 @@ macro_time(oobject_t *pointer)
 	stream->ptr[5] = ':';
 	stream->offset = stream->length = 6;
 	oprint_wrd(stream, &format, macro_tm->tm_sec);
-	*pointer = oget_string(stream->ptr, stream->length);
+	*pointer = oget_string(stream->ptr, stream->offset);
     }
     else {
 	oread_warn("could not determine time");

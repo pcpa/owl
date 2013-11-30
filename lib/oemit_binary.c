@@ -57,6 +57,12 @@ emit_rem(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
 
 static void
 emit_complex(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
+
+static void
+emit_atan2_hypot(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
+
+static void
+emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop);
 #endif
 
 #if defined(CODE)
@@ -246,6 +252,12 @@ emit_binary_next(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    break;
 	case tok_complex:
 	    emit_complex(lop, tok, rop);
+	    break;
+	case tok_atan2:		case tok_hypot:
+	    emit_atan2_hypot(lop, tok, rop);
+	    break;
+	case tok_pow:
+	    emit_pow(lop, tok, rop);
 	    break;
 	default:
 	    abort();
@@ -1343,6 +1355,243 @@ emit_complex(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
     emit_finish(function, mask1(lreg));
     emit_set_type(lop, t_void);
 finish:
+    operand_unget(1);
+}
+
+static void
+emit_atan2_hypot(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
+{
+    otype_t		 lty;
+    otype_t		 rty;
+    oword_t		 lreg;
+    oword_t		 rreg;
+    oobject_t		 function;
+
+    lreg = lop->u.w;
+    switch (rop->t) {
+	case t_half:	case t_word:
+	case t_single:	case t_float:
+	    rreg = -1;
+	    break;
+	default:
+	    rreg = rop->u.w;
+	    break;
+    }
+    lty = emit_get_type(lop);
+    rty = emit_get_type(rop);
+    if (lty == t_half || lty == t_word) {
+	if (!cfg_float_format) {
+	    if (rty == t_half || rty == t_word) {
+		jit_extr_d(FPR[lreg], GPR[lreg]);
+		if (rreg == -1) {
+		    rop->u.d = rop->u.w;
+		    emit_set_type(rop, t_float);
+		    emit_load(rop);
+		    rreg = rop->u.w;
+		}
+		else
+		    jit_extr_d(FPR[rreg], GPR[rreg]);
+		jit_prepare();
+		jit_pushargr_d(FPR[lreg]);
+		jit_pushargr_d(FPR[rreg]);
+		if (tok == tok_atan2)
+		    emit_finish(atan2, mask1(lreg));
+		else
+		    emit_finish(hypot, mask1(lreg));
+		jit_retval_d(FPR[lreg]);
+		emit_set_type(lop, t_float);
+		goto finish;
+	    }
+	}
+	sync_w(lreg);
+	if (rty == t_half || rty == t_word) {
+	    if (rreg == -1) {
+		if (rop->u.w == 0)
+		    goto finish;
+		emit_load(rop);
+		rreg = rop->u.w;
+	    }
+	    sync_w(rreg);
+	}
+	else
+	    assert(rty == t_void);
+	if (tok == tok_atan2)
+	    function = ovm_w_atan2;
+	else
+	    function = ovm_w_hypot;
+    }
+    else if (lty == t_single) {
+	jit_extr_f_d(FPR[lreg], FPR[lreg]);
+	emit_set_type(lop, t_float);
+	if (rreg == -1) {
+	    emit_load(rop);
+	    rreg = rop->u.w;
+	}
+	else {
+	    assert(rty == t_single);
+	    jit_extr_f_d(FPR[rreg], FPR[rreg]);
+	}
+	jit_prepare();
+	jit_pushargr_d(FPR[lreg]);
+	jit_pushargr_d(FPR[rreg]);
+	if (tok == tok_atan2)
+	    emit_finish(atan2, mask1(lreg));
+	else
+	    emit_finish(hypot, mask1(lreg));
+	jit_retval_d(FPR[lreg]);
+	goto finish;
+    }
+    else if (lty == t_float) {
+	if (rty == t_float) {
+	    if (rreg == -1) {
+		emit_load(rop);
+		rreg = rop->u.w;
+	    }
+	    jit_prepare();
+	    jit_pushargr_d(FPR[lreg]);
+	    jit_pushargr_d(FPR[rreg]);
+	    if (tok == tok_atan2)
+		emit_finish(atan2, mask1(lreg));
+	    else
+		emit_finish(hypot, mask1(lreg));
+	    jit_retval_d(FPR[lreg]);
+	    goto finish;
+	}
+	sync_d(lreg);
+	if (rty == t_float)
+	    sync_d(rreg);
+	if (tok == tok_atan2)
+	    function = ovm_d_atan2;
+	else
+	    function = ovm_d_hypot;
+    }
+    else {
+	assert(lty == t_void);
+	if (tok == tok_atan2)
+	    function = ovm_o_atan2;
+	else
+	    function = ovm_o_hypot;
+    }
+    load_r(lreg);
+    load_r_w(rreg, JIT_R0);
+    jit_prepare();
+    jit_pushargr(GPR[lreg]);
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
+    emit_set_type(lop, t_void);
+finish:
+    operand_unget(1);
+}
+
+static void
+emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
+{
+    otype_t		 lty;
+    otype_t		 rty;
+    oword_t		 lreg;
+    oword_t		 rreg;
+    jit_node_t		*done;
+    jit_node_t		*jump;
+    oobject_t		 function;
+
+    lreg = lop->u.w;
+    switch (rop->t) {
+	case t_half:	case t_word:
+	case t_single:	case t_float:
+	    rreg = -1;
+	    break;
+	default:
+	    rreg = rop->u.w;
+	    break;
+    }
+    done = jump = null;
+    lty = emit_get_type(lop);
+    rty = emit_get_type(rop);
+    if (lty == t_half || lty == t_word) {
+	jit_extr_d(FPR[lreg], GPR[lreg]);
+	sync_d(lreg);
+	if (rty == t_half || rty == t_word) {
+	    if (rreg == -1) {
+		rop->u.d = rop->u.w;
+		emit_set_type(rop, t_float);
+		emit_load(rop);
+		rreg = rop->u.w;
+	    }
+	    else
+		jit_extr_d(FPR[rreg], GPR[rreg]);
+	    sync_d(rreg);
+	    /* FIXME mixing sse2 and x87 reproducible problems... */
+#ifndef __i386__
+	    jump = jit_blti(GPR[lreg], 0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[lreg]);
+	    jit_pushargr_d(FPR[rreg]);
+	    emit_finish(pow, mask1(lreg));
+	    jit_retval_d(FPR[lreg]);
+	    sync_d(lreg);
+	    done = jit_jmpi();
+#endif
+	}
+	function = ovm_d_pow;
+    }
+    else if (lty == t_single) {
+	jit_extr_f_d(FPR[lreg], FPR[lreg]);
+	sync_d(lreg);
+	if (rreg == -1) {
+	    emit_load(rop);
+	    rreg = rop->u.w;
+	}
+	else
+	    jit_extr_f_d(FPR[rreg], FPR[rreg]);
+	sync_d(rreg);
+#ifndef __i386__
+	jump = jit_blti_d(FPR[lreg], 0.0);
+	jit_prepare();
+	jit_pushargr_d(FPR[lreg]);
+	jit_pushargr_d(FPR[rreg]);
+	emit_finish(pow, mask1(lreg));
+	jit_retval_d(FPR[lreg]);
+	sync_d(lreg);
+	done = jit_jmpi();
+#endif
+	function = ovm_d_pow;
+    }
+    else if (lty == t_float) {
+	sync_d(lreg);
+	if (rty == t_float) {
+	    if (rreg == -1) {
+		emit_load(rop);
+		rreg = rop->u.w;
+	    }
+	    sync_d(rreg);
+#ifndef __i386__
+	    jump = jit_blti_d(FPR[lreg], 0.0);
+	    jit_prepare();
+	    jit_pushargr_d(FPR[lreg]);
+	    jit_pushargr_d(FPR[rreg]);
+	    emit_finish(pow, mask1(lreg));
+	    jit_retval_d(FPR[lreg]);
+	    sync_d(lreg);
+	    done = jit_jmpi();
+#endif
+	}
+	function = ovm_d_pow;
+    }
+    else {
+	assert(lty == t_void);
+	function = ovm_o_pow;
+    }
+    if (jump)
+	jit_patch(jump);
+    load_r(lreg);
+    load_r_w(rreg, JIT_R0);
+    jit_prepare();
+    jit_pushargr(GPR[lreg]);
+    jit_pushargr(JIT_R0);
+    emit_finish(function, mask1(lreg));
+    if (done)
+	jit_patch(done);
+    emit_set_type(lop, t_void);
     operand_unget(1);
 }
 #endif

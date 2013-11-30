@@ -1886,10 +1886,10 @@ unary_value(otoken_t token)
 	case tok_acosh:		case tok_atanh:
 	case tok_proj:		case tok_exp:
 	case tok_log:		case tok_log2:
-	case tok_log10:
-	case tok_atan2:		case tok_pow:
-	case tok_hypot:		case tok_complex:
-	case tok_ellipsis:
+	case tok_log10:		case tok_atan2:
+	case tok_pow:		case tok_hypot:
+	case tok_complex:	case tok_ellipsis:
+	case tok_oparen:
 	    break;
 	default:
 	    oparse_error(top_ast(), "expecting expression %A", top_ast());
