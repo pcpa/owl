@@ -20,6 +20,10 @@
 #include <getopt.h>
 #include <stdio.h>
 
+#if defined(__linux__) && defined(__i386__)
+#  include <fpu_control.h>
+#endif
+
 /*
  * Prototypes
  */
@@ -48,6 +52,23 @@ ocfg_main(int argc, char *argv[])
     ostream_t		*stream;
     ovector_t		*vector;
     oobject_t		*pointer;
+
+#if defined(__linux__) && defined(__i386__)
+    /*	double precision		0x200
+     *	round nearest			0x000
+     *	invalid operation mask		0x001
+     *	denormalized operand mask	0x002
+     *	zero divide mask		0x004
+     *	precision (inexact) mask	0x020
+     */
+    fpu_control_t fpu_control = 0x027f;
+    _FPU_SETCW(fpu_control);
+    /*	linux default is to use extended precision 0x037f
+     *	but the value being set here is to use 53 bits mantissa
+     *	doubles, so that, values in registers actually fit in
+     *	64 bits memory values
+     */
+#endif
 
     optind = cfg_parse_options(argc, argv);
 
