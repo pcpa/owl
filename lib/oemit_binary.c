@@ -435,10 +435,6 @@ emit_mul2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 		goto finish;
 	    }
 	    else {
-		if (rreg == -1) {
-		    emit_load(rop);
-		    rreg = rop->u.w;
-		}
 		sync_d(lreg);
 		sync_w(rreg);
 	    }
@@ -569,10 +565,6 @@ emit_div2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 		goto finish;
 	    }
 	    else {
-		if (rreg == -1) {
-		    emit_load(rop);
-		    rreg = rop->u.w;
-		}
 		sync_d(lreg);
 		sync_w(rreg);
 	    }
@@ -693,8 +685,8 @@ emit_shr(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
     otype_t		 rty;
     oword_t		 lreg;
     oword_t		 rreg;
-    jit_node_t		*jump;
     jit_node_t		*done;
+    jit_node_t		*jump;
     oword_t		 fshr;
 
     lreg = lop->u.w;
@@ -1162,7 +1154,7 @@ emit_trunc2(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    jit_pushargr_d(FPR[lreg]);
 	    jit_pushargr(JIT_R0);
 	    emit_finish(modf, mask2(lreg, rreg));
-#if __WORDSIZE == 32 && defined(__i386__)
+#if defined(__i386__)
 	    /* FIXME should not be required but on special conditions
 	     * may cause undefined behaviour if not fetching the result
 	     * from the x87 stack */
@@ -1520,8 +1512,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    else
 		jit_extr_d(FPR[rreg], GPR[rreg]);
 	    sync_d(rreg);
-	    /* FIXME mixing sse2 and x87 reproducible problems... */
-#ifndef __i386__
 	    jump = jit_blti(GPR[lreg], 0);
 	    jit_prepare();
 	    jit_pushargr_d(FPR[lreg]);
@@ -1530,7 +1520,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    jit_retval_d(FPR[lreg]);
 	    sync_d(lreg);
 	    done = jit_jmpi();
-#endif
 	}
 	function = ovm_d_pow;
     }
@@ -1544,7 +1533,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	else
 	    jit_extr_f_d(FPR[rreg], FPR[rreg]);
 	sync_d(rreg);
-#ifndef __i386__
 	jump = jit_blti_d(FPR[lreg], 0.0);
 	jit_prepare();
 	jit_pushargr_d(FPR[lreg]);
@@ -1553,7 +1541,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	jit_retval_d(FPR[lreg]);
 	sync_d(lreg);
 	done = jit_jmpi();
-#endif
 	function = ovm_d_pow;
     }
     else if (lty == t_float) {
@@ -1564,7 +1551,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 		rreg = rop->u.w;
 	    }
 	    sync_d(rreg);
-#ifndef __i386__
 	    jump = jit_blti_d(FPR[lreg], 0.0);
 	    jit_prepare();
 	    jit_pushargr_d(FPR[lreg]);
@@ -1573,7 +1559,6 @@ emit_pow(ooperand_t *lop, otoken_t tok, ooperand_t *rop)
 	    jit_retval_d(FPR[lreg]);
 	    sync_d(lreg);
 	    done = jit_jmpi();
-#endif
 	}
 	function = ovm_d_pow;
     }
