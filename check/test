@@ -37727,6 +37727,38 @@ auto		t47_nan = nan;
 auto		t47_infL = inf*1L;
 auto		t47_ninfL = -inf*1L;
 auto		t47_nanL = nan*1L;
+auto t47_chk(auto a, auto b) {
+    if (nan_p(a) ^ nan_p(b))
+	return false;
+    else if (nan_p(a))
+	return true;
+    if (!!inf_p(a) ^ !!inf_p(b))
+	return false;
+    if ((!real_p(a) ^ !real_p(b)))
+	return false;
+    else if (real_p(a) && a && signbit(a) != signbit(b))
+	return false;
+    if (a != b && abs(a - b) > 0.0000000001)
+	return false;
+    return true;
+}
+auto t47_cmp(auto a, auto b) {
+    if ((complex_p(a) ^ complex_p(b)) == 0) {
+	if (complex_p(a)) {
+	    if (t47_chk(real(a), real(b)) && t47_chk(imag(a), imag(b)))
+		return true;
+	}
+	else if (t47_chk(a, b))
+	    return true;
+    }
+    if (complex_p(a)) {
+	if (abs(imag(a)) < 0.0000000001)
+	    return true;
+    }
+    else if (complex_p(b) && abs(imag(b)) < 0.0000000001)
+	return true;
+    return false;
+}
 if (!integer_p(1))		print("error %d\n", __LINE__);
 if (integer_p(1.0))		print("error %d\n", __LINE__);
 if (integer_p(1/2))		print("error %d\n", __LINE__);
@@ -38078,11 +38110,11 @@ if (finite_p(t47_qq))		print("error %d\n", __LINE__);
 if (finite_p(t47_cc))		print("error %d\n", __LINE__);
 if (finite_p(t47_s))		print("error %d\n", __LINE__);
 if (finite_p(t47_inf))		print("error %d\n", __LINE__);
-if (finite_p(t47_ninf))	print("error %d\n", __LINE__);
+if (finite_p(t47_ninf))		print("error %d\n", __LINE__);
 if (finite_p(t47_nan))		print("error %d\n", __LINE__);
-if (finite_p(t47_infL))	print("error %d\n", __LINE__);
+if (finite_p(t47_infL))		print("error %d\n", __LINE__);
 if (finite_p(t47_ninfL))	print("error %d\n", __LINE__);
-if (finite_p(t47_nanL))	print("error %d\n", __LINE__);
+if (finite_p(t47_nanL))		print("error %d\n", __LINE__);
 if (inf_p(1))			print("error %d\n", __LINE__);
 if (inf_p(1.0))			print("error %d\n", __LINE__);
 if (inf_p(1/2))			print("error %d\n", __LINE__);
@@ -38663,972 +38695,975 @@ if (ceil(t47_z) != 0x800000000000000000000000000000000)
 if (ceil(t47_q) != 0x19999999999999999999999999999999a)
     print("error %d\n", __LINE__);
 if (ceil(t47_r) != 1)		print("error %d\n", __LINE__);
-if (sqrt(1) != 1)		print("error %d\n", __LINE__);
-if (sqrt(1.0) != 1)		print("error %d\n", __LINE__);
-if (sqrt(1/2) != 0.70710678118654757)
+if (!t47_cmp(sqrt(1), 1))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(1.0), 1))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(1/2), 0.70710678118654757))
     print("error %d\n", __LINE__);
-if (sqrt(0x800000000000000000000000000000000) != 52175271301331132000.0)
+if (!t47_cmp(sqrt(0x800000000000000000000000000000000), 52175271301331132000.0))
     print("error %d\n", __LINE__);
-if (sqrt(0x800000000000000000000000000000000/5) != 23333490674854064000.0)
+if (!t47_cmp(sqrt(0x800000000000000000000000000000000/5), 23333490674854064000.0))
     print("error %d\n", __LINE__);
-if (sqrt(1.0L) != 1)		print("error %d\n", __LINE__);
-if (sqrt(1.0*I) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(1.0L), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(1.0*I), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(I) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(I), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(1L*I) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(1L*I), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(inf) != inf)		print("error %d\n", __LINE__);
-if (sqrt(-inf) != complex(0, inf))
+if (!t47_cmp(sqrt(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(-inf), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sqrt(inf*1L) != inf)	print("error %d\n", __LINE__);
-if (sqrt(-inf*1L) != complex(0, inf))
+if (!t47_cmp(sqrt(inf*1L), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(-inf*1L), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_sc) != I)		print("error %d\n", __LINE__);
-if (sqrt(t47_uc) != 1)		print("error %d\n", __LINE__);
-if (sqrt(t47_ss) != 1.4142135623730951*I)
+if (!t47_cmp(sqrt(t47_sc), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_uc), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_ss), 1.4142135623730951*I))
     print("error %d\n", __LINE__);
-if (sqrt(t47_us) != 1.4142135623730951)
+if (!t47_cmp(sqrt(t47_us), 1.4142135623730951))
     print("error %d\n", __LINE__);
-if (sqrt(t47_si) != 2*I)	print("error %d\n", __LINE__);
-if (sqrt(t47_ui) != 2)		print("error %d\n", __LINE__);
-if (sqrt(t47_sl) != 2.8284271247461903*I)
+if (!t47_cmp(sqrt(t47_si), 2*I))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_ui), 2))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_sl), 2.8284271247461903*I))
     print("error %d\n", __LINE__);
-if (sqrt(t47_ul) != 2.8284271247461903)
+if (!t47_cmp(sqrt(t47_ul), 2.8284271247461903))
     print("error %d\n", __LINE__);
-if (sqrt(t47_sf) != 0.5)	print("error %d\n", __LINE__);
-if (sqrt(t47_df) != 0.35355339059327379)
+if (!t47_cmp(sqrt(t47_sf), 0.5))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_df), 0.35355339059327379))
     print("error %d\n", __LINE__);
-if (sqrt(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (sqrt(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (sqrt(t47_sf_ninf) != complex(0, inf))
+if (!t47_cmp(sqrt(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_sf_ninf), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_df_ninf) != complex(0, inf))
+if (!t47_cmp(sqrt(t47_df_ninf), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_w) != 1)		print("error %d\n", __LINE__);
-if (sqrt(t47_f) != 1)		print("error %d\n", __LINE__);
-if (sqrt(t47_x) != 0.70710678118654757)
+if (!t47_cmp(sqrt(t47_w), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_f), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_x), 0.70710678118654757))
     print("error %d\n", __LINE__);
-if (sqrt(t47_z) != 52175271301331132000.0)
+if (!t47_cmp(sqrt(t47_z), 52175271301331132000.0))
     print("error %d\n", __LINE__);
-if (sqrt(t47_q) != 23333490674854064000.0)
+if (!t47_cmp(sqrt(t47_q), 23333490674854064000.0))
     print("error %d\n", __LINE__);
-if (sqrt(t47_r) != 1)		print("error %d\n", __LINE__);
-if (sqrt(t47_dd) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(t47_r), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_dd), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_qq) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(t47_qq), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_cc) != (0.70710678118654757+0.70710678118654757*I))
+if (!t47_cmp(sqrt(t47_cc), (0.70710678118654757+0.70710678118654757*I)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (sqrt(t47_ninf) != complex(0, inf))
+if (!t47_cmp(sqrt(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_ninf), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sqrt(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (sqrt(t47_ninfL) != complex(0, inf))
+if (!t47_cmp(sqrt(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sqrt(t47_ninfL), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (cbrt(1) != 1)		print("error %d\n", __LINE__);
-if (cbrt(1.0) != 1)		print("error %d\n", __LINE__);
-if (cbrt(1/2) != 0.79370052598409979)
+if (!t47_cmp(cbrt(1), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(1.0), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(1/2), 0.79370052598409979))
     print("error %d\n", __LINE__);
-if (cbrt(0x800000000000000000000000000000000) != 13962927316663.119)
+if (!t47_cmp(cbrt(0x800000000000000000000000000000000), 13962927316663.119))
     print("error %d\n", __LINE__);
-if (cbrt(1.0L) != 1)		print("error %d\n", __LINE__);
-if (cbrt(1.0*I) != (0.86602540378443871+0.49999999999999994*I))
+if (!t47_cmp(cbrt(1.0L), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(1.0*I), (0.86602540378443871+0.49999999999999994*I)))
     print("error %d\n", __LINE__);
-if (cbrt(I) != (0.86602540378443871+0.49999999999999994*I))
+if (!t47_cmp(cbrt(I), (0.86602540378443871+0.49999999999999994*I)))
     print("error %d\n", __LINE__);
-if (cbrt(1L*I) != (0.86602540378443871+0.5*I))
+if (!t47_cmp(cbrt(1L*I), (0.86602540378443871+0.5*I)))
     print("error %d\n", __LINE__);
-if (cbrt(inf) != inf)		print("error %d\n", __LINE__);
-if (cbrt(-inf) != -inf)		print("error %d\n", __LINE__);
-if (cbrt(inf*1L) != inf)	print("error %d\n", __LINE__);
-if (cbrt(-inf*1L) != -inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_sc) != -1)		print("error %d\n", __LINE__);
-if (cbrt(t47_uc) != 1)		print("error %d\n", __LINE__);
-if (cbrt(t47_ui) != 1.5874010519681996)
+if (!t47_cmp(cbrt(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(-inf), -inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(inf*1L), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(-inf*1L), -inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_sc), -1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_uc), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_ui), 1.5874010519681996))
     print("error %d\n", __LINE__);
-if (cbrt(t47_sl) != -2)		print("error %d\n", __LINE__);
-if (cbrt(t47_ul) != 2)		print("error %d\n", __LINE__);
-if (cbrt(t47_sf) != 0.6299605249474366)
+if (!t47_cmp(cbrt(t47_sl), -2))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_ul), 2))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_sf), 0.6299605249474366))
     print("error %d\n", __LINE__);
-if (cbrt(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_sf_ninf) != -inf)
+if (!t47_cmp(cbrt(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_sf_ninf), -inf))
     print("error %d\n", __LINE__);
-if (cbrt(t47_df_ninf) != -inf)
+if (!t47_cmp(cbrt(t47_df_ninf), -inf))
     print("error %d\n", __LINE__);
-if (cbrt(t47_w) != 1)		print("error %d\n", __LINE__);
-if (cbrt(t47_f) != 1)		print("error %d\n", __LINE__);
-if (cbrt(t47_x) != 0.79370052598409979)
+if (!t47_cmp(cbrt(t47_w), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_f), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_x), 0.79370052598409979))
     print("error %d\n", __LINE__);
-if (cbrt(t47_z) != 13962927316663.119)
+if (!t47_cmp(cbrt(t47_z), 13962927316663.119))
     print("error %d\n", __LINE__);
-if (cbrt(t47_r) != 1)		print("error %d\n", __LINE__);
-if (cbrt(t47_dd) != (0.86602540378443871+0.49999999999999994*I))
+if (!t47_cmp(cbrt(t47_r), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_dd), (0.86602540378443871+0.49999999999999994*I)))
     print("error %d\n", __LINE__);
-if (cbrt(t47_qq) != (0.86602540378443871+0.49999999999999994*I))
+if (!t47_cmp(cbrt(t47_qq), (0.86602540378443871+0.49999999999999994*I)))
     print("error %d\n", __LINE__);
-if (cbrt(t47_cc) != (0.86602540378443871+0.5*I))
+if (!t47_cmp(cbrt(t47_cc), (0.86602540378443871+0.5*I)))
     print("error %d\n", __LINE__);
-if (cbrt(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_ninf) != -inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (cbrt(t47_ninfL) != -inf)	print("error %d\n", __LINE__);
-if (sin(1) != 0.8414709848078965)
+if (!t47_cmp(cbrt(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_ninf), -inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(cbrt(t47_ninfL), -inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(sin(1), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(1.0) != 0.8414709848078965)
+if (!t47_cmp(sin(1.0), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(1/2) != 0.47942553860420301)
+if (!t47_cmp(sin(1/2), 0.47942553860420301))
     print("error %d\n", __LINE__);
-if (sin(0x800000000000000000000000000000000) != -0.97445080272291196)
+if (!t47_cmp(sin(0x800000000000000000000000000000000), -0.97445080272291196))
     print("error %d\n", __LINE__);
-if (sin(0x800000000000000000000000000000000/5) != -0.16295865569978896)
+if (!t47_cmp(sin(0x800000000000000000000000000000000/5), -0.16295865569978896))
     print("error %d\n", __LINE__);
-if (sin(1.0L) != 0.8414709848078965)
+if (!t47_cmp(sin(1.0L), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(1.0*I) != 1.1752011936438014*I)
+if (!t47_cmp(sin(1.0*I), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (sin(I) != 1.1752011936438014*I)
+if (!t47_cmp(sin(I), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (sin(1L*I) != 1.1752011936438014*I)
+if (!t47_cmp(sin(1L*I), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (sin(t47_sc) != -0.8414709848078965)
+if (!t47_cmp(sin(t47_sc), -0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(t47_uc) != 0.8414709848078965)
+if (!t47_cmp(sin(t47_uc), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(t47_ss) != -0.9092974268256817)
+if (!t47_cmp(sin(t47_ss), -0.9092974268256817))
     print("error %d\n", __LINE__);
-if (sin(t47_us) != 0.90929742682568171)
+if (!t47_cmp(sin(t47_us), 0.90929742682568171))
     print("error %d\n", __LINE__);
-if (sin(t47_si) != 0.7568024953079282)
+if (!t47_cmp(sin(t47_si), 0.7568024953079282))
     print("error %d\n", __LINE__);
-if (sin(t47_ui) != -0.7568024953079282)
+if (!t47_cmp(sin(t47_ui), -0.7568024953079282))
     print("error %d\n", __LINE__);
-if (sin(t47_sl) != -0.98935824662338179)
+if (!t47_cmp(sin(t47_sl), -0.98935824662338179))
     print("error %d\n", __LINE__);
-if (sin(t47_ul) != 0.98935824662338179)
+if (!t47_cmp(sin(t47_ul), 0.98935824662338179))
     print("error %d\n", __LINE__);
-if (sin(t47_sf) != 0.24740395925452294)
+if (!t47_cmp(sin(t47_sf), 0.24740395925452294))
     print("error %d\n", __LINE__);
-if (sin(t47_df) != 0.12467473338522769)
+if (!t47_cmp(sin(t47_df), 0.12467473338522769))
     print("error %d\n", __LINE__);
-if (sin(t47_w) != 0.8414709848078965)
+if (!t47_cmp(sin(t47_w), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(t47_f) != 0.8414709848078965)
+if (!t47_cmp(sin(t47_f), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(t47_x) != 0.47942553860420301)
+if (!t47_cmp(sin(t47_x), 0.47942553860420301))
     print("error %d\n", __LINE__);
-if (sin(t47_q) != -0.16295865569978896)
+if (!t47_cmp(sin(t47_q), -0.16295865569978896))
     print("error %d\n", __LINE__);
-if (sin(t47_r) != 0.8414709848078965)
+if (!t47_cmp(sin(t47_r), 0.8414709848078965))
     print("error %d\n", __LINE__);
-if (sin(t47_dd) != 1.1752011936438014*I)
+if (!t47_cmp(sin(t47_dd), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (sin(t47_qq) != 1.1752011936438014*I)
+if (!t47_cmp(sin(t47_qq), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (sin(t47_cc) != 1.1752011936438014*I)
+if (!t47_cmp(sin(t47_cc), 1.1752011936438014*I))
     print("error %d\n", __LINE__);
-if (cos(1) != 0.54030230586813977)
+if (!t47_cmp(cos(1), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(1.0) != 0.54030230586813977)
+if (!t47_cmp(cos(1.0), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(1/2) != 0.87758256189037276)
+if (!t47_cmp(cos(1/2), 0.87758256189037276))
     print("error %d\n", __LINE__);
-if (cos(0x800000000000000000000000000000000) != -0.22460105314239401)
+if (!t47_cmp(cos(0x800000000000000000000000000000000), -0.22460105314239401))
     print("error %d\n", __LINE__);
-if (cos(0x800000000000000000000000000000000/5) != 0.98663289856588388)
+if (!t47_cmp(cos(0x800000000000000000000000000000000/5), 0.98663289856588388))
     print("error %d\n", __LINE__);
-if (cos(1.0L) != 0.54030230586813977)
+if (!t47_cmp(cos(1.0L), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(1.0*I) != 1.5430806348152437)
+if (!t47_cmp(cos(1.0*I), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cos(I) != 1.5430806348152437)
+if (!t47_cmp(cos(I), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cos(1L*I) != 1.5430806348152437)
+if (!t47_cmp(cos(1L*I), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cos(t47_sc) != 0.54030230586813977)
+if (!t47_cmp(cos(t47_sc), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(t47_uc) != 0.54030230586813977)
+if (!t47_cmp(cos(t47_uc), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(t47_ss) != -0.41614683654714241)
+if (!t47_cmp(cos(t47_ss), -0.41614683654714241))
     print("error %d\n", __LINE__);
-if (cos(t47_us) != -0.41614683654714241)
+if (!t47_cmp(cos(t47_us), -0.41614683654714241))
     print("error %d\n", __LINE__);
-if (cos(t47_si) != -0.65364362086361194)
+if (!t47_cmp(cos(t47_si), -0.65364362086361194))
     print("error %d\n", __LINE__);
-if (cos(t47_ui) != -0.6536436208636119)
+if (!t47_cmp(cos(t47_ui), -0.6536436208636119))
     print("error %d\n", __LINE__);
-if (cos(t47_sl) != -0.14550003380861354)
+if (!t47_cmp(cos(t47_sl), -0.14550003380861354))
     print("error %d\n", __LINE__);
-if (cos(t47_ul) != -0.14550003380861354)
+if (!t47_cmp(cos(t47_ul), -0.14550003380861354))
     print("error %d\n", __LINE__);
-if (cos(t47_sf) != 0.96891242171064473)
+if (!t47_cmp(cos(t47_sf), 0.96891242171064473))
     print("error %d\n", __LINE__);
-if (cos(t47_df) != 0.99219766722932901)
+if (!t47_cmp(cos(t47_df), 0.99219766722932901))
     print("error %d\n", __LINE__);
-if (cos(t47_w) != 0.54030230586813977)
+if (!t47_cmp(cos(t47_w), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(t47_f) != 0.54030230586813977)
+if (!t47_cmp(cos(t47_f), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(t47_x) != 0.87758256189037276)
+if (!t47_cmp(cos(t47_x), 0.87758256189037276))
     print("error %d\n", __LINE__);
-if (cos(t47_q) != 0.98663289856588388)
+if (!t47_cmp(cos(t47_q), 0.98663289856588388))
     print("error %d\n", __LINE__);
-if (cos(t47_r) != 0.54030230586813977)
+if (!t47_cmp(cos(t47_r), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cos(t47_dd) != 1.5430806348152437)
+if (!t47_cmp(cos(t47_dd), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cos(t47_qq) != 1.5430806348152437)
+if (!t47_cmp(cos(t47_qq), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cos(t47_cc) != 1.5430806348152437)
+if (!t47_cmp(cos(t47_cc), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (tan(1) != 1.5574077246549023)
+if (!t47_cmp(tan(1), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(1.0) != 1.5574077246549023)
+if (!t47_cmp(tan(1.0), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(1/2) != 0.54630248984379048)
+if (!t47_cmp(tan(1/2), 0.54630248984379048))
     print("error %d\n", __LINE__);
-if (tan(0x800000000000000000000000000000000) != 4.338585189558855)
+if (!t47_cmp(tan(0x800000000000000000000000000000000), 4.338585189558855))
     print("error %d\n", __LINE__);
-if (tan(0x800000000000000000000000000000000/5) != -0.16516645242283817)
+if (!t47_cmp(tan(0x800000000000000000000000000000000/5), -0.16516645242283817))
     print("error %d\n", __LINE__);
-if (tan(1.0L) != 1.5574077246549023)
+if (!t47_cmp(tan(1.0L), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(1L*I) != 0.76159415595576485*I)
+if (!t47_cmp(tan(1L*I), 0.76159415595576485*I))
     print("error %d\n", __LINE__);
-if (tan(t47_sc) != -1.5574077246549023)
+if (!t47_cmp(tan(t47_sc), -1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(t47_uc) != 1.5574077246549023)
+if (!t47_cmp(tan(t47_uc), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(t47_ss) != 2.1850398632615189)
+if (!t47_cmp(tan(t47_ss), 2.1850398632615189))
     print("error %d\n", __LINE__);
-if (tan(t47_us) != -2.1850398632615189)
+if (!t47_cmp(tan(t47_us), -2.1850398632615189))
     print("error %d\n", __LINE__);
-if (tan(t47_si) != -1.1578212823495775)
+if (!t47_cmp(tan(t47_si), -1.1578212823495775))
     print("error %d\n", __LINE__);
-if (tan(t47_ui) != 1.1578212823495775)
+if (!t47_cmp(tan(t47_ui), 1.1578212823495775))
     print("error %d\n", __LINE__);
-if (tan(t47_sl) != 6.799711455220379)
+if (!t47_cmp(tan(t47_sl), 6.799711455220379))
     print("error %d\n", __LINE__);
-if (tan(t47_ul) != -6.799711455220379)
+if (!t47_cmp(tan(t47_ul), -6.799711455220379))
     print("error %d\n", __LINE__);
-if (tan(t47_sf) != 0.25534192122103627)
+if (!t47_cmp(tan(t47_sf), 0.25534192122103627))
     print("error %d\n", __LINE__);
-if (tan(t47_df) != 0.12565513657513097)
+if (!t47_cmp(tan(t47_df), 0.12565513657513097))
     print("error %d\n", __LINE__);
-if (tan(t47_w) != 1.5574077246549023)
+if (!t47_cmp(tan(t47_w), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(t47_f) != 1.5574077246549023)
+if (!t47_cmp(tan(t47_f), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(t47_x) != 0.54630248984379048)
+if (!t47_cmp(tan(t47_x), 0.54630248984379048))
     print("error %d\n", __LINE__);
-if (tan(t47_q) != -0.16516645242283817)
+if (!t47_cmp(tan(t47_q), -0.16516645242283817))
     print("error %d\n", __LINE__);
-if (tan(t47_r) != 1.5574077246549023)
+if (!t47_cmp(tan(t47_r), 1.5574077246549023))
     print("error %d\n", __LINE__);
-if (tan(t47_cc) != 0.76159415595576485*I)
+if (!t47_cmp(tan(t47_cc), 0.76159415595576485*I))
     print("error %d\n", __LINE__);
-if (asin(1) != 1.5707963267948966)
+if (!t47_cmp(asin(1), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(1.0) != 1.5707963267948966)
+if (!t47_cmp(asin(1.0), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(1/2) != 0.52359877559829893)
+if (!t47_cmp(asin(1/2), 0.52359877559829893))
     print("error %d\n", __LINE__);
-if (asin(1.0L) != 1.5707963267948966)
+if (!t47_cmp(asin(1.0L), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(1L*I) != 0.88137358701954305*I)
+if (!t47_cmp(asin(1L*I), 0.88137358701954305*I))
     print("error %d\n", __LINE__);
-if (asin(t47_sc) != -1.5707963267948966)
+if (!t47_cmp(asin(t47_sc), -1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(t47_uc) != 1.5707963267948966)
+if (!t47_cmp(asin(t47_uc), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(t47_sf) != 0.25268025514207865)
+if (!t47_cmp(asin(t47_sf), 0.25268025514207865))
     print("error %d\n", __LINE__);
-if (asin(t47_df) != 0.1253278311680654)
+if (!t47_cmp(asin(t47_df), 0.1253278311680654))
     print("error %d\n", __LINE__);
-if (asin(t47_w) != 1.5707963267948966)
+if (!t47_cmp(asin(t47_w), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(t47_f) != 1.5707963267948966)
+if (!t47_cmp(asin(t47_f), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(t47_x) != 0.52359877559829893)
+if (!t47_cmp(asin(t47_x), 0.52359877559829893))
     print("error %d\n", __LINE__);
-if (asin(t47_r) != 1.5707963267948966)
+if (!t47_cmp(asin(t47_r), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (asin(t47_cc) != 0.88137358701954305*I)
+if (!t47_cmp(asin(t47_cc), 0.88137358701954305*I))
     print("error %d\n", __LINE__);
-if (acos(1) != 0)		print("error %d\n", __LINE__);
-if (acos(1.0) != 0)		print("error %d\n", __LINE__);
-if (acos(1/2) != 1.0471975511965979)
+if (!t47_cmp(acos(1), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(1.0), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(1/2), 1.0471975511965979))
     print("error %d\n", __LINE__);
-if (acos(1.0L) != 0)	print("error %d\n", __LINE__);
-if (acos(1L*I) != (1.5707963267948966-0.88137358701954305*I))
+if (!t47_cmp(acos(1.0L), 0))	print("error %d\n", __LINE__);
+if (!t47_cmp(acos(1L*I), (1.5707963267948966-0.88137358701954305*I)))
     print("error %d\n", __LINE__);
-if (acos(t47_sc) != 3.1415926535897931)
+if (!t47_cmp(acos(t47_sc), 3.1415926535897931))
     print("error %d\n", __LINE__);
-if (acos(t47_uc) != 0)		print("error %d\n", __LINE__);
-if (acos(t47_sf) != 1.318116071652818)
+if (!t47_cmp(acos(t47_uc), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(t47_sf), 1.318116071652818))
     print("error %d\n", __LINE__);
-if (acos(t47_df) != 1.4454684956268313)
+if (!t47_cmp(acos(t47_df), 1.4454684956268313))
     print("error %d\n", __LINE__);
-if (acos(t47_w) != 0)		print("error %d\n", __LINE__);
-if (acos(t47_f) != 0)		print("error %d\n", __LINE__);
-if (acos(t47_x) != 1.0471975511965979)
+if (!t47_cmp(acos(t47_w), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(t47_f), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(t47_x), 1.0471975511965979))
     print("error %d\n", __LINE__);
-if (acos(t47_r) != 0)		print("error %d\n", __LINE__);
-if (acos(t47_cc) != (1.5707963267948966-0.88137358701954305*I))
+if (!t47_cmp(acos(t47_r), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acos(t47_cc), (1.5707963267948966-0.88137358701954305*I)))
     print("error %d\n", __LINE__);
-if (atan(1) != 0.78539816339744828)
+if (!t47_cmp(atan(1), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(1.0) != 0.78539816339744828)
+if (!t47_cmp(atan(1.0), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(1/2) != 0.46364760900080609)
+if (!t47_cmp(atan(1/2), 0.46364760900080609))
     print("error %d\n", __LINE__);
-if (atan(0x800000000000000000000000000000000) != 1.5707963267948966)
+if (!t47_cmp(atan(0x800000000000000000000000000000000), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (atan(0x800000000000000000000000000000000/5) != 1.5707963267948966)
+if (!t47_cmp(atan(0x800000000000000000000000000000000/5), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (atan(1.0L) != 0.78539816339744828)
+if (!t47_cmp(atan(1.0L), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(1.0*I) != complex(0, inf))
+if (!t47_cmp(atan(1.0*I), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (atan(I) != complex(0, inf))
+if (!t47_cmp(atan(I), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (atan(t47_sc) != -0.78539816339744828)
+if (!t47_cmp(atan(t47_sc), -0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(t47_uc) != 0.78539816339744828)
+if (!t47_cmp(atan(t47_uc), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(t47_ss) != -1.1071487177940904)
+if (!t47_cmp(atan(t47_ss), -1.1071487177940904))
     print("error %d\n", __LINE__);
-if (atan(t47_us) != 1.1071487177940904)
+if (!t47_cmp(atan(t47_us), 1.1071487177940904))
     print("error %d\n", __LINE__);
-if (atan(t47_si) != -1.3258176636680326)
+if (!t47_cmp(atan(t47_si), -1.3258176636680326))
     print("error %d\n", __LINE__);
-if (atan(t47_ui) != 1.3258176636680326)
+if (!t47_cmp(atan(t47_ui), 1.3258176636680326))
     print("error %d\n", __LINE__);
-if (atan(t47_sl) != -1.4464413322481351)
+if (!t47_cmp(atan(t47_sl), -1.4464413322481351))
     print("error %d\n", __LINE__);
-if (atan(t47_ul) != 1.4464413322481351)
+if (!t47_cmp(atan(t47_ul), 1.4464413322481351))
     print("error %d\n", __LINE__);
-if (atan(t47_sf) != 0.24497866312686414)
+if (!t47_cmp(atan(t47_sf), 0.24497866312686414))
     print("error %d\n", __LINE__);
-if (atan(t47_df) != 0.12435499454676144)
+if (!t47_cmp(atan(t47_df), 0.12435499454676144))
     print("error %d\n", __LINE__);
-if (atan(t47_w) != 0.78539816339744828)
+if (!t47_cmp(atan(t47_w), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(t47_f) != 0.78539816339744828)
+if (!t47_cmp(atan(t47_f), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(t47_x) != 0.46364760900080609)
+if (!t47_cmp(atan(t47_x), 0.46364760900080609))
     print("error %d\n", __LINE__);
-if (atan(t47_z) != 1.5707963267948966)
+if (!t47_cmp(atan(t47_z), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (atan(t47_q) != 1.5707963267948966)
+if (!t47_cmp(atan(t47_q), 1.5707963267948966))
     print("error %d\n", __LINE__);
-if (atan(t47_r) != 0.78539816339744828)
+if (!t47_cmp(atan(t47_r), 0.78539816339744828))
     print("error %d\n", __LINE__);
-if (atan(t47_dd) != complex(0, inf))
+if (!t47_cmp(atan(t47_dd), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (atan(t47_qq) != complex(0, inf))
+if (!t47_cmp(atan(t47_qq), complex(0, inf)))
     print("error %d\n", __LINE__);
-if (sinh(1) != 1.1752011936438014)
+if (!t47_cmp(sinh(1), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(1.0) != 1.1752011936438014)
+if (!t47_cmp(sinh(1.0), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(1/2) != 0.52109530549374738)
+if (!t47_cmp(sinh(1/2), 0.52109530549374738))
     print("error %d\n", __LINE__);
-if (sinh(0x800000000000000000000000000000000) != inf)
+if (!t47_cmp(sinh(0x800000000000000000000000000000000), inf))
     print("error %d\n", __LINE__);
-if (sinh(0x800000000000000000000000000000000/5) != inf)
+if (!t47_cmp(sinh(0x800000000000000000000000000000000/5), inf))
     print("error %d\n", __LINE__);
-if (sinh(1.0L) != 1.1752011936438014)
+if (!t47_cmp(sinh(1.0L), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(1.0*I) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(1.0*I), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (sinh(I) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(I), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (sinh(1L*I) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(1L*I), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (sinh(t47_sc) != -1.1752011936438014)
+if (!t47_cmp(sinh(t47_sc), -1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(t47_uc) != 1.1752011936438014)
+if (!t47_cmp(sinh(t47_uc), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(t47_sl) != -1490.4788257895502)
+if (!t47_cmp(sinh(t47_sl), -1490.4788257895502))
     print("error %d\n", __LINE__);
-if (sinh(t47_ul) != 1490.4788257895502)
+if (!t47_cmp(sinh(t47_ul), 1490.4788257895502))
     print("error %d\n", __LINE__);
-if (sinh(t47_sf) != 0.25261231680816831)
+if (!t47_cmp(sinh(t47_sf), 0.25261231680816831))
     print("error %d\n", __LINE__);
-if (sinh(t47_df) != 0.12532577524111546)
+if (!t47_cmp(sinh(t47_df), 0.12532577524111546))
     print("error %d\n", __LINE__);
-if (sinh(t47_w) != 1.1752011936438014)
+if (!t47_cmp(sinh(t47_w), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(t47_f) != 1.1752011936438014)
+if (!t47_cmp(sinh(t47_f), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(t47_x) != 0.52109530549374738)
+if (!t47_cmp(sinh(t47_x), 0.52109530549374738))
     print("error %d\n", __LINE__);
-if (sinh(t47_z) != inf)
+if (!t47_cmp(sinh(t47_z), inf))
     print("error %d\n", __LINE__);
-if (sinh(t47_q) != inf)
+if (!t47_cmp(sinh(t47_q), inf))
     print("error %d\n", __LINE__);
-if (sinh(t47_r) != 1.1752011936438014)
+if (!t47_cmp(sinh(t47_r), 1.1752011936438014))
     print("error %d\n", __LINE__);
-if (sinh(t47_dd) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(t47_dd), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (sinh(t47_qq) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(t47_qq), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (sinh(t47_cc) != 0.8414709848078965*I)
+if (!t47_cmp(sinh(t47_cc), 0.8414709848078965*I))
     print("error %d\n", __LINE__);
-if (cosh(1) != 1.5430806348152437)
+if (!t47_cmp(cosh(1), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(1.0) != 1.5430806348152437)
+if (!t47_cmp(cosh(1.0), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(1/2) != 1.1276259652063807)
+if (!t47_cmp(cosh(1/2), 1.1276259652063807))
     print("error %d\n", __LINE__);
-if (cosh(0x800000000000000000000000000000000) != inf)
+if (!t47_cmp(cosh(0x800000000000000000000000000000000), inf))
     print("error %d\n", __LINE__);
-if (cosh(0x800000000000000000000000000000000/5) != inf)
+if (!t47_cmp(cosh(0x800000000000000000000000000000000/5), inf))
     print("error %d\n", __LINE__);
-if (cosh(1.0L) != 1.5430806348152437)
+if (!t47_cmp(cosh(1.0L), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(1.0*I) != 0.54030230586813977)
+if (!t47_cmp(cosh(1.0*I), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cosh(I) != 0.54030230586813977)
+if (!t47_cmp(cosh(I), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cosh(1L*I) != 0.54030230586813977)
+if (!t47_cmp(cosh(1L*I), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cosh(t47_sc) != 1.5430806348152437)
+if (!t47_cmp(cosh(t47_sc), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(t47_uc) != 1.5430806348152437)
+if (!t47_cmp(cosh(t47_uc), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(t47_ss) != 3.7621956910836314)
+if (!t47_cmp(cosh(t47_ss), 3.7621956910836314))
     print("error %d\n", __LINE__);
-if (cosh(t47_us) != 3.7621956910836314)
+if (!t47_cmp(cosh(t47_us), 3.7621956910836314))
     print("error %d\n", __LINE__);
-if (cosh(t47_si) != 27.308232836016487)
+if (!t47_cmp(cosh(t47_si), 27.308232836016487))
     print("error %d\n", __LINE__);
-if (cosh(t47_ui) != 27.308232836016487)
+if (!t47_cmp(cosh(t47_ui), 27.308232836016487))
     print("error %d\n", __LINE__);
-if (cosh(t47_sl) != 1490.4791612521781)
+if (!t47_cmp(cosh(t47_sl), 1490.4791612521781))
     print("error %d\n", __LINE__);
-if (cosh(t47_ul) != 1490.4791612521781)
+if (!t47_cmp(cosh(t47_ul), 1490.4791612521781))
     print("error %d\n", __LINE__);
-if (cosh(t47_sf) != 1.0314130998795732)
+if (!t47_cmp(cosh(t47_sf), 1.0314130998795732))
     print("error %d\n", __LINE__);
-if (cosh(t47_df) != 1.0078226778257109)
+if (!t47_cmp(cosh(t47_df), 1.0078226778257109))
     print("error %d\n", __LINE__);
-if (cosh(t47_w) != 1.5430806348152437)
+if (!t47_cmp(cosh(t47_w), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(t47_f) != 1.5430806348152437)
+if (!t47_cmp(cosh(t47_f), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(t47_x) != 1.1276259652063807)
+if (!t47_cmp(cosh(t47_x), 1.1276259652063807))
     print("error %d\n", __LINE__);
-if (cosh(t47_z) != inf)
+if (!t47_cmp(cosh(t47_z), inf))
     print("error %d\n", __LINE__);
-if (cosh(t47_q) != inf)
+if (!t47_cmp(cosh(t47_q), inf))
     print("error %d\n", __LINE__);
-if (cosh(t47_r) != 1.5430806348152437)
+if (!t47_cmp(cosh(t47_r), 1.5430806348152437))
     print("error %d\n", __LINE__);
-if (cosh(t47_dd) != 0.54030230586813977)
+if (!t47_cmp(cosh(t47_dd), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cosh(t47_qq) != 0.54030230586813977)
+if (!t47_cmp(cosh(t47_qq), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (cosh(t47_cc) != 0.54030230586813977)
+if (!t47_cmp(cosh(t47_cc), 0.54030230586813977))
     print("error %d\n", __LINE__);
-if (tanh(1) != 0.76159415595576485)
+if (!t47_cmp(tanh(1), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(1.0) != 0.76159415595576485)
+if (!t47_cmp(tanh(1.0), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(1/2) != 0.46211715726000974)
+if (!t47_cmp(tanh(1/2), 0.46211715726000974))
     print("error %d\n", __LINE__);
-if (tanh(0x800000000000000000000000000000000) != 1.0)
+if (!t47_cmp(tanh(0x800000000000000000000000000000000), 1.0))
     print("error %d\n", __LINE__);
-if (tanh(0x800000000000000000000000000000000/5) != 1.0)
+if (!t47_cmp(tanh(0x800000000000000000000000000000000/5), 1.0))
     print("error %d\n", __LINE__);
-if (tanh(1.0L) != 0.76159415595576485)
+if (!t47_cmp(tanh(1.0L), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(1.0*I) != 1.5574077246549021*I)
+if (!t47_cmp(tanh(1.0*I), 1.5574077246549021*I))
     print("error %d\n", __LINE__);
-if (tanh(I) != 1.5574077246549021*I)
+if (!t47_cmp(tanh(I), 1.5574077246549021*I))
     print("error %d\n", __LINE__);
-if (tanh(1L*I) != 1.5574077246549023*I)
+if (!t47_cmp(tanh(1L*I), 1.5574077246549023*I))
     print("error %d\n", __LINE__);
-if (tanh(t47_sc) != -0.76159415595576485)
+if (!t47_cmp(tanh(t47_sc), -0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(t47_uc) != 0.76159415595576485)
+if (!t47_cmp(tanh(t47_uc), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(t47_ss) != -0.9640275800758169)
+if (!t47_cmp(tanh(t47_ss), -0.9640275800758169))
     print("error %d\n", __LINE__);
-if (tanh(t47_us) != 0.9640275800758169)
+if (!t47_cmp(tanh(t47_us), 0.9640275800758169))
     print("error %d\n", __LINE__);
-if (tanh(t47_si) != -0.99932929973906703)
+if (!t47_cmp(tanh(t47_si), -0.99932929973906703))
     print("error %d\n", __LINE__);
-if (tanh(t47_ui) != 0.99932929973906703)
+if (!t47_cmp(tanh(t47_ui), 0.99932929973906703))
     print("error %d\n", __LINE__);
-if (tanh(t47_sl) != -0.99999977492967584)
+if (!t47_cmp(tanh(t47_sl), -0.99999977492967584))
     print("error %d\n", __LINE__);
-if (tanh(t47_ul) != 0.99999977492967584)
+if (!t47_cmp(tanh(t47_ul), 0.99999977492967584))
     print("error %d\n", __LINE__);
-if (tanh(t47_sf) != 0.24491866240370913)
+if (!t47_cmp(tanh(t47_sf), 0.24491866240370913))
     print("error %d\n", __LINE__);
-if (tanh(t47_w) != 0.76159415595576485)
+if (!t47_cmp(tanh(t47_w), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(t47_f) != 0.76159415595576485)
+if (!t47_cmp(tanh(t47_f), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(t47_x) != 0.46211715726000974)
+if (!t47_cmp(tanh(t47_x), 0.46211715726000974))
     print("error %d\n", __LINE__);
-if (tanh(t47_z) != 1.0)
+if (!t47_cmp(tanh(t47_z), 1.0))
     print("error %d\n", __LINE__);
-if (tanh(t47_q) != 1.0)
+if (!t47_cmp(tanh(t47_q), 1.0))
     print("error %d\n", __LINE__);
-if (tanh(t47_r) != 0.76159415595576485)
+if (!t47_cmp(tanh(t47_r), 0.76159415595576485))
     print("error %d\n", __LINE__);
-if (tanh(t47_dd) != 1.5574077246549021*I)
+if (!t47_cmp(tanh(t47_dd), 1.5574077246549021*I))
     print("error %d\n", __LINE__);
-if (tanh(t47_qq) != 1.5574077246549021*I)
+if (!t47_cmp(tanh(t47_qq), 1.5574077246549021*I))
     print("error %d\n", __LINE__);
-if (tanh(t47_cc) != 1.5574077246549023*I)
+if (!t47_cmp(tanh(t47_cc), 1.5574077246549023*I))
     print("error %d\n", __LINE__);
-if (asinh(1) != 0.88137358701954305)
+if (!t47_cmp(asinh(1), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(1.0) != 0.88137358701954305)
+if (!t47_cmp(asinh(1.0), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(1/2) != 0.48121182505960347)
+if (!t47_cmp(asinh(1/2), 0.48121182505960347))
     print("error %d\n", __LINE__);
-if (asinh(0x800000000000000000000000000000000) != 91.495427833912785)
+if (!t47_cmp(asinh(0x800000000000000000000000000000000), 91.495427833912785))
     print("error %d\n", __LINE__);
-if (asinh(0x800000000000000000000000000000000/5) != 89.885989921478682)
+if (!t47_cmp(asinh(0x800000000000000000000000000000000/5), 89.885989921478682))
     print("error %d\n", __LINE__);
-if (asinh(1.0L) != 0.88137358701954305)
+if (!t47_cmp(asinh(1.0L), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(1.0*I) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(1.0*I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (asinh(I) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (asinh(1L*I) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(1L*I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (asinh(t47_sc) != -0.88137358701954305)
+if (!t47_cmp(asinh(t47_sc), -0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(t47_uc) != 0.88137358701954305)
+if (!t47_cmp(asinh(t47_uc), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(t47_ss) != -1.4436354751788103)
+if (!t47_cmp(asinh(t47_ss), -1.4436354751788103))
     print("error %d\n", __LINE__);
-if (asinh(t47_us) != 1.4436354751788103)
+if (!t47_cmp(asinh(t47_us), 1.4436354751788103))
     print("error %d\n", __LINE__);
-if (asinh(t47_si) != -2.0947125472611012)
+if (!t47_cmp(asinh(t47_si), -2.0947125472611012))
     print("error %d\n", __LINE__);
-if (asinh(t47_ui) != 2.0947125472611012)
+if (!t47_cmp(asinh(t47_ui), 2.0947125472611012))
     print("error %d\n", __LINE__);
-if (asinh(t47_sl) != -2.7764722807237177)
+if (!t47_cmp(asinh(t47_sl), -2.7764722807237177))
     print("error %d\n", __LINE__);
-if (asinh(t47_ul) != 2.7764722807237177)
+if (!t47_cmp(asinh(t47_ul), 2.7764722807237177))
     print("error %d\n", __LINE__);
-if (asinh(t47_sf) != 0.24746646154726346)
+if (!t47_cmp(asinh(t47_sf), 0.24746646154726346))
     print("error %d\n", __LINE__);
-if (asinh(t47_w) != 0.88137358701954305)
+if (!t47_cmp(asinh(t47_w), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(t47_f) != 0.88137358701954305)
+if (!t47_cmp(asinh(t47_f), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(t47_x) != 0.48121182505960347)
+if (!t47_cmp(asinh(t47_x), 0.48121182505960347))
     print("error %d\n", __LINE__);
-if (asinh(t47_z) != 91.495427833912785)
+if (!t47_cmp(asinh(t47_z), 91.495427833912785))
     print("error %d\n", __LINE__);
-if (asinh(t47_q) != 89.885989921478682)
+if (!t47_cmp(asinh(t47_q), 89.885989921478682))
     print("error %d\n", __LINE__);
-if (asinh(t47_r) != 0.88137358701954305)
+if (!t47_cmp(asinh(t47_r), 0.88137358701954305))
     print("error %d\n", __LINE__);
-if (asinh(t47_dd) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(t47_dd), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (asinh(t47_qq) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(t47_qq), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (asinh(t47_cc) != 1.5707963267948966*I)
+if (!t47_cmp(asinh(t47_cc), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (acosh(1) != 0)		print("error %d\n", __LINE__);
-if (acosh(1.0) != 0)		print("error %d\n", __LINE__);
-if (acosh(0x800000000000000000000000000000000) != 91.495427833912785)
+if (!t47_cmp(acosh(1), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(1.0), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(0x800000000000000000000000000000000), 91.495427833912785))
     print("error %d\n", __LINE__);
-if (acosh(0x800000000000000000000000000000000/5) != 89.885989921478682)
+if (!t47_cmp(acosh(0x800000000000000000000000000000000/5), 89.885989921478682))
     print("error %d\n", __LINE__);
-if (acosh(1.0L) != 0)
+if (!t47_cmp(acosh(1.0L), 0))
     print("error %d\n", __LINE__);
-if (acosh(1.0*I) != (0.88137358701954294+1.5707963267948966*I))
+if (!t47_cmp(acosh(1.0*I), (0.88137358701954294+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (acosh(I) != (0.88137358701954294+1.5707963267948966*I))
+if (!t47_cmp(acosh(I), (0.88137358701954294+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (acosh(1L*I) != (0.88137358701954305+1.5707963267948966*I))
+if (!t47_cmp(acosh(1L*I), (0.88137358701954305+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (acosh(t47_sc) != 3.1415926535897931*I)
+if (!t47_cmp(acosh(t47_sc), 3.1415926535897931*I))
     print("error %d\n", __LINE__);
-if (acosh(t47_uc) != 0)		print("error %d\n", __LINE__);
-if (acosh(t47_ss) != (1.3169578969248166+3.1415926535897931*I))
+if (!t47_cmp(acosh(t47_uc), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(t47_ss), (1.3169578969248166+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (acosh(t47_sl) != (2.7686593833135738+3.1415926535897931*I))
+if (!t47_cmp(acosh(t47_sl), (2.7686593833135738+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (acosh(t47_ul) != 2.7686593833135738)
+if (!t47_cmp(acosh(t47_ul), 2.7686593833135738))
     print("error %d\n", __LINE__);
-if (acosh(t47_w) != 0)		print("error %d\n", __LINE__);
-if (acosh(t47_f) != 0)		print("error %d\n", __LINE__);
-if (acosh(t47_z) != 91.495427833912785)
+if (!t47_cmp(acosh(t47_w), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(t47_f), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(t47_z), 91.495427833912785))
     print("error %d\n", __LINE__);
-if (acosh(t47_q) != 89.885989921478682)
+if (!t47_cmp(acosh(t47_q), 89.885989921478682))
     print("error %d\n", __LINE__);
-if (acosh(t47_r) != 0)		print("error %d\n", __LINE__);
-if (acosh(t47_dd) != (0.88137358701954294+1.5707963267948966*I))
+if (!t47_cmp(acosh(t47_r), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(acosh(t47_dd), (0.88137358701954294+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (acosh(t47_qq) != (0.88137358701954294+1.5707963267948966*I))
+if (!t47_cmp(acosh(t47_qq), (0.88137358701954294+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (acosh(t47_cc) != (0.88137358701954305+1.5707963267948966*I))
+if (!t47_cmp(acosh(t47_cc), (0.88137358701954305+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (atanh(1) != inf)		print("error %d\n", __LINE__);
-if (atanh(1.0) != inf)		print("error %d\n", __LINE__);
-if (atanh(1L*I) != 0.78539816339744828*I)
+if (!t47_cmp(atanh(1), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(1.0), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(1L*I), 0.78539816339744828*I))
     print("error %d\n", __LINE__);
-if (atanh(t47_sc) != -inf)	print("error %d\n", __LINE__);
-if (atanh(t47_uc) != inf)	print("error %d\n", __LINE__);
-if (atanh(t47_ss) != (-0.54930614433405489+1.5707963267948966*I))
+if (!t47_cmp(atanh(t47_sc), -inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(t47_uc), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(t47_ss), (-0.54930614433405489+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (atanh(t47_us) != (0.54930614433405489+1.5707963267948966*I))
+if (!t47_cmp(atanh(t47_us), (0.54930614433405489+1.5707963267948966*I)))
     print("error %d\n", __LINE__);
-if (atanh(t47_sf) != 0.25541281188299536)
+if (!t47_cmp(atanh(t47_sf), 0.25541281188299536))
     print("error %d\n", __LINE__);
-if (atanh(t47_df) != 0.12565721414045303)
+if (!t47_cmp(atanh(t47_df), 0.12565721414045303))
     print("error %d\n", __LINE__);
-if (atanh(t47_w) != inf)	print("error %d\n", __LINE__);
-if (atanh(t47_f) != inf)	print("error %d\n", __LINE__);
-if (atanh(t47_cc) != 0.78539816339744828*I)
+if (!t47_cmp(atanh(t47_w), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(t47_f), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(atanh(t47_cc), 0.78539816339744828*I))
     print("error %d\n", __LINE__);
-if (proj(1) != 1)		print("error %d\n", __LINE__);
-if (proj(1.0) != 1.0)		print("error %d\n", __LINE__);
-if (proj(1/2) != 1/2)		print("error %d\n", __LINE__);
-if (proj(0x800000000000000000000000000000000) != 0x800000000000000000000000000000000)
+if (!t47_cmp(proj(1), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(1.0), 1.0))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(1/2), 1/2))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(0x800000000000000000000000000000000), 0x800000000000000000000000000000000))
     print("error %d\n", __LINE__);
-if (proj(0x800000000000000000000000000000000/5) != 0x800000000000000000000000000000000/5)
+if (!t47_cmp(proj(0x800000000000000000000000000000000/5), 0x800000000000000000000000000000000/5))
     print("error %d\n", __LINE__);
-if (proj(1.0L) != 1L)		print("error %d\n", __LINE__);
-if (proj(1.0*I) != I)		print("error %d\n", __LINE__);
-if (proj(I) != I)		print("error %d\n", __LINE__);
-if (proj(1L*I) != I)		print("error %d\n", __LINE__);
-if (proj(inf) != inf)		print("error %d\n", __LINE__);
-if (proj(-inf) != inf)		print("error %d\n", __LINE__);
-if (proj(inf*1L) != inf)	print("error %d\n", __LINE__);
-if (proj(-inf*1L) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_sc) != -1)		print("error %d\n", __LINE__);
-if (proj(t47_uc) != 1)		print("error %d\n", __LINE__);
-if (proj(t47_ss) != -2)		print("error %d\n", __LINE__);
-if (proj(t47_us) != 2)		print("error %d\n", __LINE__);
-if (proj(t47_si) != -4)		print("error %d\n", __LINE__);
-if (proj(t47_ui) != 4)		print("error %d\n", __LINE__);
-if (proj(t47_sl) != -8)		print("error %d\n", __LINE__);
-if (proj(t47_ul) != 8)		print("error %d\n", __LINE__);
-if (proj(t47_sf) != 1/4)	print("error %d\n", __LINE__);
-if (proj(t47_df) != 1/8)	print("error %d\n", __LINE__);
-if (proj(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_sf_ninf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_df_ninf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_w) != 1)		print("error %d\n", __LINE__);
-if (proj(t47_f) != 1)		print("error %d\n", __LINE__);
-if (proj(t47_x) != 1/2)		print("error %d\n", __LINE__);
-if (proj(t47_z) != 0x800000000000000000000000000000000)
+if (!t47_cmp(proj(1.0L), 1L))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(1.0*I), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(I), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(1L*I), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(-inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(inf*1L), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(-inf*1L), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_sc), -1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_uc), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_ss), -2))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_us), 2))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_si), -4))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_ui), 4))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_sl), -8))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_ul), 8))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_sf), 1/4))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_df), 1/8))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_sf_ninf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_df_ninf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_w), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_f), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_x), 1/2))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_z), 0x800000000000000000000000000000000))
     print("error %d\n", __LINE__);
-if (proj(t47_q) != 0x800000000000000000000000000000000/5)
+if (!t47_cmp(proj(t47_q), 0x800000000000000000000000000000000/5))
     print("error %d\n", __LINE__);
-if (proj(t47_r) != 1)		print("error %d\n", __LINE__);
-if (proj(t47_dd) != I)		print("error %d\n", __LINE__);
-if (proj(t47_qq) != I)		print("error %d\n", __LINE__);
-if (proj(t47_cc) != I)		print("error %d\n", __LINE__);
-if (proj(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_ninf) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (proj(t47_ninfL) != inf)	print("error %d\n", __LINE__);
-if (exp(1) != 2.7182818284590451)
+if (!t47_cmp(proj(t47_r), 1))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_dd), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_qq), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_cc), I))		print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_ninf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(proj(t47_ninfL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(1), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(1.0) != 2.7182818284590451)
+if (!t47_cmp(exp(1.0), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(1/2) != 1.6487212707001282)
+if (!t47_cmp(exp(1/2), 1.6487212707001282))
     print("error %d\n", __LINE__);
-if (exp(0x800000000000000000000000000000000) != inf)
+if (!t47_cmp(exp(0x800000000000000000000000000000000), inf))
     print("error %d\n", __LINE__);
-if (exp(0x800000000000000000000000000000000/5) != inf)
+if (!t47_cmp(exp(0x800000000000000000000000000000000/5), inf))
     print("error %d\n", __LINE__);
-if (exp(1.0L) != 2.7182818284590451)
+if (!t47_cmp(exp(1.0L), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(1.0*I) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(1.0*I), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(I) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(I), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(1L*I) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(1L*I), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(inf) != inf)		print("error %d\n", __LINE__);
-if (exp(-inf) != 0.0)		print("error %d\n", __LINE__);
-if (exp(inf*1L) != inf)		print("error %d\n", __LINE__);
-if (exp(-inf*1L) != 0)		print("error %d\n", __LINE__);
-if (exp(t47_sc) != 0.36787944117144233)
+if (!t47_cmp(exp(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(-inf), 0.0))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(inf*1L), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(-inf*1L), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_sc), 0.36787944117144233))
     print("error %d\n", __LINE__);
-if (exp(t47_uc) != 2.7182818284590451)
+if (!t47_cmp(exp(t47_uc), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(t47_ss) != 0.1353352832366127)
+if (!t47_cmp(exp(t47_ss), 0.1353352832366127))
     print("error %d\n", __LINE__);
-if (exp(t47_us) != 7.3890560989306504)
+if (!t47_cmp(exp(t47_us), 7.3890560989306504))
     print("error %d\n", __LINE__);
-if (exp(t47_si) != 0.018315638888734179)
+if (!t47_cmp(exp(t47_si), 0.018315638888734179))
     print("error %d\n", __LINE__);
-if (exp(t47_ui) != 54.598150033144236)
+if (!t47_cmp(exp(t47_ui), 54.598150033144236))
     print("error %d\n", __LINE__);
-if (exp(t47_sl) != 0.00033546262790251185)
+if (!t47_cmp(exp(t47_sl), 0.00033546262790251185))
     print("error %d\n", __LINE__);
-if (exp(t47_ul) != 2980.9579870417283)
+if (!t47_cmp(exp(t47_ul), 2980.9579870417283))
     print("error %d\n", __LINE__);
-if (exp(t47_sf) != 1.2840254166877414)
+if (!t47_cmp(exp(t47_sf), 1.2840254166877414))
     print("error %d\n", __LINE__);
-if (exp(t47_df) != 1.1331484530668263)
+if (!t47_cmp(exp(t47_df), 1.1331484530668263))
     print("error %d\n", __LINE__);
-if (exp(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (exp(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (exp(t47_sf_ninf) != 0)	print("error %d\n", __LINE__);
-if (exp(t47_df_ninf) != 0)	print("error %d\n", __LINE__);
-if (exp(t47_w) != 2.7182818284590451)
+if (!t47_cmp(exp(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_sf_ninf), 0))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_df_ninf), 0))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_w), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(t47_f) != 2.7182818284590451)
+if (!t47_cmp(exp(t47_f), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(t47_x) != 1.6487212707001282)
+if (!t47_cmp(exp(t47_x), 1.6487212707001282))
     print("error %d\n", __LINE__);
-if (exp(t47_z) != inf)		print("error %d\n", __LINE__);
-if (exp(t47_q) != inf)		print("error %d\n", __LINE__);
-if (exp(t47_r) != 2.7182818284590451)
+if (!t47_cmp(exp(t47_z), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_q), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_r), 2.7182818284590451))
     print("error %d\n", __LINE__);
-if (exp(t47_dd) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(t47_dd), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(t47_qq) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(t47_qq), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(t47_cc) != (0.54030230586813977+0.8414709848078965*I))
+if (!t47_cmp(exp(t47_cc), (0.54030230586813977+0.8414709848078965*I)))
     print("error %d\n", __LINE__);
-if (exp(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (exp(t47_ninf) != 0)		print("error %d\n", __LINE__);
-if (exp(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (exp(t47_ninfL) != 0)	print("error %d\n", __LINE__);
-if (log(1) != 0)		print("error %d\n", __LINE__);
-if (log(1.0) != 0)		print("error %d\n", __LINE__);
-if (log(1/2) != -0.69314718055994529)
+if (!t47_cmp(exp(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_ninf), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(exp(t47_ninfL), 0))	print("error %d\n", __LINE__);
+if (!t47_cmp(log(1), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(1.0), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(1/2), -0.69314718055994529))
     print("error %d\n", __LINE__);
-if (log(0x800000000000000000000000000000000) != 90.802280653352838)
+if (!t47_cmp(log(0x800000000000000000000000000000000), 90.802280653352838))
     print("error %d\n", __LINE__);
-if (log(0x800000000000000000000000000000000/5) != 89.192842740918735)
+if (!t47_cmp(log(0x800000000000000000000000000000000/5), 89.192842740918735))
     print("error %d\n", __LINE__);
-if (log(1.0L) != 0)		print("error %d\n", __LINE__);
-if (log(1.0*I) != 1.5707963267948966*I)
+if (!t47_cmp(log(1.0L), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(1.0*I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(I) != 1.5707963267948966*I)
+if (!t47_cmp(log(I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(1L*I) != 1.5707963267948966*I)
+if (!t47_cmp(log(1L*I), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(inf) != inf)		print("error %d\n", __LINE__);
-if (log(-inf) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(-inf), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(inf*1L) != inf)		print("error %d\n", __LINE__);
-if (log(-inf*1L) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(inf*1L), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(-inf*1L), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_sc) != 3.1415926535897931*I)
+if (!t47_cmp(log(t47_sc), 3.1415926535897931*I))
     print("error %d\n", __LINE__);
-if (log(t47_uc) != 0)		print("error %d\n", __LINE__);
-if (log(t47_ss) != (0.69314718055994529+3.1415926535897931*I))
+if (!t47_cmp(log(t47_uc), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_ss), (0.69314718055994529+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_us) != 0.69314718055994529)
+if (!t47_cmp(log(t47_us), 0.69314718055994529))
     print("error %d\n", __LINE__);
-if (log(t47_si) != (1.3862943611198906+3.1415926535897931*I))
+if (!t47_cmp(log(t47_si), (1.3862943611198906+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_ui) != 1.3862943611198906)
+if (!t47_cmp(log(t47_ui), 1.3862943611198906))
     print("error %d\n", __LINE__);
-if (log(t47_sl) != (2.0794415416798357+3.1415926535897931*I))
+if (!t47_cmp(log(t47_sl), (2.0794415416798357+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_ul) != 2.0794415416798357)
+if (!t47_cmp(log(t47_ul), 2.0794415416798357))
     print("error %d\n", __LINE__);
-if (log(t47_sf) != -1.3862943611198906)
+if (!t47_cmp(log(t47_sf), -1.3862943611198906))
     print("error %d\n", __LINE__);
-if (log(t47_df) != -2.0794415416798357)
+if (!t47_cmp(log(t47_df), -2.0794415416798357))
     print("error %d\n", __LINE__);
-if (log(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (log(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (log(t47_sf_ninf) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_sf_ninf), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_df_ninf) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(t47_df_ninf), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_w) != 0)		print("error %d\n", __LINE__);
-if (log(t47_f) != 0)		print("error %d\n", __LINE__);
-if (log(t47_x) != -0.69314718055994529)
+if (!t47_cmp(log(t47_w), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_f), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_x), -0.69314718055994529))
     print("error %d\n", __LINE__);
-if (log(t47_z) != 90.802280653352838)
+if (!t47_cmp(log(t47_z), 90.802280653352838))
     print("error %d\n", __LINE__);
-if (log(t47_q) != 89.192842740918735)
+if (!t47_cmp(log(t47_q), 89.192842740918735))
     print("error %d\n", __LINE__);
-if (log(t47_r) != 0)		print("error %d\n", __LINE__);
-if (log(t47_dd) != 1.5707963267948966*I)
+if (!t47_cmp(log(t47_r), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_dd), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(t47_qq) != 1.5707963267948966*I)
+if (!t47_cmp(log(t47_qq), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(t47_cc) != 1.5707963267948966*I)
+if (!t47_cmp(log(t47_cc), 1.5707963267948966*I))
     print("error %d\n", __LINE__);
-if (log(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (log(t47_ninf) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_ninf), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (log(t47_ninfL) != (inf+3.1415926535897931*I))
+if (!t47_cmp(log(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log(t47_ninfL), (inf+3.1415926535897931*I)))
     print("error %d\n", __LINE__);
-if (log2(1) != 0)		print("error %d\n", __LINE__);
-if (log2(1.0) != 0)		print("error %d\n", __LINE__);
-if (log2(1/2) != -1)
+if (!t47_cmp(log2(1), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(1.0), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(1/2), -1))
     print("error %d\n", __LINE__);
-if (log2(0x800000000000000000000000000000000) != 131)
+if (!t47_cmp(log2(0x800000000000000000000000000000000), 131))
     print("error %d\n", __LINE__);
-if (log2(0x800000000000000000000000000000000/5) != 128.67807190511263)
+if (!t47_cmp(log2(0x800000000000000000000000000000000/5), 128.67807190511263))
     print("error %d\n", __LINE__);
-if (log2(1.0L) != 0)		print("error %d\n", __LINE__);
-if (log2(1.0*I) != 2.2661800709135966*I)
+if (!t47_cmp(log2(1.0L), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(1.0*I), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(I) != 2.2661800709135966*I)
+if (!t47_cmp(log2(I), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(1L*I) != 2.2661800709135966*I)
+if (!t47_cmp(log2(1L*I), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(inf) != inf)		print("error %d\n", __LINE__);
-if (log2(-inf) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(-inf), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(inf*1L) != inf)		print("error %d\n", __LINE__);
-if (log2(-inf*1L) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(inf*1L), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(-inf*1L), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_sc) != 4.5323601418271933*I)
+if (!t47_cmp(log2(t47_sc), 4.5323601418271933*I))
     print("error %d\n", __LINE__);
-if (log2(t47_uc) != 0)		print("error %d\n", __LINE__);
-if (log2(t47_ss) != (1.0+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_uc), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_ss), (1.0+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_us) != 1.0)
+if (!t47_cmp(log2(t47_us), 1.0))
     print("error %d\n", __LINE__);
-if (log2(t47_si) != (2.0+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_si), (2.0+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_ui) != 2.0)
+if (!t47_cmp(log2(t47_ui), 2.0))
     print("error %d\n", __LINE__);
-if (log2(t47_sl) != (3.0+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_sl), (3.0+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_ul) != 3.0)
+if (!t47_cmp(log2(t47_ul), 3.0))
     print("error %d\n", __LINE__);
-if (log2(t47_sf) != -2)		print("error %d\n", __LINE__);
-if (log2(t47_df) != -3)		print("error %d\n", __LINE__);
-if (log2(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (log2(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (log2(t47_sf_ninf) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_sf), -2))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_df), -3))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_sf_ninf), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_df_ninf) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_df_ninf), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_w) != 0)		print("error %d\n", __LINE__);
-if (log2(t47_f) != 0)		print("error %d\n", __LINE__);
-if (log2(t47_x) != -1)		print("error %d\n", __LINE__);
-if (log2(t47_z) != 131)		print("error %d\n", __LINE__);
-if (log2(t47_q) != 128.67807190511263)
+if (!t47_cmp(log2(t47_w), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_f), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_x), -1))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_z), 131))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_q), 128.67807190511263))
     print("error %d\n", __LINE__);
-if (log2(t47_r) != 0)		print("error %d\n", __LINE__);
-if (log2(t47_dd) != 2.2661800709135966*I)
+if (!t47_cmp(log2(t47_r), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_dd), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(t47_qq) != 2.2661800709135966*I)
+if (!t47_cmp(log2(t47_qq), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(t47_cc) != 2.2661800709135966*I)
+if (!t47_cmp(log2(t47_cc), 2.2661800709135966*I))
     print("error %d\n", __LINE__);
-if (log2(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (log2(t47_ninf) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_ninf), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log2(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (log2(t47_ninfL) != (inf+4.5323601418271933*I))
+if (!t47_cmp(log2(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log2(t47_ninfL), (inf+4.5323601418271933*I)))
     print("error %d\n", __LINE__);
-if (log10(1) != 0)		print("error %d\n", __LINE__);
-if (log10(1.0) != 0)		print("error %d\n", __LINE__);
-if (log10(1/2) != -0.3010299956639812)
+if (!t47_cmp(log10(1), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(1.0), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(1/2), -0.3010299956639812))
     print("error %d\n", __LINE__);
-if (log10(0x800000000000000000000000000000000) != 39.434929431981537)
+if (!t47_cmp(log10(0x800000000000000000000000000000000), 39.434929431981537))
     print("error %d\n", __LINE__);
-if (log10(0x800000000000000000000000000000000/5) != 38.735959427645518)
+if (!t47_cmp(log10(0x800000000000000000000000000000000/5), 38.735959427645518))
     print("error %d\n", __LINE__);
-if (log10(1.0L) != 0)		print("error %d\n", __LINE__);
-if (log10(1.0*I) != 0.6821881769209206*I)
+if (!t47_cmp(log10(1.0L), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(1.0*I), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(I) != 0.6821881769209206*I)
+if (!t47_cmp(log10(I), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(1L*I) != 0.6821881769209206*I)
+if (!t47_cmp(log10(1L*I), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(inf) != inf)		print("error %d\n", __LINE__);
-if (log10(-inf) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(inf), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(-inf), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(inf*1L) != inf)		print("error %d\n", __LINE__);
-if (log10(-inf*1L) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(inf*1L), inf))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(-inf*1L), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_sc) != 1.3643763538418412*I)
+if (!t47_cmp(log10(t47_sc), 1.3643763538418412*I))
     print("error %d\n", __LINE__);
-if (log10(t47_uc) != 0)		print("error %d\n", __LINE__);
-if (log10(t47_ss) != (0.3010299956639812+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_uc), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_ss), (0.3010299956639812+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_us) != 0.3010299956639812)
+if (!t47_cmp(log10(t47_us), 0.3010299956639812))
     print("error %d\n", __LINE__);
-if (log10(t47_si) != (0.6020599913279624+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_si), (0.6020599913279624+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_ui) != 0.6020599913279624)
+if (!t47_cmp(log10(t47_ui), 0.6020599913279624))
     print("error %d\n", __LINE__);
-if (log10(t47_sl) != (0.90308998699194354+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_sl), (0.90308998699194354+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_ul) != 0.90308998699194354)
+if (!t47_cmp(log10(t47_ul), 0.90308998699194354))
     print("error %d\n", __LINE__);
-if (log10(t47_sf) != -0.6020599913279624)
+if (!t47_cmp(log10(t47_sf), -0.6020599913279624))
     print("error %d\n", __LINE__);
-if (log10(t47_df) != -0.90308998699194354)
+if (!t47_cmp(log10(t47_df), -0.90308998699194354))
     print("error %d\n", __LINE__);
-if (log10(t47_sf_inf) != inf)	print("error %d\n", __LINE__);
-if (log10(t47_df_inf) != inf)	print("error %d\n", __LINE__);
-if (log10(t47_sf_ninf) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_sf_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_df_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_sf_ninf), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_df_ninf) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_df_ninf), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_w) != 0)		print("error %d\n", __LINE__);
-if (log10(t47_f) != 0)		print("error %d\n", __LINE__);
-if (log10(t47_x) != -0.3010299956639812)
+if (!t47_cmp(log10(t47_w), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_f), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_x), -0.3010299956639812))
     print("error %d\n", __LINE__);
-if (log10(t47_z) != 39.434929431981537)
+if (!t47_cmp(log10(t47_z), 39.434929431981537))
     print("error %d\n", __LINE__);
-if (log10(t47_q) != 38.735959427645518)
+if (!t47_cmp(log10(t47_q), 38.735959427645518))
     print("error %d\n", __LINE__);
-if (log10(t47_r) != 0)		print("error %d\n", __LINE__);
-if (log10(t47_dd) != 0.6821881769209206*I)
+if (!t47_cmp(log10(t47_r), 0))		print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_dd), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(t47_qq) != 0.6821881769209206*I)
+if (!t47_cmp(log10(t47_qq), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(t47_cc) != 0.6821881769209206*I)
+if (!t47_cmp(log10(t47_cc), 0.6821881769209206*I))
     print("error %d\n", __LINE__);
-if (log10(t47_inf) != inf)	print("error %d\n", __LINE__);
-if (log10(t47_ninf) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_inf), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_ninf), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
-if (log10(t47_infL) != inf)	print("error %d\n", __LINE__);
-if (log10(t47_ninfL) != (inf+1.3643763538418412*I))
+if (!t47_cmp(log10(t47_infL), inf))	print("error %d\n", __LINE__);
+if (!t47_cmp(log10(t47_ninfL), (inf+1.3643763538418412*I)))
     print("error %d\n", __LINE__);
 #define t47_bin(fn,li,lr)						\
-if (fn(li, 1) != fn(lr, t47_uc) && !nan_p(real(fn(li, 1.0L))))		print("error 1 %d\n", __LINE__);	\
-if (fn(li, -2) != fn(lr, t47_ss))		print("error 2 %d\n", __LINE__);	\
-if (fn(li, 2) != fn(lr, t47_us))		print("error 3 %d\n", __LINE__);	\
-if (fn(li, -4) != fn(lr, t47_si))		print("error 4 %d\n", __LINE__);	\
-if (fn(li, 4) != fn(lr, t47_ui))		print("error 5 %d\n", __LINE__);	\
-if (fn(li, -8) != fn(lr, t47_sl))		print("error 6 %d\n", __LINE__);	\
-if (fn(li, 8) != fn(lr, t47_ul))		print("error 7 %d\n", __LINE__);	\
-if (fn(li, 1/4.0) != fn(lr, t47_sf) && !nan_p(fn(li, 1/4.0)))		print("error 8 %d\n", __LINE__);	\
-if (fn(li, 1/8.0) != fn(lr, t47_df) && !nan_p(fn(li, 1/8.0)))		print("error 9 %d\n", __LINE__);	\
-if (fn(li, inf) != fn(lr, t47_sf_inf) && !nan_p(real(fn(li, inf))))	print("error 10 %d\n", __LINE__);	\
-if (fn(li, inf) != fn(lr, t47_df_inf) && !nan_p(real(fn(li, inf))))	print("error 11 %d\n", __LINE__);	\
-if (fn(li, -inf) != fn(lr, t47_sf_ninf) && !nan_p(real(fn(li, -inf))))	print("error 12 %d\n", __LINE__);	\
-if (fn(li, -inf) != fn(lr, t47_df_ninf) && !nan_p(real(fn(li, -inf))))	print("error 13 %d\n", __LINE__);	\
-if (fn(li, 1) != fn(lr, t47_w) && !nan_p(real(fn(li, 1))))		print("error 14 %d\n", __LINE__);	\
-if (fn(li, 1.0) != fn(lr, t47_f) && !nan_p(real(fn(li, 1.0))))		print("error 15 %d\n", __LINE__);	\
-if (fn(li, 1/2) != fn(lr, t47_x))		print("error 16 %d\n", __LINE__);	\
-if (fn(li, 0x800000000000000000000000000000000) != fn(lr, t47_z))	print("error 17 %d\n", __LINE__);	\
-if (fn(li, 0x800000000000000000000000000000000/5) != fn(lr, t47_q))	print("error 18 %d\n", __LINE__);	\
-if (fn(li, 1.0L) != fn(lr, t47_r) && !nan_p(real(fn(li, 1.0L))))	print("error 19 %d\n", __LINE__);	\
-if (fn(li, 1.0*I) != fn(lr, t47_dd) && !nan_p(real(fn(li, 1.0*I))))	print("error 20 %d\n", __LINE__);	\
-if (fn(li, I) != fn(lr, t47_qq) && !nan_p(real(fn(li, 1.0*I))))		print("error 21 %d\n", __LINE__);	\
-if (fn(li, 1L*I) != fn(lr, t47_cc) && !nan_p(real(fn(li, 1L*I))))	print("error 22 %d\n", __LINE__);	\
-if (fn(li, inf) != fn(lr, t47_inf) && !nan_p(real(fn(li, inf))))	print("error 23 %d\n", __LINE__);	\
-if (fn(li, -inf) != fn(lr, t47_ninf) && !nan_p(real(fn(li, -inf))))	print("error 24 %d\n", __LINE__);	\
-if (fn(li, inf*1L) != fn(lr, t47_infL) && !nan_p(real(fn(li, inf*1L))))	print("error 25 %d\n", __LINE__);	\
-if (fn(li, -inf*1L) != fn(lr, t47_ninfL) && !nan_p(real(fn(li, -inf*1L))))	print("error 26 %d\n", __LINE__)
+if (!t47_cmp(fn(li, 1), fn(lr, t47_uc)))	print("error 1 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -2), fn(lr, t47_ss)))	print("error 2 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 2), fn(lr, t47_us)))	print("error 3 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -4), fn(lr, t47_si)))	print("error 4 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 4), fn(lr, t47_ui)))	print("error 5 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -8), fn(lr, t47_sl)))	print("error 6 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 8), fn(lr, t47_ul)))	print("error 7 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1/4.0), fn(lr, t47_sf)))	print("error 8 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1/8.0), fn(lr, t47_df)))	print("error 9 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, inf), fn(lr, t47_sf_inf)))	print("error 10 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, inf), fn(lr, t47_df_inf)))	print("error 11 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -inf), fn(lr, t47_sf_ninf)))print("error 12 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -inf), fn(lr, t47_df_ninf)))print("error 13 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1), fn(lr, t47_w)))		print("error 14 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1.0), fn(lr, t47_f)))	print("error 15 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1/2), fn(lr, t47_x)))	print("error 16 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 0x800000000000000000000000000000000), fn(lr, t47_z)))\
+    print("error 17 %d\n", __LINE__);					\
+if (!t47_cmp(fn(li, 0x800000000000000000000000000000000/5), fn(lr, t47_q)))\
+    print("error 18 %d\n", __LINE__);					\
+if (!t47_cmp(fn(li, 1.0L), fn(lr, t47_r)))	print("error 19 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1.0*I), fn(lr, t47_dd)))	print("error 20 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, I), fn(lr, t47_qq)))	print("error 21 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, 1L*I), fn(lr, t47_cc)))	print("error 22 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, inf), fn(lr, t47_inf)))	print("error 23 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -inf), fn(lr, t47_ninf)))	print("error 24 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, inf*1L), fn(lr, t47_infL)))	print("error 25 %d\n", __LINE__);	\
+if (!t47_cmp(fn(li, -inf*1L), fn(lr, t47_ninfL)))			\
+    print("error 26 %d\n", __LINE__)
 t47_bin(atan2, -1, t47_sc);
 t47_bin(atan2, 1, t47_uc);
 t47_bin(atan2, -2, t47_ss);

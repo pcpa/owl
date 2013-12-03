@@ -2816,7 +2816,7 @@ oeval_acosh(void)
 		}
 	    }
 	    else if (!cfg_float_format) {
-		    get_cdd(0);
+		get_cdd(0);
 		real(pddp(0)) = mpz_get_d(mpz(1));
 		imag(pddp(0)) = 0;
 		pddp(0) = cacosh(pddp(0));
@@ -3260,7 +3260,7 @@ oeval_log(void)
 	    break;
 	case t_mpz:
 	    if (!cfg_float_format) {
-		if (mpz_sgn(mpz(0)) >= 0) {
+		if (mpz_sgn(mpz(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log(mpz_get_d(mpz(1)));
 		}
@@ -3271,7 +3271,7 @@ oeval_log(void)
 		    pddp(0) = cexp(pddp(0));
 		}
 	    }
-	    else if (mpz_sgn(mpz(0)) >= 0) {
+	    else if (mpz_sgn(mpz(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
 		mpfr_log(mpr(0), mpr(0), thr_rndc);
@@ -3311,7 +3311,7 @@ oeval_log(void)
 	    break;
 	case t_mpq:
 	    if (!cfg_float_format) {
-		if (mpq_sgn(mpq(0)) >= 0) {
+		if (mpq_sgn(mpq(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log(mpq_get_d(mpq(1)));
 		}
@@ -3322,7 +3322,7 @@ oeval_log(void)
 		    pddp(0) = clog(pddp(0));
 		}
 	    }
-	    else if (mpq_sgn(mpq(0)) >= 0) {
+	    else if (mpq_sgn(mpq(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
 		mpfr_log(mpr(0), mpr(0), thr_rndc);
@@ -3426,7 +3426,7 @@ oeval_log2(void)
 	    break;
 	case t_mpz:
 	    if (!cfg_float_format) {
-		if (mpz_sgn(mpz(0)) >= 0) {
+		if (mpz_sgn(mpz(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log2(mpz_get_d(mpz(1)));
 		}
@@ -3437,7 +3437,7 @@ oeval_log2(void)
 		    pddp(0) = clog2(pddp(0));
 		}
 	    }
-	    else if (mpz_sgn(mpz(0)) >= 0) {
+	    else if (mpz_sgn(mpz(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
 		mpfr_log2(mpr(0), mpr(0), thr_rndc);
@@ -3463,7 +3463,7 @@ oeval_log2(void)
 	    }
 	    else {
 		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
-		if (orat_sgn(rat(0)) >= 0) {
+		if (orat_sgn(rat(1)) >= 0) {
 		    get_mpr(0);
 		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
 		    mpfr_log2(mpr(0), mpr(0), thr_rndc);
@@ -3477,7 +3477,7 @@ oeval_log2(void)
 	    break;
 	case t_mpq:
 	    if (!cfg_float_format) {
-		if (mpq_sgn(mpq(0)) >= 0) {
+		if (mpq_sgn(mpq(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log2(mpq_get_d(mpq(1)));
 		}
@@ -3488,7 +3488,7 @@ oeval_log2(void)
 		    pddp(0) = clog2(pddp(0));
 		}
 	    }
-	    else if (mpq_sgn(mpq(0)) >= 0) {
+	    else if (mpq_sgn(mpq(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
 		mpfr_exp(mpr(0), mpr(0), thr_rndc);
@@ -3592,7 +3592,7 @@ oeval_log10(void)
 	    break;
 	case t_mpz:
 	    if (!cfg_float_format) {
-		if (mpz_sgn(mpz(0)) >= 0) {
+		if (mpz_sgn(mpz(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log10(mpz_get_d(mpz(1)));
 		}
@@ -3603,7 +3603,7 @@ oeval_log10(void)
 		    pddp(0) = clog10(pddp(0));
 		}
 	    }
-	    else if (mpz_sgn(mpz(0)) >= 0) {
+	    else if (mpz_sgn(mpz(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_z(mpr(0), mpz(1), thr_rnd);
 		mpfr_log10(mpr(0), mpr(0), thr_rndc);
@@ -3629,7 +3629,7 @@ oeval_log10(void)
 	    }
 	    else {
 		mpq_set_si(thr_qr, orat_num(rat(1)), orat_den(rat(1)));
-		if (orat_sgn(rat(0)) >= 0) {
+		if (orat_sgn(rat(1)) >= 0) {
 		    get_mpr(0);
 		    mpfr_set_q(mpr(0), thr_qr, thr_rnd);
 		    mpfr_log10(mpr(0), mpr(0), thr_rndc);
@@ -3643,7 +3643,7 @@ oeval_log10(void)
 	    break;
 	case t_mpq:
 	    if (!cfg_float_format) {
-		if (mpq_sgn(mpq(0)) >= 0) {
+		if (mpq_sgn(mpq(1)) >= 0) {
 		    get_float(0);
 		    pdp(0) = log10(mpq_get_d(mpq(1)));
 		}
@@ -3654,7 +3654,7 @@ oeval_log10(void)
 		    pddp(0) = clog10(pddp(0));
 		}
 	    }
-	    else if (mpq_sgn(mpq(0)) >= 0) {
+	    else if (mpq_sgn(mpq(1)) >= 0) {
 		get_mpr(0);
 		mpfr_set_q(mpr(0), mpq(1), thr_rnd);
 		mpfr_log10(mpr(0), mpr(0), thr_rndc);
