@@ -39733,3 +39733,114 @@ t47_bin(hypot, 1L, t47_r);
 t47_bin(hypot, 1.0*I, t47_dd);
 t47_bin(hypot, I, t47_qq);
 t47_bin(hypot, 1L*I, t47_cc);
+
+int8_t t48_rfsc(int8_t n) {
+    return n <= 1 ? 1 : n * t48_rfsc(n - 1);
+}
+int8_t t48_ifsc(int8_t n) {
+    int8_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfsc(10), t48_ifsc(10));
+uint8_t t48_rfuc(uint8_t n) {
+    return n <= 1 ? 1 : n * t48_rfuc(n - 1);
+}
+uint8_t t48_ifuc(uint8_t n) {
+    uint8_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfuc(10), t48_ifuc(10));
+int16_t t48_rfss(int16_t n) {
+    return n <= 1 ? 1 : n * t48_rfss(n - 1);
+}
+int16_t t48_ifss(int16_t n) {
+    int16_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfss(10), t48_ifss(10));
+uint16_t t48_rfus(uint16_t n) {
+    return n <= 1 ? 1 : n * t48_rfus(n - 1);
+}
+uint16_t t48_ifus(uint16_t n) {
+    uint16_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfus(10), t48_ifus(10));
+int32_t t48_rfsi(int32_t n) {
+    return n <= 1 ? 1 : n * t48_rfsi(n - 1);
+}
+int32_t t48_ifsi(int32_t n) {
+    int32_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfsi(10), t48_ifsi(10));
+uint32_t t48_rfui(uint32_t n) {
+    return n <= 1 ? 1 : n * t48_rfui(n - 1);
+}
+uint32_t t48_ifui(uint32_t n) {
+    uint32_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfui(10), t48_ifui(10));
+int64_t t48_rfsl(int64_t n) {
+    return n <= 1 ? 1 : n * t48_rfsl(n - 1);
+}
+int64_t t48_ifsl(int64_t n) {
+    int64_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfsl(10), t48_ifsl(10));
+uint64_t t48_rful(uint64_t n) {
+    return n <= 1 ? 1 : n * t48_rful(n - 1);
+}
+uint64_t t48_iful(uint64_t n) {
+    uint64_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rful(10), t48_iful(10));
+float32_t t48_rfsf(float32_t n) {
+    return n <= 1 ? 1 : n * t48_rfsf(n - 1);
+}
+float32_t t48_ifsf(float32_t n) {
+    float32_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfsf(10), t48_ifsf(10));
+float64_t t48_rfdf(float64_t n) {
+    return n <= 1 ? 1 : n * t48_rfdf(n - 1);
+}
+float64_t t48_ifdf(float64_t n) {
+    float64_t r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfdf(10), t48_ifdf(10));
+auto t48_rfa(auto n) {
+    return n <= 1 ? 1 : n * t48_rfa(n - 1);
+}
+auto t48_ifa(auto n) {
+    auto r;
+    for (r = 1; n > 1; --n)
+	r *= n;
+    return r;
+}
+print("%d\n%d\n", t48_rfa(10), t48_ifa(10));

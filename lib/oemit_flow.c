@@ -102,6 +102,11 @@ emit_question(oast_t *ast)
 	while (jump->f->offset);
     }
 
+    /* Pretend the operand is spilled to "release" the register
+     * so that other code does not need to understand that the
+     * execution of left and right expressions are exclusive */
+    lop->t |= t_spill;
+
     /* false expression */
     emit(ast->r.ast);
     rop = operand_top();
@@ -167,7 +172,7 @@ emit_question(oast_t *ast)
 
     /* If type conversion/coercion is complex */
     if (match == false) {
-	if (rty == t_void) {
+	if (rty == t_void && lreg != rreg) {
 	    load_r(lreg);
 	    load_r_w(rreg, JIT_R0);
 	    jit_prepare();
@@ -205,6 +210,10 @@ emit_question(oast_t *ast)
 	}
 	emit_set_type(lop, t_void);
     }
+
+    /* Do not get confused with the spill flag, that could attempt
+     * to reload the value in another register. */
+    lop->t &= ~t_spill;
 
     operand_unget(1);
     jump_unget(1);
