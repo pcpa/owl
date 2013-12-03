@@ -832,10 +832,10 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast_unary_function("finite_p", 8, ast);
 	    break;
 	case tok_inf_p:
-	    bytes += print_ast_unary_function("inf_p", 6, ast);
+	    bytes += print_ast_unary_function("inf_p", 5, ast);
 	    break;
 	case tok_nan_p:
-	    bytes += print_ast_unary_function("nan_p", 6, ast);
+	    bytes += print_ast_unary_function("nan_p", 5, ast);
 	    break;
 	case tok_num:
 	    bytes += print_ast_unary_function("num", 3, ast);
