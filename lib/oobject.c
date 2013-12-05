@@ -230,6 +230,9 @@ init_object(void)
     signal(SIGFPE, sigfpe_handler);
     if (sigsetjmp(thread_main->env, 1))
 	oerror("parser unhandled exception");
+
+    /* Allow overriding exception handling during constant folding */
+    memcpy(&cfg_env, &thread_main->env, sizeof(sigjmp_buf));
 }
 
 void

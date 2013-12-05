@@ -40,6 +40,7 @@ oint32_t		 cfg_float_format;
 mp_prec_t		 cfg_mpfr_prc;
 mp_rnd_t		 cfg_mpfr_rnd;
 char			*cfg_progname;
+sigjmp_buf		 cfg_env;
 jit_state_t		*_jit;
 
 /*

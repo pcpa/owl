@@ -92,7 +92,13 @@ static void
 eval_unary(oast_t *ast);
 
 static void
+eval_unary_wrapped(oast_t *ast);
+
+static void
 eval_binary(oast_t *ast);
+
+static void
+eval_binary_wrapped(oast_t *ast);
 
 static void
 eval_shift(oast_t *ast);
@@ -598,6 +604,14 @@ ofalse_p(oobject_t object)
 static void
 eval_unary(oast_t *ast)
 {
+    if (!sigsetjmp(thread_main->env, 1))
+	eval_unary_wrapped(ast);
+    memcpy(&thread_main->env, &cfg_env, sizeof(sigjmp_buf));
+}
+
+static void
+eval_unary_wrapped(oast_t *ast)
+{
     obool_t		lnum;
     /* object is gc proteced in result of oeval_xyz() */
     oobject_t		object;
@@ -710,6 +724,14 @@ eval_unary(oast_t *ast)
 
 static void
 eval_binary(oast_t *ast)
+{
+    if (!sigsetjmp(thread_main->env, 1))
+	eval_binary_wrapped(ast);
+    memcpy(&thread_main->env, &cfg_env, sizeof(sigjmp_buf));
+}
+
+static void
+eval_binary_wrapped(oast_t *ast)
 {
     obool_t		lnum;
     obool_t		rnum;
