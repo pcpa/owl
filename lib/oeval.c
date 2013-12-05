@@ -88,6 +88,222 @@ shift_power(oast_t *ast);
 static oint32_t
 shift_canonicalize(oast_t *ast, oint32_t shift);
 
+static void
+eval_unary(oast_t *ast);
+
+static void
+eval_binary(oast_t *ast);
+
+static void
+eval_shift(oast_t *ast);
+
+static void
+eval_boolean(oast_t *ast);
+
+static oobject_t
+eval_integer_p(void);
+
+static oobject_t
+eval_rational_p(void);
+
+static oobject_t
+eval_float_p(void);
+
+static oobject_t
+eval_real_p(void);
+
+static oobject_t
+eval_complex_p(void);
+
+static oobject_t
+eval_number_p(void);
+
+static oobject_t
+eval_finite_p(void);
+
+static oobject_t
+eval_inf_p(void);
+
+static oobject_t
+eval_nan_p(void);
+
+static oobject_t
+eval_num(void);
+
+static oobject_t
+eval_den(void);
+
+static oobject_t
+eval_real(void);
+
+static oobject_t
+eval_imag(void);
+
+static oobject_t
+eval_signbit(void);
+
+static oobject_t
+eval_abs(void);
+
+static oobject_t
+eval_signum(void);
+
+static oobject_t
+eval_rational(void);
+
+static oobject_t
+eval_arg(void);
+
+static oobject_t
+eval_conj(void);
+
+static oobject_t
+eval_floor(void);
+
+static oobject_t
+eval_trunc(void);
+
+static oobject_t
+eval_round(void);
+
+static oobject_t
+eval_ceil(void);
+
+static oobject_t
+eval_sqrt(void);
+
+static oobject_t
+eval_cbrt(void);
+
+static oobject_t
+eval_sin(void);
+
+static oobject_t
+eval_cos(void);
+
+static oobject_t
+eval_tan(void);
+
+static oobject_t
+eval_asin(void);
+
+static oobject_t
+eval_acos(void);
+
+static oobject_t
+eval_atan(void);
+
+static oobject_t
+eval_sinh(void);
+
+static oobject_t
+eval_cosh(void);
+
+static oobject_t
+eval_tanh(void);
+
+static oobject_t
+eval_asinh(void);
+
+static oobject_t
+eval_acosh(void);
+
+static oobject_t
+eval_atanh(void);
+
+static oobject_t
+eval_proj(void);
+
+static oobject_t
+eval_exp(void);
+
+static oobject_t
+eval_log(void);
+
+static oobject_t
+eval_log2(void);
+
+static oobject_t
+eval_log10(void);
+
+static oobject_t
+eval_neg(void);
+
+static oobject_t
+eval_not(void);
+
+static oobject_t
+eval_com(void);
+
+static oobject_t
+eval_ne(void);
+
+static oobject_t
+eval_lt(void);
+
+static oobject_t
+eval_le(void);
+
+static oobject_t
+eval_eq(void);
+
+static oobject_t
+eval_ge(void);
+
+static oobject_t
+eval_gt(void);
+
+static oobject_t
+eval_and(void);
+
+static oobject_t
+eval_or(void);
+
+static oobject_t
+eval_xor(void);
+
+static oobject_t
+eval_mul2(oint32_t shift);
+
+static oobject_t
+eval_div2(oint32_t shift);
+
+static oobject_t
+eval_shl(oint32_t shift);
+
+static oobject_t
+eval_shr(oint32_t shift);
+
+static oobject_t
+eval_add(void);
+
+static oobject_t
+eval_sub(void);
+
+static oobject_t
+eval_mul(void);
+
+static oobject_t
+eval_div(void);
+
+static oobject_t
+eval_trunc2(void);
+
+static oobject_t
+eval_rem(void);
+
+static oobject_t
+eval_complex(void);
+
+static oobject_t
+eval_atan2(void);
+
+static oobject_t
+eval_pow(void);
+
+static oobject_t
+eval_hypot(void);
+
 static oobject_t
 cleanup(void);
 
@@ -143,10 +359,10 @@ ofold(oast_t *ast)
 	case tok_atanh:		case tok_proj:
 	case tok_exp:		case tok_log:
 	case tok_log2:		case tok_log10:
-	    oeval_unary(ast);
+	    eval_unary(ast);
 	    break;
 	case tok_andand:	case tok_oror:
-	    oeval_boolean(ast);
+	    eval_boolean(ast);
 	    break;
 	case tok_ne:		case tok_lt:
 	case tok_le:		case tok_eq:
@@ -158,11 +374,11 @@ ofold(oast_t *ast)
 	case tok_rem:		case tok_complex:
 	case tok_atan2:		case tok_pow:
 	case tok_hypot:
-	    oeval_binary(ast);
+	    eval_binary(ast);
 	    break;
 	case tok_mul2:		case tok_div2:
 	case tok_shl:		case tok_shr:
-	    oeval_shift(ast);
+	    eval_shift(ast);
 	    break;
 	default:
 #if DEBUG
@@ -379,8 +595,8 @@ ofalse_p(oobject_t object)
     }
 }
 
-void
-oeval_unary(oast_t *ast)
+static void
+eval_unary(oast_t *ast)
 {
     obool_t		lnum;
     /* object is gc proteced in result of oeval_xyz() */
@@ -440,51 +656,51 @@ oeval_unary(oast_t *ast)
 
     eval_unary_setup(ast->l.ast->l.value);
     switch (ast->token) {
-	case tok_neg:		object = oeval_neg();		break;
-	case tok_not:		object = oeval_not();		break;
-	case tok_com:		object = oeval_com();		break;
-	case tok_integer_p:	object = oeval_integer_p();	break;
-	case tok_rational_p:	object = oeval_rational_p();	break;
-	case tok_float_p:	object = oeval_float_p();	break;
-	case tok_real_p:	object = oeval_real_p();	break;
-	case tok_complex_p:	object = oeval_complex_p();	break;
-	case tok_number_p:	object = oeval_number_p();	break;
-	case tok_finite_p:	object = oeval_finite_p();	break;
-	case tok_inf_p:		object = oeval_inf_p();		break;
-	case tok_nan_p:		object = oeval_nan_p();		break;
-	case tok_num:		object = oeval_num();		break;
-	case tok_den:		object = oeval_den();		break;
-	case tok_real:		object = oeval_real();		break;
-	case tok_imag:		object = oeval_imag();		break;
-	case tok_signbit:	object = oeval_signbit();	break;
-	case tok_abs:		object = oeval_abs();		break;
-	case tok_signum:	object = oeval_signum();	break;
-	case tok_rational:	object = oeval_rational();	break;
-	case tok_arg:		object = oeval_arg();		break;
-	case tok_conj:		object = oeval_conj();		break;
-	case tok_floor:		object = oeval_floor();		break;
-	case tok_trunc:		object = oeval_trunc();		break;
-	case tok_round:		object = oeval_round();		break;
-	case tok_ceil:		object = oeval_ceil();		break;
-	case tok_sqrt:		object = oeval_sqrt();		break;
-	case tok_cbrt:		object = oeval_cbrt();		break;
-	case tok_sin:		object = oeval_sin();		break;
-	case tok_cos:		object = oeval_cos();		break;
-	case tok_tan:		object = oeval_tan();		break;
-	case tok_asin:		object = oeval_asin();		break;
-	case tok_acos:		object = oeval_acos();		break;
-	case tok_atan:		object = oeval_atan();		break;
-	case tok_sinh:		object = oeval_sinh();		break;
-	case tok_cosh:		object = oeval_cosh();		break;
-	case tok_tanh:		object = oeval_tanh();		break;
-	case tok_asinh:		object = oeval_asinh();		break;
-	case tok_acosh:		object = oeval_acosh();		break;
-	case tok_atanh:		object = oeval_atanh();		break;
-	case tok_proj:		object = oeval_proj();		break;
-	case tok_exp:		object = oeval_exp();		break;
-	case tok_log:		object = oeval_log();		break;
-	case tok_log2:		object = oeval_log2();		break;
-	case tok_log10:		object = oeval_log10();		break;
+	case tok_neg:		object = eval_neg();		break;
+	case tok_not:		object = eval_not();		break;
+	case tok_com:		object = eval_com();		break;
+	case tok_integer_p:	object = eval_integer_p();	break;
+	case tok_rational_p:	object = eval_rational_p();	break;
+	case tok_float_p:	object = eval_float_p();	break;
+	case tok_real_p:	object = eval_real_p();		break;
+	case tok_complex_p:	object = eval_complex_p();	break;
+	case tok_number_p:	object = eval_number_p();	break;
+	case tok_finite_p:	object = eval_finite_p();	break;
+	case tok_inf_p:		object = eval_inf_p();		break;
+	case tok_nan_p:		object = eval_nan_p();		break;
+	case tok_num:		object = eval_num();		break;
+	case tok_den:		object = eval_den();		break;
+	case tok_real:		object = eval_real();		break;
+	case tok_imag:		object = eval_imag();		break;
+	case tok_signbit:	object = eval_signbit();	break;
+	case tok_abs:		object = eval_abs();		break;
+	case tok_signum:	object = eval_signum();		break;
+	case tok_rational:	object = eval_rational();	break;
+	case tok_arg:		object = eval_arg();		break;
+	case tok_conj:		object = eval_conj();		break;
+	case tok_floor:		object = eval_floor();		break;
+	case tok_trunc:		object = eval_trunc();		break;
+	case tok_round:		object = eval_round();		break;
+	case tok_ceil:		object = eval_ceil();		break;
+	case tok_sqrt:		object = eval_sqrt();		break;
+	case tok_cbrt:		object = eval_cbrt();		break;
+	case tok_sin:		object = eval_sin();		break;
+	case tok_cos:		object = eval_cos();		break;
+	case tok_tan:		object = eval_tan();		break;
+	case tok_asin:		object = eval_asin();		break;
+	case tok_acos:		object = eval_acos();		break;
+	case tok_atan:		object = eval_atan();		break;
+	case tok_sinh:		object = eval_sinh();		break;
+	case tok_cosh:		object = eval_cosh();		break;
+	case tok_tanh:		object = eval_tanh();		break;
+	case tok_asinh:		object = eval_asinh();		break;
+	case tok_acosh:		object = eval_acosh();		break;
+	case tok_atanh:		object = eval_atanh();		break;
+	case tok_proj:		object = eval_proj();		break;
+	case tok_exp:		object = eval_exp();		break;
+	case tok_log:		object = eval_log();		break;
+	case tok_log2:		object = eval_log2();		break;
+	case tok_log10:		object = eval_log10();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -492,8 +708,8 @@ oeval_unary(oast_t *ast)
     ast->token = tok_number;
 }
 
-void
-oeval_binary(oast_t *ast)
+static void
+eval_binary(oast_t *ast)
 {
     obool_t		lnum;
     obool_t		rnum;
@@ -533,25 +749,25 @@ oeval_binary(oast_t *ast)
 
     eval_binary_setup(ast->l.ast->l.value, ast->r.ast->l.value);
     switch (ast->token) {
-	case tok_ne:		object = oeval_ne();		break;
-	case tok_lt:		object = oeval_lt();		break;
-	case tok_le:		object = oeval_le();		break;
-	case tok_eq:		object = oeval_eq();		break;
-	case tok_ge:		object = oeval_ge();		break;
-	case tok_gt:		object = oeval_gt();		break;
-	case tok_and:		object = oeval_and();		break;
-	case tok_or:		object = oeval_or();		break;
-	case tok_xor:		object = oeval_xor();		break;
-	case tok_add:		object = oeval_add();		break;
-	case tok_sub:		object = oeval_sub();		break;
-	case tok_mul:		object = oeval_mul();		break;
-	case tok_div:		object = oeval_div();		break;
-	case tok_trunc2:	object = oeval_trunc2();	break;
-	case tok_rem:		object = oeval_rem();		break;
-	case tok_complex:	object = oeval_complex();	break;
-	case tok_atan2:		object = oeval_atan2();		break;
-	case tok_pow:		object = oeval_pow();		break;
-	case tok_hypot:		object = oeval_hypot();		break;
+	case tok_ne:		object = eval_ne();		break;
+	case tok_lt:		object = eval_lt();		break;
+	case tok_le:		object = eval_le();		break;
+	case tok_eq:		object = eval_eq();		break;
+	case tok_ge:		object = eval_ge();		break;
+	case tok_gt:		object = eval_gt();		break;
+	case tok_and:		object = eval_and();		break;
+	case tok_or:		object = eval_or();		break;
+	case tok_xor:		object = eval_xor();		break;
+	case tok_add:		object = eval_add();		break;
+	case tok_sub:		object = eval_sub();		break;
+	case tok_mul:		object = eval_mul();		break;
+	case tok_div:		object = eval_div();		break;
+	case tok_trunc2:	object = eval_trunc2();		break;
+	case tok_rem:		object = eval_rem();		break;
+	case tok_complex:	object = eval_complex();	break;
+	case tok_atan2:		object = eval_atan2();		break;
+	case tok_pow:		object = eval_pow();		break;
+	case tok_hypot:		object = eval_hypot();		break;
 	default:		abort();
     }
     odel_object(&ast->l.value);
@@ -560,8 +776,8 @@ oeval_binary(oast_t *ast)
     ast->token = tok_number;
 }
 
-void
-oeval_shift(oast_t *ast)
+static void
+eval_shift(oast_t *ast)
 {
     obool_t		lnum;
     obool_t		rnum;
@@ -600,20 +816,20 @@ oeval_shift(oast_t *ast)
     eval_unary_setup(ast->l.ast->l.value);
     if (shift >= 0) {
 	switch (ast->token) {
-	    case tok_mul2:	object = oeval_mul2(shift);	break;
-	    case tok_div2:	object = oeval_div2(shift);	break;
-	    case tok_shl:	object = oeval_shl(shift);	break;
-	    case tok_shr:	object = oeval_shr(shift);	break;
+	    case tok_mul2:	object = eval_mul2(shift);	break;
+	    case tok_div2:	object = eval_div2(shift);	break;
+	    case tok_shl:	object = eval_shl(shift);	break;
+	    case tok_shr:	object = eval_shr(shift);	break;
 	    default:		abort();
 	}
     }
     else {
 	shift = -shift;
 	switch (ast->token) {
-	    case tok_mul2:	object = oeval_div2(shift);	break;
-	    case tok_div2:	object = oeval_mul2(shift);	break;
-	    case tok_shl:	object = oeval_shr(shift);	break;
-	    case tok_shr:	object = oeval_shl(shift);	break;
+	    case tok_mul2:	object = eval_div2(shift);	break;
+	    case tok_div2:	object = eval_mul2(shift);	break;
+	    case tok_shl:	object = eval_shr(shift);	break;
+	    case tok_shr:	object = eval_shl(shift);	break;
 	    default:		abort();
 	}
     }
@@ -628,8 +844,8 @@ oeval_shift(oast_t *ast)
 #define boolean_true		2
 #define boolean_left		3
 #define boolean_right		4
-void
-oeval_boolean(oast_t *ast)
+static void
+eval_boolean(oast_t *ast)
 {
     oint32_t		state;
 
@@ -693,8 +909,8 @@ oeval_boolean(oast_t *ast)
 #undef boolean_left
 #undef boolean_right
 
-oobject_t
-oeval_integer_p(void)
+static oobject_t
+eval_integer_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -711,8 +927,8 @@ oeval_integer_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_rational_p(void)
+static oobject_t
+eval_rational_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -729,8 +945,8 @@ oeval_rational_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_float_p(void)
+static oobject_t
+eval_float_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -746,8 +962,8 @@ oeval_float_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_real_p(void)
+static oobject_t
+eval_real_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -765,8 +981,8 @@ oeval_real_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_complex_p(void)
+static oobject_t
+eval_complex_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -783,8 +999,8 @@ oeval_complex_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_number_p(void)
+static oobject_t
+eval_number_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -804,8 +1020,8 @@ oeval_number_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_finite_p(void)
+static oobject_t
+eval_finite_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -828,8 +1044,8 @@ oeval_finite_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_inf_p(void)
+static oobject_t
+eval_inf_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -848,8 +1064,8 @@ oeval_inf_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_nan_p(void)
+static oobject_t
+eval_nan_p(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -868,8 +1084,8 @@ oeval_nan_p(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_num(void)
+static oobject_t
+eval_num(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -892,8 +1108,8 @@ oeval_num(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_den(void)
+static oobject_t
+eval_den(void)
 {
     switch (otype(N(1))) {
 	case t_word:		case t_mpz:
@@ -912,8 +1128,8 @@ oeval_den(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_real(void)
+static oobject_t
+eval_real(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -956,8 +1172,8 @@ oeval_real(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_imag(void)
+static oobject_t
+eval_imag(void)
 {
     switch (otype(N(1))) {
 	case t_word:		case t_mpz:
@@ -989,8 +1205,8 @@ oeval_imag(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_signbit(void)
+static oobject_t
+eval_signbit(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -1018,8 +1234,8 @@ oeval_signbit(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_abs(void)
+static oobject_t
+eval_abs(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1088,8 +1304,8 @@ oeval_abs(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_signum(void)
+static oobject_t
+eval_signum(void)
 {
    switch (otype(N(1))) {
 	case t_word:
@@ -1161,8 +1377,8 @@ oeval_signum(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_rational(void)
+static oobject_t
+eval_rational(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1195,8 +1411,8 @@ oeval_rational(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_arg(void)
+static oobject_t
+eval_arg(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1295,8 +1511,8 @@ oeval_arg(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_conj(void)
+static oobject_t
+eval_conj(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1342,8 +1558,8 @@ oeval_conj(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_floor(void)
+static oobject_t
+eval_floor(void)
 {
     GET_THREAD_SELF()
     ofloat_t		d;
@@ -1385,8 +1601,8 @@ oeval_floor(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_trunc(void)
+static oobject_t
+eval_trunc(void)
 {
     GET_THREAD_SELF()
     ofloat_t		d;
@@ -1428,8 +1644,8 @@ oeval_trunc(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_round(void)
+static oobject_t
+eval_round(void)
 {
     GET_THREAD_SELF()
     ofloat_t		d;
@@ -1495,8 +1711,8 @@ oeval_round(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_ceil(void)
+static oobject_t
+eval_ceil(void)
 {
     GET_THREAD_SELF()
     ofloat_t		d;
@@ -1538,8 +1754,8 @@ oeval_ceil(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_sqrt(void)
+static oobject_t
+eval_sqrt(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -1697,8 +1913,8 @@ oeval_sqrt(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_cbrt(void)
+static oobject_t
+eval_cbrt(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1780,8 +1996,8 @@ oeval_cbrt(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_sin(void)
+static oobject_t
+eval_sin(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1863,8 +2079,8 @@ oeval_sin(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_cos(void)
+static oobject_t
+eval_cos(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -1946,8 +2162,8 @@ oeval_cos(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_tan(void)
+static oobject_t
+eval_tan(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2029,8 +2245,8 @@ oeval_tan(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_asin(void)
+static oobject_t
+eval_asin(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -2185,8 +2401,8 @@ oeval_asin(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_acos(void)
+static oobject_t
+eval_acos(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -2341,8 +2557,8 @@ oeval_acos(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_atan(void)
+static oobject_t
+eval_atan(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2424,8 +2640,8 @@ oeval_atan(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_sinh(void)
+static oobject_t
+eval_sinh(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2507,8 +2723,8 @@ oeval_sinh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_cosh(void)
+static oobject_t
+eval_cosh(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2590,8 +2806,8 @@ oeval_cosh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_tanh(void)
+static oobject_t
+eval_tanh(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2673,8 +2889,8 @@ oeval_tanh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_asinh(void)
+static oobject_t
+eval_asinh(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -2756,8 +2972,8 @@ oeval_asinh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_acosh(void)
+static oobject_t
+eval_acosh(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -2920,8 +3136,8 @@ oeval_acosh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_atanh(void)
+static oobject_t
+eval_atanh(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -3076,8 +3292,8 @@ oeval_atanh(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_proj(void)
+static oobject_t
+eval_proj(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -3128,8 +3344,8 @@ oeval_proj(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_exp(void)
+static oobject_t
+eval_exp(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -3211,8 +3427,8 @@ oeval_exp(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_log(void)
+static oobject_t
+eval_log(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -3377,8 +3593,8 @@ oeval_log(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_log2(void)
+static oobject_t
+eval_log2(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -3543,8 +3759,8 @@ oeval_log2(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_log10(void)
+static oobject_t
+eval_log10(void)
 {
     GET_THREAD_SELF()
     switch (otype(N(1))) {
@@ -3709,8 +3925,8 @@ oeval_log10(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_neg(void)
+static oobject_t
+eval_neg(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -3769,8 +3985,8 @@ oeval_neg(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_not(void)
+static oobject_t
+eval_not(void)
 {
     oword_t		w;
 
@@ -3800,8 +4016,8 @@ oeval_not(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_com(void)
+static oobject_t
+eval_com(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -3819,8 +4035,8 @@ oeval_com(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_ne(void)
+static oobject_t
+eval_ne(void)
 {
     oword_t		w;
 
@@ -3865,8 +4081,8 @@ oeval_ne(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_lt(void)
+static oobject_t
+eval_lt(void)
 {
     oword_t		w;
 
@@ -3898,8 +4114,8 @@ oeval_lt(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_le(void)
+static oobject_t
+eval_le(void)
 {
     oword_t		w;
 
@@ -3931,8 +4147,8 @@ oeval_le(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_eq(void)
+static oobject_t
+eval_eq(void)
 {
     oword_t		w;
 
@@ -3977,8 +4193,8 @@ oeval_eq(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_ge(void)
+static oobject_t
+eval_ge(void)
 {
     oword_t		w;
 
@@ -4010,8 +4226,8 @@ oeval_ge(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_gt(void)
+static oobject_t
+eval_gt(void)
 {
     oword_t		w;
     switch (otype(N(1))) {
@@ -4042,8 +4258,8 @@ oeval_gt(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_and(void)
+static oobject_t
+eval_and(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -4061,8 +4277,8 @@ oeval_and(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_or(void)
+static oobject_t
+eval_or(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -4080,8 +4296,8 @@ oeval_or(void)
     return (cleanup());
 }
 
-oobject_t
-oeval_xor(void)
+static oobject_t
+eval_xor(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -4099,8 +4315,8 @@ oeval_xor(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_mul2(oint32_t shift)
+static oobject_t
+eval_mul2(oint32_t shift)
 {
     oword_t		w;
 
@@ -4168,8 +4384,8 @@ done:
     return (canonicalize());
 }
 
-oobject_t
-oeval_div2(oint32_t shift)
+static oobject_t
+eval_div2(oint32_t shift)
 {
     oword_t		w;
 
@@ -4244,8 +4460,8 @@ done:
     return (canonicalize());
 }
 
-oobject_t
-oeval_shl(oint32_t shift)
+static oobject_t
+eval_shl(oint32_t shift)
 {
     GET_THREAD_SELF()
     oword_t		w;
@@ -4310,8 +4526,8 @@ done:
     return (canonicalize());
 }
 
-oobject_t
-oeval_shr(oint32_t shift)
+static oobject_t
+eval_shr(oint32_t shift)
 {
     GET_THREAD_SELF()
     oword_t		w;
@@ -4370,8 +4586,8 @@ done:
     return (canonicalize());
 }
 
-oobject_t
-oeval_add(void)
+static oobject_t
+eval_add(void)
 {
     oword_t		u, v, w;
 
@@ -4444,8 +4660,8 @@ oeval_add(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_sub(void)
+static oobject_t
+eval_sub(void)
 {
     oword_t		u, v, w;
 
@@ -4518,8 +4734,8 @@ oeval_sub(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_mul(void)
+static oobject_t
+eval_mul(void)
 {
     oword_t		w;
 
@@ -4585,8 +4801,8 @@ oeval_mul(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_div(void)
+static oobject_t
+eval_div(void)
 {
     oword_t		u, v, w;
 
@@ -4658,8 +4874,8 @@ oeval_div(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_trunc2(void)
+static oobject_t
+eval_trunc2(void)
 {
     oword_t		w;
     ofloat_t		d;
@@ -4727,8 +4943,8 @@ oeval_trunc2(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_rem(void)
+static oobject_t
+eval_rem(void)
 {
     oword_t		w;
 
@@ -4794,8 +5010,8 @@ oeval_rem(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_complex(void)
+static oobject_t
+eval_complex(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -4834,8 +5050,8 @@ oeval_complex(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_atan2(void)
+static oobject_t
+eval_atan2(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -4935,8 +5151,8 @@ oeval_atan2(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_pow(void)
+static oobject_t
+eval_pow(void)
 {
     switch (otype(N(1))) {
 	case t_word:
@@ -5098,8 +5314,8 @@ oeval_pow(void)
     return (canonicalize());
 }
 
-oobject_t
-oeval_hypot(void)
+static oobject_t
+eval_hypot(void)
 {
     switch (otype(N(1))) {
 	case t_word:
