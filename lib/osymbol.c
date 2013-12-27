@@ -307,8 +307,6 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 	method = oget_symbol(record->super, name);
     else
 	method = oget_symbol(record, name);
-    if (method)
-	assert(tag->type == tag_function);
 
     gc_ref(pointer);
     make_symbol(pointer, name);
