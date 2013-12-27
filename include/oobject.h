@@ -109,6 +109,7 @@ enum otype {
     t_root,		/* root module */
 
     t_thread		= 0x10000000,
+    t_mutex,
     t_rtti,
 
     t_stream,
@@ -185,12 +186,15 @@ struct ovector {
 };
 
 struct ortti {
-    oint32_t		 superc;	/* superclass type */
     oword_t		 gcsize;	/* number of gc offsets */
     oword_t		*gcinfo;	/* gc pointer offsets */
     oword_t		 mdsize;	/* number of methods */
     oobject_t		*mdinfo;	/* method pointers */
-    oword_t		 offset;	/* varargs stack offset */
+    oint32_t		 super;		/* superclass type */
+    oint32_t		 frame;		/* arguments stack size */
+    oint32_t		 stack;		/* locals and temporaries stack size */
+    oint32_t		 varargs;	/* varargs stack offset */
+    oobject_t		 address;	/* function address */
 };
 
 /*
@@ -210,6 +214,9 @@ orem_root(oobject_t *object);
 
 extern void
 onew_object(oobject_t *pointer, otype_t type, oword_t length);
+
+extern void
+onew_thread(oobject_t *pointer);
 
 extern void
 onew_word(oobject_t *pointer, oword_t w);

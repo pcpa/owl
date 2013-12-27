@@ -119,6 +119,12 @@ extern void
 ovm(othread_t *thread);
 
 extern void
+ovm_thread(oword_t type, oint8_t *address, obool_t builtin);
+
+extern void
+ovm_exit(void);
+
+extern void
 ovm_raise(oint32_t xcpt) noreturn;
 
 extern oint32_t

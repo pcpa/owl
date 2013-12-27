@@ -209,17 +209,22 @@ init_object(void)
     mpf_init(&thread_main->f);
     onew_vector((oobject_t *)&thread_main->vec, t_uint8, BUFSIZ);
 
-#define init_register(N)						\
+#define init_register(T, N)						\
     do {								\
-	cqq_init(&thread_main->r##N.qq);				\
-	mpc_init2(&thread_main->r##N.cc, thr_prc);			\
-	onew_vector((oobject_t *)&thread_main->r##N.vec,		\
-		    t_uint8, BUFSIZ);					\
+	cqq_init(&T->r##N.qq);						\
+	mpc_init2(&T->r##N.cc, thr_prc);				\
+	onew_vector((oobject_t *)&T->r##N.vec, t_uint8, BUFSIZ);	\
     } while (0)
-    init_register(0);
-    init_register(1);
-    init_register(2);
-    init_register(3);
+    init_register(thread_main, 0);
+    init_register(thread_main, 1);
+    init_register(thread_main, 2);
+    init_register(thread_main, 3);
+
+#define finish_register(T, N)						\
+    do {								\
+	cqq_clear(&T->r##N.qq);						\
+	mpc_clear(&T->r##N.cc);						\
+    } while (0)
 
     onew_vector((oobject_t *)&rtti_vector, t_void, 128);
 
@@ -241,20 +246,6 @@ finish_object(void)
     gc_root_offset = 0;
     gc_offset = 0;
     rtti_vector = null;
-    cqq_clear(&thread_main->qq);
-    mpc_clear(&thread_main->cc);
-    mpf_clear(&thread_main->f);
-
-#define finish_register(N)						\
-    do {								\
-	cqq_clear(&thread_main->r##N.qq);				\
-	mpc_clear(&thread_main->r##N.cc);				\
-    } while (0)
-    finish_register(0);
-    finish_register(1);
-    finish_register(2);
-    finish_register(3);
-
     gd = null;
     cv = null;
     thread_main = null;
@@ -272,8 +263,6 @@ finish_object(void)
 
     assert(gc_root == null);
     free(gc_root_vector);
-
-    mpfr_free_cache();
 }
 
 void
@@ -328,6 +317,35 @@ onew_object(oobject_t *pointer, otype_t type, oword_t length)
     new_object(pointer, type, length);
 
     gc_unlock();
+}
+
+void
+onew_thread(oobject_t *pointer)
+{
+    GET_THREAD_SELF()
+    othread_t		*next;
+    othread_t		*thread;
+
+    onew_object(pointer, t_thread, sizeof(othread_t));
+    thread = *(othread_t **)pointer;
+
+    cqq_init(&thread->qq);
+    mpc_init2(&thread->cc, thr_prc);
+    mpf_init(&thread->f);
+    onew_vector((oobject_t *)&thread->vec, t_uint8, BUFSIZ);
+
+    init_register(thread, 0);
+    init_register(thread, 1);
+    init_register(thread, 2);
+    init_register(thread, 3);
+
+    /* Add thread to "end" of circular list */
+    othreads_lock();
+    thread->next = thread_self;
+    for (next = thread_self->next; next->next != thread_self; next = next->next)
+	;
+    next->next = thread;
+    othreads_unlock();
 }
 
 void
@@ -701,6 +719,7 @@ gc(void)
 {
     memory_t		*prev;
     memory_t		*next;
+    othread_t		*thread;
     memory_t		*memory;
 #if CACHE_DEBUG
     oint32_t		 cache_count = 0;
@@ -772,6 +791,19 @@ gc(void)
 		    if (cache_debug)
 			ewarn("cache leak");
 #endif
+		    break;
+		case t_thread:
+		    thread = memory_to_object(othread_t *, memory);
+		    cqq_clear(&thread->qq);
+		    mpc_clear(&thread->cc);
+		    mpf_clear(&thread->f);
+		    finish_register(thread, 0);
+		    finish_register(thread, 1);
+		    finish_register(thread, 2);
+		    finish_register(thread, 3);
+		    break;
+		case t_mutex:
+		    omutex_destroy(memory_to_object(pthread_mutex_t *, memory));
 		    break;
 #if CACHE_DEBUG
 		case t_word:	case t_float:	case t_rat:
@@ -1032,7 +1064,7 @@ gc_mark_stack(oint8_t *base)
 	    gc_mark_record(base, rtti->gcinfo, rtti->gcsize);
 	    if ((size = *(oint32_t *)(base + SIZE_OFFSET))) {
 		size /= sizeof(oobject_t);
-		gc_mark_varargs((oobject_t *)(base + rtti->offset), size);
+		gc_mark_varargs((oobject_t *)(base + rtti->varargs), size);
 	    }
 	}
 	base = *(oint8_t **)(base + PREV_OFFSET);
@@ -1059,7 +1091,7 @@ gc_mark_stack_next(oint8_t *base)
 	gc_mark_arguments(base, rtti->gcinfo, rtti->gcsize);
 	if ((size = *(oint32_t *)(base + SIZE_OFFSET))) {
 	    size /= sizeof(oobject_t);
-	    gc_mark_varargs((oobject_t *)(base + rtti->offset), size);
+	    gc_mark_varargs((oobject_t *)(base + rtti->varargs), size);
 	}
 	next = *(oint8_t **)(base + NEXT_OFFSET);
     } while ((base = next));
@@ -1105,6 +1137,8 @@ gc_mark_thread(othread_t *thread)
     }
 
     mark(object_to_memory(thread));
+    if (thread->obj)
+	gc_mark(object_to_memory(thread->obj));
 
     if (thread->bp)
 	mark(object_to_memory(thread->bp));

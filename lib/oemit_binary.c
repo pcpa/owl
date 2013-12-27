@@ -76,6 +76,9 @@ emit_binary(oast_t *ast)
     tok = get_token(ast);
     emit(ast->l.ast);
     lop = operand_top();
+    /* FIXME only need emit_load(lop) if rop may change lop,
+     * e.g. "a = b + (b = a);" */
+    emit_load(lop);
     emit(ast->r.ast);
     rop = operand_top();
     emit_binary_next(lop, tok, rop);

@@ -94,14 +94,8 @@ typedef struct ooperand		ooperand_t;
 typedef struct ojump		ojump_t;
 typedef enum oexcept		oexcept_t;
 typedef struct oexception	oexception_t;
-
+typedef struct oframe		oframe_t;
 
 typedef void (*onative_t)(oobject_t, oint32_t);
-
-/*
- * Prototypes
- */
-extern void
-otype_ast(oast_t *ast);
 
 #endif /* _otypes_h */

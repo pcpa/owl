@@ -21,16 +21,7 @@
 #  include <execinfo.h>
 #endif
 
-/*
- * Types
- */
-typedef struct oframe {
-    oobject_t		next;
-    oint32_t		type;
-    oint32_t		size;
-    oobject_t		prev;
-    oobject_t		ret;
-} oframe_t;
+#define THREAD_STACK_SIZE	1024 * 256
 
 /*
  * Prototypes
@@ -41,14 +32,17 @@ vm_signal_handler(int signo);
 static void
 search_instruction_pointer(void);
 
+static void
+vm_builtin(othread_t *thread);
+
 /*
  * Initialization
  */
-jit_function_t			jit_main;
+jit_function_t			 jit_main;
 
-static pthread_cond_t		count_cond;
-static pthread_mutex_t		count_mutex;
-
+static pthread_cond_t		 count_cond;
+static pthread_mutex_t		 count_mutex;
+static ovector_t		*thread_vector;
 
 /*
  * Implementation
@@ -64,11 +58,15 @@ init_vm(void)
      */
     signal(SIGFPE, vm_signal_handler);
     signal(SIGSEGV, vm_signal_handler);
+
+    oadd_root((oobject_t *)&thread_vector);
+    onew_vector((oobject_t *)&thread_vector, t_word, 16);
 }
 
 void
 finish_vm(void)
 {
+    orem_root((oobject_t *)&thread_vector);
 }
 
 static void
@@ -178,18 +176,169 @@ ovm(othread_t *thread)
     if (pthread_setspecific(thread_self_key, thread))
 	oerror("pthread_setspecific: %s", strerror(errno));
 #endif
-    assert(thread->bp == null);
-    onew_object((oobject_t *)&thread->bp, t_void, 64 * 1024 * 1024);
-    thread->fp = thread->bp + 64 * 1024 * 1024 - thread->frame;
-    frame = (oframe_t *)thread->fp;
-    frame->type = thread->type;
-    thread->sp = thread->fp - thread->stack;
+    if (thread == thread_main) {
+	assert(thread->bp == null);
+	onew_object((oobject_t *)&thread->bp, t_void, 64 * 1024 * 1024);
+	thread->sp = thread->fp = thread->bp + 64 * 1024 * 1024 -
+	    (thread->frame + sizeof(oframe_t));
+	frame = (oframe_t *)thread->sp;
+	frame->type = thread->type;
+    }
 
     othreads_lock();
     thread->run = 1;
     thread->xcpt = except_nothing;
 
     (*jit_main)(thread);
+}
+
+static void
+vm_builtin(othread_t *thread)
+{
+    oint32_t		 ac;
+    oobject_t		 list;
+    oframe_t		*frame;
+    onative_t		 native;
+
+#if HAVE_TLS
+    thread_self = thread;
+#else
+    if (pthread_setspecific(thread_self_key, thread))
+	oerror("pthread_setspecific: %s", strerror(errno));
+#endif
+
+    native = (onative_t)thread->ip;
+    frame = (oframe_t *)thread->sp;
+    ac = frame->size / sizeof(oobject_t);
+    list = thread->sp + sizeof(oframe_t);
+
+    thread->run = 1;
+    thread->xcpt = except_nothing;
+
+    (*native)(list, ac);
+
+    ovm_exit();
+}
+
+void
+ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
+{
+    GET_THREAD_SELF()
+    oint8_t		*fp;
+    pthread_attr_t	 attr;
+    ortti_t		*rtti;
+    othread_t		*thread;
+    oframe_t		*cur_frame;
+    oframe_t		*new_frame;
+
+    assert(type > t_mpc && type <= rtti_vector->offset);
+    rtti = rtti_vector->v.ptr[type];
+
+    onew_thread(&thread_self->obj);
+    thread = thread_self->obj;
+
+    thread->ip = ip;
+    thread->type = type;
+    thread->frame = rtti->frame;
+    thread->stack = rtti->stack;
+    onew_object((oobject_t *)&thread->bp, t_void, 64 * 1024 * 1024);
+
+    cur_frame = (oframe_t *)thread_self->sp;
+    cur_frame->next = null;
+    fp = thread->bp + 64 * 1024 * 1024 - sizeof(oframe_t);
+    /* fake root frame to work as a gc marker */
+    new_frame = (oframe_t *)fp;
+    new_frame->type = t_root;
+    thread->sp = fp - (thread->frame + cur_frame->size);
+    new_frame->next = thread->sp;
+
+    new_frame = (oframe_t *)thread->sp;
+
+    memcpy(thread->sp + sizeof(oframe_t), thread_self->sp + sizeof(oframe_t),
+	   thread->frame + cur_frame->size - sizeof(oframe_t));
+    new_frame->type = thread->type;
+    new_frame->size = cur_frame->size;
+    new_frame->ret = jit_code_exit;
+
+    /* Assigning fp must be done before zero'ing new thread stack and
+     * "atomically" so that gc will now inspect the new thread stack */
+    othreads_lock();
+    thread->fp = fp;
+    othreads_unlock();
+
+    memset(thread_self->sp + sizeof(oframe_t), 0,
+	   thread->frame + cur_frame->size - sizeof(oframe_t));
+
+    pthread_attr_init(&attr);
+    if (pthread_attr_setstacksize(&attr, THREAD_STACK_SIZE))
+	oerror("pthread_attr_setstacksize: %s", strerror(errno));
+    pthread_create(&thread->pthread, &attr,
+		   builtin ?
+		   (void*(*)(void*))&vm_builtin : (void*(*)(void*))&ovm,
+		   thread);
+    pthread_attr_destroy(&attr);
+
+    thread_self->r0.t = t_thread;
+    thread_self->r0.v.o = thread;
+}
+
+void
+ovm_exit(void)
+{
+    GET_THREAD_SELF()
+    /* lock thread linked lists */
+    othreads_lock();
+    thread_self->run = 0;
+    thread_self->fp = null;
+
+    /* Avoid filling thread_vector; only want to prevent race conditions
+     * of children threads exiting after the main thread. */
+    while (thread_vector->offset)
+	pthread_join(thread_vector->v.w[--thread_vector->offset], null);
+
+    if (thread_self == thread_main) {
+	/* thread_main is not reassigned */
+	omutex_lock(&count_mutex);
+	othreads_unlock();
+	while (thread_main->next != thread_main)
+	    /* wait for children threads to exit */
+	    pthread_cond_wait(&count_cond, &count_mutex);
+
+	/* mutex is implicitly released by pthread_cond_wait */
+	/* omutex_unlock(&count_mutex); */
+
+	/* free mpfr per thread cache data */
+	othreads_lock();
+	mpfr_free_cache();
+
+	/* Wait any thread not yet fully finished */
+	while (thread_vector->offset)
+	    pthread_join(thread_vector->v.w[--thread_vector->offset], null);
+
+	othreads_unlock();
+    }
+    else {
+	othread_t	*ptr;
+	/* remove from thread circular list */
+	for (ptr = thread_self->next; ptr->next != thread_self; ptr = ptr->next)
+	    ;
+	ptr->next = thread_self->next;
+	omutex_lock(&count_mutex);
+	if (ptr->next == ptr)
+	    pthread_cond_signal(&count_cond);
+
+	/* free mpfr per thread cache data */
+	mpfr_free_cache();
+	omutex_unlock(&count_mutex);
+
+	if (thread_vector->offset >= thread_vector->length)
+	    orenew_vector(thread_vector, thread_vector->length + 16);
+	thread_vector->v.w[thread_vector->offset++] = thread_self->pthread;
+
+	othreads_unlock();
+
+	pthread_exit(null);
+    }
 }
 
 void
@@ -791,9 +940,9 @@ ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 		/* Only possible on memory corruption */
 		assert(t <= rtti_vector->offset);
 		rtti = rtti_vector->v.ptr[t];
-		if (rtti->superc == t)
+		if (rtti->super == t)
 		    break;
-		t = rtti->superc;
+		t = rtti->super;
 	    }
 	    if (t == 0)
 		ovm_raise(except_invalid_argument);

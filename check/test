@@ -39844,3 +39844,234 @@ auto t48_ifa(auto n) {
     return r;
 }
 print("%d\n%d\n", t48_rfa(10), t48_ifa(10));
+
+void thread_routine(string_t name)
+{
+    auto i, j;
+    print("%s: enter 0 to 1e6\n", name);
+    for (i = 0; i < 5; ++i) {
+	for (j = 0; j < 1000000; ++j)
+	    ;
+	print("%s: 0 to 1e6 %d times\n", name, i + 1);
+    }
+    print("%s: leave 0 to 1e6\n", name);
+}
+void thread_routine_with_lots_of_gc_calls(string_t name)
+{
+    auto i, j, k;
+    string_t buffer;
+    print("%s: enter 1Mb gc\n", name);
+    for (i = 0; i < 5; ++i) {
+	for (j = 0; j < 1024; ++j) {
+	    buffer = new int8_t[1024];
+	    for (k = 0; k < 1024; ++k)
+		buffer[k] = k & 0xff;
+	}
+	print("%s: 1Mb %d times\n", name, i + 1);
+    }
+    print("%s: leave 1Mb gc\n", name);
+}
+auto fact_recursive(auto n)
+{
+    return n <= 1 ? 1: n * fact_recursive(n - 1);
+}
+auto fact_sequential(auto n)
+{
+    auto r = n;
+    while (--n > 1)
+	r *= n;
+    return r;
+}
+auto fib_recursive(auto n)
+{
+    return n < 2 ? n : fib_recursive(n - 1) + fib_recursive(n - 2);
+}
+auto fib_cached_rec(auto n, auto cache[])
+{
+    return cache[n] ? cache[n] :
+	cache[n] = n < 2 ? n :
+	    fib_cached_rec(n - 1, cache) + fib_cached_rec(n - 2, cache);
+}
+auto fib_cached(auto n)
+{
+    return fib_cached_rec(n, new auto[n + 1]);
+}
+auto fib_sequential(auto n) {
+    auto a = 0, b = 1;
+    if (n < 0)		// error
+	return n;
+    while (n--)
+	a = b + (b = a);
+    return a;
+}
+void run_fact_recursive(string_t name)
+{
+    print("%s: enter fact_recursive\n", name);
+    auto i;
+    for (i = 0; i < 300000; ++i) {
+	switch (i & 3) {
+	    case 0:
+		if (fact_recursive(5) != 120)
+		    print("%s: run_fact_recursive: error %d\n", name, i);
+		break;
+	    case 1:
+		if (fact_recursive(10) != 3628800)
+		    print("%s: run_fact_recursive: error %d\n", name, i);
+		break;
+	    default:
+		if (fact_recursive(15) != 1307674368000)
+		    print("%s: run_fact_recursive: error %d\n", name, i);
+		break;
+		    print("%s: run_fact_recursive: error %d\n", name, i);
+	}
+    }
+    print("%s: leave fact_recursive\n", name);
+}
+void run_fact_sequential(string_t name)
+{
+    print("%s: enter fact_sequential\n", name);
+    auto i;
+    for (i = 0; i < 300000; ++i) {
+	switch (i & 3) {
+	    case 0:
+		if (fact_sequential(5) != 120)
+		    print("%s: run_fact_sequential: error %d\n", name, i);
+		break;
+	    case 1:
+		if (fact_sequential(10) != 3628800)
+		    print("%s: run_fact_sequential: error %d\n", name, i);
+		break;
+	    default:
+		if (fact_sequential(15) != 1307674368000)
+		    print("%s: run_fact_sequential: error %d\n", name, i);
+		break;
+	}
+    }
+    print("%s: leave fact_sequential\n", name);
+}
+void run_fib_recursive(string_t name)
+{
+    print("%s: enter fib_recursive\n", name);
+    auto i;
+    for (i = 0; i < 3; ++i) {
+	switch (i & 3) {
+	    case 0:
+		if (fib_recursive(5) != 5)
+		    print("%s: run_fib_recursive: error %d\n", name, i);
+		break;
+	    case 1:
+		if (fib_recursive(10) != 55)
+		    print("%s: run_fib_recursive: error %d\n", name, i);
+		break;
+	    default:
+		if (fib_recursive(15) != 610)
+		    print("%s: run_fib_recursive: error %d\n", name, i);
+		break;
+	}
+    }
+    print("%s: leave fib_recursive\n", name);
+}
+void run_fib_cached(string_t name)
+{
+    print("%s: enter fib_cached\n", name);
+    auto i;
+    for (i = 0; i < 30000; ++i) {
+	switch (i & 3) {
+	    case 0:
+		if (fib_cached(5) != 5)
+		    print("%s: run_fib_cached: error %d\n", name, i);
+		break;
+	    case 1:
+		if (fib_cached(10) != 55)
+		    print("%s: run_fib_cached: error %d\n", name, i);
+		break;
+	    default:
+		if (fib_cached(15) != 610)
+		    print("%s: run_fib_cached: error %d\n", name, i);
+		break;
+	}
+    }
+    print("%s: leave fib_cached\n", name);
+}
+void run_fib_sequential(string_t name)
+{
+    print("%s: enter fib_sequential\n", name);
+    auto i;
+    for (i = 0; i < 300000; ++i) {
+	switch (i & 3) {
+	    case 0:
+		if (fib_sequential(5) != 5)
+		    print("%s: run_fib_sequential: error %d\n", name, i);
+		break;
+	    case 1:
+		if (fib_sequential(10) != 55)
+		    print("%s: run_fib_sequential: error %d\n", name, i);
+		break;
+	    default:
+		if (fib_sequential(15) != 610)
+		    print("%s: run_fib_sequential: error %d\n", name, i);
+		break;
+	}
+    }
+    print("%s: leave fib_sequential\n", name);
+}
+thread(thread_routine(" 1"));
+thread(thread_routine(" 2"));
+thread(thread_routine(" 3"));
+thread(thread_routine(" 4"));
+thread(thread_routine(" 5"));
+thread(thread_routine_with_lots_of_gc_calls(" 6"));
+thread(thread_routine_with_lots_of_gc_calls(" 7"));
+thread(thread_routine_with_lots_of_gc_calls(" 8"));
+thread(thread_routine_with_lots_of_gc_calls(" 9"));
+thread(thread_routine_with_lots_of_gc_calls("10"));
+thread(run_fact_recursive("11"));
+thread(run_fact_sequential("12"));
+thread(run_fib_recursive("13"));
+thread(run_fib_cached("14"));
+thread(run_fib_sequential("15"));
+thread(run_fact_recursive("16"));
+thread(run_fact_sequential("17"));
+thread(run_fib_recursive("18"));
+thread(run_fib_cached("19"));
+thread(run_fib_sequential("20"));
+
+/* Test all combinations of thread arguments */
+class t49a_t {
+    string_t isa() {
+	return "t49a_t";
+    }
+    void f() {
+	thread g();
+    }
+    void g() {
+	print("%s.g()\n", isa());
+    }
+};
+class t49b_t : t49a_t {
+    void h() {
+	t49a_t.g();
+    }
+};
+void t49f(int8_t sc, uint8_t uc,
+	  int16_t ss, uint16_t us,
+	  int32_t si, uint32_t ui,
+	  int64_t sl, uint64_t ul,
+	  float32_t sf, float64_t df,
+	  auto a) {
+    print("%d %d %d %d %d %d %d %d %d %d %d\n",
+	  sc, uc, ss, us, si, ui, sl, ul, sf, df, a);
+}
+t49b_t t49b = {};
+/* thread jit function */
+thread(t49f(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+/* FIXME currently only class methods can make explicit (non virtual) calls
+ * that means type check is trivial, but may be desirable to be able to
+ * make explicit (non virtual) method calls only having an object pointer */
+/* thread jit explicit method */
+thread(t49b.h());
+/* thread jit virtual method */
+t49b.f();
+/* thread native function */
+thread(print("%d %d %d %d %d %d %d %d %d %d %d\n",
+	     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10));

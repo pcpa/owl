@@ -641,6 +641,10 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	case tok_comma:		dputc(',');		++bytes;	break;
 	case tok_ellipsis:	bytes = dputs("...", 3);		break;
 	case tok_explicit:
+	    if (ast->t.ast) {
+		bytes += print_ast(ast->t.ast);
+		dputc('.');	++bytes;
+	    }
 	    bytes += print_tag(ast->l.ast->l.value, null, false);
 	    dputc('.');		++bytes;
 	    bytes += print_ast(ast->r.ast);
@@ -809,6 +813,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    else
 		bytes += print_ast(ast->l.ast);
 	    dputc(')');		++bytes;
+	    break;
+	case tok_thread:
+	    bytes += print_ast_unary_function("thread", 6, ast);
 	    break;
 	case tok_integer_p:
 	    bytes += print_ast_unary_function("integer_p", 9, ast);

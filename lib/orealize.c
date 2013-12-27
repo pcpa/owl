@@ -110,6 +110,8 @@ orealize(void)
     thread_main->type = t_root;
     thread_main->frame = THIS_OFFSET;
     thread_main->stack = 0;
+    rtti = rtti_vector->v.ptr[t_root];
+    rtti->frame = THIS_OFFSET;
 
     /* Realize gc protected stack frames information */
     for (offset = type_vector->offset - 1; offset > t_root; --offset) {
@@ -117,13 +119,14 @@ orealize(void)
 	if (otype(record) == t_prototype &&
 	    likely(record->function && ofunction_p(record->function))) {
 	    oend_record(record);
+	    rtti = rtti_vector->v.ptr[record->type];
 	    record->function->stack = -record->offset;
+	    rtti->frame = record->function->frame;
+	    rtti->stack = record->function->stack;
 	    if (record->function->framesize < record->function->stack)
 		record->function->framesize = record->function->stack;
-	    if (record->function->varargs) {
-		rtti = rtti_vector->v.ptr[record->type];
-		rtti->offset = record->function->varargs;
-	    }
+	    if (record->function->varargs)
+		rtti->varargs = record->function->varargs;
 	}
     }
 
@@ -224,6 +227,7 @@ realize(oast_t *ast)
 	case tok_atanh:		case tok_proj:
 	case tok_exp:		case tok_log:
 	case tok_log2:		case tok_log10:
+	case tok_thread:
 	    realize(ast->l.ast);
 	    ast->offset = ast->l.ast->offset;
 	    break;
@@ -389,6 +393,8 @@ call(oast_t *ast)
 	symbol = ast->l.ast->r.ast->l.value;
     }
     else if (ecall) {
+	if (ast->t.ast)
+	    realize(ast->t.ast);
 	assert(ast->l.ast->r.ast->token == tok_symbol);
 	symbol = ast->l.ast->r.ast->l.value;
     }

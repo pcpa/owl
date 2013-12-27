@@ -52,4 +52,9 @@ finish_emit(void);
 extern void
 oemit(void);
 
+/*
+ * Externs
+ */
+extern oint8_t		*jit_code_exit;
+
 #endif /* _oemit_h */

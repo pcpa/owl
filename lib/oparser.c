@@ -263,7 +263,7 @@ static struct {
     { "sizeof",		tok_sizeof	},
     { "typeof",		tok_typeof	},
     { "new",		tok_new		},
-    { "rankof",		tok_rankof	},
+    { "thread",		tok_thread	},
     { "signbit",	tok_signbit	},
     { "signum",	 	tok_signum	},
     { "rational",	tok_rational	},
@@ -1262,8 +1262,11 @@ structure(void)
 		    oparse_error(ast, "type %p cannot be derived", tag);
 		/* Can only derive an already defined class */
 		super = tag->name;
-		if (super->length == 0)
+		if (rtti_vector->v.ptr[super->type] == null) {
+		    assert(super->type > t_mpc &&
+			   super->type <= rtti_vector->offset);
 		    oparse_error(ast, "class %p is not defined", tag);
+		}
 		oadd_record(record, super);
 		token = lookahead_noeof();
 		if (token != tok_obrace)
@@ -1754,6 +1757,11 @@ unary(void)
 	case tok_log:		case tok_log2:
 	case tok_log10:
 	    return (unary_unary(token));
+	case tok_thread:
+	    token = unary_unary(token);
+	    if (top_ast()->l.ast->token != tok_call)
+		oparse_error(top_ast()->l.ast, "'thread' argument must be a function call");
+	    return (token);
 	case tok_ellipsis:
 	    if (lookahead() == tok_obrack)
 		token = unary_vector();
@@ -2023,17 +2031,29 @@ unary_field(void)
     if (ast->l.ast->token == tok_type)
 	ast->token = tok_explicit;
     if (primary_noeof() != tok_symbol) {
-	if (top_ast()->token == tok_type &&
-	    ast->l.ast->token == tok_type &&
-	    top_ast()->l.value == ast->l.ast->l.value) {
-	    /* constructor full specification or error */
-	    value = ast->l.ast->l.value;
-	    discard();
-	    ast = top_ast();
-	    odel_object(&ast->l.value);
-	    ast->token = tok_type;
-	    ast->l.value = value;
-	    return (unary_ctor());
+	if (top_ast()->token == tok_type) {
+	    if (ast->l.ast->token == tok_type &&
+		top_ast()->l.value == ast->l.ast->l.value) {
+		/* constructor full specification or error */
+		value = ast->l.ast->l.value;
+		discard();
+		ast = top_ast();
+		odel_object(&ast->l.value);
+		ast->token = tok_type;
+		ast->l.value = value;
+		return (unary_ctor());
+	    }
+	    if (lookahead() == tok_dot) {
+		/* explicit call not from a class method or error */
+		consume();
+		if (primary_noeof() == tok_symbol) {
+		    ast->token = tok_explicit;
+		    ast->t.ast = ast->l.ast;
+		    ast->r.ast = pop_ast();
+		    ast->l.ast = pop_ast();
+		    return (unary_loop(tok_expr));
+		}
+	    }
 	}
 	oparse_error(top_ast(), "expecting symbol %A", top_ast());
     }
@@ -2054,7 +2074,10 @@ unary_unary(otoken_t token)
     ast = top_ast();
     if ((paren = lookahead() == tok_oparen))
 	consume();
-    else if (token != tok_sizeof && token != tok_new && token != tok_typeof)
+    else if (token != tok_sizeof &&
+	     token != tok_new &&
+	     token != tok_typeof &&
+	     token != tok_thread)
 	oparse_error(ast, "expecting '(' %A", ast);
     expression_noeof();
     ast->l.ast = pop_ast();

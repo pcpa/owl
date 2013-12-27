@@ -130,6 +130,7 @@ odata(oast_t *ast)
 	case tok_atanh:		case tok_proj:
 	case tok_exp:		case tok_log:
 	case tok_log2:		case tok_log10:
+	case tok_thread:
 	    odata(ast->l.ast);
 	    break;
 	case tok_init:
@@ -186,6 +187,7 @@ odata(oast_t *ast)
 	case tok_class:		case tok_label:		case tok_break:
 	case tok_continue:	case tok_case:		case tok_default:
 	case tok_function:	case tok_ellipsis:	case tok_typeof:
+	case tok_new:		case tok_explicit:
 	    break;
 	default:
 #if DEBUG

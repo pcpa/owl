@@ -50,13 +50,16 @@ static void
 emit_return(oast_t *ast);
 
 static void
+emit_thread(oast_t *ast);
+
+static void
 emit_call(oast_t *ast);
 
 static void
 emit_call_next(ooperand_t *rop,
 	       ofunction_t *function, oast_t *alist,
 	       ooperand_t *top,
-	       obool_t vcall, obool_t ecall, obool_t builtin);
+	       obool_t vcall, obool_t ecall, obool_t builtin, obool_t thread);
 #endif
 
 #if defined(CODE)
@@ -691,7 +694,7 @@ emit_function(ofunction_t *function)
     /* If a constructor, explicitly call parent constructor first */
     if (function->name->ctor && function->name->record->parent) {
 	if ((parent = oget_constructor(function->name->record->parent)))
-	    emit_call_next(null, parent, null, null, false, true, false);
+	    emit_call_next(null, parent, null, null, false, true, false, false);
     }
 
     emit(function->ast->c.ast);
@@ -885,6 +888,49 @@ if (varargs)
  */
 
 static void
+emit_thread(oast_t *ast)
+{
+    ooperand_t		*rop;
+    ooperand_t		*top;
+    oast_t		*list;
+    obool_t		 vcall;
+    obool_t		 ecall;
+    osymbol_t		*symbol;
+    obool_t		 builtin;
+    ofunction_t		*function;
+
+    ast = ast->l.ast;
+    rop = operand_get(ast->offset);
+    rop->u.w = get_register(true);
+    top = null;
+    vcall = ast->l.ast->token == tok_dot;
+    ecall = ast->l.ast->token == tok_explicit;
+
+    if (vcall) {
+	emit(ast->l.ast->l.ast);
+	top = operand_top();
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else if (ecall) {
+	if (ast->t.ast) {
+	    emit(ast->t.ast);
+	    top = operand_top();
+	}
+	symbol = ast->l.ast->r.ast->l.value;
+    }
+    else
+	symbol = ast->l.ast->l.value;
+
+    if (!(builtin = symbol->builtin))
+	assert(symbol->function == true);
+
+    function = symbol->value;
+
+    list = ast->r.ast;
+    emit_call_next(rop, function, list, top, vcall, ecall, builtin, true);
+}
+
+static void
 emit_call(oast_t *ast)
 {
     ooperand_t		*rop;
@@ -907,8 +953,13 @@ emit_call(oast_t *ast)
 	top = operand_top();
 	symbol = ast->l.ast->r.ast->l.value;
     }
-    else if (ecall)
+    else if (ecall) {
+	if (ast->t.ast) {
+	    emit(ast->t.ast);
+	    top = operand_top();
+	}
 	symbol = ast->l.ast->r.ast->l.value;
+    }
     else
 	symbol = ast->l.ast->l.value;
 
@@ -917,14 +968,14 @@ emit_call(oast_t *ast)
     function = symbol->value;
 
     list = ast->r.ast;
-    emit_call_next(rop, function, list, top, vcall, ecall, builtin);
+    emit_call_next(rop, function, list, top, vcall, ecall, builtin, false);
 }
 
 static void
 emit_call_next(ooperand_t *rop,
 	       ofunction_t *function, oast_t *alist,
 	       ooperand_t *top,
-	       obool_t vcall, obool_t ecall, obool_t builtin)
+	       obool_t vcall, obool_t ecall, obool_t builtin, obool_t thread)
 {
     ooperand_t		*op;
     jit_node_t		*call;
@@ -1101,48 +1152,56 @@ emit_call_next(ooperand_t *rop,
      * generate a not so simple call sequence, that arguably would
      * be better done as a builtin prolog/epilog sequence. */
     if (builtin) {
-
-	/*   Pass first builtin argument as pointer to first language
-	 * specific argument, so that casting to a structure is easy. */
-	if (GPR[STACK] != JIT_NOREG)
-	    stack = GPR[STACK];
-	else {
-	    stack = JIT_R0;
-	    jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+	if (thread) {
+	    jit_prepare();
+	    jit_pushargi(function->record->type);
+	    jit_pushargi((oword_t)function->address);
+	    jit_pushargi(true);
+	    jit_finishi(ovm_thread);
 	}
-	jit_addi(JIT_R0, stack, THIS_OFFSET);
-	jit_prepare();
-	jit_pushargr(JIT_R0);
-
-	/*   Pass second builtin argument as number of void* pointers
-	 * following declared arguments, in case it is a varargs. */
-	assert((framesize - function->frame) % sizeof(oobject_t) == 0);
-	jit_pushargi((framesize - function->frame) / sizeof(oobject_t));
-
-	/*   Execute builtin. */
-	jit_finishi(function->address);
-
-	/*   Stack memory not being used must be zero'ed or gc may
-	 * inspect garbage when the memory is recast to a different
-	 * layout, where previously word/double data could be mapped
-	 * to collectable memory on a newer stack frame. */
-	if (GPR[STACK] != JIT_NOREG)
-	    stack = GPR[STACK];
 	else {
-	    stack = JIT_R0;
-	    jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
-	}
-	jit_prepare();
-	jit_pushargr(stack);
-	jit_pushargi(0);
-	jit_pushargi(framesize);
-	jit_finishi(memset);
-	if (GPR[STACK] == JIT_NOREG)
-	    jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+	    /*   Pass first builtin argument as pointer to first language
+	     * specific argument, so that casting to a structure is easy. */
+	    if (GPR[STACK] != JIT_NOREG)
+		stack = GPR[STACK];
+	    else {
+		stack = JIT_R0;
+		jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+	    }
+	    jit_addi(JIT_R0, stack, THIS_OFFSET);
+	    jit_prepare();
+	    jit_pushargr(JIT_R0);
 
-	/*   Restore stack pointer */
-	jit_addi(stack, stack, framesize);
-	jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+	    /*   Pass second builtin argument as number of void* pointers
+	     * following declared arguments, in case it is a varargs. */
+	    assert((framesize - function->frame) % sizeof(oobject_t) == 0);
+	    jit_pushargi((framesize - function->frame) / sizeof(oobject_t));
+
+	    /*   Execute builtin. */
+	    jit_finishi(function->address);
+
+	    /*   Stack memory not being used must be zero'ed or gc may
+	     * inspect garbage when the memory is recast to a different
+	     * layout, where previously word/double data could be mapped
+	     * to collectable memory on a newer stack frame. */
+	    if (GPR[STACK] != JIT_NOREG)
+		stack = GPR[STACK];
+	    else {
+		stack = JIT_R0;
+		jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+	    }
+	    jit_prepare();
+	    jit_pushargr(stack);
+	    jit_pushargi(0);
+	    jit_pushargi(framesize);
+	    jit_finishi(memset);
+	    if (GPR[STACK] == JIT_NOREG)
+		jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
+
+	    /*   Restore stack pointer */
+	    jit_addi(stack, stack, framesize);
+	    jit_stxi(offsetof(othread_t, sp), JIT_V0, stack);
+	}
     }
 
     /*   Non builtins (and non virtual methods) are cheaper to call
@@ -1174,11 +1233,30 @@ emit_call_next(ooperand_t *rop,
 	    jit_ldxi(JIT_R0, GPR[1], offsetof(ortti_t, mdinfo));
 	    jit_ldxi(GPR[0], JIT_R0,
 		     function->name->offset * sizeof(oobject_t));
-	    jit_jmpr(GPR[0]);
+	    if (thread) {
+		jit_prepare();
+		jit_pushargi(function->record->type);
+		jit_pushargr(GPR[0]);
+		jit_pushargi(false);
+		jit_finishi(ovm_thread);
+	    }
+	    else
+		jit_jmpr(GPR[0]);
 	}
 	else {
-	    call = jit_jmpi();
-	    jit_patch_at(call, function->patch);
+	    if (thread) {
+		call = jit_movi(GPR[0], 0);
+		jit_patch_at(call, function->patch);
+		jit_prepare();
+		jit_pushargi(function->record->type);
+		jit_pushargr(GPR[0]);
+		jit_pushargi(false);
+		jit_finishi(ovm_thread);
+	    }
+	    else {
+		call = jit_jmpi();
+		jit_patch_at(call, function->patch);
+	    }
 	}
 
 	/* Return address */
@@ -1186,8 +1264,12 @@ emit_call_next(ooperand_t *rop,
     }
 
     /* Get result type */
-    vector = function->name->tag->name;
-    type = otag_to_type(vector->v.ptr[0]);
+    if (thread)
+	type = t_void;
+    else {
+	vector = function->name->tag->name;
+	type = otag_to_type(vector->v.ptr[0]);
+    }
 
     if (type != t_void && rop) {
 	switch (type) {

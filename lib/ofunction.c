@@ -241,7 +241,9 @@ oend_builtin(obuiltin_t *builtin)
     tag = otag_builtin(builtin->name->tag, record->vector, !!builtin->varargs);
     if (builtin->varargs) {
 	rtti = rtti_vector->v.ptr[record->type];
-	rtti->offset = builtin->varargs;
+	rtti->frame = builtin->frame;
+	rtti->varargs = builtin->varargs;
+	rtti->address = builtin->native;
     }
     builtin->name->tag = tag;
 }

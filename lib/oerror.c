@@ -204,7 +204,7 @@ otoken_to_charp(otoken_t token)
 	case tok_sizeof:	return ("'sizeof'");
 	case tok_typeof:	return ("'typeof'");
 	case tok_new:		return ("'new'");
-	case tok_rankof:	return ("'rankof'");
+	case tok_thread:	return ("'thread'");
 	case tok_not:		return ("'!'");
 	case tok_com:		return ("'~'");
 	case tok_plus:		return ("'+'");

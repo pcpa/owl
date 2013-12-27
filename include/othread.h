@@ -116,6 +116,14 @@
 /*
  * Types
  */
+struct oframe {
+    oobject_t		next;
+    oint32_t		type;
+    oint32_t		size;
+    oobject_t		prev;
+    oobject_t		ret;
+};
+
 struct oregister {
 #if __WORDSIZE == 64
     oint32_t		 _;
@@ -156,6 +164,7 @@ struct othread {
     oint8_t		*bp;		/* base of stack address */
     oint8_t		*ex;		/* exception stack pointer */
     oobject_t		 ev;		/* exception value */
+    oobject_t		 obj;		/* gc protected general purpose use */
 
     /* instruction pointer, either:
      *	o thread execution start address

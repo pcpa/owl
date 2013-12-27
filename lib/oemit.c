@@ -282,12 +282,14 @@ load_registers(oword_t mask);
  */
 oint8_t			*jit_code_start;
 oint8_t			*jit_code_end;
+oint8_t			*jit_code_exit;
 
 static onote_t		 note;
 static oint32_t		 depth;
 static ovector_t	*stack;
 static ovector_t	*branch;
 static jit_int32_t	 scratch;
+static jit_node_t	*exit_label;
 static jit_int32_t	 GPR[10];
 static jit_int32_t	 FPR[4];
 static jit_int32_t	 SPL[6];
@@ -398,6 +400,7 @@ finish_emit(void)
 void
 oemit(void)
 {
+    ortti_t		*rtti;
     oint32_t		 offset;
     orecord_t		*record;
     jit_node_t		*thread;
@@ -425,6 +428,10 @@ oemit(void)
     /* Initialize before any exception handling */
     if (GPR[GLOBAL] != JIT_NOREG)
 	jit_movi(GPR[GLOBAL], (oword_t)gd);
+    if (GPR[FRAME] != JIT_NOREG)
+	jit_ldxi(GPR[FRAME], JIT_V0, offsetof(othread_t, fp));
+    if (GPR[STACK] != JIT_NOREG)
+	jit_ldxi(GPR[STACK], JIT_V0, offsetof(othread_t, sp));
 
     /* Call sigsetjmp when starting thread to set exception handler */
     jit_prepare();
@@ -531,11 +538,10 @@ oemit(void)
 
     /* Root function start point */
     current_function->address = jit_name("");
-    if (GPR[FRAME] != JIT_NOREG)
-	jit_ldxi(GPR[FRAME], JIT_V0, offsetof(othread_t, fp));
-    if (GPR[STACK] != JIT_NOREG)
-	jit_ldxi(GPR[STACK], JIT_V0, offsetof(othread_t, sp));
     emit_stat(root_record->function->ast->c.ast->l.ast);
+
+    exit_label = jit_name("");
+    jit_calli(ovm_exit);
 
     jit_ret();
     jit_epilog();
@@ -547,9 +553,14 @@ oemit(void)
 	record = type_vector->v.ptr[offset];
 	if (otype(record) == t_prototype &&
 	    likely(record->function && ofunction_p(record->function))) {
-	    if (record->function->address)
+	    if (record->function->address) {
 		record->function->address =
 		    jit_address(record->function->address);
+		assert(record->function->record->type > t_mpc &&
+		       record->function->record->type <= rtti_vector->offset);
+		rtti = rtti_vector->v.ptr[record->function->record->type];
+		rtti->address = record->function->address;
+	    }
 	}
     }
 
@@ -561,7 +572,11 @@ oemit(void)
     }
 
     current_function->address = jit_address(current_function->address);
+    rtti = rtti_vector->v.ptr[current_function->record->type];
+    rtti->address = current_function->address;
     thread_main->ip = current_function->address;
+
+    jit_code_exit = jit_address(exit_label);
 }
 
 /* *MUST* be called from lower to higher address so that super methods are
@@ -907,6 +922,9 @@ emit(oast_t *ast)
 	    break;
 	case tok_return:
 	    emit_return(ast);
+	    break;
+	case tok_thread:
+	    emit_thread(ast);
 	    break;
 	case tok_call:
 	    emit_call(ast);
@@ -1284,7 +1302,7 @@ data_record(oast_t *ast)
 	lop = operand_get(0);
 	operand_copy(lop, bop);
 	/* op argument is implicitly unget */
-	emit_call_next(null, ctor, null, lop, false, true, false);
+	emit_call_next(null, ctor, null, lop, false, true, false, false);
     }
 }
 

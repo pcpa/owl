@@ -96,7 +96,7 @@ enum otoken {
     tok_sizeof,
     tok_typeof,
     tok_new,
-    tok_rankof,
+    tok_thread,
     tok_not,
     tok_com,
     tok_plus,

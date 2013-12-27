@@ -23,6 +23,9 @@
 /*
  * Prototypes
  */
+static osymbol_t *
+new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add);
+
 static orecord_t *
 new_record(osymbol_t *name, otype_t type);
 
@@ -110,115 +113,7 @@ oget_bound_symbol(ovector_t *name)
 osymbol_t *
 onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
 {
-    obool_t		 gc;
-    obool_t		 down;
-    otype_t		 type;
-    oword_t		 length;
-    osymbol_t		*method;
-    osymbol_t		*symbol;
-    oobject_t		*pointer;
-
-    /* caller must check with file/line/column context for error messages */
-    if ((method = oget_symbol(record, name)))
-	assert(tag->type == tag_function);
-
-    gc_ref(pointer);
-    make_symbol(pointer, name);
-    symbol = *pointer;
-    symbol->tag = tag;
-    symbol->record = record;
-    oput_hash(record->fields, (oentry_t *)symbol);
-    gc_dec();
-
-    if (record->vector->offset >= record->vector->length)
-	orenew_vector(record->vector, record->vector->length + 4);
-    record->vector->v.ptr[record->vector->offset++] = symbol;
-
-    gc = true;
-    length = sizeof(oobject_t);
-    if (tag) {
-	switch (tag->type) {
-	    case tag_basic:
-		length = ((obasic_t *)tag->name)->length;
-		gc = false;
-		break;
-	    case tag_auto:	case tag_class:
-	    case tag_vector:
-		break;
-	    default:
-		assert(tag->type == tag_function);
-		/* Must have been called from oadd_record */
-		if (method) {
-		    assert(otype(record) == t_record);
-		    symbol->value = method->value;
-		    symbol->offset = method->offset;
-		    symbol->function = symbol->method = true;
-		}
-		return (symbol);
-	}
-    }
-    else {
-	/* FIXME assert creating a builtin */
-	assert(record == root_record);
-	return (symbol);
-    }
-
-    type = otype(record);
-    assert(type == t_record || type == t_namespace || type == t_prototype);
-    if (type == t_prototype) {
-	assert(record->function);
-	if (ofunction_p(record->function))
-	    down = record->function->local;
-	else
-	    down = false;
-	symbol->field = false;
-	symbol->argument = !down;
-    }
-    else {
-	down = false;
-	symbol->field = type == t_record;
-	symbol->global = type == t_namespace;
-	/* Simplify check of if return value of oget_bound_symbol */
-	if (symbol->field)
-	    symbol->bound = true;
-    }
-
-    switch (length) {
-	case 0:
-	    break;
-	case 1:
-	    if (down)	--record->offset;
-	    ++record->length;
-	    break;
-	case 2:
-	    if (down)	record->offset = (record->offset - 2) & ~1;
-	    else	record->offset = (record->offset + 1) & ~1;
-	    record->length = (record->length + 1) & ~1;
-	    break;
-	case 3:		case 4:
-	    if (down)	record->offset = (record->offset - 4) & ~3;
-	    else	record->offset = (record->offset + 3) & ~3;
-	    record->length = (record->length + 3) & ~3;
-	    break;
-	default:
-	    if (down)	record->offset = (record->offset - 8) & ~7;
-	    else	record->offset = (record->offset + 7) & ~7;
-	    record->length = (record->length + 7) & ~7;
-	    break;
-    }
-    symbol->offset = record->offset;
-    if (!down)
-	record->offset += length;
-    record->length += length;
-    if (gc) {
-	if (record->gcinfo == null)
-	    onew_vector((oobject_t *)&record->gcinfo, t_word, 4);
-	else if ((record->gcinfo->offset & 3) == 0)
-	    orenew_vector(record->gcinfo, record->gcinfo->offset + 4);
-	record->gcinfo->v.w[record->gcinfo->offset++] = symbol->offset;
-    }
-
-    return (symbol);
+    return (new_symbol(record, name, tag, false));
 }
 
 oword_t
@@ -352,7 +247,7 @@ oadd_record(orecord_t *record, orecord_t *super)
     record->super = super;
     for (offset = 0; offset < super->vector->offset; offset++) {
 	symbol = super->vector->v.ptr[offset];
-	onew_symbol(record, symbol->name, symbol->tag);
+	new_symbol(record, symbol->name, symbol->tag, true);
     }
     record->nmethod = super->nmethod;
 }
@@ -376,7 +271,7 @@ oend_record(orecord_t *record)
     onew_object(rtti_vector->v.ptr + record->type, t_rtti, sizeof(ortti_t));
     rtti = rtti_vector->v.ptr[record->type];
     if (record->super)
-	rtti->superc = record->super->type;
+	rtti->super = record->super->type;
     if (record->gcinfo) {
 	rtti->gcsize = record->gcinfo->offset;
 	onew_object((oobject_t *)&rtti->gcinfo, t_word,
@@ -394,6 +289,124 @@ oend_record(orecord_t *record)
     /* For runtime type bounds checking */
     if (rtti_vector->offset < record->type)
 	rtti_vector->offset = record->type;
+}
+
+static osymbol_t *
+new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
+{
+    obool_t		 gc;
+    obool_t		 down;
+    otype_t		 type;
+    oword_t		 length;
+    osymbol_t		*method;
+    osymbol_t		*symbol;
+    oobject_t		*pointer;
+
+    /* caller must check with file/line/column context for error messages */
+    if (add)
+	method = oget_symbol(record->super, name);
+    else
+	method = oget_symbol(record, name);
+    if (method)
+	assert(tag->type == tag_function);
+
+    gc_ref(pointer);
+    make_symbol(pointer, name);
+    symbol = *pointer;
+    symbol->tag = tag;
+    symbol->record = record;
+    oput_hash(record->fields, (oentry_t *)symbol);
+    gc_dec();
+
+    if (record->vector->offset >= record->vector->length)
+	orenew_vector(record->vector, record->vector->length + 4);
+    record->vector->v.ptr[record->vector->offset++] = symbol;
+
+    gc = true;
+    length = sizeof(oobject_t);
+    if (tag) {
+	switch (tag->type) {
+	    case tag_basic:
+		length = ((obasic_t *)tag->name)->length;
+		gc = false;
+		break;
+	    case tag_auto:	case tag_class:
+	    case tag_vector:
+		break;
+	    default:
+		assert(tag->type == tag_function);
+		/* Must have been called from oadd_record */
+		if (method) {
+		    assert(otype(record) == t_record);
+		    symbol->value = method->value;
+		    symbol->offset = method->offset;
+		    symbol->function = symbol->method = true;
+		}
+		return (symbol);
+	}
+    }
+    else {
+	/* FIXME assert creating a builtin */
+	assert(record == root_record);
+	return (symbol);
+    }
+
+    type = otype(record);
+    assert(type == t_record || type == t_namespace || type == t_prototype);
+    if (type == t_prototype) {
+	assert(record->function);
+	if (ofunction_p(record->function))
+	    down = record->function->local;
+	else
+	    down = false;
+	symbol->field = false;
+	symbol->argument = !down;
+    }
+    else {
+	down = false;
+	symbol->field = type == t_record;
+	symbol->global = type == t_namespace;
+	/* Simplify check of if return value of oget_bound_symbol */
+	if (symbol->field)
+	    symbol->bound = true;
+    }
+
+    switch (length) {
+	case 0:
+	    break;
+	case 1:
+	    if (down)	--record->offset;
+	    ++record->length;
+	    break;
+	case 2:
+	    if (down)	record->offset = (record->offset - 2) & ~1;
+	    else	record->offset = (record->offset + 1) & ~1;
+	    record->length = (record->length + 1) & ~1;
+	    break;
+	case 3:		case 4:
+	    if (down)	record->offset = (record->offset - 4) & ~3;
+	    else	record->offset = (record->offset + 3) & ~3;
+	    record->length = (record->length + 3) & ~3;
+	    break;
+	default:
+	    if (down)	record->offset = (record->offset - 8) & ~7;
+	    else	record->offset = (record->offset + 7) & ~7;
+	    record->length = (record->length + 7) & ~7;
+	    break;
+    }
+    symbol->offset = record->offset;
+    if (!down)
+	record->offset += length;
+    record->length += length;
+    if (gc) {
+	if (record->gcinfo == null)
+	    onew_vector((oobject_t *)&record->gcinfo, t_word, 4);
+	else if ((record->gcinfo->offset & 3) == 0)
+	    orenew_vector(record->gcinfo, record->gcinfo->offset + 4);
+	record->gcinfo->v.w[record->gcinfo->offset++] = symbol->offset;
+    }
+
+    return (symbol);
 }
 
 static orecord_t *
