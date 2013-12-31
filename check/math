@@ -15,6 +15,7 @@ string_t NAQN	= "not a rational number";
 string_t NA32BI	= "not a 32 bits integer";
 string_t NAFRN	= "not a finite real number";
 string_t STL	= "shift too large";
+string_t SO	= "stack overflow";
 string_t names[] = {
     N,
     OOM,
@@ -31,6 +32,7 @@ string_t names[] = {
     NA32BI,
     NAFRN,
     STL,
+    SO,
 };
 string_t FIXME = "FIXME";
 string_t IGNORE = "IGNORE";	/* only check that the vm doesn't crash

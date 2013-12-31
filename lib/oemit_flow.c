@@ -675,7 +675,9 @@ emit_function(ofunction_t *function)
 	jit_ldxi(JIT_R0, JIT_V0, offsetof(othread_t, bp));
 	jit_addi(JIT_R0, JIT_R0, function->framesize);
 	overflow = jit_bltr_u(JIT_R0, stack);
-	jit_calli(abort);
+	jit_prepare();
+	jit_pushargi(except_stack_overflow);
+	jit_finishi(ovm_raise);
 	jit_patch(overflow);
 
 	if (function->stack) {

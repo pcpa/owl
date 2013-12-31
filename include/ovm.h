@@ -103,6 +103,7 @@ enum oexcept {
     except_not_a_32_bits_integer,
     except_not_a_finite_real_number,
     except_shift_too_large,
+    except_stack_overflow,
     except_unhandled_exception,
 };
 

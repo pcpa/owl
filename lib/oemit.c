@@ -314,6 +314,7 @@ static char		*exceptions[] = {
     "not a 32 bits integer",
     "not a finite real number",
     "shift too large",
+    "stack overflow",
 };
 
 /*
