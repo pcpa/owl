@@ -37,6 +37,7 @@ oint32_t		 cfg_optsize;
 oint32_t		 cfg_optlevel;
 oint32_t		 cfg_verbose;
 oint32_t		 cfg_float_format;
+oint32_t		 cfg_stack_size;
 mp_prec_t		 cfg_mpfr_prc;
 mp_rnd_t		 cfg_mpfr_rnd;
 char			*cfg_progname;
@@ -158,6 +159,7 @@ cfg_parse_options(int argc, char *argv[])
 	{ "help",		0, 0, 'h' },
 	{ "fdefault-float",	1, 0, 'f' },
 	{ "fmpfr-prec",		1, 0, 'p' },
+	{ "fstack-size",	1, 0, 's' },
 	{ 0,			0, 0, 0   }
     };
 
@@ -169,6 +171,7 @@ cfg_parse_options(int argc, char *argv[])
     cfg_progname = argv[0];
     cfg_mpfr_prc = mpfr_get_default_prec();
     cfg_mpfr_rnd = mpfr_get_default_rounding_mode();
+    cfg_stack_size = 64 * 1024 * 1024;
 
     for (error = 0; !error;) {
 	opt_short = getopt_long_only(argc, argv, short_options,
@@ -187,7 +190,8 @@ Options:\n\
   -v[0-3]                  Verbose output level\n\
   -fdefault-float={double|mpfr}\n\
                            Default float format\n\
-  -fmpfr-prec={2-n}        Mpfr precision\n");
+  -fmpfr-prec={2-n}        Mpfr precision\n\
+  -fstack-size=n[K|M]      Stack size (default 64M, max 1G)\n");
 		error = 1;
 		break;
 	    case 'O':
@@ -225,6 +229,32 @@ Options:\n\
 		    cfg_mpfr_prc > MPFR_PREC_MAX)
 		    goto fail;
 		mpfr_set_default_prec(cfg_mpfr_prc);
+		break;
+	    case 's':
+		cfg_stack_size = strtol(optarg, &endptr, 10);
+		switch (*endptr) {
+		    case '\0':
+			break;
+		    case 'k':	case 'K':
+			/* hardcode 1G limit */
+			if (endptr[1] || cfg_stack_size > 1024 * 1024)
+			    goto fail;
+			cfg_stack_size *= 1024;
+			break;
+		    case 'm':	case 'M':
+			/* hardcode 1G limit */
+			if (endptr[1] || cfg_stack_size > 1024)
+			    goto fail;
+			cfg_stack_size *= 1024 * 1024;
+			break;
+		    default:
+			goto fail;
+		}
+		/* Cannot allow "debug" 0 size because need to
+		 * setup a gc "marker" stack frame */
+		if (!cfg_stack_size)
+		    goto fail;
+		cfg_stack_size = (cfg_stack_size + 4095) & -4096;
 		break;
 	}
      }

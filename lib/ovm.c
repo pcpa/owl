@@ -178,8 +178,8 @@ ovm(othread_t *thread)
 #endif
     if (thread == thread_main) {
 	assert(thread->bp == null);
-	onew_object((oobject_t *)&thread->bp, t_void, 64 * 1024 * 1024);
-	thread->sp = thread->fp = thread->bp + 64 * 1024 * 1024 -
+	onew_object((oobject_t *)&thread->bp, t_void, cfg_stack_size);
+	thread->sp = thread->fp = thread->bp + cfg_stack_size -
 	    (thread->frame + sizeof(oframe_t));
 	frame = (oframe_t *)thread->sp;
 	frame->type = thread->type;
@@ -241,11 +241,11 @@ ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
     thread->type = type;
     thread->frame = rtti->frame;
     thread->stack = rtti->stack;
-    onew_object((oobject_t *)&thread->bp, t_void, 64 * 1024 * 1024);
+    onew_object((oobject_t *)&thread->bp, t_void, cfg_stack_size);
 
     cur_frame = (oframe_t *)thread_self->sp;
     cur_frame->next = null;
-    fp = thread->bp + 64 * 1024 * 1024 - sizeof(oframe_t);
+    fp = thread->bp + cfg_stack_size - sizeof(oframe_t);
     /* fake root frame to work as a gc marker */
     new_frame = (oframe_t *)fp;
     new_frame->type = t_root;

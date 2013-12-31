@@ -35,6 +35,7 @@ extern oint32_t		 cfg_optsize;
 extern oint32_t		 cfg_optlevel;
 extern oint32_t		 cfg_verbose;
 extern oint32_t		 cfg_float_format;
+extern oint32_t		 cfg_stack_size;
 extern mp_prec_t	 cfg_mpfr_prc;
 extern mp_rnd_t		 cfg_mpfr_rnd;
 extern char		*cfg_progname;
