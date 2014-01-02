@@ -161,7 +161,7 @@ cfg_parse_options(int argc, char *argv[])
 	{ "fdefault-float",	1, 0, 'f' },
 	{ "fmpfr-prec",		1, 0, 'p' },
 	{ "fstack-size",	1, 0, 's' },
-	{ "fuse-semaphore",	0, 0, 't' },
+	{ "fuse-semaphore",	1, 0, 't' },
 	{ 0,			0, 0, 0   }
     };
 
@@ -174,7 +174,7 @@ cfg_parse_options(int argc, char *argv[])
     cfg_mpfr_prc = mpfr_get_default_prec();
     cfg_mpfr_rnd = mpfr_get_default_rounding_mode();
     cfg_stack_size = 64 * 1024 * 1024;
-    cfg_use_semaphore = false;
+    cfg_use_semaphore = true;
 
     for (error = 0; !error;) {
 	opt_short = getopt_long_only(argc, argv, short_options,
@@ -194,7 +194,9 @@ Options:\n\
   -fdefault-float={double|mpfr}\n\
                            Default float format\n\
   -fmpfr-prec={2-n}        Mpfr precision\n\
-  -fstack-size=n[K|M]      Stack size (default 64M, max 1G)\n");
+  -fstack-size=n{K|M}      Stack size (default 64M, max 1G)\n\
+  -fuse-semaphore={0|1|true|false|yes|no\n\
+                           Use semaphores to suspend/resume threads\n");
 		error = 1;
 		break;
 	    case 'O':
@@ -234,6 +236,8 @@ Options:\n\
 		mpfr_set_default_prec(cfg_mpfr_prc);
 		break;
 	    case 's':
+		if (!optarg)
+		    goto fail;
 		cfg_stack_size = strtol(optarg, &endptr, 10);
 		switch (*endptr) {
 		    case '\0':
@@ -260,7 +264,27 @@ Options:\n\
 		cfg_stack_size = (cfg_stack_size + 4095) & -4096;
 		break;
 	    case 't':
-		cfg_use_semaphore = true;
+		if (optarg) {
+		    switch (*optarg) {
+			case '0' ... '9':
+			    cfg_use_semaphore = !!strtol(optarg, &endptr, 10);
+			    if (*endptr)
+				goto fail;
+			    break;
+			default:
+			    if (strcasecmp(optarg, "yes") == 0 ||
+				strcasecmp(optarg, "true") == 0)
+				cfg_use_semaphore = true;
+			    else if (strcasecmp(optarg, "no") == 0 ||
+				     strcasecmp(optarg, "false") == 0)
+				cfg_use_semaphore = false;
+			    else
+				goto fail;
+			    break;
+		    }
+		}
+		else
+		    cfg_use_semaphore = true;
 		break;
 	}
      }
