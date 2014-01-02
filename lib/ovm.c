@@ -221,7 +221,7 @@ vm_builtin(othread_t *thread)
 }
 
 void
-ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
+ovm_thread(oword_t type, oint8_t *ip, obool_t builtin, obool_t ret)
 {
     GET_THREAD_SELF()
     oint8_t		*fp;
@@ -241,6 +241,7 @@ ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
     thread->type = type;
     thread->frame = rtti->frame;
     thread->stack = rtti->stack;
+    thread->ret = ret;
     onew_object((oobject_t *)&thread->bp, t_void, cfg_stack_size);
 
     cur_frame = (oframe_t *)thread_self->sp;
@@ -264,6 +265,8 @@ ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
      * "atomically" so that gc will now inspect the new thread stack */
     othreads_lock();
     thread->fp = fp;
+    thread_self->r0.t = t_thread;
+    thread_self->r0.v.o = thread;
     othreads_unlock();
 
     memset(thread_self->sp + sizeof(oframe_t), 0,
@@ -277,9 +280,6 @@ ovm_thread(oword_t type, oint8_t *ip, obool_t builtin)
 		   (void*(*)(void*))&vm_builtin : (void*(*)(void*))&ovm,
 		   thread);
     pthread_attr_destroy(&attr);
-
-    thread_self->r0.t = t_thread;
-    thread_self->r0.v.o = thread;
 }
 
 void
@@ -288,6 +288,24 @@ ovm_exit(void)
     GET_THREAD_SELF()
     /* lock thread linked lists */
     othreads_lock();
+
+    /* Make sure return value, if any, is gc reachable */
+    if (thread_self->ret) {
+	switch (thread_self->r0.t) {
+	    case t_void:	case t_word:	case t_float:	case t_rat:
+	    case t_mpz:		case t_mpq:	case t_mpr:	case t_cdd:
+	    case t_cqq:		case t_mpc:
+		break;
+	    default:
+		thread_self->obj = thread_self->r0.v.o;
+		break;
+	}
+    }
+    else {
+	thread_self->r0.t = t_void;
+	thread_self->r0.v.o = null;
+    }
+
     thread_self->run = 0;
     thread_self->fp = null;
 

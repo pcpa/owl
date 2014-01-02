@@ -40075,3 +40075,7 @@ t49b.f();
 /* thread native function */
 thread(print("%d %d %d %d %d %d %d %d %d %d %d\n",
 	     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10));
+
+auto t50_tid = thread(print("foobar\n"));
+auto t50_ret = join(t50_tid);
+print("%d\n", t50_ret);

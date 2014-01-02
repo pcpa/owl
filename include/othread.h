@@ -180,6 +180,7 @@ struct othread {
     pthread_t		 pthread;
 
     obool_t		 run;		/* thread running? */
+    obool_t		 ret;		/* thread result is not void? */
     oint32_t		 xcpt;
 
     sigjmp_buf		 env;		/* exceptions */
@@ -202,6 +203,10 @@ struct oexception {
  */
 extern void
 init_thread(void);
+
+/* special later thread init function */
+extern void
+init_thread_builtin(void);
 
 extern void
 finish_thread(void);

@@ -1150,6 +1150,9 @@ emit_call_next(ooperand_t *rop,
     /* Any live operand must be spilled */
     emit_save_operands();
 
+    vector = function->name->tag->name;
+    type = otag_to_type(vector->v.ptr[0]);
+
     /* FIXME For the sake of keeping builtins as simple as possible,
      * generate a not so simple call sequence, that arguably would
      * be better done as a builtin prolog/epilog sequence. */
@@ -1159,6 +1162,7 @@ emit_call_next(ooperand_t *rop,
 	    jit_pushargi(function->record->type);
 	    jit_pushargi((oword_t)function->address);
 	    jit_pushargi(true);
+	    jit_pushargi(type != t_void);
 	    jit_finishi(ovm_thread);
 	}
 	else {
@@ -1240,6 +1244,7 @@ emit_call_next(ooperand_t *rop,
 		jit_pushargi(function->record->type);
 		jit_pushargr(GPR[0]);
 		jit_pushargi(false);
+		jit_pushargi(type != t_void);
 		jit_finishi(ovm_thread);
 	    }
 	    else
@@ -1253,6 +1258,7 @@ emit_call_next(ooperand_t *rop,
 		jit_pushargi(function->record->type);
 		jit_pushargr(GPR[0]);
 		jit_pushargi(false);
+		jit_pushargi(type != t_void);
 		jit_finishi(ovm_thread);
 	    }
 	    else {
@@ -1267,19 +1273,16 @@ emit_call_next(ooperand_t *rop,
 
     /* Get result type */
     if (thread)
-	type = t_void;
-    else {
-	vector = function->name->tag->name;
-	type = otag_to_type(vector->v.ptr[0]);
-    }
-
-    if (type != t_void && rop) {
+	rop->t = t_void | t_register;
+    else if (rop) {
 	switch (type) {
 	    case t_int8:	case t_uint8:
 	    case t_int16:	case t_uint16:
 #if __WORDSIZE == 64
 	    case t_int32:	case t_uint32:
 #endif
+		if (builtin)
+		    load_w(0);
 		if (rop->u.w)
 		    jit_movr(GPR[rop->u.w], GPR[0]);
 		rop->t = t_half | t_register;
@@ -1289,16 +1292,21 @@ emit_call_next(ooperand_t *rop,
 #else
 	    case t_int64:
 #endif
+		if (builtin)
+		    load_w(0);
 		if (rop->u.w)
 		    jit_movr(GPR[rop->u.w], GPR[0]);
 		rop->t = t_word | t_register;
 		break;
 	    case t_single:
+		assert(!builtin);
 		if (rop->u.w)
 		    jit_movr_f(FPR[rop->u.w], FPR[0]);
 		rop->t = t_single | t_register;
 		break;
 	    case t_float:
+		if (builtin)
+		    load_w(0);
 		if (rop->u.w)
 		    jit_movr_d(FPR[rop->u.w], FPR[0]);
 		rop->t = t_float | t_register;

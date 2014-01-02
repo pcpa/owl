@@ -120,7 +120,7 @@ extern void
 ovm(othread_t *thread);
 
 extern void
-ovm_thread(oword_t type, oint8_t *address, obool_t builtin);
+ovm_thread(oword_t type, oint8_t *address, obool_t builtin, obool_t ret);
 
 extern void
 ovm_exit(void);

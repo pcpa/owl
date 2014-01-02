@@ -18,6 +18,19 @@
 #include "owl.h"
 
 /*
+ * Types
+ */
+typedef struct nat_join {
+    othread_t		*thread;
+} nat_join_t;
+
+/*
+ * Prototypes
+ */
+static void
+native_join(oobject_t alist, oint32_t size);
+
+/*
  * Initialization
  */
 #if HAVE_TLS
@@ -43,9 +56,36 @@ init_thread(void)
 }
 
 void
+init_thread_builtin(void)
+{
+    obuiltin_t		*builtin;
+
+    builtin = onew_builtin("join", native_join, t_void, false);
+    onew_argument(builtin, t_void);		/* thread */
+    oend_builtin(builtin);
+}
+
+void
 finish_thread(void)
 {
 #if !HAVE_TLS
     pthread_key_delete(thread_self_key);
 #endif
+}
+
+static void
+native_join(oobject_t list, oint32_t ac)
+{
+    GET_THREAD_SELF()
+    nat_join_t		*alist;
+
+    alist = (nat_join_t *)list;
+    if (alist->thread == null || otype(alist->thread) != t_thread)
+	othrow(except_invalid_argument);
+    if (pthread_equal(thread_self->pthread, alist->thread->pthread))
+	othrow(except_invalid_argument);
+
+    if (/*alist->thread->run && */pthread_join(alist->thread->pthread, null))
+	othrow(except_invalid_argument);
+    ovm_move(&thread_self->r0, &alist->thread->r0);
 }

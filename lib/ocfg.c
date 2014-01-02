@@ -86,6 +86,7 @@ ocfg_main(int argc, char *argv[])
     init_read();
     init_tag();
     init_function();
+    init_thread_builtin();
     init_write();
     init_code();
     init_data();
