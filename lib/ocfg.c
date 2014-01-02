@@ -38,6 +38,7 @@ oint32_t		 cfg_optlevel;
 oint32_t		 cfg_verbose;
 oint32_t		 cfg_float_format;
 oint32_t		 cfg_stack_size;
+obool_t			 cfg_use_semaphore;
 mp_prec_t		 cfg_mpfr_prc;
 mp_rnd_t		 cfg_mpfr_rnd;
 char			*cfg_progname;
@@ -160,6 +161,7 @@ cfg_parse_options(int argc, char *argv[])
 	{ "fdefault-float",	1, 0, 'f' },
 	{ "fmpfr-prec",		1, 0, 'p' },
 	{ "fstack-size",	1, 0, 's' },
+	{ "fuse-semaphore",	0, 0, 't' },
 	{ 0,			0, 0, 0   }
     };
 
@@ -172,6 +174,7 @@ cfg_parse_options(int argc, char *argv[])
     cfg_mpfr_prc = mpfr_get_default_prec();
     cfg_mpfr_rnd = mpfr_get_default_rounding_mode();
     cfg_stack_size = 64 * 1024 * 1024;
+    cfg_use_semaphore = false;
 
     for (error = 0; !error;) {
 	opt_short = getopt_long_only(argc, argv, short_options,
@@ -255,6 +258,9 @@ Options:\n\
 		if (!cfg_stack_size)
 		    goto fail;
 		cfg_stack_size = (cfg_stack_size + 4095) & -4096;
+		break;
+	    case 't':
+		cfg_use_semaphore = true;
 		break;
 	}
      }

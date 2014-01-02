@@ -17,32 +17,9 @@
 
 #include "owl.h"
 
-/*
- * if USE_SEMAPHORE is set to zero, it will use the method described in:
- *	David R. Butenhof. Programming with POSIX Threads. Addison-Wesley. ISBN 0-201-63392-2.
- * otherwise, it will use another custom method that should not spin
- * and wait reading a volatile variable, but unfortunately, it appears
- * to not be always reliable, and/or is dependent on Linux kernel version.
- *
- * note that USE_SEMAPHORE is desirable if debugging with helgrind as
- * helgrind will understand the semaphore semantics and not fill the
- * default 1000+ warnings and tell you to go fix your program :-)
- *
- * maybe USE_SEMAPHORE just needs some way to "flush state", possibly just
- * reading once the value of a volatile variable?
- * (I want to believe there is no way for a thread to somehow "escape" from
- * pthread_mutex_lock() due to the sem_wait() and sem_post()'s in the
- * signal handler...)
- * but there is something weird going on, as it requires 3 semaphores, or
- * will sometimes deadlock (probably when it is waiting for gc_mutex)
- */
-#define USE_SEMAPHORE		0
-
 #include <stdlib.h>
 #include <signal.h>
-#if USE_SEMAPHORE
 #include <semaphore.h>
-#endif
 
 /*
  * Defines
@@ -81,10 +58,8 @@ suspend_handler(int unused);
 static void
 sigfpe_handler(int unused);
 
-#if !USE_SEMAPHORE
 static void
 resume_handler(int unused);
-#endif
 
 static void
 new_object(oobject_t *pointer, otype_t type, oword_t length);
@@ -142,15 +117,12 @@ static oword_t		  gc_bytes;
 #endif
 
 static pthread_mutex_t	  gc_mutex;
-#if USE_SEMAPHORE
 /* need to use multiple semaphores or it may dead lock */
 static sem_t		  enter_sem;
 static sem_t		  sleep_sem;
 static sem_t		  leave_sem;
-#else
 static volatile oint32_t  sr_int;
 static sigset_t		  sr_set;
-#endif
 
 #if CACHE_DEBUG
 eint32_t		  cache_debug = 1;
@@ -169,24 +141,24 @@ init_object(void)
     omutex_init(&othread_mutex);
     omutex_init(&gc_mutex);
 
-#if USE_SEMAPHORE
-    if (sem_init(&enter_sem, 0, 0) || sem_init(&sleep_sem, 0, 0) ||
-	sem_init(&leave_sem, 0, 0))
-	oerror("sem_init: %s", strerror(errno));
-#endif
+    if (cfg_use_semaphore) {
+	if (sem_init(&enter_sem, 0, 0) || sem_init(&sleep_sem, 0, 0) ||
+	    sem_init(&leave_sem, 0, 0))
+	    oerror("sem_init: %s", strerror(errno));
+    }
 
     /* FIXME this should be a noop */
     pthread_sigmask(SIG_SETMASK, null, &set);
     sigdelset(&set, SUSPEND_SIGNAL);
-#if !USE_SEMAPHORE
-    sigdelset(&set, RESUME_SIGNAL);
-#endif
+
+    if (!cfg_use_semaphore)
+	sigdelset(&set, RESUME_SIGNAL);
     pthread_sigmask(SIG_SETMASK, &set, null);
 
-#if !USE_SEMAPHORE
-    sigfillset(&sr_set);
-    sigdelset(&sr_set, RESUME_SIGNAL);
-#endif
+    if (!cfg_use_semaphore) {
+	sigfillset(&sr_set);
+	sigdelset(&sr_set, RESUME_SIGNAL);
+    }
 
     handler.sa_flags = 0;
     sigemptyset(&handler.sa_mask);
@@ -194,13 +166,13 @@ init_object(void)
     if (sigaction(SUSPEND_SIGNAL, &handler, null))
 	oerror("sigaction: %s", strerror(errno));
 
-#if !USE_SEMAPHORE
-    handler.sa_flags = 0;
-    sigemptyset(&handler.sa_mask);
-    handler.sa_handler = resume_handler;
-    if (sigaction(RESUME_SIGNAL, &handler, null))
-	oerror("sigaction: %s", strerror(errno));
-#endif
+    if (!cfg_use_semaphore) {
+	handler.sa_flags = 0;
+	sigemptyset(&handler.sa_mask);
+	handler.sa_handler = resume_handler;
+	if (sigaction(RESUME_SIGNAL, &handler, null))
+	    oerror("sigaction: %s", strerror(errno));
+    }
 
     new_object((oobject_t *)&thread_main, t_thread, sizeof(othread_t));
 
@@ -645,27 +617,28 @@ orenew_vector(ovector_t *vector, oword_t length)
 static void
 suspend_handler(int unused)
 {
-#if USE_SEMAPHORE
-    if (sem_post(&enter_sem)) {
-	write(STDERR_FILENO, "sem_post: failed\n", 17);
-	_exit(EXIT_FAILURE);
-    }
-    while (sem_wait(&sleep_sem)) {
-	/* FIXME is this check safe? can this happen? */
-	if (errno != EINTR) {
-	    write(STDERR_FILENO, "sem_wait: failed\n", 17);
+    if (cfg_use_semaphore) {
+	if (sem_post(&enter_sem)) {
+	    write(STDERR_FILENO, "sem_post: failed\n", 17);
+	    _exit(EXIT_FAILURE);
+	}
+	while (sem_wait(&sleep_sem)) {
+	    /* FIXME is this check safe? can this happen? */
+	    if (errno != EINTR) {
+		write(STDERR_FILENO, "sem_wait: failed\n", 17);
+		_exit(EXIT_FAILURE);
+	    }
+	}
+	if (sem_post(&leave_sem)) {
+	    write(STDERR_FILENO, "sem_post: failed\n", 17);
 	    _exit(EXIT_FAILURE);
 	}
     }
-    if (sem_post(&leave_sem)) {
-	write(STDERR_FILENO, "sem_post: failed\n", 17);
-	_exit(EXIT_FAILURE);
+    else {
+	sr_int = 1;
+	/* wait resume signal */
+	sigsuspend(&sr_set);
     }
-#else
-    sr_int = 1;
-    /* wait resume signal */
-    sigsuspend(&sr_set);
-#endif
 }
 
 static void
@@ -674,14 +647,12 @@ sigfpe_handler(int unused)
     siglongjmp(thread_main->env, 1);
 }
 
-#if !USE_SEMAPHORE
 static void
 resume_handler(int unused)
 {
     sr_int = 1;
     /* returning from resume_handler() also means returing from sigsuspend() */
 }
-#endif
 
 static void
 new_object(oobject_t *pointer, otype_t type, oword_t length)
@@ -1118,22 +1089,23 @@ gc_mark_thread(othread_t *thread)
 
     /* Suspend control thread */
     if (stop) {
-#if USE_SEMAPHORE
-	if ((error = pthread_kill(thread->pthread, SUSPEND_SIGNAL)))
-	    oerror("pthread_kill: %s", strerror(error));
-	/* wait for signal handler to enter */
-	while (sem_wait(&enter_sem)) {
-	    if (errno != EINTR)
-		oerror("sem_wait: %s", strerror(errno));
-	    sched_yield();
+	if (cfg_use_semaphore) {
+	    if ((error = pthread_kill(thread->pthread, SUSPEND_SIGNAL)))
+		oerror("pthread_kill: %s", strerror(error));
+	    /* wait for signal handler to enter */
+	    while (sem_wait(&enter_sem)) {
+		if (errno != EINTR)
+		    oerror("sem_wait: %s", strerror(errno));
+		sched_yield();
+	    }
 	}
-#else
-	sr_int = 0;
-	if ((error = pthread_kill(thread->pthread, SUSPEND_SIGNAL)))
-	    oerror("pthread_kill: %s", strerror(error));
-	while (!sr_int)
-	    sched_yield();
-#endif
+	else {
+	    sr_int = 0;
+	    if ((error = pthread_kill(thread->pthread, SUSPEND_SIGNAL)))
+		oerror("pthread_kill: %s", strerror(error));
+	    while (!sr_int)
+		sched_yield();
+	}
     }
 
     mark(object_to_memory(thread));
@@ -1161,22 +1133,23 @@ gc_mark_thread(othread_t *thread)
 
     /* Resume control thread */
     if (stop) {
-#if USE_SEMAPHORE
-	if (sem_post(&sleep_sem))
-	    oerror("sem_post: %s", strerror(errno));
-	/* Wait for signal handler to leave */
-	while (sem_wait(&leave_sem)) {
-	    if (errno != EINTR)
-		oerror("sem_wait: %s", strerror(errno));
-	    sched_yield();
+	if (cfg_use_semaphore) {
+	    if (sem_post(&sleep_sem))
+		oerror("sem_post: %s", strerror(errno));
+	    /* Wait for signal handler to leave */
+	    while (sem_wait(&leave_sem)) {
+		if (errno != EINTR)
+		    oerror("sem_wait: %s", strerror(errno));
+		sched_yield();
+	    }
 	}
-#else
-	sr_int = 0;
-	if ((error = pthread_kill(thread->pthread, RESUME_SIGNAL)))
-	    oerror("pthread_kill: %s", strerror(error));
-	while (!sr_int)
-	    sched_yield();
-#endif
+	else {
+	    sr_int = 0;
+	    if ((error = pthread_kill(thread->pthread, RESUME_SIGNAL)))
+		oerror("pthread_kill: %s", strerror(error));
+	    while (!sr_int)
+		sched_yield();
+	}
     }
 }
 
