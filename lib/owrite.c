@@ -22,9 +22,15 @@
  * Types
  */
 typedef struct nat_print {
-    ovector_t		*format;
+    ovector_t		*vector;
     oobject_t		 list[1];
 } nat_print_t;
+
+typedef struct nat_printf {
+    ostream_t		*stream;
+    ovector_t		*vector;
+    oobject_t		 list[1];
+} nat_printf_t;
 
 /*
  * Prototypes
@@ -38,6 +44,13 @@ print_pad(ostream_t *stream, obool_t left, oword_t bytes, oword_t count);
 static void
 native_print(oobject_t list, oint32_t size);
 
+static void
+native_printf(oobject_t list, oint32_t size);
+
+static void
+native_print_impl(ostream_t *stream,
+		  ovector_t *vector, oobject_t *list, oword_t size);
+
 /*
  * Implementation
  */
@@ -47,6 +60,11 @@ init_write(void)
     obuiltin_t		*builtin;
 
     builtin = onew_builtin("print", native_print, t_word, true);
+    onew_argument(builtin, t_void);		/* format */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("printf", native_printf, t_word, true);
+    onew_argument(builtin, t_void);		/* stream */
     onew_argument(builtin, t_void);		/* format */
     oend_builtin(builtin);
 }
@@ -1310,20 +1328,46 @@ print_pad(ostream_t *stream, obool_t left, oword_t bytes, oword_t count)
 static  void
 native_print(oobject_t list, oint32_t size)
 {
+    nat_print_t		*alist;
+
+    alist = (nat_print_t *)list;
+    native_print_impl(std_output, alist->vector, alist->list, size);
+}
+
+static  void
+native_printf(oobject_t list, oint32_t size)
+{
+    nat_printf_t	*alist;
+
+    alist = (nat_printf_t *)list;
+    native_print_impl(alist->stream, alist->vector, alist->list, size);
+}
+
+static  void
+native_print_impl(ostream_t *stream,
+		  ovector_t *vector, oobject_t *list, oword_t size)
+{
     GET_THREAD_SELF()
     oword_t		 i;
     oobject_t		 arg;
     oint32_t		 aidx;
     obool_t		 argp;		/* positional argument */
     obool_t		 prec;
-    nat_print_t		*alist;
     oword_t		 bytes;
     oformat_t		 format;
-    ostream_t		*stream;
+    obool_t		 streamp;
     ouint8_t		*f, *t, *l;
 
-    alist = (nat_print_t *)list;
-    if (alist->format == null || otype(alist->format) != t_string)
+    if (stream == null)
+	othrow(except_invalid_argument);
+    if ((streamp = otype(stream) == t_stream) == false) {
+	if (otype(stream) != t_string)
+	    othrow(except_invalid_argument);
+	stream->offset = 0;
+    }
+    else if (!stream->s_write)
+	othrow(except_invalid_argument);
+    if (vector == null || otype(vector) != t_string)
 	othrow(except_invalid_argument);
 
 #define next_argument()							\
@@ -1335,7 +1379,7 @@ native_print(oobject_t list, oint32_t size)
 		f = t + 1 > l ? l : t + 1;				\
 		goto done;						\
 	    }								\
-	    arg = alist->list[aidx++];					\
+	    arg = list[aidx++];						\
 	}								\
     } while (0)
 #define position_argument(n)						\
@@ -1345,17 +1389,17 @@ native_print(oobject_t list, oint32_t size)
 	    goto done;							\
 	}								\
 	aidx = n;							\
-	arg = alist->list[aidx];					\
+	arg = list[aidx];						\
 	argp = true;							\
     } while (0)
 
-    stream = std_output;
-    omutex_lock(&stream->mutex);
+    if (streamp)
+	omutex_lock(&stream->mutex);
 
     aidx = 0;
     argp = false;
-    f = t = alist->format->v.u8;
-    l = f + alist->format->length;
+    f = t = vector->v.u8;
+    l = f + vector->length;
 
     bytes = 0;
     memset(&format, 0, sizeof(oformat_t));
@@ -1402,7 +1446,7 @@ native_print(oobject_t list, oint32_t size)
 	    case '1'...'9':
 		i = 0;
 		do {
-		    /* FIXME raise exception on overflow? */
+		    if (i >= 0x70000000 / 10)	goto overflow;
 		    i = i * 10 + (*t - '0');
 		    if (++t >= l)		goto format_object;
 		} while (*t >= '0' && *t <= '9');
@@ -1420,9 +1464,8 @@ native_print(oobject_t list, oint32_t size)
 		next_argument();
 		if (arg && otype(arg) == t_word) {
 		    i = *(oword_t *)arg;
-		    /* FIXME raise exception on overflow? */
 		    if (i < 0 || i != (oint32_t)i)
-			i = 0;
+			goto overflow;
 		    if (prec)			format.prec = i;
 		    else			format.width = i;
 		}
@@ -1508,8 +1551,11 @@ native_print(oobject_t list, oint32_t size)
 		}
 		break;
 	    default:
-		oflush(stream);
-		omutex_unlock(&stream->mutex);
+	    overflow:
+		if (streamp) {
+		    oflush(stream);
+		    omutex_unlock(&stream->mutex);
+		}
 		othrow(except_invalid_argument);
 	}
 	++t;
@@ -1518,9 +1564,12 @@ native_print(oobject_t list, oint32_t size)
 
 done:
     bytes += owrite(stream, f, l - f);
-    oflush(stream);
-    omutex_unlock(&stream->mutex);
-
+    if (streamp) {
+	oflush(stream);
+	omutex_unlock(&stream->mutex);
+    }
+    else
+	stream->length = bytes;
     thread_self->r0.t = t_word;
     thread_self->r0.v.w = bytes;
 }

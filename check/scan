@@ -1,0 +1,17 @@
+auto v[1] = {};
+
+print("type a character: ");
+scan("%c", v);
+print("read value is: %c\n", v[0]);
+
+print("type an integer: ");
+scan("%d", v);
+print("read value is: %d\n", v[0]);
+
+print("type a float: ");
+scan("%f", v);
+print("read value is: %f\n", v[0]);
+
+print("type a string: ");
+scan("%s", v);
+print("read value is: %s\n", v[0]);

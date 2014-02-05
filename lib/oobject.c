@@ -995,16 +995,19 @@ again:
 	default:
 	    if (type & t_vector) {
 		if ((pointer = o.vector->v.ptr + o.vector->length)) {
+		    offset = o.vector->length;
 		    o.object = o.vector->v.obj;
 		    memory = object_to_memory(o.object);
 		    mark(memory);
-		    for (--pointer; o.pointer < pointer; o.pointer++) {
-			if (*o.pointer)
-			    gc_mark(object_to_memory(*o.pointer));
-		    }
-		    if ((o.object = *o.pointer)) {
-			memory = object_to_memory(o.object);
-			goto again;
+		    if (offset) {
+			for (--pointer; o.pointer < pointer; o.pointer++) {
+			    if (*o.pointer)
+				gc_mark(object_to_memory(*o.pointer));
+			}
+			if ((o.object = *o.pointer)) {
+			    memory = object_to_memory(o.object);
+			    goto again;
+			}
 		    }
 		}
 	    }

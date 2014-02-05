@@ -40079,3 +40079,44 @@ thread(print("%d %d %d %d %d %d %d %d %d %d %d\n",
 auto t50_tid = thread(print("foobar\n"));
 auto t50_ret = join(t50_tid);
 print("%d\n", t50_ret);
+
+string_t t51_a = {};
+auto t51_v[] = {};
+int32_t t51_c;
+void t51_t(string_t format, auto value)
+{
+    printf(t51_a, format, value);
+    if (scanf(t51_a, format, t51_v) != 1 || t51_v[0] != value)
+	print("error %d\n", t51_c);
+}
+t51_c = __LINE__;	t51_t("foo%bbar", 0xa55a);
+++t51_c;		t51_t("--%b++", -4e32);
+++t51_c;		t51_t("%#b", 255);
+++t51_c;		t51_t("\xff%b/\xff", -3);
+++t51_c;		t51_t("\r\n$%o99", 0277);
+++t51_c;		t51_t("+-%%%o&#", 1e-2);
+++t51_c;		t51_t("?%#o?", -0x8000000000000000);
+++t51_c;		t51_t("<%d>", 1);
+++t51_c;		t51_t("/%d/", -7);
+++t51_c;		t51_t(" * %F * ", 0.25);
+++t51_c;		t51_t("  0x%x  ", 0x8000000000000000);
+++t51_c;		t51_t("0000 %x 0000", 3.1415926535897932384626433832795029L);
+++t51_c;		t51_t("%%%%%c%%%%", '%');
+++t51_c;		t51_t("foo%#cbar", 'abcdef');
+++t51_c;		t51_t("\x00%C\000", -1);
+++t51_c;		t51_t("'%#c'", 'abcdefghijklm\'\\NOPQRSTUVWXYZ');
+++t51_c;		t51_t("foo%23cbar", 'long constant character');
+++t51_c;		t51_t("1234%s  x", "foobar");
+++t51_c;		t51_t("abc%#s", "a string \"with\" spaces");
+if (scanf("abcasdfgHJKL:", "abc%[a-z]", t51_v) != 1 || t51_v[0] != "asdfg")
+    print("error %d\n", __LINE__);
+if (scanf("]abc-[", "]%[^]-]-[", t51_v) != 1 || t51_v[0] != "abc")
+    print("error %d\n", __LINE__);
+t51_c = __LINE__;	t51_t("\xff%c\xff", 0xff);
+if (scanf("a123b456d", "a%*db%dd", t51_v) != 1 || t51_v[0] != 456)
+    print("error %d\n", __LINE__);
+if (printf(t51_a, "%%%d**", 42) != 5)
+    print("error %d\n", __LINE__);
+if (printf(t51_a, "{ %5d }\n", -1) != 10 ||
+    scanf(t51_a, "{ %5d }\n", t51_v) != 1 || t51_v[0] != -1)
+    print("error %d\n", __LINE__);

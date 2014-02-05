@@ -52,6 +52,9 @@ extern void
 init_read(void);
 
 extern void
+init_read_builtin(void);
+
+extern void
 finish_read(void);
 
 extern oobject_t
