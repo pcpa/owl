@@ -21,6 +21,24 @@
 #include <sys/stat.h>
 
 /*
+ * Types
+ */
+typedef struct nat_open {
+    ovector_t		*name;
+    oint32_t		 mode;
+} nat_open_t;
+
+typedef struct nat_seek {
+    ostream_t		*stream;
+    oword_t		 offset;
+    oint32_t		 whence;
+} nat_seek_t;
+
+typedef struct nat_close {
+    ostream_t		*stream;
+} nat_close_t;
+
+/*
  * Prototypes
  */
 static oword_t
@@ -37,6 +55,15 @@ sys_seek(int fd, off_t offset, int whence);
 
 static void
 stream_w_flush(ostream_t *stream);
+
+static void
+native_open(oobject_t list, oint32_t size);
+
+static void
+native_seek(oobject_t list, oint32_t size);
+
+static void
+native_close(oobject_t list, oint32_t size);
 
 /*
  * Initialization
@@ -62,6 +89,27 @@ init_stream(void)
     oadd_root((oobject_t *)&std_error);
     ofdopen((oobject_t *)&std_error, 2, S_write | S_unbuffered);
     std_error->name = oget_string((ouint8_t *)"<stderr>", 8);
+}
+
+void
+init_stream_builtin(void)
+{
+    obuiltin_t		*builtin;
+
+    builtin = onew_builtin("open", native_open, t_void, false);
+    onew_argument(builtin, t_void);		/* name */
+    onew_argument(builtin, t_int32);		/* mode */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("seek", native_seek, t_word, false);
+    onew_argument(builtin, t_void);		/* stream */
+    onew_argument(builtin, t_word);		/* offset */
+    onew_argument(builtin, t_int32);		/* whence */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("close", native_close, t_void, false);
+    onew_argument(builtin, t_void);		/* stream */
+    oend_builtin(builtin);
 }
 
 void
@@ -617,4 +665,57 @@ stream_w_flush(ostream_t *stream)
     sys_write(stream->fileno, stream->ptr, stream->size);
     stream->size = stream->offset = 0;
     stream->s_w_mode = 0;
+}
+
+static void
+native_open(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    oregister_t		*r0;
+    nat_open_t		*alist;
+
+    alist = (nat_open_t *)list;
+    if (alist->name == null || otype(alist->name) != t_string)
+	othrow(except_invalid_argument);
+    r0 = &thread_self->r0;
+
+    ofopen(&thread_self->obj, alist->name, alist->mode);
+    if ((r0->v.o = thread_self->obj))
+	r0->t = otype(r0->v.o);
+    else
+	r0->t = t_void;
+}
+
+static void
+native_seek(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    oregister_t		*r0;
+    nat_seek_t		*alist;
+
+    alist = (nat_seek_t *)list;
+    if (alist->stream == null ||
+	(otype(alist->stream) != t_string && otype(alist->stream) != t_stream))
+	othrow(except_invalid_argument);
+    r0 = &thread_self->r0;
+
+    r0->v.w = oseek(alist->stream, alist->offset, alist->whence);
+    r0->t = t_word;
+}
+
+static void
+native_close(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    oregister_t		*r0;
+    nat_close_t		*alist;
+
+    alist = (nat_seek_t *)list;
+    if (alist->stream == null ||
+	(otype(alist->stream) != t_string && otype(alist->stream) != t_stream))
+	othrow(except_invalid_argument);
+    r0 = &thread_self->r0;
+    r0->v.w = otype(alist->stream) == t_stream &&
+	oclose(alist->stream) == 0 ? true : false;
+    r0->t = t_word;
 }

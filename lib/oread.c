@@ -504,7 +504,7 @@ scan_obj(ostream_t *stream, oscan_t *scan)
 	if (scan->read || scan->radix != 256) {
 	    for (ch = ogetc(stream);
 		 ch != eof && space_p(ch); ch = ogetc(stream))
-		++bytes;
+		;
 	    oungetc(stream, ch);
 	}
 

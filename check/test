@@ -40120,3 +40120,107 @@ if (printf(t51_a, "%%%d**", 42) != 5)
 if (printf(t51_a, "{ %5d }\n", -1) != 10 ||
     scanf(t51_a, "{ %5d }\n", t51_v) != 1 || t51_v[0] != -1)
     print("error %d\n", __LINE__);
+auto t51_s;
+/* FIXME these should be (well documented) builtins */
+#define O_READ		1
+#define O_WRITE		2
+#define O_APPEND	4
+#define O_NONBLOCK	8
+#define O_BUFFERED	16
+#define O_UNBUFFERED	32
+#define SEEK_SET	0
+#define SEEK_CUR	1
+#define SEEK_END	2
+if ((t51_s = open("test.txt", O_WRITE))) {
+    if (printf(t51_s, "%b %o\n", 64, -128) != 13)
+	print("error %d\n", __LINE__);
+    if (printf(t51_s, "%d %x\n", -1, 1.5) != 7)
+	print("error %d\n", __LINE__);
+    close(t51_s);
+}
+else
+    print("error %d\n", __LINE__);
+if ((t51_s = open("test.txt", O_READ))) {
+    if (scanf(t51_s, "%b %o\n", t51_v) != 2 ||
+	t51_v[0] != 64 || t51_v[1] != -128)
+	print("error %d\n", __LINE__);
+    if (scanf(t51_s, "%d %x\n", t51_v) != 2 ||
+	t51_v[0] != -1 || t51_v[1] != 1.5)
+	print("error %d\n", __LINE__);
+    close(t51_s);
+}
+else
+    print("error %d\n", __LINE__);
+if ((t51_s = open("test.txt", O_WRITE | O_APPEND))) {
+    if (printf(t51_s, "%#b %#o\n", 255, -0x8000000000000001) != 36)
+	print("error %d\n", __LINE__);
+    if (printf(t51_s, "%#d %#x\n", 3.5L, 1e5) != 15)
+	print("error %d\n", __LINE__);
+    close(t51_s);
+}
+else
+    print("error %d\n", __LINE__);
+if ((t51_s = open("test.txt", O_READ))) {
+    /* first 2 lines */
+    if (scanf(t51_s, "%b %o\n", t51_v) != 2 ||
+	t51_v[0] != 64 || t51_v[1] != -128)
+	print("error %d\n", __LINE__);
+    if (scanf(t51_s, "%d %x\n", t51_v) != 2 ||
+	t51_v[0] != -1 || t51_v[1] != 1.5)
+	print("error %d\n", __LINE__);
+    /* appended data */
+    if (scanf(t51_s, "%#b %#o\n", t51_v) != 2 ||
+	t51_v[0] != 255 || t51_v[1] != -0x8000000000000001)
+	print("error %d\n", __LINE__);
+    if (scanf(t51_s, "%#d %#x\n", t51_v) != 2 ||
+	t51_v[0] != 3.5L || t51_v[1] != 1e5)
+	print("error %d\n", __LINE__);
+    /* there is nothing to read, just ensure it "properly" fails */
+    if (scanf(t51_s, "%s", t51_v) != 0)
+	print("error %d\n", __LINE__);
+    close(t51_s);
+}
+else
+    print("error %d\n", __LINE__);
+/* test.txt contents should be:
+-%<-
+1000000 -200
+-1 1.8
+0b11111111 -01000000000000000000001
+3.5l 0x186a0.0
+-%<-
+ */
+if ((t51_s = open("test.txt", O_READ|O_WRITE))) {
+    /* seek to start of second line */
+    if ( seek(t51_s, 13, SEEK_SET) != 13)
+	print("error %d\n", __LINE__);
+    /* invert signs of entries in second line and print it */
+    if (printf(t51_s, "%d %x\n", 1, -1.5) != 7)
+	print("error %d\n", __LINE__);
+    if (seek(t51_s, -7, SEEK_CUR) != 13)
+	print("error %d\n", __LINE__);
+    if (seek(t51_s, -15, SEEK_END) != 56)
+	print("error %d\n", __LINE__);
+    /* not reading ending newline */
+    if (scanf(t51_s, "%#d %#x", t51_v) != 2 ||
+	t51_v[0] != 3.5L || t51_v[1] != 1e5)
+	print("error %d\n", __LINE__);
+    /* read the ending newline */
+    if (scanf(t51_s, "%3c", t51_v) != 1 ||
+	t51_v[0] != '\n')
+	print("error %d\n", __LINE__);
+    /* seek back to position of ending newline */
+    if (seek(t51_s, -1, SEEK_END) != 70)
+	print("error %d\n", __LINE__);
+    /* close file */
+    close(t51_s);
+}
+else
+    print("error %d\n", __LINE__);
+printf(t51_a, "%d", 12345);
+if (scanf(t51_a, "%#s", t51_v) == 1)
+    print("error %d\n", __LINE__);
+if (scanf(t51_a, "%#c", t51_v) == 1)
+    print("error %d\n", __LINE__);
+if (scanf(t51_a, "%d", t51_v) != 1 || t51_v[0] != 12345)
+    print("error %d\n", __LINE__);

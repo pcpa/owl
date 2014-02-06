@@ -55,6 +55,9 @@ extern void
 init_stream(void);
 
 extern void
+init_stream_builtin(void);
+
+extern void
 finish_stream(void);
 
 extern void
