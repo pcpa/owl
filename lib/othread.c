@@ -85,7 +85,10 @@ native_join(oobject_t list, oint32_t ac)
     if (pthread_equal(thread_self->pthread, alist->thread->pthread))
 	othrow(except_invalid_argument);
 
-    if (/*alist->thread->run && */pthread_join(alist->thread->pthread, null))
-	othrow(except_invalid_argument);
+    /* Do not fail if attempting to join a thread no longer running.
+     * The thread return value, if any is gc protected by the fact
+     * there is at least one reference to it. */
+    pthread_join(alist->thread->pthread, null);
+
     ovm_move(&thread_self->r0, &alist->thread->r0);
 }
