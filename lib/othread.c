@@ -24,11 +24,25 @@ typedef struct nat_join {
     othread_t		*thread;
 } nat_join_t;
 
+typedef struct nat_mutex {
+    pthread_mutex_t	*mutex;
+} nat_mutex_t;
+
 /*
  * Prototypes
  */
 static void
-native_join(oobject_t alist, oint32_t size);
+native_join(oobject_t list, oint32_t size);
+
+static void
+native_mutex(oobject_t list, oint32_t size);
+
+/* FIXME should be made language/parser builtins for inline jit generation */
+static void
+native_lock(oobject_t list, oint32_t size);
+
+static void
+native_unlock(oobject_t list, oint32_t size);
 
 /*
  * Initialization
@@ -63,6 +77,17 @@ init_thread_builtin(void)
     builtin = onew_builtin("join", native_join, t_void, false);
     onew_argument(builtin, t_void);		/* thread */
     oend_builtin(builtin);
+
+    builtin = onew_builtin("mutex", native_mutex, t_void, false);
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("lock", native_lock, t_void, false);
+    onew_argument(builtin, t_void);		/* mutex */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("unlock", native_unlock, t_void, false);
+    onew_argument(builtin, t_void);		/* mutex */
+    oend_builtin(builtin);
 }
 
 void
@@ -91,4 +116,44 @@ native_join(oobject_t list, oint32_t ac)
     pthread_join(alist->thread->pthread, null);
 
     ovm_move(&thread_self->r0, &alist->thread->r0);
+}
+
+static void
+native_mutex(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    pthread_mutex_t	*mutex;
+
+    onew_object(&thread_self->obj, t_mutex, sizeof(pthread_mutex_t));
+    mutex = thread_self->obj;
+    omutex_init(mutex);
+
+    thread_self->r0.v.o = mutex;
+    thread_self->r0.t = t_mutex;
+}
+
+static void
+native_lock(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    nat_mutex_t		*alist;
+
+    alist = (nat_mutex_t *)list;
+    if (alist->mutex == null || otype(alist->mutex) != t_mutex)
+	othrow(except_invalid_argument);
+
+    omutex_lock(alist->mutex);
+}
+
+static void
+native_unlock(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    nat_mutex_t		*alist;
+
+    alist = (nat_mutex_t *)list;
+    if (alist->mutex == null || otype(alist->mutex) != t_mutex)
+	othrow(except_invalid_argument);
+
+    omutex_unlock(alist->mutex);
 }
