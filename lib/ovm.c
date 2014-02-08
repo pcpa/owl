@@ -20,6 +20,7 @@
 #if HAVE_EXECINFO_H
 #  include <execinfo.h>
 #endif
+#include <unistd.h>
 
 #define THREAD_STACK_SIZE	1024 * 256
 
@@ -286,6 +287,10 @@ void
 ovm_exit(void)
 {
     GET_THREAD_SELF()
+    oword_t		ncpus;
+    oword_t		offset;
+    oword_t		length;
+
     /* lock thread linked lists */
     othreads_lock();
 
@@ -309,10 +314,26 @@ ovm_exit(void)
     thread_self->run = 0;
     thread_self->fp = null;
 
-    /* Avoid filling thread_vector; only want to prevent race conditions
-     * of children threads exiting after the main thread. */
-    while (thread_vector->offset)
-	pthread_join(thread_vector->v.w[--thread_vector->offset], null);
+#if defined(_SC_NPROCESSORS_ONLN)
+    ncpus = sysconf(_SC_NPROCESSORS_ONLN);
+    if (ncpus < 0)
+	ncpus = 16;
+    else
+	ncpus = (ncpus + 16) & -16;
+#else
+    ncpus = 16;
+#endif
+
+    /* Avoid filling thread_vector for long running programs spawning
+     * several threads; only want to prevent race conditions of children
+     * threads exiting after the main thread. */
+    if (thread_vector->offset > ncpus) {
+	offset = thread_vector->offset & -ncpus;
+	length = thread_vector->offset - offset;
+	memcpy(thread_vector->v.w,
+	       thread_vector->v.w + offset, length * sizeof(oword_t));
+	thread_vector->offset = length;
+    }
 
     if (thread_self == thread_main) {
 	/* thread_main is not reassigned */
@@ -330,8 +351,9 @@ ovm_exit(void)
 	mpfr_free_cache();
 
 	/* Wait any thread not yet fully finished */
-	while (thread_vector->offset)
-	    pthread_join(thread_vector->v.w[--thread_vector->offset], null);
+	for (offset = 0; offset < thread_vector->offset; offset++)
+	    pthread_join(thread_vector->v.w[offset], null);
+	thread_vector->offset = 0;
 
 	othreads_unlock();
     }
