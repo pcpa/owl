@@ -299,32 +299,35 @@ otag_t *
 otag_builtin(otag_t *base, ovector_t *vector, obool_t varargs)
 {
     otag_t		*tag;
+    ovector_t		*proto;
     oint32_t		 length;
     oint32_t		 offset;
     osymbol_t		*symbol;
     oobject_t		*pointer;
 
-    length = vector->offset;
+    length = vector->offset + 1 + !!varargs;
     if (length >= proto_vector->length)
 	orenew_vector(proto_vector, (length + 15) & ~15);
-    if ((vector = proto_vector->v.ptr[length]) == null) {
+    if ((proto = proto_vector->v.ptr[length]) == null) {
 	onew_vector(proto_vector->v.ptr + length,
 		    t_uint8, length * sizeof(oobject_t));
-	vector = proto_vector->v.ptr[length];
+	proto = proto_vector->v.ptr[length];
     }
 
-    vector->v.ptr[0] = base;
+    proto->v.ptr[0] = base;
     for (offset = 0; offset < vector->offset; offset++) {
 	symbol = vector->v.ptr[offset];
-	vector->v.ptr[offset] = symbol->tag;
+	proto->v.ptr[offset + 1] = symbol->tag;
     }
+    if (varargs)
+	proto->v.ptr[offset + 1] = varargs_tag;
 
-    if ((tag = (otag_t *)oget_hash(tag_table, vector)) == null) {
+    if ((tag = (otag_t *)oget_hash(tag_table, proto)) == null) {
 	gc_ref(pointer);
 	onew(pointer, tag);
 	tag = *pointer;
-	onew_vector(&tag->name, t_uint8, vector->length);
-	memcpy(((ovector_t *)tag->name)->v.ptr, vector->v.ptr, vector->length);
+	onew_vector(&tag->name, t_uint8, proto->length);
+	memcpy(((ovector_t *)tag->name)->v.ptr, proto->v.ptr, proto->length);
 	tag->type = tag_function;
 	tag->size = sizeof(oobject_t);
 	tag->base = base;
