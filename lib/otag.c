@@ -540,10 +540,10 @@ tag_ast_data_vector(otag_t *tag, oast_t *ast)
 		oparse_error(rast, "negative offset");
 	    if (tag->size && tag->size <= offset)
 		oparse_error(rast, "offset out of bounds");
-	    rtag = otag_ast_data(btag, ast->r.value);
+	    rtag = otag_ast_data(tag->base, ast->r.value);
 	}
 	else {
-	    rtag = otag_ast_data(btag, ast);
+	    rtag = otag_ast_data(tag->base, ast);
 	    if (tag->size && tag->size <= offset)
 		oparse_error(ast, "too many initializers");
 	}

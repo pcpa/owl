@@ -42,7 +42,7 @@ class Creature {
     BOOL		sameid;
 };
 
-auto/*string_t*/ ColourName[] = {
+string_t ColourName[] = {
     "blue", "red", "yellow"
 };
 
@@ -95,7 +95,7 @@ errlb:
     throw 1;
 }
 
-/*string_t*/auto NUMBERS[] = {
+string_t NUMBERS[] = {
     "zero", "one", "two", "three", "four", "five",
     "six", "seven", "eight", "nine"
 };
