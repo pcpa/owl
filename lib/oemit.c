@@ -1134,6 +1134,8 @@ emit_new(oast_t *ast)
 	bop->k = ast->r.value;
     assert(otag_p(bop->k));
     type = otag_to_type(bop->k);
+    if ((type & ~t_vector) == t_undef)
+	type &= ~t_undef;
     bop->u.w = get_register(true);
     if (current_record == root_record) {
 	if (GPR[GLOBAL] != JIT_NOREG)
@@ -1828,6 +1830,8 @@ storei(ooperand_t *op, otype_t type, jit_int32_t base, oword_t offset)
     oword_t		regno;
     obool_t		use_f0;
 
+    if ((type & ~t_vector) == t_undef)
+	type &= ~t_undef;
     use_f0 = false;
     emit_load(op);
     assert((op->t & (t_spill|t_register)) == t_register);
@@ -1893,7 +1897,7 @@ storei(ooperand_t *op, otype_t type, jit_int32_t base, oword_t offset)
 	    if (otype == t_half || otype == t_word) {
 		jit_pushargr(GPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store_w, 0);
 	    }
 	    else if (otype == t_single || otype == t_float) {
@@ -1902,14 +1906,14 @@ storei(ooperand_t *op, otype_t type, jit_int32_t base, oword_t offset)
 		else
 		    jit_pushargr_d(FPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store_d, 0);
 	    }
 	    else {
 		load_r(regno);
 		jit_pushargr(GPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store, mask1(regno));
 	    }
 	    return;
@@ -2014,6 +2018,8 @@ storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset)
     oword_t		regno;
     obool_t		use_f0;
 
+    if ((type & ~t_vector) == t_undef)
+	type &= ~t_undef;
     use_f0 = false;
     emit_load(op);
     assert((op->t & (t_spill|t_register)) == t_register);
@@ -2079,7 +2085,7 @@ storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset)
 	    if (otype == t_half || otype == t_word) {
 		jit_pushargr(GPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store_w, 0);
 	    }
 	    else if (otype == t_single || otype == t_float) {
@@ -2088,14 +2094,14 @@ storer(ooperand_t *op, otype_t type, jit_int32_t base, jit_int32_t offset)
 		else
 		    jit_pushargr_d(FPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store_d, 0);
 	    }
 	    else {
 		load_r(regno);
 		jit_pushargr(GPR[regno]);
 		jit_pushargr(JIT_R0);
-		jit_pushargi(type == t_undef ? t_void : type);
+		jit_pushargi(type);
 		emit_finish(ovm_store, mask1(regno));
 	    }
 	    return;

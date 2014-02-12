@@ -964,28 +964,35 @@ ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 	}
     }
     else {
-	if (t != t_void && reg->t != t_void &&
-	    (t & t_vector) != (reg->t & t_vector)) {
+	if (t != t_void && reg->t != t_void && t != reg->t) {
 	    /* Do not allow mixing signed and unsigned integers?
 	     * Should not cause a fault if allowing using a float32_t
 	     * vector where an int32_t were expected (or vice versa)
 	     * but for the sake of correctness do not allow it. */
 	    ortti_t		*rtti;
 
-	    /* Derived classes can be used where a base class
-	     * would be expected, due to language nature of
-	     * only allowing single inheritance */
-	    t &= ~t_vector;
-	    while (t > t_mpc) {
-		/* Only possible on memory corruption */
-		assert(t <= rtti_vector->offset);
-		rtti = rtti_vector->v.ptr[t];
-		if (rtti->super == t)
-		    break;
-		t = rtti->super;
+	    if (t & t_vector) {
+		if (!(reg->t & t_vector))
+		    ovm_raise(except_invalid_argument);
+		t &= ~t_vector;
+		if (t < t_mpc)
+		    ovm_raise(except_invalid_argument);
 	    }
-	    if (t == 0)
-		ovm_raise(except_invalid_argument);
+	    else {
+		/* Derived classes can be used where a base class
+		 * would be expected, due to language nature of
+		 * only allowing single inheritance */
+		while (t > t_mpc) {
+		    /* Only possible on memory corruption */
+		    assert(t <= rtti_vector->offset);
+		    rtti = rtti_vector->v.ptr[t];
+		    if (rtti->super == t)
+			break;
+		    t = rtti->super;
+		}
+		if (t == 0)
+		    ovm_raise(except_invalid_argument);
+	    }
 	}
 	switch (reg->t) {
 	    case t_void:

@@ -39863,7 +39863,7 @@ void thread_routine_with_lots_of_gc_calls(string_t name)
     print("%s: enter 1Mb gc\n", name);
     for (i = 0; i < 5; ++i) {
 	for (j = 0; j < 1024; ++j) {
-	    buffer = new int8_t[1024];
+	    buffer = new uint8_t[1024];
 	    for (k = 0; k < 1024; ++k)
 		buffer[k] = k & 0xff;
 	}

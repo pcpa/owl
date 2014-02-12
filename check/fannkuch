@@ -1,0 +1,81 @@
+/* http://shootout.alioth.debian.org/u32q/benchmark.php?test=fannkuch&lang=all */
+/* adapted from C# Mono sample */
+
+auto n = 7;
+
+auto
+fannkuch(auto n)
+{
+    auto check = 0;
+    int32_t perm[] = new(int32_t[n]);
+    int32_t perm1[] = new(int32_t[n]);
+    int32_t count[] = new(int32_t[n]);
+    int32_t maxPerm[] = new(int32_t[n]);
+    auto maxFlipsCount = 0;
+    auto m = n - 1;
+    auto i, j, r;
+
+    for (i = 0; i < n; ++i)
+	perm1[i] = i;
+    r = n;
+
+    while (true) {
+	if (check < 30) {
+	    for(j = 0; j < n; j++)
+		print("%d", perm1[j] + 1);
+	    print("\n");
+	    ++check;
+	}
+
+	while (r != 1) {
+	    count[r - 1] = r;
+	    --r;
+	}
+	if (!(perm1[0] == 0 || perm1[m] == m)) {
+	    for(j = 0; j < n; j++)
+		perm[j] = perm1[j];
+            auto flipsCount = 0;
+            auto k;
+
+            while (!((k = perm[0]) == 0)) {
+		auto k2 = (k + 1) >>> 1;
+		for(j = 0; j < k2; j++) {
+		    auto temp = perm[j];
+		    perm[j] = perm[k - j];
+		    perm[k - j] = temp;
+		}
+		++flipsCount;
+	    }
+
+	    if (flipsCount > maxFlipsCount) {
+		maxFlipsCount = flipsCount;
+		for(j = 0; j < n; j++)
+		    maxPerm[j] = perm1[j];
+	    }
+	}
+
+	// Use incremental change to generate another permutation
+	while (true) {
+	    if (r == n)
+		return maxFlipsCount;
+	    auto perm0 = perm1[0];
+	    i = 0;
+	    while (i < r) {
+		j = i + 1;
+		perm1[i] = perm1[j];
+		i = j;
+	    }
+	    perm1[r] = perm0;
+
+	    count[r] = count[r] - 1;
+	    if (count[r] > 0)
+		break;
+	    ++r;
+	}
+    }
+
+    // FIXME need to know doesn't need a return as last statement...
+    return 0;
+}
+
+print("Pfannkuchen(%d) = %d\n", n, fannkuch(n));

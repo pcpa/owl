@@ -17,4 +17,19 @@
 
 AM_CFLAGS = @OWL_CFLAGS@
 
-EXTRA_DIST = math test
+EXTRA_DIST =				\
+	binarytrees			\
+	binarytrees-output.txt		\
+	chameneous-redux		\
+	chameneosredux-output.txt	\
+	fannkuch			\
+	fannkuch-output.txt		\
+	fasta				\
+	fasta-output.txt		\
+	mandelbrot			\
+	mandelbrot-output.txt		\
+	math				\
+	pidigits			\
+	pidigits-output.txt		\
+	scan				\
+	test

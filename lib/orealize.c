@@ -185,6 +185,7 @@ realize(oast_t *ast)
 
 	case tok_dot:
 	    ast->offset = get();
+	    ast->l.ast->offset = ast->offset;
 	    break;
 
 	case tok_new:

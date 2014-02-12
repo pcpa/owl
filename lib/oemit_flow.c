@@ -410,9 +410,11 @@ emit_for(oast_t *ast)
 
     /* test */
     offset = stack->offset;
-    for (test = ast->t.ast; test->next; test = test->next) {
-	emit(test);
-	operand_reset(offset);
+    if ((test = ast->t.ast)) {
+	for (; test->next; test = test->next) {
+	    emit(test);
+	    operand_reset(offset);
+	}
     }
     jump = jump_get(tok_for);
     /* test is optional */

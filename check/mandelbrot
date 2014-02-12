@@ -1,0 +1,52 @@
+/* http://shootout.alioth.debian.org/u32q/benchmark.php?test=mandelbrot&lang=gcc&id=3 */
+/* adapted from C GNU gcc sample */
+
+auto w = 200, h = 200;
+
+auto
+iterate(auto Zr, auto Zi, auto Tr, auto Ti, auto Cr, auto Ci, auto iter)
+{
+    if (iter == 0)
+	return 1;
+
+    Zi = 2.0 * Zr * Zi + Ci;
+    Zr = Tr - Ti + Cr;
+    Tr = Zr * Zr;
+    Ti = Zi * Zi;
+
+    if (Tr + Ti > 4.0)
+	return 0;
+
+    return iterate(Zr, Zi, Tr, Ti, Cr, Ci, iter - 1);
+}
+
+auto bit_num = 0, byte_acc = 0;
+auto x, y, Cr, Ci;
+auto wrat = 2.0 / w, hrat = 2.0 / h;
+auto i = 0;
+uint8_t buf[] = new(uint8_t[(w \ 8 + (w % 8 ? 1 : 0)) * h]);
+
+print("P4\n%d %d\n", w, h);
+
+for (y = 0; y < h; ++y) {
+    Ci = y * hrat - 1.0;
+    for (x = 0; x < w; ++x) {
+	Cr = x * wrat -1.5;
+	byte_acc <<= 1;
+	if (iterate(0.0, 0.0, 0.0, 0.0, Cr, Ci, 50))
+	    byte_acc |= 1;
+
+	  if (++bit_num == 8) {
+	      buf[i++] = byte_acc;
+	      bit_num = byte_acc = 0;
+	  }
+    }
+
+    if (bit_num) {
+	byte_acc <<= (8 - w % 8);
+	buf[i++] = byte_acc;
+	bit_num = byte_acc = 0;
+    }
+}
+
+print("%s", buf);

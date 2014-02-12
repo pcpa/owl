@@ -1588,6 +1588,7 @@ binary_assign(void)
 	switch (expression()) {
 	    case tok_number:		case tok_string:
 	    case tok_symbol:		case tok_expr:
+	    case tok_list:
 		break;
 	    default:
 		oparse_error(top_ast(), "expecting expression %A", top_ast());

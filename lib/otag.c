@@ -418,6 +418,7 @@ otag_ast_data(otag_t *tag, oast_t *ast)
 otype_t
 otag_to_type(otag_t *tag)
 {
+    otype_t		 eltype;
     orecord_t		*record;
     ovector_t		*vector;
 
@@ -428,7 +429,10 @@ otag_to_type(otag_t *tag)
 	    record = (orecord_t *)tag->name;
 	    return (record->type);
 	case tag_vector:
-	    return (t_vector | otag_to_type(tag->base));
+	    eltype = otag_to_type(tag->base);
+	    if (eltype & t_vector)
+		return (t_vector);
+	    return (t_vector | eltype);
 	default:
 	    assert(tag->type == tag_function);
 	    vector = tag->name;
