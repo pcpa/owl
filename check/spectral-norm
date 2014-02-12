@@ -1,0 +1,46 @@
+/* http://benchmarksgame.alioth.debian.org/u32/program.php?test=spectralnorm&lang=gcc&id=1 */
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+ *
+ * Contributed by Sebastien Loisel
+ */
+
+float64_t eval_A(int32_t i, int32_t j) { return 1.0/((i+j)*(i+j+1)/2+i+1); }
+
+void eval_A_times_u(int32_t N, float64_t u[], float64_t Au[])
+{
+  int32_t i,j;
+  for(i=0;i<N;i++)
+    {
+      Au[i]=0;
+      for(j=0;j<N;j++) Au[i]+=eval_A(i,j)*u[j];
+    }
+}
+
+void eval_At_times_u(int32_t N, float64_t u[], float64_t Au[])
+{
+  int32_t i,j;
+  for(i=0;i<N;i++)
+    {
+      Au[i]=0;
+      for(j=0;j<N;j++) Au[i]+=eval_A(j,i)*u[j];
+    }
+}
+
+void eval_AtA_times_u(int32_t N, float64_t u[], float64_t AtAu[])
+{ float64_t v[] = new float64_t[N]; eval_A_times_u(N,u,v); eval_At_times_u(N,v,AtAu); }
+
+int32_t N = 100;
+int32_t i;
+float64_t u[] = new float64_t[N],v[] =  new float64_t[N],vBv,vv;
+for(i=0;i<N;i++) u[i]=1;
+for(i=0;i<10;i++)
+  {
+    eval_AtA_times_u(N,u,v);
+    eval_AtA_times_u(N,v,u);
+  }
+vBv=vv=0;
+for(i=0;i<N;i++) { vBv+=u[i]*v[i]; vv+=v[i]*v[i]; }
+/* <dot><number> is understood as number of significant digits to print,
+ * not number of digits after dot */
+print("%.10f\n",sqrt(vBv/vv));

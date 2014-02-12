@@ -1,0 +1,45 @@
+/* http://benchmarksgame.alioth.debian.org/u32/program.php?test=threadring&lang=gcc&id=1 */
+/* The Computer Language Benchmarks Game
+ * http://benchmarksgame.alioth.debian.org/
+
+* contributed by Premysl Hruby
+*/
+
+#define THREADS 503
+
+
+/* staticaly initialize mutex[0] mutex */
+auto Mutex[THREADS] = {}; 
+int32_t data[THREADS] = {};
+
+void Thread(int32_t l)
+{
+   int32_t r = (l+1) % THREADS;
+   int32_t token;
+
+   while(1) {
+      lock(Mutex[l]);
+      token = data[l];
+      if (token) {
+         data[r] = token - 1;
+	 unlock(Mutex[r]);
+      }
+      else {
+         print("%d\n", l+1);
+	 exit(0);
+      }
+   }
+}
+
+int32_t i;
+auto cthread;
+
+data[0] = 1000;
+
+for (i = 0; i < THREADS; i++) {
+  Mutex[i] = mutex();
+  lock(Mutex[i]);
+  cthread = thread(Thread(i));
+}
+unlock(Mutex[0]);
+join(cthread);   

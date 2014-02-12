@@ -28,6 +28,10 @@ typedef struct nat_mutex {
     pthread_mutex_t	*mutex;
 } nat_mutex_t;
 
+typedef struct nat_exit {
+    oint32_t		 status;
+} nat_exit_t;
+
 /*
  * Prototypes
  */
@@ -43,6 +47,9 @@ native_lock(oobject_t list, oint32_t size);
 
 static void
 native_unlock(oobject_t list, oint32_t size);
+
+static void
+native_exit(oobject_t list, oint32_t size);
 
 /*
  * Initialization
@@ -87,6 +94,10 @@ init_thread_builtin(void)
 
     builtin = onew_builtin("unlock", native_unlock, t_void, false);
     onew_argument(builtin, t_void);		/* mutex */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("exit", native_exit, t_void, false);
+    onew_argument(builtin, t_int32);		/* status */
     oend_builtin(builtin);
 }
 
@@ -135,7 +146,6 @@ native_mutex(oobject_t list, oint32_t size)
 static void
 native_lock(oobject_t list, oint32_t size)
 {
-    GET_THREAD_SELF()
     nat_mutex_t		*alist;
 
     alist = (nat_mutex_t *)list;
@@ -148,7 +158,6 @@ native_lock(oobject_t list, oint32_t size)
 static void
 native_unlock(oobject_t list, oint32_t size)
 {
-    GET_THREAD_SELF()
     nat_mutex_t		*alist;
 
     alist = (nat_mutex_t *)list;
@@ -156,4 +165,13 @@ native_unlock(oobject_t list, oint32_t size)
 	othrow(except_invalid_argument);
 
     omutex_unlock(alist->mutex);
+}
+
+static void
+native_exit(oobject_t list, oint32_t size)
+{
+    nat_exit_t		*alist;
+
+    alist = (nat_exit_t *)list;
+    exit(alist->status);
 }

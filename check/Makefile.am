@@ -19,17 +19,32 @@ AM_CFLAGS = @OWL_CFLAGS@
 
 EXTRA_DIST =				\
 	binarytrees			\
+	binarytrees.c			\
 	binarytrees-output.txt		\
-	chameneous-redux		\
+	chameneos-redux			\
+	chameneos-redux.c		\
 	chameneosredux-output.txt	\
 	fannkuch			\
+	fannkuch.c			\
 	fannkuch-output.txt		\
 	fasta				\
+	fasta.c				\
 	fasta-output.txt		\
 	mandelbrot			\
+	mandelbrot.c			\
 	mandelbrot-output.txt		\
 	math				\
+	nbody				\
+	nbody.c				\
+	nbody-output.txt		\
 	pidigits			\
+	pidigits.c			\
 	pidigits-output.txt		\
 	scan				\
-	test
+	spectral-norm			\
+	spectral-norm.c			\
+	spectral-norm-output.txt	\
+	test				\
+	threadring			\
+	threadring.c			\
+	threadring-output.txt
