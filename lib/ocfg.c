@@ -197,8 +197,8 @@ Options:\n\
   -fdefault-float={double|mpfr}\n\
                            Default float format\n\
   -fmpfr-prec={2-n}        Mpfr precision\n\
-  -fstack-size=n{K|M}      Stack size (default 64M, max 1G)\n\
-  -fuse-semaphore={0|1|true|false|yes|no\n\
+  -fstack-size=n[K|M]      Stack size (default 64M, max 1G)\n\
+  -fuse-semaphore={0|1|true|false|yes|no}\n\
                            Use semaphores to suspend/resume threads\n");
 		error = 1;
 		break;
