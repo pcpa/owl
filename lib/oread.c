@@ -155,13 +155,13 @@ static oobject_t
 read_keyword(oint32_t ch);
 
 static oint32_t
-getc_noeof(void);
+getch_noeof(void);
 
 static oint32_t
-getc(void);
+getch(void);
 
 static void
-ungetc(oint32_t ch);
+ungetch(oint32_t ch);
 
 static oint32_t
 skip(void);
@@ -1081,7 +1081,7 @@ read_ident(oint32_t ch)
     length = 1;
     string[0] = ch;
 
-    for (ch = getc(); ch != eof && symbol_char_p(ch); ch = getc()) {
+    for (ch = getch(); ch != eof && symbol_char_p(ch); ch = getch()) {
 	if (length >= size) {
 	    size += BUFSIZ;
 	    if (string == buffer) {
@@ -1099,7 +1099,7 @@ read_ident(oint32_t ch)
 	string[length++] = ch;
     }
     if (ch != eof)
-	ungetc(ch);
+	ungetch(ch);
 
     vector = oget_string(string, length);
     gc_leave();
@@ -1142,13 +1142,13 @@ read_object(void)
 		break;
 	    case '.':
 		/* allow leading dot for floats */
-		ch = getc();
+		ch = getch();
 		if (ch >= '0' && ch <= '9') {
-		    ungetc(ch);
+		    ungetch(ch);
 		    object = read_number('.');
 		    break;
 		}
-		ungetc(ch);
+		ungetch(ch);
 		ch = '.';
 	    default:
 		object = read_keyword(ch);
@@ -1164,18 +1164,18 @@ read_object(void)
 }
 
 static oint32_t
-getc_noeof(void)
+getch_noeof(void)
 {
     oint32_t	ch;
 
-    if ((ch = getc()) == eof)
+    if ((ch = getch()) == eof)
 	oread_error("unexpected end of file");
 
     return (ch);
 }
 
 static oint32_t
-getc(void)
+getch(void)
 {
     oint32_t	ch;
 
@@ -1190,7 +1190,7 @@ getc(void)
 }
 
 static void
-ungetc(oint32_t ch)
+ungetch(oint32_t ch)
 {
     if (ch == '\n') {
 	--input_note.lineno;
@@ -1206,7 +1206,7 @@ skip(void)
 {
     oint32_t		ch;
 
-    for (ch = getc(); ; ch = getc()) {
+    for (ch = getch(); ; ch = getch()) {
 	if (ch == '/')
 	    ch = skip_comment();
 	switch (ch) {
@@ -1228,49 +1228,49 @@ skip_comment(void)
     oint32_t		nest;
 
     /* this function is called after reading a '/' */
-    ch = getc();
+    ch = getch();
 again:
     switch (ch) {
 	case '/':
 	    line = true;
-	    for (ch = getc(); ch != '\n' && ch != eof; ch = getc())
+	    for (ch = getch(); ch != '\n' && ch != eof; ch = getch())
 		;
 	    break;
 	case '*':
 	    line = false;
 	    for (nest = 1; nest > 0;) {
-		while ((ch = getc_noeof()) != '*') {
+		while ((ch = getch_noeof()) != '*') {
 		    if (ch == '/') {
-			if (getc_noeof() == '*')
+			if (getch_noeof() == '*')
 			    ++nest;
 		    }
 		}
-		while ((ch = getc_noeof()) == '*')
+		while ((ch = getch_noeof()) == '*')
 		    ;
 		if (ch == '/')
 		    --nest;
 	    }
-	    ch = getc();
+	    ch = getch();
 	    break;
 	default:
 	    /* not a comment */
-	    ungetc(ch);
+	    ungetch(ch);
 	    return ('/');
     }
 
     /* return ending '\n' */
     if (line && ch == '\n') {
 	/* fast check for multiple comments */
-	if ((nest = getc()) == '/') {
-	    ch = getc();
+	if ((nest = getch()) == '/') {
+	    ch = getch();
 	    if (ch == '/' || ch == '*')
 		goto again;
-	    ungetc(ch);
-	    ungetc(nest);
+	    ungetch(ch);
+	    ungetch(nest);
 	    return ('\n');
 	}
 	else
-	    ungetc(nest);
+	    ungetch(nest);
     }
 
     return (ch);
@@ -1324,11 +1324,11 @@ read_number(oint32_t ch)
     scan_num(input->stream, 0, ch, false);
     oread_unlock(input->stream);
 
-    ch = getc();
+    ch = getch();
     /* check delimiter */
     if (symbol_char_p(ch))
 	oread_error("number followed by '%c'", ch);
-    ungetc(ch);
+    ungetch(ch);
 
     r0 = &thread_self->r0;
     switch (r0->t) {
@@ -1437,9 +1437,9 @@ read_keyword(oint32_t ch)
 
     switch (ch) {
 	case '#':
-	    if ((ch = getc()) == '#')	token = tok_concat;
+	    if ((ch = getch()) == '#')	token = tok_concat;
 	    else {
-		ungetc(ch);		token = tok_stringify;
+		ungetch(ch);		token = tok_stringify;
 	    }
 	    break;
 	case '(':			token = tok_oparen;		break;
@@ -1452,117 +1452,117 @@ read_keyword(oint32_t ch)
 	case ':':			token = tok_collon;		break;
 	case ',':			token = tok_comma;		break;
 	case '.':
-	    if ((ch = getc()) != '.') {
-		ungetc(ch);		token = tok_dot;
+	    if ((ch = getch()) != '.') {
+		ungetch(ch);		token = tok_dot;
 	    }
-	    else if ((ch = getc()) != '.')
+	    else if ((ch = getch()) != '.')
 		oread_error("syntax error at '..'");
 	    else			token = tok_ellipsis;
 	    break;
 	case '=':
-	    if ((ch = getc()) == '=')	token = tok_eq;
+	    if ((ch = getch()) == '=')	token = tok_eq;
 	    else {
-		ungetc(ch);		token = tok_set;
+		ungetch(ch);		token = tok_set;
 	    }
 	    break;
 	case '&':
-	    if ((ch = getc()) == '&')		token = tok_andand;
+	    if ((ch = getch()) == '&')		token = tok_andand;
 	    else if (ch == '=')			token = tok_andset;
 	    else {
-		ungetc(ch);			token = tok_and;
+		ungetch(ch);			token = tok_and;
 	    }
 	    break;
 	case '|':
-	    if ((ch = getc()) == '|')		token = tok_oror;
+	    if ((ch = getch()) == '|')		token = tok_oror;
 	    else if (ch == '=')			token = tok_orset;
 	    else {
-		ungetc(ch);			token = tok_or;
+		ungetch(ch);			token = tok_or;
 	    }
 	    break;
 	case '^':
-	    if ((ch = getc()) == '=')		token = tok_xorset;
+	    if ((ch = getch()) == '=')		token = tok_xorset;
 	    else {
-		ungetc(ch);			token = tok_xor;
+		ungetch(ch);			token = tok_xor;
 	    }
 	    break;
 	case '<':
-	    if ((ch = getc()) == '=')		token = tok_le;
+	    if ((ch = getch()) == '=')		token = tok_le;
 	    else if (ch == '<') {
-		if ((ch = getc()) == '=')	token = tok_mul2set;
+		if ((ch = getch()) == '=')	token = tok_mul2set;
 		else if (ch == '<') {
-		    if ((ch = getc()) == '=')	token = tok_shlset;
+		    if ((ch = getch()) == '=')	token = tok_shlset;
 		    else {
-			ungetc(ch);		token = tok_shl;
+			ungetch(ch);		token = tok_shl;
 		    }
 		}
 		else {
-		    ungetc(ch);			token = tok_mul2;
+		    ungetch(ch);		token = tok_mul2;
 		}
 	    }
 	    else {
-		ungetc(ch);			token = tok_lt;
+		ungetch(ch);			token = tok_lt;
 	    }
 	    break;
 	case '>':
-	    if ((ch = getc()) == '=')		token = tok_ge;
+	    if ((ch = getch()) == '=')		token = tok_ge;
 	    else if (ch == '>') {
-		if ((ch = getc()) == '=')	token = tok_div2set;
+		if ((ch = getch()) == '=')	token = tok_div2set;
 		else if (ch == '>') {
-		    if ((ch = getc()) == '=')	token = tok_shrset;
+		    if ((ch = getch()) == '=')	token = tok_shrset;
 		    else {
-			ungetc(ch);		token = tok_shr;
+			ungetch(ch);		token = tok_shr;
 		    }
 		}
 		else {
-		    ungetc(ch);			token = tok_div2;
+		    ungetch(ch);		token = tok_div2;
 		}
 	    }
 	    else {
-		ungetc(ch);			token = tok_gt;
+		ungetch(ch);			token = tok_gt;
 	    }
 	    break;
 	case '+':
-	    if ((ch = getc()) == '+')		token = tok_inc;
+	    if ((ch = getch()) == '+')		token = tok_inc;
 	    else if (ch == '=')			token = tok_addset;
 	    else {
-		ungetc(ch);			token = tok_add;
+		ungetch(ch);			token = tok_add;
 	    }
 	    break;
 	case '-':
-	    if ((ch = getc()) == '-')		token = tok_dec;
+	    if ((ch = getch()) == '-')		token = tok_dec;
 	    else if (ch == '=')			token = tok_subset;
 	    else {
-		ungetc(ch);			token = tok_sub;
+		ungetch(ch);			token = tok_sub;
 	    }
 	    break;
 	case '*':
-	    if ((ch = getc()) == '=')		token = tok_mulset;
+	    if ((ch = getch()) == '=')		token = tok_mulset;
 	    else {
-		ungetc(ch);			token = tok_mul;
+		ungetch(ch);			token = tok_mul;
 	    }
 	    break;
 	case '/':
-	    if ((ch = getc()) == '=')		token = tok_divset;
+	    if ((ch = getch()) == '=')		token = tok_divset;
 	    else {
-		ungetc(ch);			token = tok_div;
+		ungetch(ch);			token = tok_div;
 	    }
 	    break;
 	case '\\':
-	    if ((ch = getc()) == '=')		token = tok_trunc2set;
+	    if ((ch = getch()) == '=')		token = tok_trunc2set;
 	    else {
-		ungetc(ch);			token = tok_trunc2;
+		ungetch(ch);			token = tok_trunc2;
 	    }
 	    break;
 	case '%':
-	    if ((ch = getc()) == '=')		token = tok_remset;
+	    if ((ch = getch()) == '=')		token = tok_remset;
 	    else {
-		ungetc(ch);			token = tok_rem;
+		ungetch(ch);			token = tok_rem;
 	    }
 	    break;
 	case '!':
-	    if ((ch = getc()) == '=')		token = tok_ne;
+	    if ((ch = getch()) == '=')		token = tok_ne;
 	    else {
-		ungetc(ch);			token = tok_not;
+		ungetch(ch);			token = tok_not;
 	    }
 	    break;
 	case '~':				token = tok_com;	break;
@@ -2600,11 +2600,11 @@ macro_read(void)
 	case mac_warning:
 	    stream = (ostream_t *)r0->vec;
 	    stream->offset = stream->length = 0;
-	    ungetc(macro_skip());
-	    for (ch = getc(); ch != eof && ch != '\n'; ch = getc())
+	    ungetch(macro_skip());
+	    for (ch = getch(); ch != eof && ch != '\n'; ch = getch())
 		oputc(stream, ch);
 	    /* backup line number */
-	    ungetc(ch);
+	    ungetch(ch);
 	    if (macros[offset].macro == mac_warning)
 		oread_warn("%p", stream);
 	    else
@@ -2630,7 +2630,7 @@ macro_object(obool_t define)
 	switch (ch) {
 	    case '\n':
 		/* Print proper line number on warnings and errors */
-		ungetc('\n');
+		ungetch('\n');
 	    case eof:
 		object = object_eof;
 		break;
@@ -2648,13 +2648,13 @@ macro_object(obool_t define)
 		break;
 	    case '.':
 		/* allow leading dot for floats */
-		ch = getc();
+		ch = getch();
 		if (ch >= '0' && ch <= '9') {
-		    ungetc(ch);
+		    ungetch(ch);
 		    object = read_number('.');
 		    break;
 		}
-		ungetc(ch);
+		ungetch(ch);
 		ch = '.';
 	    default:
 		object = read_keyword(ch);
@@ -2688,7 +2688,7 @@ macro_skip(void)
 {
     oint32_t		ch;
 
-    for (ch = getc(); ; ch = getc()) {
+    for (ch = getch(); ; ch = getch()) {
 	if (ch == '/')
 	    ch = skip_comment();
 	switch (ch) {
@@ -2698,11 +2698,11 @@ macro_skip(void)
 	    case '\r':	case '\v':	case '\f':
 		break;
 	    case '\\':
-		ch = getc();
+		ch = getch();
 		if (ch == eof)
 		    oread_error("unexpected end of input");
 		else if (ch != '\n') {
-		    ungetc(ch);
+		    ungetch(ch);
 		    return ('\\');
 		}
 		break;
@@ -2733,7 +2733,7 @@ macro_define(osymbol_t *symbol)
     oput_hash(macro_table, (oentry_t *)macro);
     gc_dec();
 
-    state = getc();
+    state = getch();
     if (state == '(') {
 	unsafe = false;
 #define wait_sep	(1 << 0)
@@ -2787,7 +2787,7 @@ macro_define(osymbol_t *symbol)
     }
     else {
 	unsafe = true;
-	ungetc(state);
+	ungetch(state);
     }
 
 macro_define:
@@ -2827,7 +2827,7 @@ macro_check(void)
     oint32_t		ch;
 
     if ((ch = macro_skip()))
-	ungetc(ch);
+	ungetch(ch);
     else if (ch != eof)
 	oread_error("'%c' after preprocessor", ch);
 }

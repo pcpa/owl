@@ -1397,6 +1397,7 @@ native_print_impl(ostream_t *stream,
 	omutex_lock(&stream->mutex);
 
     aidx = 0;
+    arg = null;
     argp = false;
     f = t = vector->v.u8;
     l = f + vector->length;

@@ -26,7 +26,7 @@ static void
 realize(oast_t *ast);
 
 static void
-stat(oast_t *ast);
+statement(oast_t *ast);
 
 static void
 list(oast_t *ast);
@@ -84,7 +84,7 @@ orealize(void)
 
     assert(current_record == root_record);
     assert(current_function == root_record->function);
-    stat(root_record->function->ast->c.ast->l.ast);
+    statement(root_record->function->ast->c.ast->l.ast);
     for (offset = type_vector->offset - 1; offset > t_root; --offset) {
 	record = type_vector->v.ptr[offset];
 	if (otype(record) == t_prototype &&
@@ -180,7 +180,7 @@ realize(oast_t *ast)
 	    /* gc protect constant initializers */
 	    ast->r.value = literal(ast->r.value);
 	    /* parse dynamic intializers */
-	    stat(ast->l.ast);
+	    statement(ast->l.ast);
 	    break;
 
 	case tok_dot:
@@ -190,7 +190,7 @@ realize(oast_t *ast)
 
 	case tok_new:
 	    ast->offset = get();
-	    stat(ast->l.ast);
+	    statement(ast->l.ast);
 	    break;
 	case tok_vecnew:
 	    if (ast->r.ast->token != tok_number)
@@ -268,7 +268,7 @@ realize(oast_t *ast)
 	    break;
 	case tok_code:		case tok_stat:
 	case tok_finally:
-	    stat(ast->l.ast);
+	    statement(ast->l.ast);
 	    break;
 	case tok_list:
 	    list(ast->l.ast);
@@ -286,23 +286,23 @@ realize(oast_t *ast)
 	    ast->offset = ast->l.ast->offset;
 	    break;
 	case tok_if:
-	    stat(ast->t.ast);
-	    stat(ast->l.ast);
-	    stat(ast->r.ast);
+	    statement(ast->t.ast);
+	    statement(ast->l.ast);
+	    statement(ast->r.ast);
 	    break;
 	case tok_while:		case tok_do:
-	    stat(ast->c.ast);
-	    stat(ast->t.ast);
+	    statement(ast->c.ast);
+	    statement(ast->t.ast);
 	    break;
 	case tok_for:
-	    stat(ast->l.ast);
-	    stat(ast->t.ast);
-	    stat(ast->r.ast);
-	    stat(ast->c.ast);
+	    statement(ast->l.ast);
+	    statement(ast->t.ast);
+	    statement(ast->r.ast);
+	    statement(ast->c.ast);
 	    break;
 	case tok_switch:
-	    stat(ast->t.ast);
-	    stat(ast->c.ast);
+	    statement(ast->t.ast);
+	    statement(ast->c.ast);
 	    break;
 	case tok_return:	case tok_throw:
 	    if (ast->l.ast)
@@ -313,7 +313,7 @@ realize(oast_t *ast)
 	    ast->offset = get();
 	    break;
 	case tok_try:		case tok_catch:
-	    stat(ast->r.ast);
+	    statement(ast->r.ast);
 	    break;
 	case tok_break:		case tok_continue:
 	case tok_case:		case tok_default:
@@ -332,7 +332,7 @@ realize(oast_t *ast)
 }
 
 static void
-stat(oast_t *ast)
+statement(oast_t *ast)
 {
     oword_t		offset;
 
@@ -444,7 +444,7 @@ call(oast_t *ast)
     call_size += size;
     assert(call_size >= 0);
 
-    stat(ast->r.ast);
+    statement(ast->r.ast);
 
     if (--call_depth == 0) {
 	if (!builtin) {

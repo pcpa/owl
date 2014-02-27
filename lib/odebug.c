@@ -198,7 +198,7 @@ write_object(oobject_t object, oformat_t *format)
 		bytes = print_ast_list(data.ast);
 		break;
 	    case t_basic:	case t_record:
-		print_sym(data.record->name);
+		bytes = print_sym(data.record->name);
 		break;
 	    case t_word:
 		bytes = print_int(*data.wptr);
