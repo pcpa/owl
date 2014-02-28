@@ -3090,6 +3090,8 @@ load_hash(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
     jit_pushargr(GPR[rop->u.w]);
     /* hash entry pointer is returned in lop */
     emit_finish(ovm_gethash, mask3(bop->u.w, lop->u.w, rop->u.w));
+    /* actually, it is known to be now a t_hashentry */
+    emit_set_type(lop, t_void);
 }
 
 static void
@@ -3134,20 +3136,8 @@ static void
 store_entry(ooperand_t *lop, ooperand_t *rop)
 {
     emit_load(lop);
-    switch (emit_get_type(lop)) {
-	case t_half:		case t_word:
-	    sync_w(lop->u.w);
-	    break;
-	case t_single:
-	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
-	    emit_set_type(lop, t_float);
-	case t_float:
-	    sync_d(lop->u.w);
-	    break;
-    }
-    emit_load(rop);
     load_r(lop->u.w);
-    jit_prepare();
+    emit_load(rop);
     switch (emit_get_type(rop)) {
 	case t_half:		case t_word:
 	    sync_w(rop->u.w);
@@ -3160,6 +3150,7 @@ store_entry(ooperand_t *lop, ooperand_t *rop)
 	    break;
     }
     load_r_w(rop->u.w, JIT_R0);
+    jit_prepare();
     jit_pushargr(GPR[lop->u.w]);
     jit_pushargr(JIT_R0);
     emit_finish(ovm_putentry, mask1(lop->u.w));
