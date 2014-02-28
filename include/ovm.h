@@ -206,6 +206,13 @@ extern void
 ovm_move(oregister_t *l, oregister_t *r);
 
 extern void
+ovm_gethash(oregister_t *b, oregister_t *l, oregister_t *r);
+extern void
+ovm_puthash(oregister_t *b, oregister_t *l, oregister_t *r);
+extern void
+ovm_putentry(oregister_t *l, oregister_t *r);
+
+extern void
 ovm_inc(oregister_t *r);
 extern void
 ovm_dec(oregister_t *r);

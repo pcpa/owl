@@ -66,6 +66,10 @@ typedef complex double		ocdd_t;
 typedef __cqq_struct*		ocqq_t;
 typedef __mpc_struct*		ompc_t;
 
+/* Virtual machine hash table */
+typedef struct ohashtable	ohashtable_t;
+typedef struct ohashentry	ohashentry_t;
+
 typedef struct ortti		ortti_t;
 typedef enum otype		otype_t;
 typedef enum otoken		otoken_t;

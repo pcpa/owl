@@ -37,6 +37,7 @@ libowl_la_SOURCES =	\
 	oeval.c		\
 	ofunction.c	\
 	ohash.c		\
+	ohashtable.c	\
 	omath.c		\
 	oobject.c	\
 	oparser.c	\

@@ -344,7 +344,8 @@ ovm_exit(void)
 	    pthread_cond_wait(&count_cond, &count_mutex);
 
 	/* mutex is implicitly released by pthread_cond_wait */
-	/* omutex_unlock(&count_mutex); */
+	/* but helgrind does not agree */
+	omutex_unlock(&count_mutex);
 
 	/* free mpfr per thread cache data */
 	othreads_lock();
@@ -1071,6 +1072,271 @@ ovm_move(oregister_t *l, oregister_t *r)
 	    break;
     }
     l->t = r->t;
+}
+
+static ohashentry_t *
+hash_test(ohashtable_t *hash, ohashentry_t *test, oregister_t *r)
+{
+    switch ((test->nt = r->t)) {
+	case t_void:
+	    test->nv.o = null;
+	    return (null);
+	case t_word:
+	    test->nv.w = r->v.w;
+	    break;
+	case t_float:
+	    test->nv.d = r->v.d;
+	    break;
+	case t_mpz:
+	    test->nv.z = ozr(r);
+	    break;
+	case t_rat:
+	    test->nv.x = r->v.r;
+	    break;
+	case t_mpq:
+	    test->nv.q = oqr(r);
+	    break;
+	case t_mpr:
+	    test->nv.r = orr(r);
+	    break;
+	case t_cdd:
+	    test->nv.dd = r->v.dd;
+	    break;
+	case t_cqq:
+	    test->nv.qq = oqq(r);
+	    break;
+	case t_mpc:
+	    test->nv.cc = occ(r);
+	    break;
+	default:
+	    test->nv.o = r->v.o;
+	    break;
+    }
+    okey_hashentry(test);
+    if ((r->v.o = oget_hashentry(hash, test)))
+	r->t = t_hashentry;
+    else
+	r->t = t_void;
+    return (r->v.o);
+}
+
+static ohashentry_t *
+hash_test_create(ohashtable_t *hash, ohashentry_t *test, oregister_t *r)
+{
+    GET_THREAD_SELF()
+    ohashentry_t	*entry;
+
+    if ((entry = hash_test(hash, test, r)) == null) {
+	if (test->nt == t_void)
+	    return (null);
+	onew_object(&thread_self->obj, t_hashentry, sizeof(ohashentry_t));
+	entry = thread_self->obj;
+	switch (test->nt) {
+	    case t_word:
+		entry->nt = t_word;
+		entry->nv.w = test->nv.w;
+		break;
+	    case t_float:
+		entry->nt = t_float;
+		entry->nv.d = test->nv.d;
+		break;
+	    case t_mpz:
+		onew_mpz(&entry->nv.o, test->nv.z);
+		entry->nt = t_mpz;
+		break;
+	    case t_rat:
+		entry->nt = t_rat;
+		entry->nv.x = test->nv.x;
+		break;
+	    case t_mpq:
+		onew_mpq(&entry->nv.o, test->nv.q);
+		entry->nt = t_mpq;
+		break;
+	    case t_mpr:
+		onew_mpr(&entry->nv.o, test->nv.r);
+		entry->nt = t_mpr;
+		break;
+	    case t_cdd:
+		entry->nt = t_cdd;
+		entry->nv.dd = test->nv.dd;
+		break;
+	    case t_cqq:
+		onew_cqq(&entry->nv.o, test->nv.qq);
+		entry->nt = t_cqq;
+		break;
+	    case t_mpc:
+		onew_mpc(&entry->nv.o, test->nv.cc);
+		entry->nt = t_mpc;
+		break;
+	    case t_string:
+		onew_vector(&entry->nv.o, t_uint8, test->nv.v->length);
+		memcpy(entry->nv.v->v.u8, test->nv.v->v.u8, test->nv.v->length);
+		entry->nt = t_string;
+		break;
+	    default:
+		test->nv.o = r->v.o;
+		entry->nt = test->nt;
+		break;
+	}
+	entry->key = test->key;
+	oput_hashentry(hash, entry);
+    }
+    return (entry);
+}
+
+static void
+entry_load(ohashentry_t *entry, oregister_t *r)
+{
+    switch ((r->t = entry->vt)) {
+	case t_word:
+	    r->v.w = entry->vv.w;
+	    break;
+	case t_float:
+	    r->v.d = entry->vv.d;
+	    break;
+	case t_mpz:
+	    mpz_set(ozr(r), entry->vv.z);
+	    break;
+	case t_rat:
+	    r->v.r = entry->vv.x;
+	    break;
+	case t_mpq:
+	    mpq_set(oqr(r), entry->vv.q);
+	    break;
+	case t_mpr:
+	    mpfr_set(orr(r), entry->vv.r, thr_rnd);
+	    break;
+	case t_cdd:
+	    r->v.dd = entry->vv.dd;
+	    break;
+	case t_cqq:
+	    cqq_set(oqq(r), entry->vv.qq);
+	    break;
+	case t_mpc:
+	    mpc_set(occ(r), entry->vv.cc, thr_rndc);
+	    break;
+	default:
+	    r->v.o = entry->vv.o;
+	    break;
+    }
+}
+
+static void
+entry_store(ohashentry_t *entry, oregister_t *r)
+{
+    GET_THREAD_SELF()
+    switch (r->t) {
+	case t_word:
+	    entry->vt = t_word;
+	    entry->vv.w = r->v.w;
+	    break;
+	case t_float:
+	    entry->vt = t_float;
+	    entry->vv.d = r->v.d;
+	    break;
+	case t_mpz:
+	    if (entry->vt == t_mpz)
+		mpz_set(entry->vv.z, ozr(r));
+	    else {
+		onew_mpz(&thread_self->obj, ozr(r));
+		entry->vv.z = thread_self->obj;
+		entry->vt = t_mpz;
+	    }
+	    break;
+	case t_rat:
+	    entry->vt = t_rat;
+	    entry->vv.x = r->v.r;
+	    break;
+	case t_mpq:
+	    if (entry->vt == t_mpz)
+		mpq_set(entry->vv.q, oqr(r));
+	    else {
+		onew_mpq(&thread_self->obj, oqr(r));
+		entry->vv.q = thread_self->obj;
+		entry->vt = t_mpq;
+	    }
+	    break;
+	case t_mpr:
+	    if (entry->vt == t_mpr)
+		mpfr_set(entry->vv.r, orr(r), thr_rnd);
+	    else {
+		onew_mpr(&thread_self->obj, orr(r));
+		entry->vv.r = thread_self->obj;
+		entry->vt = t_mpr;
+	    }
+	    break;
+	case t_cdd:
+	    entry->vv.dd = r->v.dd;
+	    break;
+	case t_cqq:
+	    if (entry->vt == t_mpr)
+		cqq_set(entry->vv.qq, oqq(r));
+	    else {
+		onew_cqq(&thread_self->obj, oqq(r));
+		entry->vv.qq = thread_self->obj;
+		entry->vt = t_cqq;
+	    }
+	    break;
+	case t_mpc:
+	    if (entry->vt == t_mpr)
+		mpc_set(entry->vv.cc, occ(r), thr_rndc);
+	    else {
+		onew_mpc(&thread_self->obj, occ(r));
+		entry->vv.cc = thread_self->obj;
+		entry->vt = t_mpc;
+	    }
+	    break;
+	default:
+	    entry->vv.o = r->v.o;
+	    entry->vt = t_rat;
+	    break;
+    }
+}
+
+void
+ovm_gethash(oregister_t *b, oregister_t *l, oregister_t *r)
+{
+    ohashentry_t	 test;
+    ohashentry_t	*entry;
+
+    if (unlikely(b->t == t_void || l->t == t_void))
+	ovm_raise(except_null_dereference);
+    if (unlikely(b->t != t_hashtable))
+	ovm_raise(except_invalid_argument);
+    if ((entry = hash_test(b->v.o, &test, l)))
+	entry_load(entry, r);
+    else {
+	r->t = t_void;
+	r->v.o = null;
+    }
+}
+
+void
+ovm_puthash(oregister_t *b, oregister_t *l, oregister_t *r)
+{
+    ohashentry_t	 test;
+    ohashentry_t	*entry;
+
+    if (unlikely(b->t == t_void || l->t == t_void))
+	ovm_raise(except_null_dereference);
+    if (unlikely(b->t != t_hashtable))
+	ovm_raise(except_invalid_argument);
+    if (r->t == t_void) {
+	if ((entry = hash_test(b->v.o, &test, l)))
+	    orem_hashentry(b->v.o, entry);
+    }
+    else
+	entry_store(hash_test_create(b->v.o, &test, l), r);
+}
+
+void
+ovm_putentry(oregister_t *l, oregister_t *r)
+{
+    if (unlikely(l->t == t_void))
+	ovm_raise(except_null_dereference);
+    if (unlikely(l->t != t_hashentry))
+	ovm_raise(except_invalid_argument);
+    entry_store(l->v.o, r);
 }
 
 void

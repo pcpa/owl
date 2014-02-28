@@ -710,7 +710,7 @@ native_close(oobject_t list, oint32_t size)
     oregister_t		*r0;
     nat_close_t		*alist;
 
-    alist = (nat_seek_t *)list;
+    alist = (nat_close_t *)list;
     if (alist->stream == null ||
 	(otype(alist->stream) != t_string && otype(alist->stream) != t_stream))
 	othrow(except_invalid_argument);

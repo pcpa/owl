@@ -843,12 +843,15 @@ gc_mark(memory_t *memory)
     oentry_t		*entry;
     oword_t		 offset;
     oobject_t		*pointer;
+    ohashentry_t	*hashentry;
     union {
 	oast_t		*ast;
 	obuiltin_t	*builtin;
 	oentry_t	*entry;
 	ofunction_t	*function;
 	ohash_t		*hash;
+	ohashentry_t	*hashentry;
+	ohashtable_t	*hashtable;
 	oinput_t	*input;
 	ojump_t		*jump;
 	omacro_t	*macro;
@@ -905,6 +908,42 @@ again:
 		goto again;
 	    }
 	    break;
+	case t_hashtable:
+	    if (o.hashtable->entries) {
+		mark(object_to_memory(o.hashtable->entries));
+		if (o.hashtable->count) {
+		    for (offset = 0; offset < o.hashtable->size; offset++) {
+			hashentry = o.hashtable->entries[offset];
+			for (; hashentry; hashentry = hashentry->next)
+			    gc_mark(object_to_memory(hashentry));
+		    }
+		}
+	    }
+	    if (o.hashtable->vector) {
+		memory = object_to_memory(o.hashtable->vector);
+		goto again;
+	    }
+	    break;
+	case t_hashentry:
+	    switch (o.hashentry->nt) {
+		case t_void:		case t_word:
+		case t_float:		case t_rat:
+		case t_cdd:
+		    break;
+		default:
+		    gc_mark(object_to_memory(o.hashentry->nv.o));
+		    break;
+	    }
+	    switch (o.hashentry->vt) {
+		case t_void:		case t_word:
+		case t_float:		case t_rat:
+		case t_cdd:
+		    return;
+		default:
+		    break;
+	    }
+	    memory = object_to_memory(o.hashentry->vv.o);
+	    goto again;
 	case t_hash:
 	    if (o.hash->entries) {
 		mark(object_to_memory(o.hash->entries));

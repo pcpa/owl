@@ -32,6 +32,7 @@ enum otagtype {
     tag_vector,
     tag_function,
     tag_varargs,
+    tag_hash,
 };
 
 struct otag {
@@ -83,5 +84,6 @@ extern otag_t		*auto_tag;
 extern otag_t		*vector_tag;
 extern otag_t		*string_tag;
 extern otag_t		*varargs_tag;
+extern otag_t		*hash_tag;
 
 #endif /* _otag_h */

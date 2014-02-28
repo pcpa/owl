@@ -171,6 +171,7 @@ enum otoken {
     tok_vector,
     tok_vecdcl,
     tok_vecnew,
+    tok_hash,		/* '[' in hash context */
     tok_code,		/* '{' in code context */
     tok_data,		/* '{' in data context */
     tok_new_type_data,

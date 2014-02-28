@@ -21,6 +21,9 @@
  * Prototypes
  */
 static otag_t *
+tag_opaque(otype_t type, otagtype_t tag_type);
+
+static otag_t *
 make_tag_vector(otag_t *base, oword_t length);
 
 static otag_t *
@@ -41,6 +44,7 @@ otag_t			*auto_tag;
 otag_t			*vector_tag;
 otag_t			*string_tag;
 otag_t			*varargs_tag;
+otag_t			*hash_tag;
 
 static ohash_t		*tag_table;
 static ovector_t	*key_vector;
@@ -142,6 +146,11 @@ init_tag(void)
     varargs_tag->base = auto_tag;
     symbol = onew_identifier(oget_string((ouint8_t *)"...", 3));
     symbol->tag = varargs_tag;
+
+    hash_tag = tag_opaque(t_hash, tag_hash);
+    symbol = onew_identifier(oget_string((ouint8_t *)"hash_t", 6));
+    symbol->type = true;
+    symbol->tag = hash_tag;
 }
 
 void
@@ -433,11 +442,36 @@ otag_to_type(otag_t *tag)
 	    if (eltype & t_vector)
 		return (t_vector);
 	    return (t_vector | eltype);
+	case tag_hash:
+	    return (t_hash);
 	default:
 	    assert(tag->type == tag_function);
 	    vector = tag->name;
 	    return (t_function | otag_to_type(vector->v.ptr[0]));
     }
+}
+
+static otag_t *
+tag_opaque(otype_t type, otagtype_t tag_type)
+{
+    otag_t		*tag;
+    oobject_t		 object;
+    oobject_t		*pointer;
+    gc_enter();
+
+    gc_ref(pointer);
+    onew_word(pointer, type);
+    object = *pointer;
+    gc_ref(pointer);
+    onew(pointer, tag);
+    tag = *pointer;
+    tag->name = object;
+    tag->type = tag_type;
+    tag->size = sizeof(oobject_t);
+    oput_hash(tag_table, (oentry_t *)tag);
+    gc_leave();
+
+    return (tag);
 }
 
 static otag_t *

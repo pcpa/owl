@@ -136,6 +136,9 @@ static void
 emit_vararg(oast_t *last, oast_t *ast, oast_t *rast);
 
 static void
+emit_hash(oast_t *last, oast_t *ast, oast_t *rast);
+
+static void
 emit_label(oast_t *ast);
 
 static void
@@ -190,6 +193,15 @@ load_vararg(ooperand_t *lop, ooperand_t *rop);
 
 static void
 store_vararg(ooperand_t *lop, ooperand_t *rop);
+
+static void
+load_hash(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop);
+
+static void
+store_hash(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop);
+
+static void
+store_entry(ooperand_t *lop, ooperand_t *rop);
 
 static void
 emit_reload(ooperand_t *op, obool_t same);
@@ -827,6 +839,9 @@ emit(oast_t *ast)
 	    else
 		emit_vector(ast, null, null);
 	    break;
+	case tok_hash:
+	    emit_hash(ast, null, null);
+	    break;
 	case tok_not:		case tok_com:
 	case tok_neg:		case tok_plus:
 	case tok_integer_p:	case tok_rational_p:
@@ -1034,6 +1049,9 @@ emit_set(oast_t *ast)
 		 last = last->l.ast)
 		;
 	    emit_symbol(last, ast, ast->r.ast);
+	    break;
+	case tok_hash:
+	    emit_hash(ast->l.ast, ast, ast->r.ast);
 	    break;
 	default:
 	    abort();
@@ -1553,6 +1571,45 @@ emit_vararg(oast_t *last, oast_t *ast, oast_t *rast)
     }
     operand_copy(lop, rop);
     operand_unget(1);
+}
+
+static void
+emit_hash(oast_t *last, oast_t *ast, oast_t *rast)
+{
+    ooperand_t		*bop;
+    ooperand_t		*lop;
+    otoken_t		 tok;
+    ooperand_t		*rop;
+
+    emit(last->l.ast);
+    bop = operand_top();
+    if (bop->k == null || bop->k->type != tag_hash)
+	oparse_error(last, "expecting hash %A", last->l.ast);
+    emit(last->r.ast);
+    lop = operand_top();
+
+    if (rast) {
+	tok = get_token(ast);
+	if (tok) {
+	    rop = operand_get(bop->s);
+	    load_hash(bop, lop, rop);
+	    emit(rast);
+	    emit_binary_next(rop, tok, operand_top());
+	    if (ast->token >= tok_andset && ast->token <= tok_remset)
+		store_entry(lop, rop);
+	}
+	else {
+	    emit(rast);
+	    rop = operand_top();
+	    store_hash(bop, lop, rop);
+	}
+    }
+    else {
+	rop = operand_get(bop->s);
+	load_hash(bop, lop, rop);
+    }
+    operand_copy(bop, rop);
+    operand_unget(2);
 }
 
 static void
@@ -3003,6 +3060,109 @@ store_vararg(ooperand_t *lop, ooperand_t *rop)
 	load_w(lop->u.w);
 	release_reg(lop->u.w);
     }
+}
+
+static void
+load_hash(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
+{
+    emit_load(bop);
+    emit_load(lop);
+    rop->u.w = get_register(true);
+    rop->t = t_void|t_register;
+    rop->k = auto_tag;
+    load_r(bop->u.w);
+    switch (emit_get_type(lop)) {
+	case t_half:		case t_word:
+	    sync_w(lop->u.w);
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    emit_set_type(lop, t_float);
+	case t_float:
+	    sync_d(lop->u.w);
+	    break;
+    }
+    load_r(lop->u.w);
+    load_r(rop->u.w);
+    jit_prepare();
+    jit_pushargr(GPR[bop->u.w]);
+    jit_pushargr(GPR[lop->u.w]);
+    jit_pushargr(GPR[rop->u.w]);
+    /* hash entry pointer is returned in lop */
+    emit_finish(ovm_gethash, mask3(bop->u.w, lop->u.w, rop->u.w));
+}
+
+static void
+store_hash(ooperand_t *bop, ooperand_t *lop, ooperand_t *rop)
+{
+    emit_load(bop);
+    emit_load(lop);
+    emit_load(rop);
+    load_r(bop->u.w);
+    switch (emit_get_type(lop)) {
+	case t_half:		case t_word:
+	    sync_w(lop->u.w);
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    emit_set_type(lop, t_float);
+	case t_float:
+	    sync_d(lop->u.w);
+	    break;
+    }
+    load_r(lop->u.w);
+    switch (emit_get_type(rop)) {
+	case t_half:		case t_word:
+	    sync_w(rop->u.w);
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[rop->u.w], FPR[rop->u.w]);
+	    emit_set_type(rop, t_float);
+	case t_float:
+	    sync_d(rop->u.w);
+	    break;
+    }
+    load_r_w(rop->u.w, JIT_R0);
+    jit_prepare();
+    jit_pushargr(GPR[bop->u.w]);
+    jit_pushargr(GPR[lop->u.w]);
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_puthash, mask2(bop->u.w, lop->u.w));
+}
+
+static void
+store_entry(ooperand_t *lop, ooperand_t *rop)
+{
+    emit_load(lop);
+    switch (emit_get_type(lop)) {
+	case t_half:		case t_word:
+	    sync_w(lop->u.w);
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    emit_set_type(lop, t_float);
+	case t_float:
+	    sync_d(lop->u.w);
+	    break;
+    }
+    emit_load(rop);
+    load_r(lop->u.w);
+    jit_prepare();
+    switch (emit_get_type(rop)) {
+	case t_half:		case t_word:
+	    sync_w(rop->u.w);
+	    break;
+	case t_single:
+	    jit_extr_f_d(FPR[lop->u.w], FPR[lop->u.w]);
+	    emit_set_type(rop, t_float);
+	case t_float:
+	    sync_d(rop->u.w);
+	    break;
+    }
+    load_r_w(rop->u.w, JIT_R0);
+    jit_pushargr(GPR[lop->u.w]);
+    jit_pushargr(JIT_R0);
+    emit_finish(ovm_putentry, mask1(lop->u.w));
 }
 
 static void

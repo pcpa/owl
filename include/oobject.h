@@ -110,6 +110,8 @@ enum otype {
 
     t_thread		= 0x10000000,
     t_mutex,
+    t_hashtable,
+    t_hashentry,
     t_rtti,
 
     t_stream,

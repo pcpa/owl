@@ -329,7 +329,7 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 		gc = false;
 		break;
 	    case tag_auto:	case tag_class:
-	    case tag_vector:
+	    case tag_vector:	case tag_hash:
 		break;
 	    default:
 		assert(tag->type == tag_function);

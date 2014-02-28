@@ -30,6 +30,7 @@ EXTRA_DIST =		\
 	oeval.h		\
 	ofunction.h	\
 	ohash.h		\
+	ohashtable.h	\
 	omath.h		\
 	oobject.h	\
 	oparser.h	\

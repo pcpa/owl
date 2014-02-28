@@ -84,7 +84,7 @@ odata(oast_t *ast)
 	    odata(ast->l.ast);
 	    odata(ast->r.ast);
 	    break;
-	case tok_vector:
+	case tok_vector:	case tok_hash:
 	    odata(ast->l.ast);
 	    data_stat(ast->r.ast);
 	    break;

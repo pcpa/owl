@@ -197,7 +197,7 @@ realize(oast_t *ast)
 		ast->r.ast->offset = get();
 	    break;
 
-	case tok_vector:
+	case tok_vector:	case tok_hash:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
 	    ast->offset = ast->r.ast->offset;
@@ -466,11 +466,10 @@ get(void)
     offset = stack->v.i32[stack->offset];
     if (offset == 0) {
 	offset = onew_slot(current_record);
-	if (stack->offset >= stack->length)
-	    orenew_vector(stack, stack->length + 16);
 	stack->v.i32[stack->offset] = offset;
     }
-    ++stack->offset;
+    if (++stack->offset >= stack->length)
+	orenew_vector(stack, stack->length + 16);
 
     return (offset);
 }

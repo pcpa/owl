@@ -168,12 +168,15 @@ write_object(oobject_t object, oformat_t *format)
     obool_t		 first;
     oint32_t		 indent;
     oword_t		 offset;
+    ohashentry_t	*hashentry;
     union {
 	oast_t		*ast;
 	ocdd_t		*cdd;
 	ocqq_t		 cqq;
 	oentry_t	*entry;
 	ohash_t		*hash;
+	ohashentry_t	*hashentry;
+	ohashtable_t	*hashtable;
 	oword_t		*wptr;
 	ofloat_t	*fptr;
 	orat_t		 rat;
@@ -252,7 +255,93 @@ write_object(oobject_t object, oformat_t *format)
 		bytes += print_obj(data.entry->name);
 		bytes += dputs(", value: ", 9);
 		bytes += print_obj(data.entry->value);
-		dputc('}');		++bytes;
+		bytes += dputs(" }", 2);
+		break;
+	    case t_hashtable:
+		first = true;
+		bytes = dputs("hashtable_t {", 13);
+		for (offset = 0; offset < data.hashtable->size; offset++) {
+		    hashentry = data.hashtable->entries[offset];
+		    for (; hashentry; hashentry = hashentry->next) {
+			if (first) {
+			    first = false;
+			    dputc(' ');	++bytes;
+			}
+			else
+			    bytes += dputs(", ", 2);
+			bytes += print_obj(hashentry);
+		    }
+		}
+		bytes += dputs(" }", 2);
+		break;
+	    case t_hashentry:
+		bytes = dputs("hashentry_t { name: ", 20);
+		switch (data.hashentry->nt) {
+		    case t_word:
+			bytes += print_int(data.hashentry->nv.w);
+			break;
+		    case t_float:
+			bytes += print_flt(data.hashentry->nv.d);
+			break;
+		    case t_mpz:
+			bytes += print_mpz(data.hashentry->nv.z);
+			break;
+		    case t_rat:
+			bytes += print_rat(&data.hashentry->nv.x);
+			break;
+		    case t_mpq:
+			bytes += print_mpq(data.hashentry->nv.q);
+			break;
+		    case t_mpr:
+			bytes += print_mpr(data.hashentry->nv.r);
+			break;
+		    case t_cdd:
+			bytes += print_cdd(&data.hashentry->nv.dd);
+			break;
+		    case t_cqq:
+			bytes += print_cqq(data.hashentry->nv.qq);
+			break;
+		    case t_mpc:
+			bytes += print_mpc(data.hashentry->nv.cc);
+			break;
+		    default:
+			bytes += print_obj(data.hashentry->nv.o);
+			break;
+		}
+		bytes += dputs(", value: ", 9);
+		switch (data.hashentry->vt) {
+		    case t_word:
+			bytes += print_int(data.hashentry->vv.w);
+			break;
+		    case t_float:
+			bytes += print_flt(data.hashentry->vv.d);
+			break;
+		    case t_mpz:
+			bytes += print_mpz(data.hashentry->vv.z);
+			break;
+		    case t_rat:
+			bytes += print_rat(&data.hashentry->vv.x);
+			break;
+		    case t_mpq:
+			bytes += print_mpq(data.hashentry->vv.q);
+			break;
+		    case t_mpr:
+			bytes += print_mpr(data.hashentry->vv.r);
+			break;
+		    case t_cdd:
+			bytes += print_cdd(&data.hashentry->vv.dd);
+			break;
+		    case t_cqq:
+			bytes += print_cqq(data.hashentry->vv.qq);
+			break;
+		    case t_mpc:
+			bytes += print_mpc(data.hashentry->vv.cc);
+			break;
+		    default:
+			bytes += print_obj(data.hashentry->vv.o);
+			break;
+		}
+		bytes += dputs(" }", 2);
 		break;
 	    case t_symbol:
 		bytes = print_sym(data.symbol);
@@ -973,7 +1062,7 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast_paren_comma_list(ast->l.ast);
 	    break;
 	case tok_vector:	case tok_vecdcl:
-	case tok_vecnew:
+	case tok_vecnew:	case tok_hash:
 	    bytes += print_ast(ast->l.ast);
 	    dputc('[');		++bytes;
 	    if (ast->r.ast)	bytes += print_ast(ast->r.ast);
@@ -1394,7 +1483,9 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 	bytes = dputs("class ", 6);
     for (base = tag; base->base; base = base->base)
 	assert(otag_p(base));
-    if ((record = base->name))
+    if (tag->type == tag_hash)
+	bytes += dputs("hash_t", 6);
+    else if ((record = base->name))
 	bytes += print_sym(record->name);
     else
 	bytes += dputs("auto", 4);

@@ -391,7 +391,7 @@ rehash(ohash_t *hash)
     }
 
     orenew_vector((ovector_t *)hash, hash->size << 1);
-    memset(hash->entries, 0, sizeof(oentry_t *) * hash->size);
+    memset(hash->entries, 0, sizeof(oentry_t *) * hash->size >> 1);
 
     for (--j; j >= 0; --j) {
 	entry = rehash_vector->v.ptr[j];

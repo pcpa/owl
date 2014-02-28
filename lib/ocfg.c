@@ -96,6 +96,7 @@ ocfg_main(int argc, char *argv[])
     init_cache();
     init_realize();
     init_emit();
+    init_hashtable();
 
     if (optind < argc) {
 	int	index = argc - 1;
@@ -132,6 +133,7 @@ ocfg_main(int argc, char *argv[])
     jit_destroy_state();
 #endif
 
+    finish_hashtable();
     finish_emit();
     finish_realize();
     finish_cache();

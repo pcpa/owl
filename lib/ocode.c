@@ -269,13 +269,22 @@ oeval_ast_tag(oast_t *ast)
 	    return (symbol->tag);
 	case tok_vector:
 	    tag = oeval_ast_tag(ast->l.ast);
-	    if (tag->type != tag_vector && tag->type != tag_varargs) {
-		if (ast->l.ast->token == tok_symbol) {
-		    symbol = ast->l.ast->l.value;
-		    oparse_error(ast, "'%p' is not a vector %A",
-				 symbol->name, ast);
-		}
-		oparse_error(ast, "not a vector reference %A", ast);
+	    switch (tag->type) {
+		case tag_vector:
+		case tag_varargs:
+		    break;
+		case tag_hash:
+		    /* Patch token to simplify later parsing */
+		    ast->token = tok_hash;
+		    break;
+		default:
+		    if (ast->l.ast->token == tok_symbol) {
+			symbol = ast->l.ast->l.value;
+			oparse_error(ast, "'%p' is not a vector %A",
+				     symbol->name, ast);
+		    }
+		    oparse_error(ast, "not a vector reference %A", ast);
+		    break;
 	    }
 	    return (tag->base);
 	case tok_dot:

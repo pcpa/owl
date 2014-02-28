@@ -501,6 +501,16 @@ emit_inc_dec(oast_t *ast)
 		load_vector(bop, lop, rop);
 	    }
 	    break;
+	case tok_hash:
+	    emit(ast->l.ast);
+	    bop = operand_top();
+	    if (bop->k == null || bop->k->type != tag_hash)
+		oparse_error(ast, "expecting hash %A", ast->l.ast);
+	    emit(ast->r.ast);
+	    lop = operand_top();
+	    rop = operand_get(bop->s);
+	    load_hash(bop, lop, rop);
+	    break;
 	default:
 	    oparse_error(ast, "not a lvalue %A", ast);
     }
@@ -573,6 +583,11 @@ emit_inc_dec(oast_t *ast)
 	    break;
 	case tok_dot:
 	    store_record(bop, lop, rop);
+	    operand_copy(bop, rop);
+	    operand_unget(2);
+	    break;
+	case tok_hash:
+	    store_entry(lop, rop);
 	    operand_copy(bop, rop);
 	    operand_unget(2);
 	    break;

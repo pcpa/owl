@@ -50,6 +50,7 @@
 #include "oeval.h"
 #include "ofunction.h"
 #include "ohash.h"
+#include "ohashtable.h"
 #include "omath.h"
 #include "orat.h"
 #include "oread.h"
