@@ -443,7 +443,7 @@ otag_to_type(otag_t *tag)
 		return (t_vector);
 	    return (t_vector | eltype);
 	case tag_hash:
-	    return (t_hash);
+	    return (t_hashtable);
 	default:
 	    assert(tag->type == tag_function);
 	    vector = tag->name;

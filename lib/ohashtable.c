@@ -359,5 +359,5 @@ native_hash(oobject_t list, oint32_t ac)
 
     new_hashtable(&thread_self->obj, 16);
     thread_self->r0.v.o = thread_self->obj;
-    thread_self->r0.t = t_hash;
+    thread_self->r0.t = t_hashtable;
 }
