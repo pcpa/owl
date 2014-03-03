@@ -919,10 +919,6 @@ again:
 		    }
 		}
 	    }
-	    if (o.hashtable->vector) {
-		memory = object_to_memory(o.hashtable->vector);
-		goto again;
-	    }
 	    break;
 	case t_hashentry:
 	    switch (o.hashentry->nt) {

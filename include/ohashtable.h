@@ -68,9 +68,6 @@ struct ohashtable {
     ohashentry_t	**entries;
     oword_t		  size;			/* size of entries vector */
     oword_t		  count;		/* number of entries */
-    /* temporary rehash storage */
-    ovector_t		 *vector;
-    pthread_mutex_t	  mutex;
 };
 
 /*

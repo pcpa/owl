@@ -17,8 +17,8 @@
 
 #include "owl.h"
 
-#define hash_lock()		omutex_lock(&hash->mutex)
-#define hash_unlock()		omutex_unlock(&hash->mutex)
+#define hash_lock()		omutex_lock(&hash_mutex)
+#define hash_unlock()		omutex_unlock(&hash_mutex)
 
 /*
  * Prototypes
@@ -60,6 +60,12 @@ static void
 native_hash(oobject_t list, oint32_t ac);
 
 /*
+ * Initialization
+ */
+static pthread_mutex_t		 hash_mutex;
+static ovector_t		*rehash_vector;
+
+/*
  * Implementation
  */
 void
@@ -67,6 +73,8 @@ init_hashtable(void)
 {
     obuiltin_t		*builtin;
 
+    omutex_init(&hash_mutex);
+    oadd_root((oobject_t *)&rehash_vector);
     builtin = onew_builtin("hash", native_hash, t_void, false);
     oend_builtin(builtin);
 }
@@ -74,6 +82,7 @@ init_hashtable(void)
 void
 finish_hashtable(void)
 {
+    orem_root((oobject_t *)&rehash_vector);
 }
 
 static inline oword_t
@@ -83,7 +92,7 @@ key_hash(ouint8_t *vector, oword_t key, oword_t length)
     ouint8_t		*ptr;
 
     for (i = 0, ptr = vector; i < length; i++)
-	key = (key << (key & 1)) ^ ptr[i];
+	key = ((key << 5) + key) + ptr[i];
 
     return (key);
 }
@@ -100,7 +109,6 @@ oput_hashentry(ohashtable_t *hash, ohashentry_t *entry)
     oword_t		 key;
     ohashentry_t	*prev, *ptr;
 
-    hash_lock();
     key = entry->key & (hash->size - 1);
     prev = ptr = hash->entries[key];
     for (; ptr; prev = ptr, ptr = ptr->next) {
@@ -111,7 +119,6 @@ oput_hashentry(ohashtable_t *hash, ohashentry_t *entry)
 	    else
 		prev->next = entry;
 	    entry->next = ptr->next;
-	    hash_unlock();
 	    return;
 	}
     }
@@ -126,7 +133,6 @@ oput_hashentry(ohashtable_t *hash, ohashentry_t *entry)
 
     if (hash->count > (hash->size >> 1) + (hash->size >> 2))
 	rehashtable(hash);
-    hash_unlock();
 }
 
 ohashentry_t *
@@ -135,15 +141,12 @@ oget_hashentry(ohashtable_t *hash, ohashentry_t *entry)
     oword_t		 key;
     ohashentry_t	*ptr;
 
-    hash_lock();
     key = entry->key & (hash->size - 1);
     for (ptr = hash->entries[key]; ptr; ptr = ptr->next)
 	if (hashentry_compare(entry, ptr)) {
-	    hash_unlock();
 	    return (ptr);
 	}
 
-    hash_unlock();
     return (null);
 }
 
@@ -153,7 +156,6 @@ orem_hashentry(ohashtable_t *hash, ohashentry_t *entry)
     oword_t		 key;
     ohashentry_t	*ptr, *prev;
 
-    hash_lock();
     key = entry->key & (hash->size - 1);
     for (ptr = prev = hash->entries[key]; ptr; prev = ptr, ptr = ptr->next) {
 	if (ptr == entry) {
@@ -165,7 +167,6 @@ orem_hashentry(ohashtable_t *hash, ohashentry_t *entry)
 	    break;
 	}
     }
-    hash_unlock();
 }
 
 static void
@@ -188,7 +189,6 @@ new_hashtable(oobject_t *pointer, oword_t size)
 
     onew_vector_base(pointer, t_void, t_hashtable, size, sizeof(ohashtable_t));
     hash = *pointer;
-    omutex_init(&hash->mutex);
 }
 
 static oword_t
@@ -332,8 +332,14 @@ rehashtable(ohashtable_t *hash)
     if (hash->size << 1 < hash->size)
 	return;
 
-    onew_vector((oobject_t *)&hash->vector, t_void, hash->count);
-    entries = (ohashentry_t **)hash->vector->v.obj;
+    hash_lock();
+
+    if (rehash_vector == null)
+	onew_vector((oobject_t *)&rehash_vector, t_void, hash->count);
+    else if (rehash_vector->length <= hash->count)
+	orenew_vector(rehash_vector, hash->count);
+
+    entries = (ohashentry_t **)rehash_vector->v.obj;
     for (i = j = 0; i < hash->size; i++)
 	for (entry = hash->entries[i]; entry; entry = entry->next)
 	    entries[j++] = entry;
@@ -342,14 +348,15 @@ rehashtable(ohashtable_t *hash)
     memset(hash->entries, 0, sizeof(oentry_t *) * hash->size >> 1);
 
     for (--j; j >= 0; --j) {
-	entry = hash->vector->v.ptr[j];
+	entry = entries[j];
 	key = entry->key & (hash->size - 1);
 	entry->next = hash->entries[key];
 	hash->entries[key] = entry;
     }
 
     /* gc protected vector no longer required */
-    hash->vector = null;
+    memset(rehash_vector->v.ptr, 0, sizeof(oobject_t) * hash->count);
+    hash_unlock();
 }
 
 static void
