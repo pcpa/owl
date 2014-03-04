@@ -984,8 +984,9 @@ ovm_store(oregister_t *reg, oobject_t *p, oint32_t t)
 		 * would be expected, due to language nature of
 		 * only allowing single inheritance */
 		while (t > t_mpc) {
-		    /* Only possible on memory corruption */
-		    assert(t <= rtti_vector->offset);
+		    /* t_hashtable or other special internal type */
+		    if (t > rtti_vector->offset)
+			ovm_raise(except_invalid_argument);
 		    rtti = rtti_vector->v.ptr[t];
 		    if (rtti->super == t)
 			break;
