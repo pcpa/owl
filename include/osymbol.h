@@ -126,6 +126,9 @@ oadd_record(orecord_t *record, orecord_t *super);
 extern void
 oend_record(orecord_t *record);
 
+extern obool_t
+osubclass_p(orecord_t *record, orecord_t *super);
+
 /*
  * Externs
  */

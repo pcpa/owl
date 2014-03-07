@@ -700,7 +700,7 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    }
 	    dputc(';');		++bytes;
 	    break;
-	case tok_type:
+	case tok_ctor:		case tok_type:
 	    bytes += print_tag(ast->l.value, null, true);
 	    break;
 	case tok_defn:
@@ -887,7 +887,14 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    bytes += print_ast_binary_function("complex", 7, ast);
 	    break;
 	case tok_subtypeof:
-	    bytes += print_ast_binary_function("subtypeof", 9, ast);
+	    bytes += dputs("subtypeof(", 10);
+	    bytes += print_ast(ast->l.ast);
+	    bytes += dputs(", ", 2);
+	    if (ast->r.ast->token == tok_type)
+		bytes += print_tag(ast->r.ast->l.value, null, false);
+	    else
+		bytes += print_ast(ast->r.ast);
+	    dputc(')');		++bytes;
 	    break;
 	case tok_sizeof:
 	    bytes += print_ast_unary_function("sizeof", 6, ast);
@@ -1285,6 +1292,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    }
 	    dputc(' ');		++bytes;
 	    bytes += print_ast(ast->c.ast);
+	    break;
+	case tok_this:
+	    bytes += dputs("this", 4);
 	    break;
 	default:
 	    bytes += print_ptr(ast);

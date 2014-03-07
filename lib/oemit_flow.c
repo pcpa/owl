@@ -897,6 +897,7 @@ emit_thread(oast_t *ast)
     ooperand_t		*rop;
     ooperand_t		*top;
     oast_t		*list;
+    obool_t		 ccall;
     obool_t		 vcall;
     obool_t		 ecall;
     osymbol_t		*symbol;
@@ -907,10 +908,13 @@ emit_thread(oast_t *ast)
     rop = operand_get(ast->offset);
     rop->u.w = get_register(true);
     top = null;
+    ccall = ast->l.ast->token == tok_ctor;
     vcall = ast->l.ast->token == tok_dot;
-    ecall = ast->l.ast->token == tok_explicit;
+    ecall = ccall || ast->l.ast->token == tok_explicit;
 
-    if (vcall) {
+    if (ccall)
+	symbol = ast->t.value;
+    else if (vcall) {
 	emit(ast->l.ast->l.ast);
 	top = operand_top();
 	symbol = ast->l.ast->r.ast->l.value;
@@ -940,6 +944,7 @@ emit_call(oast_t *ast)
     ooperand_t		*rop;
     ooperand_t		*top;
     oast_t		*list;
+    obool_t		 ccall;
     obool_t		 vcall;
     obool_t		 ecall;
     osymbol_t		*symbol;
@@ -949,10 +954,13 @@ emit_call(oast_t *ast)
     rop = operand_get(ast->offset);
     rop->u.w = get_register(true);
     top = null;
+    ccall = ast->l.ast->token == tok_ctor;
     vcall = ast->l.ast->token == tok_dot;
-    ecall = ast->l.ast->token == tok_explicit;
+    ecall = ccall || ast->l.ast->token == tok_explicit;
 
-    if (vcall) {
+    if (ccall)
+	symbol = ast->t.value;
+    else if (vcall) {
 	emit(ast->l.ast->l.ast);
 	top = operand_top();
 	symbol = ast->l.ast->r.ast->l.value;

@@ -806,6 +806,12 @@ emit(oast_t *ast)
 		    break;
 	    }
 	    break;
+	case tok_this:
+	    op = operand_get(ast->offset);
+	    op->t = t_symbol;
+	    op->u.o = symbol_this;
+	    op->k = ast->t.value;
+	    break;
 	case tok_symbol:
 	    op = operand_get(ast->offset);
 	    op->t = t_symbol;

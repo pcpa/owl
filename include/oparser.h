@@ -243,6 +243,7 @@ onew_ast(oobject_t *pointer, otoken_t token,
  * Externs
  */
 extern osymbol_t	*symbol_new;
+extern osymbol_t	*symbol_this;
 extern osymbol_t	*symbol_token_vector[tok_ctor];
 
 #endif /* _oparser_h */

@@ -187,6 +187,7 @@ pop_block(void);
  * Initialization
  */
 osymbol_t		*symbol_new;
+osymbol_t		*symbol_this;
 osymbol_t		*symbol_token_vector[tok_ctor];
 
 static struct {
@@ -378,6 +379,10 @@ init_parser(void)
     onew_cqq(&symbol->value, thr_qq);
 
     symbol_new = oget_identifier(oget_string((ouint8_t *)"new", 3));
+
+    symbol_this = oget_identifier(oget_string((ouint8_t *)"this", 4));
+    symbol_this->offset = THIS_OFFSET;
+    symbol_this->field = true;
 
     oadd_root((oobject_t *)&root_ast);
     oadd_root((oobject_t *)&head_ast);
@@ -1286,14 +1291,35 @@ structure(void)
 		oparse_error(ast, "%p redeclared as a different type", tag);
 	    record = tag->name;
 	    assert(otype(record) == t_record);
+	    if (record->length)
+		oparse_error(head_ast, "class %p redefined", record->name);
 	    token = lookahead();
-	    if (token != tok_obrace) {
+	    if (token == tok_collon) {
+		consume();
+		(void)primary_noeof();
+		top = pop_ast();
+		if (top->token != tok_type)
+		    oparse_error(ast, "expecting base class %A", ast);
+		tag = top->l.value;
+		if (tag->type != tag_class)
+		    oparse_error(ast, "type %p cannot be derived", tag);
+		/* Can only derive an already defined class */
+		super = tag->name;
+		if (rtti_vector->v.ptr[super->type] == null) {
+		    assert(super->type > t_mpc &&
+			   super->type <= rtti_vector->offset);
+		    oparse_error(ast, "class %p is not defined", tag);
+		}
+		oadd_record(record, super);
+		token = lookahead_noeof();
+		if (token != tok_obrace)
+		    oparse_error(ast, "expecting '{' %A", top_ast());
+	    }
+	    else if (token != tok_obrace) {
 		if (token == tok_comma || token == tok_semicollon)
 		    return (ast->token = tok_defn);
 		return (ast->token = tok_type);
 	    }
-	    if (record->length)
-		oparse_error(head_ast, "class %p redefined", record->name);
 	    break;
 	default:
 	    oparse_error(top_ast(), "expecting symbol or type %A", top_ast());
@@ -1587,8 +1613,8 @@ binary_assign(void)
 	primary();
 	switch (expression()) {
 	    case tok_number:		case tok_string:
-	    case tok_symbol:		case tok_expr:
-	    case tok_list:
+	    case tok_symbol:		case tok_this:
+	    case tok_expr:		case tok_list:
 		break;
 	    default:
 		oparse_error(top_ast(), "expecting expression %A", top_ast());
@@ -1659,8 +1685,9 @@ binary_right(otoken_t token)
     otoken_t		next;
 
     switch (unary()) {
-	case tok_number:	case tok_symbol:
-	case tok_expr:		case tok_list:
+	case tok_expr:		case tok_number:
+	case tok_symbol:	case tok_this:
+	case tok_list:
 	    break;
 	case tok_string:
 	    if (token == tok_eq || token == tok_ne ||
@@ -1898,7 +1925,7 @@ unary_value(otoken_t token)
 	case tok_log10:		case tok_atan2:
 	case tok_pow:		case tok_hypot:
 	case tok_complex:	case tok_ellipsis:
-	case tok_oparen:
+	case tok_oparen:	case tok_subtypeof:
 	    break;
 	default:
 	    oparse_error(top_ast(), "expecting expression %A", top_ast());
@@ -1923,6 +1950,8 @@ static otoken_t
 unary_ctor(void)
 {
     oast_t		*ast;
+    oast_t		*top;
+    otag_t		*tag;
     oobject_t		*pointer;
 
     ast = top_ast();
@@ -1942,12 +1971,44 @@ unary_ctor(void)
     ast = ast->r.ast;
     ast->token = tok_call;
 
-    if (primary_noeof() != tok_cparen)
-	oparse_error(head_ast, "constructor cannot receive arguments");
+    if (primary_noeof() != tok_cparen) {
+	top = top_ast();
+	if (top->token == tok_type) {
+	    tag = top->l.value;
+	    /* s/(void)/()/ */
+	    if (tag->type == tag_basic && tag->size == 0) {
+		consume();
+		if (lookahead_noeof())
+		    oparse_error(head_ast, "syntax error");
+	    }
+	    else
+		goto noargs;
+	}
+	else
+	    goto noargs;
+    }
+    else
+	top = null;
     ast->l.ast = pop_ast();
     ast->l.ast->token = tok_ctor;
 
-    return (tok_ctor);
+    switch (lookahead_noeof()) {
+	case tok_obrace:
+	    return (tok_ctor);
+	case tok_semicollon:
+	    /* actual constructor call */
+	    if (top)
+		goto noargs;
+	    ast = top_ast();
+	    ast->token = tok_call;
+	    ast->l.ast->token = tok_ctor;
+	    odel_object(&ast->r.value);
+	    return (tok_expr);
+	default:
+	    oparse_error(head_ast, "expecting '{', ',' or ';'");
+    }
+noargs:
+    oparse_error(top, "constructor cannot receive arguments");
 }
 
 static otoken_t

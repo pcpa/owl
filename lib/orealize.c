@@ -168,6 +168,14 @@ realize(oast_t *ast)
 		    break;
 	    }
 	    break;
+	case tok_this:
+	    if (current_function->name == null ||
+		!current_function->name->method)
+		oparse_error(ast, "'this' not allowed here");
+	    ast->t.value = current_record->parent;
+	    assert(ast->t.value && otype(ast->t.value) == t_record);
+	    ast->offset = get();
+	    break;
 	case tok_symbol:	case tok_ellipsis:
 	    ast->offset = get();
 	    break;
@@ -374,21 +382,44 @@ decl(oast_t *ast)
 static void
 call(oast_t *ast)
 {
+    otag_t		*tag;
     oast_t		*list;
     oast_t		*prev;
     osymbol_t		*name;
     oint32_t		 size;
+    obool_t		 ccall;
     obool_t		 vcall;
     obool_t		 ecall;
     oword_t		 offset;
+    orecord_t		*record;
     osymbol_t		*symbol;
     ovector_t		*vector;
     obool_t		 builtin;
     ofunction_t		*function;
 
+    ccall = ast->l.ast->token == tok_ctor;
     vcall = ast->l.ast->token == tok_dot;
     ecall = ast->l.ast->token == tok_explicit;
-    if (vcall) {
+    if (ccall) {
+	if (current_function->name == null ||
+	    current_function->name->name != symbol_new->name ||
+	    current_record == null ||
+	    otype(current_record) != t_prototype ||
+	    current_record->parent == null ||
+	    otype(current_record->parent) != t_record)
+	    oparse_error(ast, "not in subclass constructor");
+	tag = ast->l.ast->l.value;
+	assert(otag_p(ast));
+	record = tag->name;
+	if (!osubclass_p(current_record->parent, record))
+	    oparse_error(ast, "not in subclass constructor");
+	symbol = oget_symbol(record, symbol_new->name);
+	if (symbol == null)
+	    oparse_error(ast, "constructor '%p' not defined", record->name);
+	/* Avoid checks when actually emiting code */
+	ast->t.ast = symbol;
+    }
+    else if (vcall) {
 	realize(ast->l.ast->l.ast);
 	assert(ast->l.ast->r.ast->token == tok_symbol);
 	symbol = ast->l.ast->r.ast->l.value;

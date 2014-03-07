@@ -291,6 +291,17 @@ oend_record(orecord_t *record)
 	rtti_vector->offset = record->type;
 }
 
+obool_t
+osubclass_p(orecord_t *record, orecord_t *super)
+{
+    while (record) {
+	if (record == super)
+	    return (true);
+	record = record->super;
+    }
+    return (false);
+}
+
 static osymbol_t *
 new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 {
