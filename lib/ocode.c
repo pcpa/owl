@@ -431,7 +431,11 @@ eval_ast_decl(oast_t *decl)
 		if (ast->r.ast)
 		    oeval_ast(ast->r.ast);
 		goto eval_left;
-	    case tok_set:	case tok_proto:
+	    case tok_proto:
+		if (ast->r.ast)
+		    oeval_ast(ast->r.ast);
+		goto eval_left;
+	    case tok_set:
 		oeval_ast(ast->r.ast);
 	    eval_left:
 		for (ast = ast->l.ast;
