@@ -1138,7 +1138,9 @@ static void
 emit_new(oast_t *ast)
 {
     ooperand_t		*bop;
+    ooperand_t		*lop;
     ooperand_t		*rop;
+    ofunction_t		*ctor;
     otype_t		 type;
     orecord_t		*record;
 
@@ -1224,6 +1226,14 @@ emit_new(oast_t *ast)
     }
     jit_ldr(GPR[bop->u.w], GPR[bop->u.w]);
     sync_r(bop->u.w, type);
+
+    /* Constructor may override any static initialization or use it as input */
+    if (bop->k->type == tag_class && (ctor = oget_constructor(record))) {
+	lop = operand_get(0);
+	operand_copy(lop, bop);
+	/* op argument is implicitly unget */
+	emit_call_next(null, ctor, null, lop, false, true, false, false);
+    }
 }
 
 static void
@@ -1318,7 +1328,7 @@ data_record(oast_t *ast)
 	ast = ast->next;
     }
 
-    /* Constructor may override any static initialization of use it as input */
+    /* Constructor may override any static initialization or use it as input */
     if ((ctor = oget_constructor(record))) {
 	lop = operand_get(0);
 	operand_copy(lop, bop);
