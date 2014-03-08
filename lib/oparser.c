@@ -1952,6 +1952,7 @@ unary_ctor(void)
     oast_t		*ast;
     oast_t		*top;
     otag_t		*tag;
+    obool_t		 error;
     oobject_t		*pointer;
 
     ast = top_ast();
@@ -1973,42 +1974,29 @@ unary_ctor(void)
 
     if (primary_noeof() != tok_cparen) {
 	top = top_ast();
+	error = true;
 	if (top->token == tok_type) {
 	    tag = top->l.value;
 	    /* s/(void)/()/ */
 	    if (tag->type == tag_basic && tag->size == 0) {
 		consume();
-		if (lookahead_noeof())
+		if (lookahead_noeof() != tok_cparen)
 		    oparse_error(head_ast, "syntax error");
+		error = false;
 	    }
-	    else
-		goto noargs;
 	}
-	else
-	    goto noargs;
+	if (error)
+	    oparse_error(top, "constructor cannot receive arguments");
     }
     else
 	top = null;
     ast->l.ast = pop_ast();
     ast->l.ast->token = tok_ctor;
 
-    switch (lookahead_noeof()) {
-	case tok_obrace:
-	    return (tok_ctor);
-	case tok_semicollon:
-	    /* actual constructor call */
-	    if (top)
-		goto noargs;
-	    ast = top_ast();
-	    ast->token = tok_call;
-	    ast->l.ast->token = tok_ctor;
-	    odel_object(&ast->r.value);
-	    return (tok_expr);
-	default:
-	    oparse_error(head_ast, "expecting '{', ',' or ';'");
-    }
-noargs:
-    oparse_error(top, "constructor cannot receive arguments");
+    if (lookahead_noeof() != tok_obrace)
+	oparse_error(head_ast, "expecting '{'");
+
+    return (tok_ctor);
 }
 
 static otoken_t

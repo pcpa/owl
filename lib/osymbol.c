@@ -247,7 +247,8 @@ oadd_record(orecord_t *record, orecord_t *super)
     record->super = super;
     for (offset = 0; offset < super->vector->offset; offset++) {
 	symbol = super->vector->v.ptr[offset];
-	new_symbol(record, symbol->name, symbol->tag, true);
+	if (!symbol->ctor)
+	    new_symbol(record, symbol->name, symbol->tag, true);
     }
     record->nmethod = super->nmethod;
 }

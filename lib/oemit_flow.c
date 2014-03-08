@@ -696,8 +696,8 @@ emit_function(ofunction_t *function)
     jump = jump_get(tok_function);
 
     /* If a constructor, explicitly call parent constructor first */
-    if (function->name->ctor && function->name->record->parent) {
-	if ((parent = oget_constructor(function->name->record->parent)))
+    if (function->name->ctor && function->name->record->super) {
+	if ((parent = oget_constructor(function->name->record->super)))
 	    emit_call_next(null, parent, null, null, false, true, false, false);
     }
 
@@ -897,7 +897,6 @@ emit_thread(oast_t *ast)
     ooperand_t		*rop;
     ooperand_t		*top;
     oast_t		*list;
-    obool_t		 ccall;
     obool_t		 vcall;
     obool_t		 ecall;
     osymbol_t		*symbol;
@@ -908,13 +907,10 @@ emit_thread(oast_t *ast)
     rop = operand_get(ast->offset);
     rop->u.w = get_register(true);
     top = null;
-    ccall = ast->l.ast->token == tok_ctor;
     vcall = ast->l.ast->token == tok_dot;
-    ecall = ccall || ast->l.ast->token == tok_explicit;
+    ecall = ast->l.ast->token == tok_explicit;
 
-    if (ccall)
-	symbol = ast->t.value;
-    else if (vcall) {
+    if (vcall) {
 	emit(ast->l.ast->l.ast);
 	top = operand_top();
 	symbol = ast->l.ast->r.ast->l.value;
@@ -944,7 +940,6 @@ emit_call(oast_t *ast)
     ooperand_t		*rop;
     ooperand_t		*top;
     oast_t		*list;
-    obool_t		 ccall;
     obool_t		 vcall;
     obool_t		 ecall;
     osymbol_t		*symbol;
@@ -954,13 +949,10 @@ emit_call(oast_t *ast)
     rop = operand_get(ast->offset);
     rop->u.w = get_register(true);
     top = null;
-    ccall = ast->l.ast->token == tok_ctor;
     vcall = ast->l.ast->token == tok_dot;
-    ecall = ccall || ast->l.ast->token == tok_explicit;
+    ecall = ast->l.ast->token == tok_explicit;
 
-    if (ccall)
-	symbol = ast->t.value;
-    else if (vcall) {
+    if (vcall) {
 	emit(ast->l.ast->l.ast);
 	top = operand_top();
 	symbol = ast->l.ast->r.ast->l.value;
