@@ -63,8 +63,11 @@ emit_call_next(ooperand_t *rop,
 #endif
 
 #if defined(CODE)
-#define x_spill_w(r)	jit_stxi(SPL[r], JIT_FP, GPR[r])
-#define x_load_w(r)	jit_ldxi(GPR[r], JIT_FP, SPL[r])
+/* Spill/reload registers used as temporaries without overwriting
+ * actual language values storing in the thread state, and not the
+ * stack */
+#define stack_spill_w(r)	jit_stxi(SPL[r], JIT_FP, GPR[r])
+#define stack_load_w(r)		jit_ldxi(GPR[r], JIT_FP, SPL[r])
 static void
 emit_question(oast_t *ast)
 {
@@ -735,7 +738,7 @@ emit_function(ofunction_t *function)
 #if __WORDSIZE == 64
 	case t_int64:	case t_uint64:
 #endif
-	    x_spill_w(0);
+	    stack_spill_w(0);
 	    break;
 	default:
 	    break;
@@ -805,7 +808,7 @@ emit_function(ofunction_t *function)
 #if __WORDSIZE == 64
 	    case t_int64:	case t_uint64:
 #endif
-		x_load_w(0);
+		stack_load_w(0);
 		break;
 	    default:
 		break;
@@ -1025,7 +1028,7 @@ emit_call_next(ooperand_t *rop,
 	    else
 		frame = 1;
 	    mask |= 1 << frame;
-	    x_spill_w(frame);
+	    stack_spill_w(frame);
 	    frame = GPR[frame];
 	}
 	jit_ldxi(frame, JIT_V0, offsetof(othread_t, fp));
@@ -1043,7 +1046,7 @@ emit_call_next(ooperand_t *rop,
 	    else
 		stack = 2;
 	    mask |= 1 << stack;
-	    x_spill_w(stack);
+	    stack_spill_w(stack);
 	    stack = GPR[stack];
 	}
 	jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
@@ -1106,11 +1109,11 @@ emit_call_next(ooperand_t *rop,
     if (stack == GPR[TMP1])
 	release_tmp(1);
     if (mask & 1)
-	x_load_w(0);
+	stack_load_w(0);
     if (mask & 2)
-	x_load_w(1);
+	stack_load_w(1);
     if (mask & 4)
-	x_load_w(2);
+	stack_load_w(2);
 
     ++depth;
 
