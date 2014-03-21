@@ -110,7 +110,7 @@ ompz_get_w(ompz_t z)
 oword_t
 ompq_get_w(ompq_t q)
 {
-    GET_THREAD_SELF();
+    GET_THREAD_SELF()
     if (mpz_fits_slong_p(mpq_numref(q)) && mpz_fits_slong_p(mpq_denref(q)))
 	return (mpz_get_si(mpq_numref(q)) / mpz_get_si(mpq_denref(q)));
     mpz_set_q(thr_zr, q);
@@ -120,7 +120,7 @@ ompq_get_w(ompq_t q)
 oword_t
 ompr_get_w(ompr_t r)
 {
-    GET_THREAD_SELF();
+    GET_THREAD_SELF()
     if (unlikely(!mpfr_number_p(r)))
 	othread_kill(SIGFPE);
     if (mpfr_fits_slong_p(r, GMP_RNDZ))
@@ -217,7 +217,7 @@ ompz_set_ul(ompz_t z, ouint64_t u)
 oint64_t
 ompq_get_sl(ompq_t q)
 {
-    GET_THREAD_SELF();
+    GET_THREAD_SELF()
     if (ompz_fit_sl(mpq_numref(q)) && ompz_fit_sl(mpq_denref(q)))
 	return (ompz_get_sl(mpq_numref(q)) / ompz_get_sl(mpq_denref(q)));
     else {
@@ -229,7 +229,7 @@ ompq_get_sl(ompq_t q)
 oint64_t
 ompr_get_sl(ompr_t r)
 {
-    GET_THREAD_SELF();
+    GET_THREAD_SELF()
     if (unlikely(!mpfr_number_p(r)))
 	othread_kill(SIGFPE);
     if (mpfr_fits_slong_p(r, GMP_RNDZ))
@@ -242,6 +242,7 @@ ompr_get_sl(ompr_t r)
 void
 ompz_set_r(ompz_t z, ompr_t r)
 {
+    GET_THREAD_SELF()
     if (unlikely(!mpfr_number_p(r)))
 	othread_kill(SIGFPE);
     mpfr_get_z(z, r, GMP_RNDZ);
@@ -351,6 +352,7 @@ ow_mul_w_w(oword_t a, oword_t b)
 void
 ompc_cbrt(ompc_t c, ompc_t a)
 {
+    GET_THREAD_SELF()
     mpc_set_ui_ui(thr_cc, 1, 3, thr_rndc);
     mpfr_div(thr_rr, thr_rr, thr_ri, thr_rnd);
     mpc_pow_fr(c, a, thr_rr, thr_rndc);

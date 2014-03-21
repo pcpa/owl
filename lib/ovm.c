@@ -2718,6 +2718,7 @@ ovm_abs(oregister_t *r)
 void
 ovm_signum(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    r->t = t_word;
@@ -2783,6 +2784,7 @@ ovm_signum(oregister_t *r)
 void
 ovm_rational(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    r->t = t_word;
@@ -3665,6 +3667,7 @@ ovm_tan(oregister_t *r)
 void
 ovm_asin(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
@@ -3821,6 +3824,7 @@ ovm_asin(oregister_t *r)
 void
 ovm_acos(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
@@ -4620,6 +4624,7 @@ ovm_acosh(oregister_t *r)
 void
 ovm_atanh(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
@@ -4812,6 +4817,7 @@ ovm_proj(oregister_t *r)
 void
 ovm_exp(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
@@ -4906,6 +4912,7 @@ ovm_exp(oregister_t *r)
 void
 ovm_log(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
@@ -5239,6 +5246,7 @@ ovm_log2(oregister_t *r)
 void
 ovm_log10(oregister_t *r)
 {
+    GET_THREAD_SELF()
     switch (r->t) {
 	case t_void:
 	    if (!cfg_float_format) {
