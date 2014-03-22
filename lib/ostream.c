@@ -28,6 +28,12 @@ typedef struct nat_open {
     oint32_t		 mode;
 } nat_open_t;
 
+typedef struct nat_io {
+    ostream_t		*stream;
+    ovector_t		*vector;
+    oword_t		 length;
+} nat_io_t;
+
 typedef struct nat_seek {
     ostream_t		*stream;
     oword_t		 offset;
@@ -58,6 +64,12 @@ stream_w_flush(ostream_t *stream);
 
 static void
 native_open(oobject_t list, oint32_t size);
+
+static void
+native_read(oobject_t list, oint32_t size);
+
+static void
+native_write(oobject_t list, oint32_t size);
 
 static void
 native_seek(oobject_t list, oint32_t size);
@@ -105,6 +117,18 @@ init_stream_builtin(void)
     onew_argument(builtin, t_void);		/* stream */
     onew_argument(builtin, t_word);		/* offset */
     onew_argument(builtin, t_int32);		/* whence */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("read", native_read, t_word, false);
+    onew_argument(builtin, t_void);		/* stream */
+    onew_argument(builtin, t_void);		/* vector */
+    onew_argument(builtin, t_word);		/* size */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("write", native_write, t_word, false);
+    onew_argument(builtin, t_void);		/* stream */
+    onew_argument(builtin, t_void);		/* vector */
+    onew_argument(builtin, t_word);		/* size */
     oend_builtin(builtin);
 
     builtin = onew_builtin("close", native_close, t_void, false);
@@ -684,6 +708,111 @@ native_open(oobject_t list, oint32_t size)
 	r0->t = otype(r0->v.o);
     else
 	r0->t = t_void;
+}
+
+static void
+native_read(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    oregister_t		*r0;
+    oint32_t		 shift;
+    oword_t		 count;
+    nat_io_t		*alist;
+
+    alist = (nat_io_t *)list;
+    if (alist->stream == null ||
+	(otype(alist->stream) != t_string && otype(alist->stream) != t_stream))
+	othrow(except_invalid_argument);
+
+    if (alist->vector == null || (otype(alist->vector) & t_vector) != t_vector)
+	othrow(except_invalid_argument);
+
+    if (alist->length < 0)
+	othrow(except_invalid_argument);
+
+    switch (otype(alist->vector) & ~t_vector) {
+	case t_int8:		case t_uint8:
+	    shift = 0;
+	    break;
+	case t_int16:		case t_uint16:
+	    shift = 1;
+	    break;
+	case t_int32:		case t_uint32:		case t_single:
+	    shift = 2;
+	    break;
+	case t_int64:		case t_uint64:		case t_float:
+	    shift = 3;
+	    break;
+	default:
+	    /* Cannot allow reading pointers */
+	    othrow(except_invalid_argument);
+	    break;
+    }
+
+    count = alist->length << shift;
+
+    if (count < alist->length)
+	othrow(except_invalid_argument);
+
+    if (alist->vector->length < alist->length)
+	orenew_vector(alist->vector, alist->length);
+
+    count = oread(alist->stream, alist->vector->v.ptr, count) >> shift;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = count;
+}
+
+static void
+native_write(oobject_t list, oint32_t size)
+{
+    GET_THREAD_SELF()
+    oregister_t		*r0;
+    oint32_t		 shift;
+    oword_t		 count;
+    nat_io_t		*alist;
+
+    alist = (nat_io_t *)list;
+    if (alist->stream == null ||
+	(otype(alist->stream) != t_string && otype(alist->stream) != t_stream))
+	othrow(except_invalid_argument);
+
+    if (alist->vector == null || (otype(alist->vector) & t_vector) != t_vector)
+	othrow(except_invalid_argument);
+
+    if (alist->length < 0)
+	othrow(except_invalid_argument);
+
+    switch (otype(alist->vector) & ~t_vector) {
+	case t_int8:		case t_uint8:
+	    shift = 0;
+	    break;
+	case t_int16:		case t_uint16:
+	    shift = 1;
+	    break;
+	case t_int32:		case t_uint32:		case t_single:
+	    shift = 2;
+	    break;
+	case t_int64:		case t_uint64:		case t_float:
+	    shift = 3;
+	    break;
+	default:
+	    /* Cannot allow writing pointers */
+	    othrow(except_invalid_argument);
+	    break;
+    }
+
+    count = alist->length << shift;
+
+    if (count < alist->length || alist->length > alist->vector->length)
+	othrow(except_invalid_argument);
+
+    count = owrite(alist->stream, alist->vector->v.ptr, count) >> shift;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = count;
 }
 
 static void

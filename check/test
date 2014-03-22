@@ -40420,3 +40420,64 @@ if (t52_v[0] || t52_v[1.0] || t52_v[0x8000000000000002] ||
     t52_v[1/13] || t52_v[14.0L] || t52_v[15.0*I] || t52_v[1/16*I] ||
     t52_v[17.0L*I] || t52_v["eight"] || t52_v[t52_v])
     print("error %d\n", __LINE__);
+
+#define SEEK_SET	0
+int8_t	t53_vsc[] = {
+    0,   -1,   -2,   -3,   -4,   -5,   -6,   -7
+};
+uint8_t	t53_vuc[] = {
+    0, 0xff, 0xfe, 0xfd, 0xfc, 0xfb, 0xfa, 0xf9
+};
+int16_t t53_vss[] = {
+    0,     -1,     -2,     -3,     -4,     -5,     -6,     -7
+};
+uint16_t t53_vus[] = {
+    0, 0xffff, 0xfffe, 0xfffd, 0xfffc, 0xfffb, 0xfffa, 0xfff9
+};
+int32_t t53_vsi[] = {
+     0,                 -1,         -2,         -3,
+    -4,                 -5,         -6,         -7
+};
+uint32_t t53_vui[] = {
+     0,         0xffffffff, 0xfffffffe, 0xfffffffd,
+    0xfffffffc, 0xfffffffb, 0xfffffffa, 0xfffffff9
+};
+float32_t t53_vsf[] = {
+    0,   -1,    2,   -3,    4,   -5,    6,   -7
+};
+int64_t t53_vsl[] = {
+     0,                                 -1,
+    -2,                                 -3,
+    -4,                                 -5,
+    -6,                                 -7
+};
+uint64_t t53_vul[] = {
+    0,                   0xfffffffffffffff,
+    0xfffffffffffffffe, 0xfffffffffffffffd,
+    0xfffffffffffffffc, 0xfffffffffffffffb,
+    0xfffffffffffffffa, 0xfffffffffffffff9
+};
+float64_t t53_vdf[] = {
+    0,   1,    -2,   3,    -4,   5,    -6,   7
+};
+int32_t t53_i;
+string_t t53_stream = new uint8_t[64];
+#define t53_test(T, V, L)						\
+seek(t53_stream, SEEK_SET, 0);						\
+write(t53_stream, V, 8);						\
+T V##1[] = new T[8];							\
+seek(t53_stream, SEEK_SET, 0);						\
+read(t53_stream, V##1, 8);						\
+for (t53_i = 0; t53_i < 8; ++t53_i)					\
+    if (V##1[t53_i] != V[t53_i])					\
+	print("error %d\n", L)
+t53_test(int8_t, t53_vsc, __LINE__);
+t53_test(uint8_t, t53_vuc, __LINE__);
+t53_test(int16_t, t53_vss, __LINE__);
+t53_test(uint16_t, t53_vus, __LINE__);
+t53_test(int32_t, t53_vsi, __LINE__);
+t53_test(uint32_t, t53_vui, __LINE__);
+t53_test(int64_t, t53_vsl, __LINE__);
+t53_test(uint64_t, t53_vul, __LINE__);
+t53_test(float32_t, t53_vsf, __LINE__);
+t53_test(float64_t, t53_vdf, __LINE__);
