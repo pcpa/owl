@@ -322,6 +322,7 @@ static osymbol_t	*symbol_counter;
 static oword_t		 macro_offset;
 static oint32_t		 macro_expand_level;
 static otoken_t		 macro_next_token;
+static ovector_t	*builtin_string;
 
 /*
  * Implementation
@@ -397,6 +398,8 @@ init_read_builtin(void)
     onew_argument(builtin, t_void);		/* format */
     onew_argument(builtin, t_void);		/* vector */
     oend_builtin(builtin);
+
+    builtin_string = oget_string((ouint8_t *)"<builtin>", 9);
 }
 
 void
@@ -431,7 +434,10 @@ oread_object(void)
 	    if (--input_vector->offset) {
 		input_vector->v.ptr[input_vector->offset] = null;
 		input = input_vector->v.ptr[input_vector->offset - 1];
-		input_note.name = input->stream->name;
+		if (ostream_p(input->stream))
+		    input_note.name = input->stream->name;
+		else
+		    input_note.name = builtin_string;
 		input_note.lineno = input->lineno;
 		input_note.column = input->column;
 	    }
@@ -464,9 +470,27 @@ opush_input(ostream_t *stream)
     input->stream = stream;
     input->lineno = 1;
 
-    input_note.name = stream->name;
+    if (ostream_p(stream))
+	input_note.name = stream->name;
+    else
+	input_note.name = builtin_string;
     input_note.lineno = 1;
     input_note.column = 0;
+}
+
+void
+opush_string(char *string)
+{
+    ovector_t		*vector;
+    oobject_t		*pointer;
+
+    gc_ref(pointer);
+    onew_vector(pointer, t_uint8, strlen(string));
+    vector = *pointer;
+    memcpy(vector->v.ptr, string, vector->length);
+    opush_input((ostream_t *)vector);
+    /* vector is now gc protected in input_vector */
+    gc_dec();
 }
 
 static oword_t

@@ -1292,7 +1292,7 @@ structure(void)
 	    record = tag->name;
 	    assert(otype(record) == t_record);
 	    if (record->length)
-		oparse_error(head_ast, "class %p redefined", record->name);
+		oparse_error(ast, "class %p redefined", record->name);
 	    token = lookahead();
 	    if (token == tok_collon) {
 		consume();

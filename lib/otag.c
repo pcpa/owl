@@ -405,7 +405,8 @@ otag_ast_data(otag_t *tag, oast_t *ast)
 	    oparse_error(ast, "not a vector");
 	return (tag_ast_data_vector(tag, ast->l.ast));
     }
-    else if (ast->token == tok_string) {
+    /* XXX Explicit null initializer uses tok_string */
+    else if (ast->token == tok_string && ast->l.value) {
 	if ((vector = ast->l.value))
 	    length = vector->length;
 	else

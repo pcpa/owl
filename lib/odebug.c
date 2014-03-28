@@ -741,7 +741,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	case tok_dot:
 	    bytes += print_ast(ast->l.ast);
 	    dputc('.');		++bytes;
-	    bytes += print_ast(ast->r.ast);
+	    assert(ast->r.ast->token == tok_symbol);
+	    symbol = ast->r.ast->l.value;
+	    bytes += print_sym(symbol);
 	    break;
 	case tok_set:
 	    bytes += print_ast_binary("=", 1, ast);

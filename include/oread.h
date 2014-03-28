@@ -63,6 +63,9 @@ oread_object(void);
 extern void
 opush_input(ostream_t *stream);
 
+extern void
+opush_string(char *string);
+
 /*
  * Externs
  */

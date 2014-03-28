@@ -33,6 +33,6 @@ extern ovector_t *
 oget_string(ouint8_t *name, oint32_t length);
 
 extern ovector_t *
-enew_string(ovector_t *string);
+onew_string(ovector_t *string);
 
 #endif /* _ostring_h */
