@@ -173,7 +173,6 @@ static void
 new_hashtable(oobject_t *pointer, oword_t size)
 {
     oword_t		 i;
-    ohashtable_t	*hash;
 
     /* limit initial size to 1 << 16 */
     if (size <= 0)
@@ -188,7 +187,6 @@ new_hashtable(oobject_t *pointer, oword_t size)
     }
 
     onew_vector_base(pointer, t_void, t_hashtable, size, sizeof(ohashtable_t));
-    hash = *pointer;
 }
 
 static oword_t
