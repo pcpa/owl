@@ -1433,7 +1433,7 @@ group_match(obool_t data, otoken_t token)
 	    case tok_cbrace:		chr = '}';	break;
 	    default:			abort();
 	}
-	oparse_error(ast, "expecting '%c' %A", chr, head_ast ? head_ast : ast);
+	oparse_error(ast, "expecting ',' or '%c' %A", chr, ast);
     }
 }
 
