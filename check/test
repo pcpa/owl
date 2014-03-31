@@ -40481,3 +40481,21 @@ t53_test(int64_t, t53_vsl, __LINE__);
 t53_test(uint64_t, t53_vul, __LINE__);
 t53_test(float32_t, t53_vsf, __LINE__);
 t53_test(float64_t, t53_vdf, __LINE__);
+
+int32_t t54_i;
+class t54_c0_t {
+    int8_t	c;
+};
+t54_c0_t t54_v[3] = {};
+for (t54_i = 0; t54_i < 3; ++t54_i)
+    t54_v[t54_i] = { t54_i + 1 };
+for (t54_i = 0; t54_i < 3; ++t54_i)
+    print("v[%d].c = %d\n", t54_i, t54_v[t54_i].c);
+class t54_c1_t {
+    int8_t v[3];
+};
+t54_c1_t t54_c = { {} };
+for (t54_i = 0; t54_i < 3; ++t54_i)
+    t54_c.v[t54_i] = t54_i + 1;
+for (t54_i = 0; t54_i < 3; ++t54_i)
+    print("c.v[%d] = %d\n", t54_i, t54_c.v[t54_i]);

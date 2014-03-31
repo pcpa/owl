@@ -225,24 +225,37 @@ data_decl(oast_t *ast)
 static void
 data_set(oast_t *ast)
 {
+    otag_t		*tag;
     oast_t		*last;
     oast_t		*rast;
+    oint32_t		 deref;
     osymbol_t		*symbol;
 
     rast = ast->r.ast;
     if (rast->token == tok_data) {
+	deref = 0;
 	last = ast->l.ast;
 	for (;;) {
 	    switch (last->token) {
 		case tok_symbol:
 		    symbol = last->l.value;
-		    data_init(&rast->r.value, symbol->tag, rast);
+		    tag = symbol->tag;
+		    while (deref) {
+			assert(tag->type == tag_vector);
+			tag = tag->base;
+			--deref;
+		    }
+		    data_init(&rast->r.value, tag, rast);
 		    return;
-		case tok_vecdcl:	case tok_proto:
+		case tok_vecdcl:
 		    last = last->l.ast;
 		    break;
 		case tok_dot:
 		    last = last->r.ast;
+		    break;
+		case tok_vector:
+		    last = last->l.ast;
+		    ++deref;
 		    break;
 		default:
 		    abort();
