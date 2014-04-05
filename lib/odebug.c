@@ -65,6 +65,7 @@
 #define print_ast_paren_comma_list(value)				\
     write_ast_paren_comma_list(value, indent, format)
 #define print_ast_newline()	write_ast_newline(indent)
+#define print_namespace(symbol)	write_namespace(symbol, format)
 
 /*
  * Prototypes
@@ -130,6 +131,12 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 
 static oword_t
 write_ast_newline(oint32_t indent);
+
+static oword_t
+inner_write_namespace(orecord_t *record, oformat_t *format);
+
+static oword_t
+write_namespace(osymbol_t *symbol, oformat_t *format);
 
 /*
  * Implementation
@@ -663,6 +670,7 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
     otag_t		*tag;
     oword_t		 bytes;
     ocase_t		*acase;
+    orecord_t		*record;
     osymbol_t		*symbol;
     ovector_t		*vector;
 
@@ -683,6 +691,8 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    symbol = ast->l.value;
 	    if (symbol->field)
 		bytes += dputs("this.", 5);
+	    else
+		print_namespace(symbol);
 	    bytes += print_sym(symbol);
 	    break;
 	case tok_string:
@@ -697,6 +707,25 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    else {
 		bytes += dputs("class ", 6);
 		bytes += print_ast_comma_list(ast->l.ast);
+	    }
+	    dputc(';');		++bytes;
+	    break;
+	case tok_namespace:
+	    bytes += dputs("namespace ", 10);
+	    bytes += print_ast(ast->l.ast);
+	    symbol = ast->l.ast->l.value;
+	    if ((ast = ast->c.ast)) {
+		record = current_record;
+		current_record = symbol->value;
+		dputc(' ');	++bytes;
+		bytes += print_ast(ast);
+		for (ast = ast->next; ast && ast->next; ast = ast->next) {
+		    bytes += print_ast_newline();
+		    bytes += print_ast(ast);
+		}
+		if (ast)
+		    print_ast(ast);
+		current_record = record;
 	    }
 	    dputc(';');		++bytes;
 	    break;
@@ -1339,18 +1368,12 @@ static oword_t
 write_ast_call(oast_t *ast, oint32_t indent, oformat_t *format)
 {
     oword_t		 bytes;
-    osymbol_t		*symbol;
 
-    if (ast->token != tok_symbol) {
+    if (ast->token != tok_symbol)
 	assert(ast->token == tok_dot ||
 	       ast->token == tok_explicit ||
 	       ast->token == tok_ctor);
-	bytes = print_ast(ast);
-    }
-    else {
-	symbol = ast->l.value;
-	bytes = print_sym(symbol);
-    }
+    bytes = print_ast(ast);
 
     return (bytes);
 }
@@ -1497,8 +1520,11 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 	assert(otag_p(base));
     if (tag->type == tag_hash)
 	bytes += dputs("hash_t", 6);
-    else if ((record = base->name))
+    else if ((record = base->name)) {
+	if (!fields)
+	    bytes += print_namespace(record->name);
 	bytes += print_sym(record->name);
+    }
     else
 	bytes += dputs("auto", 4);
     if (fields && tag->type == tag_class)
@@ -1529,6 +1555,36 @@ write_ast_newline(oint32_t indent)
 	dputc('\t');
     for (; indent >= 4; indent -= 4)
 	bytes += dputs("    ", 4);
+
+    return (bytes);
+}
+
+static oword_t
+inner_write_namespace(orecord_t *record, oformat_t *format)
+{
+    oword_t		bytes;
+
+    if (record && record->name && record != current_record) {
+	bytes = inner_write_namespace(record->parent, format);
+	assert(otype(record) == t_namespace);
+	bytes += print_sym(record->name);
+	dputc('.');		++bytes;
+    }
+    else
+	bytes = 0;
+
+    return (bytes);
+}
+
+static oword_t
+write_namespace(osymbol_t *symbol, oformat_t *format)
+{
+    oword_t		bytes;
+
+    if (otype(symbol->record) == t_namespace)
+	bytes = inner_write_namespace(symbol->record, format);
+    else
+	bytes = 0;
 
     return (bytes);
 }

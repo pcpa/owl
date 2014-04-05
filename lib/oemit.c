@@ -309,6 +309,7 @@ static jit_int32_t	 SPL[6];
  * in {load/store}_vector */
 static jit_word_t	 tmp_mask;
 static jit_word_t	 reg_mask;
+static ovector_t	*name_vector;
 
 static char		*exceptions[] = {
     "nothing",
@@ -339,6 +340,7 @@ init_emit(void)
     onew_vector((oobject_t *)&stack, t_void, 16);
     oadd_root((oobject_t *)&branch);
     onew_vector((oobject_t *)&branch, t_void, 16);
+    oadd_root((oobject_t *)&name_vector);
 
     GPR[0] = JIT_V1;
     GPR[1] = JIT_V2;
@@ -406,6 +408,7 @@ init_emit(void)
 void
 finish_emit(void)
 {
+    orem_root((oobject_t *)&name_vector);
     orem_root((oobject_t *)&stack);
     orem_root((oobject_t *)&branch);
 }
@@ -773,6 +776,8 @@ static void
 emit(oast_t *ast)
 {
     ooperand_t		*op;
+    orecord_t		*record;
+    osymbol_t		*symbol;
 
     if (ast->note.name != note.name || ast->note.lineno != note.lineno)
 	emit_note(&ast->note);
@@ -965,6 +970,13 @@ emit(oast_t *ast)
 	    break;
 	case tok_function:	case tok_class:
 	case tok_catch:		case tok_finally:
+	    break;
+	case tok_namespace:
+	    record = current_record;
+	    symbol = ast->l.ast->l.value;
+	    current_record = symbol->value;
+	    emit_stat(ast->c.ast);
+	    current_record = record;
 	    break;
 	default:
 #if DEBUG
@@ -1163,7 +1175,7 @@ emit_new(oast_t *ast)
     if ((type & ~t_vector) == t_undef)
 	type &= ~t_undef;
     bop->u.w = get_register(true);
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
 	else {
@@ -1272,7 +1284,7 @@ data_record(oast_t *ast)
     bop->t = t_void|t_register;
     bop->u.w = get_register(true);
     bop->k = ast->t.value;
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
 	else {
@@ -1360,7 +1372,7 @@ data_vector(oast_t *ast)
     bop->t = t_void|t_register;
     bop->u.w = get_register(true);
     bop->k = ast->t.value;
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(GPR[bop->u.w], GPR[GLOBAL], gc_offset(bop));
 	else {
@@ -3179,7 +3191,7 @@ emit_reload(ooperand_t *op, obool_t same)
     obool_t		global;
     oword_t		regval;
 
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	global = true;
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    regval = GPR[GLOBAL];
@@ -3250,7 +3262,7 @@ emit_save(ooperand_t *op, obool_t force)
     obool_t		global;
     oword_t		regval;
 
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	global = true;
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    regval = GPR[GLOBAL];

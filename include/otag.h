@@ -29,6 +29,7 @@ enum otagtype {
     tag_auto,
     tag_basic,
     tag_class,
+    tag_namespace,
     tag_vector,
     tag_function,
     tag_varargs,

@@ -166,6 +166,7 @@ enum otoken {
     tok_do,
     tok_while,
     tok_class,
+    tok_namespace,
     tok_label,
     tok_list,
     tok_vector,

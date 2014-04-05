@@ -44,6 +44,12 @@ static void
 emit_case(oast_t *ast);
 
 static void
+inner_get_namespace(orecord_t *record);
+
+static void
+get_namespace(osymbol_t *symbol);
+
+static void
 emit_function(ofunction_t *function);
 
 static void
@@ -617,6 +623,27 @@ emit_case(oast_t *ast)
 }
 
 static void
+inner_get_namespace(orecord_t *record)
+{
+    if (record && record->name) {
+	inner_get_namespace(record->parent);
+	owrite((ostream_t *)name_vector,
+	       record->name->name->v.ptr, record->name->name->length);
+	oputc((ostream_t *)name_vector, '.');
+    }
+}
+
+static void
+get_namespace(osymbol_t *symbol)
+{
+    if (name_vector == null)
+	onew_vector((oobject_t *)&name_vector, t_uint8, 16);
+    else
+	name_vector->offset = 0;
+    inner_get_namespace(symbol->record);
+}
+
+static void
 emit_function(ofunction_t *function)
 {
     oast_t		*ast;
@@ -635,11 +662,11 @@ emit_function(ofunction_t *function)
     char		 name[1024];
 
     if (function->name && function->name->record != root_record) {
-	vector = function->name->record->name->name;
-	if ((offset = vector->length) >= sizeof(name) - 2)
-	    offset = sizeof(name) - 2;
+	get_namespace(function->name);
+	vector = name_vector;
+	if ((offset = vector->offset) >= sizeof(name) - 1)
+	    offset = sizeof(name) - 1;
 	memcpy(name, vector->v.obj, offset);
-	name[offset++] = '.';
     }
     else
 	offset = 0;

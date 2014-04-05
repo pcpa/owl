@@ -125,7 +125,7 @@ init_tag(void)
     auto_tag->size = sizeof(oobject_t);
 
     symbol = onew_identifier(oget_string((ouint8_t *)"auto", 4));
-    symbol->type = true;
+    symbol->base = true;
     symbol->tag = auto_tag;
 
     for (offset = 0; offset < osize(types); offset++) {
@@ -137,7 +137,7 @@ init_tag(void)
     float_tag = types[t_float].tag;
 
     symbol = onew_identifier(oget_string((ouint8_t *)"string_t", 8));
-    symbol->type = true;
+    symbol->base = true;
     symbol->tag = types[t_uint8].vtag;
 
     oadd_root((oobject_t *)&varargs_tag);
@@ -149,7 +149,7 @@ init_tag(void)
 
     hash_tag = tag_opaque(t_hash, tag_hash);
     symbol = onew_identifier(oget_string((ouint8_t *)"hash_t", 6));
-    symbol->type = true;
+    symbol->base = true;
     symbol->tag = hash_tag;
 }
 
@@ -173,18 +173,28 @@ otag_object(oobject_t object)
     if (object == null)
 	return (null);
     switch (type = otype(object)) {
-	case t_basic:		case t_record:
+	case t_basic:
 	    record = object;
 	    if ((tag = (otag_t *)oget_hash(tag_table, record)) == null) {
 		gc_ref(pointer);
 		onew(pointer, tag);
 		tag = *pointer;
 		tag->name = record;
-		tag->type = type == t_basic ? tag_basic : tag_class;
-		if (record->type <= t_float32)
-		    tag->size = record->length;
-		else
-		    tag->size = sizeof(oobject_t);
+		tag->type = tag_basic;
+		tag->size = record->length;
+		oput_hash(tag_table, (oentry_t *)tag);
+		gc_dec();
+	    }
+	    break;
+	case t_record:		case t_namespace:
+	    record = object;
+	    if ((tag = (otag_t *)oget_hash(tag_table, record)) == null) {
+		gc_ref(pointer);
+		onew(pointer, tag);
+		tag = *pointer;
+		tag->name = record;
+		tag->type = type == t_record ? tag_class : tag_namespace;
+		tag->size = sizeof(oobject_t);
 		oput_hash(tag_table, (oentry_t *)tag);
 		gc_dec();
 	    }

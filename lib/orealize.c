@@ -157,6 +157,9 @@ orealize(void)
 static void
 realize(oast_t *ast)
 {
+    orecord_t		*record;
+    osymbol_t		*symbol;
+
     switch (ast->token) {
 	case tok_number:
 	    ast->offset = get();
@@ -323,6 +326,15 @@ realize(oast_t *ast)
 	case tok_try:		case tok_catch:
 	    statement(ast->r.ast);
 	    break;
+
+	case tok_namespace:
+	    record = current_record;
+	    symbol = ast->l.ast->l.value;
+	    current_record = symbol->value;
+	    statement(ast->c.ast);
+	    current_record = record;
+	    break;
+
 	case tok_break:		case tok_continue:
 	case tok_case:		case tok_default:
 	case tok_function:	case tok_class:
@@ -384,7 +396,6 @@ call(oast_t *ast)
 {
     oast_t		*list;
     oast_t		*prev;
-    osymbol_t		*name;
     oint32_t		 size;
     obool_t		 vcall;
     obool_t		 ecall;
@@ -409,12 +420,9 @@ call(oast_t *ast)
     }
     else {
 	assert(ast->l.ast->token == tok_symbol);
-	name = ast->l.ast->l.value;
-	if ((symbol = oget_bound_symbol(name->name)) == null)
-	    oparse_error(ast, "undefined function '%p'", name);
-	else if (symbol->tag->type != tag_function)
-	    oparse_error(ast, "called object '%p' is not a function", name);
-	ast->l.ast->l.value = symbol;
+	symbol = ast->l.ast->l.value;
+	if (symbol->tag->type != tag_function)
+	    oparse_error(ast, "called object '%p' is not a function", symbol);
     }
 
     if (!(builtin = symbol->builtin))

@@ -1438,7 +1438,7 @@ expand_symbol(osymbol_t *symbol)
 
 	return (*pointer);
     }
-    else if (symbol->type) {
+    else if (symbol->base) {
 	gc_ref(pointer);
 	onew_ast(pointer, tok_type,
 		 input_note.name, input->lineno, input->column);

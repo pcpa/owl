@@ -76,6 +76,9 @@ static ofunction_t *
 prototype(otag_t *tag, oast_t *decl);
 
 static void
+namespace(void);
+
+static void
 function(void);
 
 static otoken_t
@@ -140,6 +143,9 @@ unary_vector(void);
 
 static otoken_t
 unary_field(void);
+
+static otoken_t
+unary_namespace(void);
 
 static otoken_t
 unary_unary(otoken_t token);
@@ -325,6 +331,7 @@ static struct {
     { "throw",		tok_throw	},
     { "finally",	tok_finally	},
     { "class",		tok_class	},
+    { "namespace",	tok_namespace	},
 };
 static oast_t		 *root_ast;
 static oast_t		 *head_ast;
@@ -511,6 +518,10 @@ statement(void)
 	case tok_class:
 	    token = definition();
 	    break;
+	case tok_namespace:
+	    namespace();
+	    token = tok_code;
+	    break;
 	case tok_list:			case tok_expr:
 	    token = tok_stat;
 	    gc_ref(pointer);
@@ -661,7 +672,7 @@ statement(void)
 	    get_try_block(ast);
 	    break;
 	case tok_try:
-	    vector = current_record == root_record ?
+	    vector = otype(current_record) == t_namespace ?
 		root_except_vector : except_vector;
 	    if (vector->offset >= vector->length) {
 		orenew_vector(vector, vector->length + 4);
@@ -866,7 +877,7 @@ try_check(void)
 	    break;
 	default:
 	    pop_block();
-	    if (current_record == root_record)
+	    if (otype(current_record) == t_namespace)
 		--root_except_vector->offset;
 	    else
 		--except_vector->offset;
@@ -1199,7 +1210,8 @@ function(void)
     orecord_t		*record;
     ofunction_t		*function;
 
-    if (current_record->parent && otype(current_record) != t_record)
+    if (otype(current_record) != t_record &&
+	otype(current_record) != t_namespace)
 	oparse_error(top_ast(), "function not allowed here");
     ast = top_ast();
     ast->token = tok_function;
@@ -1236,33 +1248,113 @@ function(void)
     current_record = record;
 }
 
+static void
+namespace(void)
+{
+    oast_t		*ast;
+    osymbol_t		*name;
+    osymbol_t		*symbol;
+    orecord_t		*record;
+
+    if (otype(current_record) != t_namespace)
+	oparse_error(top_ast(), "namespace cannot be declared here");
+    ast = top_ast();
+    if (primary() == tok_symbol) {
+	ast->l.ast = pop_ast();
+	name = ast->l.ast->l.value;
+	if ((symbol = oget_symbol(current_record, name->name)) == null) {
+	    symbol = onew_symbol(current_record, name->name, null);
+	    record = onew_namespace(symbol);
+	}
+	else
+	    record = symbol->value;
+	assert(symbol->namespace == true);
+	ast->l.ast->l.value = symbol;
+	switch (lookahead_noeof()) {
+	    case tok_obrace:
+		record->parent = current_record;
+		current_record = record;
+		push_block(top_ast());
+		statement_noeof();
+		pop_block();
+		current_record = record->parent;
+		if (ast->r.ast) {
+		    ast->r.ast->next = pop_ast();
+		    ast->r.ast = ast->r.ast->next;
+		}
+		else
+		    ast->c.ast = ast->r.ast = pop_ast();
+		if (primary_noeof() != tok_semicollon)
+		    oparse_error(top_ast(), "expecting ';' %A", top_ast());
+		discard();
+		break;
+	    case tok_semicollon:
+		consume();
+		break;
+	    default:
+		oparse_error(head_ast, "expecting '{' or ';' %A", head_ast);
+		break;
+	}
+    }
+    else
+	oparse_error(top_ast(), "expecting symbol %A", top_ast());
+}
+
 static otoken_t
 structure(void)
 {
     oast_t		*ast;
     oast_t		*top;
     otag_t		*tag;
+    osymbol_t		*name;
     oast_t		*temp;
     orecord_t		*super;
     otoken_t		 token;
     orecord_t		*record;
+    osymbol_t		*symbol;
     orecord_t		*current;
     oobject_t		*pointer;
 
     if (otype(current_record) != t_namespace)
 	oparse_error(top_ast(), "class cannot be declared here");
     switch (primary()) {
+	case tok_type:
+	    ast = top_ast();
+	    tag = ast->l.value;
+	    record = tag->name;
+	    goto check;
 	case tok_symbol:
 	    ast = top_ast();
-	    record = onew_record(ast->l.value);
+	    symbol = ast->l.value;
+	    if (symbol->record != (orecord_t *)language_table) {
+		name = oget_symbol(current_record, symbol->name);
+		if (name)
+		    symbol = name;
+	    }
+	    if (!symbol->type) {
+		record = onew_record(symbol);
+		symbol = record->name;
+		tag = symbol->tag;
+	    }
+	    record = symbol->value;
+	check:
+	    if (tag == null || tag->type != tag_class)
+		oparse_error(ast, "%p redeclared as a different type",
+			     record->name);
+	    if (record->length)
+		oparse_error(ast, "class %p redefined", record->name);
 	    token = lookahead();
 	    if (token == tok_collon) {
 		consume();
 		(void)primary_noeof();
 		top = pop_ast();
-		if (top->token != tok_type)
-		    oparse_error(ast, "expecting base class %A", ast);
-		tag = top->l.value;
+		if (top->token != tok_symbol)
+		    oparse_error(ast, "expecting symbol %A", top);
+		name = top->l.value;
+		symbol = oget_bound_symbol(name->name);
+		if (symbol == null || !symbol->type)
+		    oparse_error(ast, "expecting base class %A", top);
+		tag = symbol->tag;
 		if (tag->type != tag_class)
 		    oparse_error(ast, "type %p cannot be derived", tag);
 		/* Can only derive an already defined class */
@@ -1279,43 +1371,6 @@ structure(void)
 	    }
 	    else if (token != tok_obrace) {
 		ast->l.value = otag_object(record);
-		if (token == tok_comma || token == tok_semicollon)
-		    return (ast->token = tok_defn);
-		return (ast->token = tok_type);
-	    }
-	    break;
-	case tok_type:
-	    ast = top_ast();
-	    tag = ast->l.value;
-	    if (tag->type != tag_class)
-		oparse_error(ast, "%p redeclared as a different type", tag);
-	    record = tag->name;
-	    assert(otype(record) == t_record);
-	    if (record->length)
-		oparse_error(ast, "class %p redefined", record->name);
-	    token = lookahead();
-	    if (token == tok_collon) {
-		consume();
-		(void)primary_noeof();
-		top = pop_ast();
-		if (top->token != tok_type)
-		    oparse_error(ast, "expecting base class %A", ast);
-		tag = top->l.value;
-		if (tag->type != tag_class)
-		    oparse_error(ast, "type %p cannot be derived", tag);
-		/* Can only derive an already defined class */
-		super = tag->name;
-		if (rtti_vector->v.ptr[super->type] == null) {
-		    assert(super->type > t_mpc &&
-			   super->type <= rtti_vector->offset);
-		    oparse_error(ast, "class %p is not defined", tag);
-		}
-		oadd_record(record, super);
-		token = lookahead_noeof();
-		if (token != tok_obrace)
-		    oparse_error(ast, "expecting '{' %A", top_ast());
-	    }
-	    else if (token != tok_obrace) {
 		if (token == tok_comma || token == tok_semicollon)
 		    return (ast->token = tok_defn);
 		return (ast->token = tok_type);
@@ -1802,6 +1857,8 @@ unary(void)
 	    top_ast()->token = tok_string;
 	    token = unary_string();
 	    return (unary_loop(token));
+	case tok_dot:
+	    return (unary_namespace());
 	default:
 	    return (token);
     }
@@ -1855,7 +1912,26 @@ unary_loop(otoken_t token)
 {
     oast_t		*ast;
     otoken_t		 next;
+    osymbol_t		*symbol;
 
+    if (token == tok_symbol) {
+	ast = top_ast();
+	symbol = ast->l.value;
+	if ((symbol = oget_bound_symbol(symbol->name)) && symbol->type) {
+	    ast->token = tok_type;
+	    ast->l.value = symbol->tag;
+	    switch (lookahead()) {
+		case tok_dot:
+		    token = tok_type;
+		    break;
+		case tok_oparen:
+		    return (unary_ctor());
+		    break;
+		default:
+		    return (unary_decl());
+	    }
+	}
+    }
     for (;;) {
 	switch (next = lookahead()) {
 	    case tok_obrack:
@@ -2072,7 +2148,9 @@ static otoken_t
 unary_field(void)
 {
     oast_t		*ast;
-    oobject_t		value;
+    oobject_t		 value;
+    orecord_t		*record;
+    osymbol_t		*symbol;
 
     ast = head_ast;
     head_ast = null;
@@ -2109,7 +2187,60 @@ unary_field(void)
     }
     ast->r.ast = pop_ast();
 
+    /* check for explicit namespace type access */
+    if (ast->l.ast->token == tok_symbol) {
+	symbol = ast->l.ast->l.value;
+	if ((symbol = oget_bound_symbol(symbol->name)) && symbol->namespace) {
+	    record = current_record;
+	    current_record = symbol->value;
+	    symbol = ast->r.ast->l.value;
+	    assert(osymbol_p(symbol));
+	    symbol = oget_bound_symbol(symbol->name);
+	    current_record = record;
+	    if (symbol == null)
+		oparse_error(ast->r.ast, "namespace %p has no %p symbol",
+			     ast->l.ast->l.value, ast->r.ast->l.value);
+	    odel_object(&ast->l.value);
+	    odel_object(&ast->r.value);
+	    if (symbol->type) {
+		ast->token = tok_type;
+		ast->l.value = symbol->tag;
+		switch (lookahead()) {
+		    case tok_dot:
+			break;
+		    case tok_oparen:
+			return (unary_ctor());
+			break;
+		    default:
+			return (unary_decl());
+		}
+	    }
+	    else {
+		ast->token = tok_symbol;
+		ast->l.value = symbol;
+	    }
+	}
+    }
+
     return (unary_loop(tok_expr));
+}
+
+static otoken_t
+unary_namespace(void)
+{
+    oast_t		*ast;
+    osymbol_t		*symbol;
+
+    discard();
+    if (primary_noeof() != tok_symbol)
+	oparse_error(top_ast(), "expecting symbol %A", top_ast());
+    ast = top_ast();
+    symbol = ast->l.value;
+    if ((symbol = oget_symbol(root_record, symbol->name)) == null)
+	oparse_error(ast, "root namespace has no %p symbol", ast->l.value);
+    ast->l.value = symbol;
+
+    return (unary_loop(tok_symbol));
 }
 
 static otoken_t

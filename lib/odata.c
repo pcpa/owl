@@ -70,6 +70,9 @@ finish_data(void)
 void
 odata(oast_t *ast)
 {
+    orecord_t			*record;
+    osymbol_t			*symbol;
+
     switch (ast->token) {
 	case tok_set:
 	    data_set(ast);
@@ -181,6 +184,13 @@ odata(oast_t *ast)
 	    data_stat(ast->l.ast);
 	case tok_try:		case tok_catch:
 	    data_stat(ast->r.ast);
+	    break;
+	case tok_namespace:
+	    record = current_record;
+	    symbol = ast->l.ast->l.value;
+	    current_record = symbol->value;
+	    data_stat(ast->c.ast);
+	    current_record = record;
 	    break;
 	case tok_sizeof:	case tok_symbol:	case tok_goto:
 	case tok_type:		case tok_number:	case tok_string:

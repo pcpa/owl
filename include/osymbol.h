@@ -35,9 +35,9 @@ struct osymbol {
     oword_t		 offset;
     otag_t		*tag;
     orecord_t		*record;
-    osymbol_t		*parent;
 
-    ouint32_t		 type		: 1;
+    ouint32_t		 base		: 1;		/* base type */
+    ouint32_t		 type		: 1;		/* class type */
     ouint32_t		 keyword	: 1;
     ouint32_t		 special	: 1;
     ouint32_t		 argument	: 1;
@@ -49,6 +49,7 @@ struct osymbol {
     ouint32_t		 method		: 1;
     ouint32_t		 builtin	: 1;
     ouint32_t		 function	: 1;
+    ouint32_t		 namespace	: 1;
 };
 
 struct obasic {
@@ -134,5 +135,6 @@ osubclass_p(orecord_t *record, orecord_t *super);
  */
 extern ovector_t	*type_vector;
 extern orecord_t	*root_record;
+extern ohash_t		*language_table;
 
 #endif /* _osymbol_h */

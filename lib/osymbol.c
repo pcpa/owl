@@ -29,12 +29,15 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add);
 static orecord_t *
 new_record(osymbol_t *name, otype_t type);
 
+static osymbol_t *
+new_type(orecord_t *record, ovector_t *name);
+
 /*
  * Initialization
  */
 ovector_t		*type_vector;
 orecord_t		*root_record;
-static ohash_t		*language_table;
+ohash_t			*language_table;
 
 /*
  * Implementation
@@ -55,6 +58,8 @@ init_symbol(void)
 
     oadd_root((oobject_t *)&language_table);
     onew_hash((oobject_t *)&language_table, 256);
+
+    current_record = root_record;
 }
 
 void
@@ -214,7 +219,7 @@ onew_basic(osymbol_t *name, otype_t type, oint32_t length)
 
     name->value = basic;
     name->tag = tag;
-    name->type = true;
+    name->base = true;
 
     return (basic);
 }
@@ -247,8 +252,10 @@ oadd_record(orecord_t *record, orecord_t *super)
     record->super = super;
     for (offset = 0; offset < super->vector->offset; offset++) {
 	symbol = super->vector->v.ptr[offset];
-	if (!symbol->ctor)
+	if (!symbol->ctor) {
+	    assert(!symbol->type);
 	    new_symbol(record, symbol->name, symbol->tag, true);
+	}
     }
     record->nmethod = super->nmethod;
 }
@@ -356,8 +363,8 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 	}
     }
     else {
-	/* FIXME assert creating a builtin */
-	assert(record == root_record);
+	/* FIXME assert creating a builtin or namespace */
+	assert(otype(record) == t_namespace);
 	return (symbol);
     }
 
@@ -380,6 +387,12 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 	if (symbol->field)
 	    symbol->bound = true;
     }
+
+    /* FIXME this may be a bit confusing, but make easier to access
+     * symbols by sharing the global data record, and storing
+     * namespace variables in the root namespace record */
+    if (type == t_namespace)
+	record = root_record;
 
     switch (length) {
 	case 0:
@@ -442,17 +455,47 @@ new_record(osymbol_t *name, otype_t type)
     onew_vector((oobject_t *)&record->vector, t_void, 4);
 
     if (type != t_prototype) {
-	/* Method number zero is reserved for constructor */
-	record->nmethod = 1;
+	if (type != t_namespace)
+	    /* Method number zero is reserved for constructor */
+	    record->nmethod = 1;
 	onew_hash((oobject_t *)&record->methods, 8);
     }
 
     if (name) {
 	tag = otag_object(record);
-	name->value = record;
-	name->tag = tag;
-	name->type = true;
+	if (type == t_namespace) {
+	    name->tag = tag;
+	    name->value = record;
+	    name->namespace = true;
+	}
+	else {
+	    record->name = new_type(name->record == (orecord_t *)
+				    language_table ?
+				    current_record : name->record,
+				    name->name);
+	    record->name->tag = tag;
+	    record->name->value = record;
+	}
     }
 
     return (record);
+}
+
+static osymbol_t *
+new_type(orecord_t *record, ovector_t *name)
+{
+    osymbol_t		*symbol;
+    oobject_t		*pointer;
+
+    if ((symbol = (osymbol_t *)oget_hash(record->fields, name)) == null) {
+	gc_ref(pointer);
+	make_symbol(pointer, name);
+	symbol = *pointer;
+	symbol->record = record;
+	symbol->type = true;
+	oput_hash(record->fields, (oentry_t *)symbol);
+	gc_dec();
+    }
+
+    return (symbol);
 }

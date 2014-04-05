@@ -40499,3 +40499,62 @@ for (t54_i = 0; t54_i < 3; ++t54_i)
     t54_c.v[t54_i] = t54_i + 1;
 for (t54_i = 0; t54_i < 3; ++t54_i)
     print("c.v[%d] = %d\n", t54_i, t54_c.v[t54_i]);
+
+int32_t t55max(int32_t a, int32_t b) {
+    return a >= b ? a : b;
+}
+namespace t55 {
+    class c_t {
+	int32_t		b;
+	c_t() {
+	    b = 1;
+	}
+    };
+    int32_t max(int32_t a, int32_t b) {
+	return a >= b ? a : b;
+    }
+    int32_t a = max(1, 2);
+    print("max(1, 2) = %d\n", a);
+    int32_t b = max(max(1, 4), max(3, 2));
+    print("max(max(1, 4), max(3, 2)) = %d\n", b);
+    namespace inner {
+	class c_t {
+	    float32_t	b;
+	    c_t() {
+		b = 2;
+	    }
+	};
+	int32_t max(int32_t a, int32_t b) {
+	    return a >= b ? a : b;
+	}
+	/* check that can access to shadowed root namespace symbol */
+	int32_t t55max(int32_t a, int32_t b) {
+	    print("error %d\n", __LINE__);
+	}
+	int32_t a = max(1, 2);
+	print("max(1, 2) = %d\n", a);
+	int32_t b = max(.t55max(1, 4), t55.max(3, 2));
+	print("max(.t55max(1, 4), t55.max(3, 2)) = %d\n", b);
+    };
+    int32_t min(int32_t a, int32_t b) {
+	return a <= b ? a : b;
+    }
+    a = min(1, 2);
+    print("min(1, 2) = %d\n", a);
+    b = min(min(1, 4), min(3, 2));
+    print("min(min(1, 4), min(3, 2)) = %d\n", b);
+    namespace inner {
+	int32_t min(int32_t a, int32_t b) {
+	    return a <= b ? a : b;
+	}
+	a = min(1, 2);
+	print("min(1, 2) = %d\n", a);
+	b = min(min(1, 4), min(3, 2));
+	print("min(min(1, 4), min(3, 2)) = %d\n", b);
+    };
+    c_t ca = {};
+    inner.c_t cb = {};
+    print("%d %d\n", ca.b, cb.b);
+    print("inner.min(inner.max(1, 2), 0) = %d\n",
+	  inner.min(inner.max(1, 2), 0));
+};

@@ -50,7 +50,7 @@ static void
 eval_ast_typeof(oast_t *ast);
 
 static void
-update_symbol(oast_t *ast);
+update_symbol(oast_t *ast, obool_t function);
 
 static void
 check_exception(oast_t *ast);
@@ -61,7 +61,6 @@ check_exception(oast_t *ast);
 void
 init_code(void)
 {
-    current_record = root_record;
 }
 
 void
@@ -80,6 +79,8 @@ void
 oeval_ast(oast_t *ast)
 {
     oast_t		*temp;
+    orecord_t		*record;
+    osymbol_t		*symbol;
 
     switch (ast->token) {
 	case tok_set:		case tok_andset:
@@ -214,6 +215,8 @@ oeval_ast(oast_t *ast)
 	case tok_call:
 	    if (ast->l.ast->token != tok_symbol)
 		oeval_ast(ast->l.ast);
+	    else
+		update_symbol(ast->l.ast, true);
 	    eval_ast_stat(ast->r.ast);
 	    break;
 	case tok_stat:		case tok_code:
@@ -225,7 +228,7 @@ oeval_ast(oast_t *ast)
 	    eval_ast_decl(ast->r.ast);
 	    break;
 	case tok_symbol:
-	    update_symbol(ast);
+	    update_symbol(ast, false);
 	    break;
 	case tok_goto:
 	    eval_ast_goto(ast);
@@ -243,6 +246,15 @@ oeval_ast(oast_t *ast)
 	case tok_class:		case tok_label:		case tok_case:
 	case tok_default:	case tok_function:	case tok_ellipsis:
 	case tok_this:
+	    break;
+	case tok_namespace:
+	    record = current_record;
+	    assert(ast->l.ast->token == tok_symbol);
+	    symbol = ast->l.ast->l.value;
+	    current_record = symbol->value;
+	    assert(otype(current_record) == t_namespace);
+	    eval_ast_stat(ast->c.ast);
+	    current_record = record;
 	    break;
 	default:
 #if DEBUG
@@ -264,7 +276,7 @@ oeval_ast_tag(oast_t *ast)
 
     switch (ast->token) {
 	case tok_symbol:
-	    update_symbol(ast);
+	    update_symbol(ast, false);
 	    symbol = ast->l.value;
 	    return (symbol->tag);
 	case tok_vector:
@@ -299,30 +311,28 @@ oeval_ast_tag(oast_t *ast)
 	    }
 	    else
 		tag = oeval_ast_tag(ast->l.ast);
-	    if (tag->type != tag_class) {
-		if (ast->l.ast->token == tok_symbol) {
-		    symbol = ast->l.ast->l.value;
-		    oparse_error(ast, "'%p' is not a class %A",
-				 symbol->name, ast);
-		}
-		oparse_error(ast, "not a class reference %A", ast);
-	    }
-	    record = tag->name;
 	    rast = ast->r.ast;
 	    assert(rast->token == tok_symbol);
+	    if (tag->type == tag_class && ast->l.ast->token == tok_this) {
+		omove_ast_up_full(ast, rast);
+		rast = ast;
+	    }
+	    else if (tag->type != tag_class) {
+		if (ast->l.ast->token == tok_symbol) {
+		    symbol = ast->l.ast->l.value;
+		    oparse_error(ast, "'%p' is not a class or namespace %A",
+				 symbol->name, ast);
+		}
+		oparse_error(ast, "not a class or namespace %A", ast);
+	    }
+	    record = tag->name;
 	    symbol = rast->l.value;
 	    vector = symbol->name;
 	    if ((symbol = oget_symbol(record, vector)) == null)
-		oparse_error(ast, "'%p' has no field named '%p'",
+		oparse_error(ast, "'%p' has no %s named '%p'",
+			     tag->type == tag_class ? "field" : "symbol",
 			     record->name, vector);
-	    if (ast->l.ast->token == tok_this) {
-		odel_object(&ast->l.value);
-		odel_object(&ast->r.value);
-		ast->token = tok_symbol;
-		ast->l.value = symbol;
-	    }
-	    else
-		rast->l.value = symbol;
+	    rast->l.value = symbol;
 	    return (symbol->tag);
 	case tok_explicit:
 	    tag = ast->l.ast->l.value;
@@ -455,7 +465,7 @@ eval_ast_decl(oast_t *decl)
 	symbol->bound = true;
 
 	/* remember symbol is referenced */
-	update_symbol(ast);
+	update_symbol(ast, false);
     }
 }
 
@@ -649,25 +659,29 @@ eval_ast_typeof(oast_t *ast)
 }
 
 static void
-update_symbol(oast_t *ast)
+update_symbol(oast_t *ast, obool_t function)
 {
     osymbol_t		*symbol;
     ovector_t		*vector;
 
     symbol = ast->l.value;
-    if (!symbol->bound) {
+    if (!symbol->bound && symbol->record == (orecord_t *)language_table) {
 	vector = symbol->name;
 	symbol = oget_bound_symbol(vector);
 	if (symbol == null)
 	    oparse_error(ast, "unbound symbol '%p'", vector);
 	/*   This also happens to error out if using a now shadowed variable. */
 	if (!symbol->bound) {
-	    if (symbol->function || symbol->method || symbol->builtin)
+	    if (symbol->function || symbol->method || symbol->builtin) {
 		/*  More descriptive error message when attempting to use a
 		 * function as a variable. */
+		if (function)
+		    goto done;
 		oparse_error(ast, "symbol '%p' is a function", vector);
+	    }
 	    oparse_error(ast, "symbol '%p' used before definition", vector);
 	}
+    done:
 	ast->l.value = symbol;
     }
 }

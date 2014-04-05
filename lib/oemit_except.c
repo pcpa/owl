@@ -39,7 +39,7 @@ emit_throw(oast_t *ast);
 static void
 load_exception(jit_int32_t regval, oword_t offset)
 {
-    if (current_record == root_record) {
+    if (otype(current_record) == t_namespace) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    jit_addi(regval, GPR[GLOBAL], offset);
 	else
