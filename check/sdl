@@ -1,0 +1,186 @@
+if (sdl.init()) {
+    print("init error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.window_t win = sdl.create_window("SDL example!",
+				     sdl.WindowposCentered,
+				     sdl.WindowposCentered,
+				     640, 480,
+				     sdl.WindowShown);
+if (win == null) {
+    print("create_window error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.renderer_t ren = sdl.create_renderer(win, -1,
+					 sdl.RendererAccelerated |
+					 sdl.RendererPresentVsync);
+if (ren == null) {
+    print("create_renderer error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.texture_t bg = sdl.load_texture(ren, "check/0.png");
+if (bg == null) {
+    print("load_texture error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.texture_t fg = sdl.load_texture(ren, "check/1.png");
+if (fg == null) {
+    print("load_texture error: %s\n", sdl.get_error());
+    exit(1);
+}
+
+sdl.rect_t rec = { 0, 0, fg.w, fg.h };
+void paint() {
+    sdl.render_clear(ren);
+    sdl.rect_t dst = { 0, 0, bg.w, bg.h };
+    int32_t x, y;
+    for (x = 0; x < 640; x+= 64) {
+	dst.x = x;
+	for (y = 0; y < 480; y+= 64) {
+	    dst.y = y;
+	    sdl.render_copy(ren, bg, null, dst);
+	}
+    }
+    sdl.render_copy(ren, fg, null, rec);
+    sdl.render_present(ren);
+}
+
+sdl.timer_t timer;
+int8_t kstate;
+#define LEFT			1
+#define RIGHT			2
+#define UP			4
+#define DOWN			8
+void kupdate() {
+    if (kstate == 0) {
+	if (timer) {
+	    sdl.remove_timer(timer);
+	    timer = null;
+	}
+    }
+    else if (timer == null)
+	timer = sdl.add_timer(10, null);
+}
+
+int8_t ktimer() {
+    int8_t change = false;
+    if (kstate & LEFT) {
+	if (rec.x > 0) {
+	    --rec.x;
+	    change = true;
+	}
+    }
+    if (kstate & RIGHT) {
+	if (rec.x < 640 - 64) {
+	    ++rec.x;
+	    change = true;
+	}
+    }
+    if (kstate & UP) {
+	if (rec.y > 0) {
+	    --rec.y;
+	    change = true;
+	}
+    }
+    if (kstate & DOWN) {
+	if (rec.y < 480 - 64) {
+	    ++rec.y;
+	    change = true;
+	}
+    }
+    return change;
+}
+
+int8_t done = false, change;
+sdl.event_t e = new sdl.event_t;
+while (!done) {
+    if (!sdl.wait_event(e))
+	continue;
+    change = false;
+    switch (e.type) {
+	case sdl.EventQuit:
+	    done = true;
+	    break;
+	case sdl.EventWindow:
+	    change = true;
+	    break;
+	case sdl.EventKeyDown:
+	    if (e.repeat == false) {
+		switch (e.keysym) {
+		    case sdl.Key_Left:
+			kstate &= ~RIGHT;
+			kstate |= LEFT;
+			kupdate();
+			change = ktimer();
+			break;
+		    case sdl.Key_Right:
+			kstate &= ~LEFT;
+			kstate |= RIGHT;
+			kupdate();
+			change = ktimer();
+			break;
+		    case sdl.Key_Up:
+			kstate &= ~DOWN;
+			kstate |= UP;
+			kupdate();
+			change = ktimer();
+			break;
+		    case sdl.Key_Down:
+			kstate &= ~UP;
+			kstate |= DOWN;
+			kupdate();
+			change = ktimer();
+			break;
+		    case sdl.Key_Escape:
+			done = true;
+			break;
+		}
+	    }
+	    break;
+	case sdl.EventKeyUp:
+	    switch (e.keysym) {
+		case sdl.Key_Left:
+		    kstate &= ~LEFT;
+		    kupdate();
+		    break;
+		case sdl.Key_Right:
+		    kstate &= ~RIGHT;
+		    kupdate();
+		    break;
+		case sdl.Key_Up:
+		    kstate &= ~UP;
+		    kupdate();
+		    break;
+		case sdl.Key_Down:
+		    kstate &= ~DOWN;
+		    kupdate();
+		    break;
+	    }
+	    break;
+	case sdl.EventMouseButtonDown:
+	    if (e.button == sdl.ButtonLeft) {
+		rec.x = e.x - 32;
+		rec.y = e.y - 32;
+		change = true;
+	    }
+	    break;
+	case sdl.EventMouseMotion:
+	    if (e.state & sdl.ButtonLMask) {
+		rec.x = e.x - 32;
+		rec.y = e.y - 32;
+		change = true;
+	    }
+	    break;
+	case sdl.TimerEvent:
+	    change = ktimer();
+	    break;
+    }
+    if (change)
+	paint();
+}
+
+//sdl.delay(2000);
+sdl.destroy_texture(bg);
+sdl.destroy_renderer(ren);
+sdl.destroy_window(win);
+sdl.quit();

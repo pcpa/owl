@@ -34,6 +34,12 @@
 #include <stddef.h>
 #include <string.h>
 
+#if SDL
+#  include <SDL.h>
+#  include <SDL_image.h>
+#  include <SDL_ttf.h>
+#endif
+
 #include "cqq.h"
 #include "odefs.h"
 #include "otypes.h"
@@ -55,6 +61,9 @@
 #include "orat.h"
 #include "oread.h"
 #include "orealize.h"
+#if SDL
+#  include "osdl.h"
+#endif
 #include "ostream.h"
 #include "ostring.h"
 #include "osymbol.h"

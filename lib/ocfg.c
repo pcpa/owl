@@ -97,6 +97,9 @@ ocfg_main(int argc, char *argv[])
     init_realize();
     init_emit();
     init_hashtable();
+#if SDL
+    init_sdl();
+#endif
 
     if (optind < argc) {
 	int	index = argc - 1;
@@ -115,7 +118,6 @@ ocfg_main(int argc, char *argv[])
 	opush_input(std_input);
 
     ocode();
-#if 1
     orealize();
 
     _jit = jit_new_state();
@@ -131,8 +133,10 @@ ocfg_main(int argc, char *argv[])
     finish_vm();
 
     jit_destroy_state();
-#endif
 
+#if SDL
+    finish_sdl();
+#endif
     finish_hashtable();
     finish_emit();
     finish_realize();

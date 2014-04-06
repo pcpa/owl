@@ -106,6 +106,19 @@ enum otype {
     t_cqq,
     t_mpc,
 
+#if SDL
+    t_sdl,			/* sdl namespace */
+    t_point,
+    t_rect,
+    t_window,
+    t_renderer,
+    t_surface,
+    t_texture,
+    t_font,
+    t_timer,
+    t_event,
+#endif
+
     t_root,		/* root module */
 
     t_thread		= 0x10000000,

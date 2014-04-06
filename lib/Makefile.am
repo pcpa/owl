@@ -61,3 +61,8 @@ libowl_la_SOURCES =	\
 	ovm_cqq.c	\
 	ovm_mpc.c	\
 	owrite.c
+
+if WITH_SDL
+libowl_la_SOURCES +=	\
+	osdl.c
+endif

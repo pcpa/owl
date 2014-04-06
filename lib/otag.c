@@ -85,6 +85,19 @@ static struct {
     { "*cqq_t*",	sizeof(oobject_t),	t_cqq	  },
     { "*mpc_t*",	sizeof(oobject_t),	t_mpc	  },
 };
+#if SDL
+static char *sdl[] = {
+    "point_t",
+    "rect_t",
+    "window_t",
+    "renderer_t",
+    "surface_t",
+    "texture_t",
+    "font_t",
+    "timer_t",
+    "event_t",
+};
+#endif
 
 /*
  * Implementation
@@ -94,6 +107,9 @@ init_tag(void)
 {
     oint32_t		 offset;
     osymbol_t		*symbol;
+#if SDL
+    orecord_t		*record;
+#endif
 
     oadd_root((oobject_t *)&tag_table);
     onew_hash((oobject_t *)&tag_table, 128);
@@ -113,6 +129,23 @@ init_tag(void)
 	onew_basic(symbol, types[offset].type, types[offset].size);
 	symbol->type = true;
     }
+
+#if SDL
+    /* Initialize sdl namespace and types here to use constant identifiers */
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"sdl", 3), null);
+    sdl_record = onew_namespace(symbol);
+
+    record = current_record;
+    current_record = sdl_record;
+    for (offset = 0; offset < osize(sdl); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)sdl[offset],
+					     strlen(sdl[offset])));
+	onew_record(symbol);
+    }
+    current_record = record;
+#endif
+
     /* t_root already in use */
     assert(type_vector->offset == t_root);
     ++type_vector->offset;

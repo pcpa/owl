@@ -145,6 +145,32 @@ else
 fi
 AC_SUBST([DEBUG_CFLAGS])
 
+dnl SDL2 support should be made mandatory later
+AC_ARG_ENABLE(sdl,
+	      AS_HELP_STRING([--enable-sdl],
+			     [Enable SDL support]),
+	      [SDL=$withval], [SDL=no])
+if test "x$SDL" != "xno"; then
+    dnl Assume sdl --cflags (for include path) is enough for image and ttf
+    SDL_CFLAGS=`pkg-config sdl2 --cflags`
+    AC_CHECK_LIB(SDL2, SDL_Init, , [HAVE_SDL="no"])
+    if test x"$HAVE_SDL" = "xno"; then
+	AC_MSG_ERROR([SDL2 not found, see http://www.libsdl.org/])
+    fi
+    AC_CHECK_LIB(SDL2_image, IMG_Init, , [HAVE_SDL_image="no"])
+    if test x"$HAVE_SDL_image" = "xno"; then
+	AC_MSG_ERROR([SDL2_image not found, see http://www.libsdl.org/])
+    fi
+    AC_CHECK_LIB(SDL2_ttf, TTF_Init, , [HAVE_SDL_ttf="no"])
+    if test x"$HAVE_SDL_ttf" = "xno"; then
+	AC_MSG_ERROR([SDL2_ttf not found, see http://www.libsdl.org/])
+    fi
+fi
+AM_CONDITIONAL(WITH_SDL, [test "x$SDL" != "xno"])
+if test "x$SDL" != "xno"; then
+    OWL_CFLAGS="$OWL_CFLAGS -DSDL=1 $SDL_CFLAGS"
+fi
+
 WARN_CFLAGS="\
 -Wall \
 -Wbad-function-cast \

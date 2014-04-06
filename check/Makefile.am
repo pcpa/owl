@@ -18,6 +18,8 @@
 AM_CFLAGS = @OWL_CFLAGS@
 
 EXTRA_DIST =				\
+	0.png				\
+	1.png				\
 	binarytrees			\
 	binarytrees.c			\
 	binarytrees-output.txt		\
@@ -41,6 +43,7 @@ EXTRA_DIST =				\
 	pidigits.c			\
 	pidigits-output.txt		\
 	scan				\
+	sdl				\
 	spectral-norm			\
 	spectral-norm.c			\
 	spectral-norm-output.txt	\

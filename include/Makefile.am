@@ -37,6 +37,7 @@ EXTRA_DIST =		\
 	orat.h		\
 	oread.h		\
 	orealize.h	\
+	osdl.h		\
 	ostream.h	\
 	ostring.h	\
 	osymbol.h	\

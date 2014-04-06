@@ -695,6 +695,17 @@ gc(void)
 #if CACHE_DEBUG
     oint32_t		 cache_count = 0;
 #endif
+#if SDL
+    union {
+	ofont_t		*font;
+	oobject_t	 object;
+	orenderer_t	*renderer;
+	osurface_t	*surface;
+	otexture_t	*texture;
+	owindow_t	*window;
+	otimer_t	*timer;
+    } o;
+#endif
 
     /* Prevent threads from exiting */
     othreads_lock();
@@ -782,6 +793,32 @@ gc(void)
 		    if (cache_debug)
 			ewarn("cache leak");
 		    break;
+#endif
+#if SDL
+		case t_font:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.font)
+			TTF_CloseFont(o.font->__font);
+		    break;
+		case t_renderer:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.renderer->__renderer)
+			SDL_DestroyRenderer(o.renderer->__renderer);
+		    break;
+		case t_surface:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.surface->__surface)
+			SDL_FreeSurface(o.surface->__surface);
+		    break;
+		case t_window:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.window->__window)
+			SDL_DestroyWindow(o.window->__window);
+		    break;
+		case t_timer:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.timer->__timer)
+			SDL_RemoveTimer(o.timer->__timer);
 #endif
 		default:
 		    break;
