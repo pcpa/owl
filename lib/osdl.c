@@ -408,7 +408,7 @@ static struct {
     { "EventDollarGesture",		SDL_DOLLARGESTURE },
     { "EventDollarRecord",		SDL_DOLLARRECORD },
     { "EventMultiGesture",		SDL_MULTIGESTURE },
-    { "TimerEvent",			SDL_USEREVENT },
+    { "EventTimer",			SDL_USEREVENT },
     /* create_window */
     { "WindowFullscreen",		SDL_WINDOW_FULLSCREEN },
     { "WindowOpengl",			SDL_WINDOW_OPENGL },

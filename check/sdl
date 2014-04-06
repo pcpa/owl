@@ -171,7 +171,7 @@ while (!done) {
 		change = true;
 	    }
 	    break;
-	case sdl.TimerEvent:
+	case sdl.EventTimer:
 	    change = ktimer();
 	    break;
     }
