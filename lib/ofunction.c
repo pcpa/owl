@@ -141,7 +141,7 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
     onew_hash((oobject_t *)&function->labels, 8);
 
     function->name->value = function;
-    function->name->method = current_record != root_record;
+    function->name->method = otype(current_record) != t_namespace;
     function->name->ctor = function->name->name == symbol_new->name;
     /* If an actual new method */
     if (!function->name->offset && !function->name->ctor)
@@ -165,22 +165,23 @@ onew_builtin(char *name, onative_t native, otype_t type, obool_t varargs)
     obuiltin_t		*builtin;
 
     vector = oget_string((ouint8_t *)name, strlen(name));
-    if (oget_symbol(root_record, vector))
+    assert(otype(current_record) == t_namespace);
+    if (oget_symbol(current_record, vector))
 	oerror("builtin '%p' already defined", vector);
 
     gc_ref(pointer);
     onew_object(pointer, t_builtin, sizeof(obuiltin_t));
     builtin = *pointer;
 
-    builtin->name = onew_symbol(root_record, vector, null);
+    builtin->name = onew_symbol(current_record, vector, null);
     builtin->record = onew_prototype();
     builtin->record->offset = builtin->record->length = THIS_OFFSET;
     if (varargs)
 	builtin->varargs = THIS_OFFSET;
-    builtin->record->parent = root_record;
+    builtin->record->parent = current_record;
     builtin->record->function = (ofunction_t *)builtin;
     builtin->native = native;
-    oput_hash(root_record->methods, (oentry_t *)builtin);
+    oput_hash(current_record->methods, (oentry_t *)builtin);
     gc_dec();
     builtin->name->value = builtin;
     builtin->name->builtin = true;
@@ -256,7 +257,8 @@ ofunction_start_args(ofunction_t *function)
     assert(function->record->length == 0);
     offset = THIS_OFFSET;
     /* this pointer */
-    if (function->record->parent != root_record)
+    if (function->record->parent &&
+	otype(function->record->parent) != t_namespace)
 	offset += sizeof(oobject_t);
     function->record->offset = function->record->length = offset;
 }
