@@ -76,6 +76,9 @@ static ofunction_t *
 prototype(otag_t *tag, oast_t *decl);
 
 static void
+enumeration(void);
+
+static void
 namespace(void);
 
 static void
@@ -332,6 +335,7 @@ static struct {
     { "finally",	tok_finally	},
     { "class",		tok_class	},
     { "namespace",	tok_namespace	},
+    { "enum",		tok_enum	},
 };
 static oast_t		 *root_ast;
 static oast_t		 *head_ast;
@@ -517,6 +521,10 @@ statement(void)
 	    break;
 	case tok_class:
 	    token = definition();
+	    break;
+	case tok_enum:
+	    enumeration();
+	    token = tok_code;
 	    break;
 	case tok_namespace:
 	    namespace();
@@ -758,7 +766,7 @@ case_value(void)
     oast_t		*ast;
     oword_t		 value;
 
-    if (primary() != tok_number)
+    if (unary() != tok_number)
 	oeval_ast(top_ast());
     ast = top_ast();
     if (ast->token != tok_number || otype(ast->l.value) != t_word)
@@ -1246,6 +1254,85 @@ function(void)
     pop_block();
     ast->c.ast = pop_ast();
     current_record = record;
+}
+
+static void
+enumeration(void)
+{
+    oast_t		*ast;
+    oast_t		*base;
+    oast_t		*next;
+    oword_t		 value;
+    osymbol_t		*symbol;
+
+    /* For now do not allow class specific namespace enums */
+    if (otype(current_record) != t_namespace)
+	oparse_error(top_ast(), "enum cannot be declared here");
+    base = top_ast();
+    next = null;
+    /* For now only accept nameless enums, as there is no logic
+     * to check for misuse of enums, that is, only use enums
+     * to aid creating namespace specific (integer) constants */
+    if (primary_noeof() != tok_obrace)
+	oparse_error(top_ast(), "expecting '{' %A", top_ast());
+    discard();
+
+    value = 0;
+    if (expression_noeof() == tok_cbrace)
+	discard();
+    else {
+	for (;;) {
+	    ast = top_ast();
+	    switch (ast->token) {
+		case tok_symbol:
+		    symbol = ast->l.value;
+		    if (oget_symbol(current_record, symbol->name))
+			oparse_error(ast, "identifier '%p' redeclared", symbol);
+		    onew_constant(current_record, symbol->name, value++);
+		    break;
+		case tok_set:
+		    if (ast->l.ast->token == tok_symbol) {
+			symbol = ast->l.ast->l.value;
+			ast = ast->r.ast;
+			if (ast->token != tok_number)
+			    oeval_ast(ast);
+			if (ast->token != tok_number ||
+			    otype(ast->l.value) != t_word)
+			    oparse_error(ast,
+					 "enum value not a 32 bit integer %A",
+				     ast);
+			value = *(oword_t *)ast->l.value;
+#if __WORDSIZE == 64
+			if (value < -2147483648 || value >  2147483647)
+			    oparse_error(ast,
+					 "enum value not a 32 bit integer %A",
+					 ast);
+#endif
+			onew_constant(current_record, symbol->name, value++);
+			break;
+		    }
+		default:
+		    oparse_error(ast, "expecting constant initializer %A", ast);
+	    }
+	    if (next == null)
+		next = base->r.ast = pop_ast();
+	    else {
+		next->next = pop_ast();
+		next = next->next;
+	    }
+	    if (lookahead_noeof() == tok_comma) {
+		consume();
+		(void)expression_noeof();
+	    }
+	    else if (lookahead_noeof() == tok_cbrace) {
+		consume();
+		break;
+	    }
+	}
+    }
+    if (lookahead_noeof() != tok_semicollon)
+	oparse_error(head_ast, "expecting ';' %A", head_ast);
+    consume();
 }
 
 static void
@@ -1917,18 +2004,27 @@ unary_loop(otoken_t token)
     if (token == tok_symbol) {
 	ast = top_ast();
 	symbol = ast->l.value;
-	if ((symbol = oget_bound_symbol(symbol->name)) && symbol->type) {
-	    ast->token = tok_type;
-	    ast->l.value = symbol->tag;
-	    switch (lookahead()) {
-		case tok_dot:
-		    token = tok_type;
-		    break;
-		case tok_oparen:
-		    return (unary_ctor());
-		    break;
-		default:
-		    return (unary_decl());
+	symbol = oget_bound_symbol(symbol->name);
+	if (symbol) {
+	    if (symbol->type) {
+		ast->token = tok_type;
+		ast->l.value = symbol->tag;
+		switch (lookahead()) {
+		    case tok_dot:
+			token = tok_type;
+			break;
+		    case tok_oparen:
+			return (unary_ctor());
+			break;
+		    default:
+			return (unary_decl());
+		}
+	    }
+	    else if (symbol->constant) {
+		ast->token = tok_number;
+		assert(symbol->value && otype(symbol->value) == t_word);
+		onew_word(&ast->l.value, *(oword_t *)symbol->value);
+		return (tok_number);
 	    }
 	}
     }
@@ -2214,6 +2310,12 @@ unary_field(void)
 		    default:
 			return (unary_decl());
 		}
+	    }
+	    else if (symbol->constant) {
+		ast->token = tok_number;
+		assert(symbol->value && otype(symbol->value) == t_word);
+		onew_word(&ast->l.value, *(oword_t *)symbol->value);
+		return (tok_number);
 	    }
 	    else {
 		ast->token = tok_symbol;

@@ -970,6 +970,7 @@ emit(oast_t *ast)
 	    break;
 	case tok_function:	case tok_class:
 	case tok_catch:		case tok_finally:
+	case tok_enum:
 	    break;
 	case tok_namespace:
 	    record = current_record;

@@ -729,6 +729,21 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 	    }
 	    dputc(';');		++bytes;
 	    break;
+	case tok_enum:
+	    bytes += dputs("enum {", 6);
+	    indent += 4;
+	    bytes += print_ast_newline();
+	    for (ast = ast->r.ast; ast; ast = ast->next) {
+		bytes += print_ast(ast);
+		if (ast->next) {
+		    dputc(',');	++bytes;
+		    bytes += print_ast_newline();
+		}
+	    }
+	    indent -= 4;
+	    bytes += print_ast_newline();
+	    bytes += dputs("};", 2);
+	    break;
 	case tok_ctor:		case tok_type:
 	    bytes += print_tag(ast->l.value, null, true);
 	    break;

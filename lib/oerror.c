@@ -275,6 +275,7 @@ otoken_to_charp(otoken_t token)
 	case tok_while:		return ("'while'");
 	case tok_class:		return ("'class'");
 	case tok_namespace:	return ("'namespace'");
+	case tok_enum:		return ("'enum'");
 	case tok_label:		return ("<label>");
 	case tok_list:		return ("<list>");
 	case tok_vector:	return ("<vector>");

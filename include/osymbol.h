@@ -50,6 +50,7 @@ struct osymbol {
     ouint32_t		 builtin	: 1;
     ouint32_t		 function	: 1;
     ouint32_t		 namespace	: 1;
+    ouint32_t		 constant	: 1;
 };
 
 struct obasic {
@@ -102,6 +103,9 @@ oget_bound_symbol(ovector_t *name);
 
 extern osymbol_t *
 onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag);
+
+extern osymbol_t *
+onew_constant(orecord_t *record, ovector_t *name, oint32_t value);
 
 extern oword_t
 onew_exception(orecord_t *record);

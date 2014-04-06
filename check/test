@@ -40558,3 +40558,26 @@ namespace t55 {
     print("inner.min(inner.max(1, 2), 0) = %d\n",
 	  inner.min(inner.max(1, 2), 0));
 };
+
+namespace t56 {
+    enum {
+	foo,
+	bar = 42,
+	baz
+    };
+    print("%d %d %d\n", foo, bar, baz);
+    namespace inner {
+	/* check that top namespace constants are properly parsed */
+	print("%d %d %d\n", foo, bar, baz);
+    };
+};
+int32_t t56i = t56.baz;
+print("%d %d %d\n", t56.foo, t56.bar, t56.baz);
+switch (t56i) {
+    case t56.baz:
+	break;
+    default:
+	print("error %d\n", __LINE__);
+}
+if (t56.baz != t56i)
+    print("error %d\n", __LINE__);

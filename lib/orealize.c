@@ -340,6 +340,7 @@ realize(oast_t *ast)
 	case tok_function:	case tok_class:
 	case tok_vecdcl:	case tok_label:
 	case tok_goto:		case tok_type:
+	case tok_enum:
 	    break;
 
 	default:

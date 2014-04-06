@@ -197,7 +197,7 @@ odata(oast_t *ast)
 	case tok_class:		case tok_label:		case tok_break:
 	case tok_continue:	case tok_case:		case tok_default:
 	case tok_function:	case tok_ellipsis:	case tok_typeof:
-	case tok_new:		case tok_explicit:
+	case tok_new:		case tok_explicit:	case tok_enum:
 	    break;
 	default:
 #if DEBUG

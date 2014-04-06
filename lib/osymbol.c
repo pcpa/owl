@@ -121,6 +121,30 @@ onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
     return (new_symbol(record, name, tag, false));
 }
 
+osymbol_t *
+onew_constant(orecord_t *record, ovector_t *name, oint32_t value)
+{
+    osymbol_t		*symbol;
+    oobject_t		*pointer;
+
+    if ((symbol = (osymbol_t *)oget_hash(record->fields, name)) == null) {
+	gc_ref(pointer);
+	make_symbol(pointer, name);
+	symbol = *pointer;
+	symbol->constant = true;
+	symbol->record = record;
+	oput_hash(record->fields, (oentry_t *)symbol);
+	onew_word(&symbol->value, value);
+	gc_dec();
+    }
+    else
+	assert(symbol->constant == true && symbol->value &&
+	       otype(symbol->value) == t_word &&
+	       *(oword_t *)symbol->value == value);
+
+    return (symbol);
+}
+
 oword_t
 onew_exception(orecord_t *record)
 {

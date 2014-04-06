@@ -245,7 +245,7 @@ oeval_ast(oast_t *ast)
 	case tok_type:		case tok_number:	case tok_string:
 	case tok_class:		case tok_label:		case tok_case:
 	case tok_default:	case tok_function:	case tok_ellipsis:
-	case tok_this:
+	case tok_this:		case tok_enum:
 	    break;
 	case tok_namespace:
 	    record = current_record;
