@@ -567,7 +567,6 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_timer];
     add_field("uint32_t",	"*timer*");
-    add_field("uint32_t",	"*index*");
     add_field("uint32_t",	"msec");
     add_field("auto",		"data");
     oend_record(record);
