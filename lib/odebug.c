@@ -727,7 +727,6 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 		    print_ast(ast);
 		current_record = record;
 	    }
-	    dputc(';');		++bytes;
 	    break;
 	case tok_enum:
 	    bytes += dputs("enum {", 6);

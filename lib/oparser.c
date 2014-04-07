@@ -1371,9 +1371,6 @@ namespace(void)
 		}
 		else
 		    ast->c.ast = ast->r.ast = pop_ast();
-		if (primary_noeof() != tok_semicollon)
-		    oparse_error(top_ast(), "expecting ';' %A", top_ast());
-		discard();
 		break;
 	    case tok_semicollon:
 		consume();

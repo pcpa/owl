@@ -40535,7 +40535,7 @@ namespace t55 {
 	print("max(1, 2) = %d\n", a);
 	int32_t b = max(.t55max(1, 4), t55.max(3, 2));
 	print("max(.t55max(1, 4), t55.max(3, 2)) = %d\n", b);
-    };
+    }
     int32_t min(int32_t a, int32_t b) {
 	return a <= b ? a : b;
     }
@@ -40551,13 +40551,13 @@ namespace t55 {
 	print("min(1, 2) = %d\n", a);
 	b = min(min(1, 4), min(3, 2));
 	print("min(min(1, 4), min(3, 2)) = %d\n", b);
-    };
+    }
     c_t ca = {};
     inner.c_t cb = {};
     print("%d %d\n", ca.b, cb.b);
     print("inner.min(inner.max(1, 2), 0) = %d\n",
 	  inner.min(inner.max(1, 2), 0));
-};
+}
 
 namespace t56 {
     enum {
@@ -40569,8 +40569,8 @@ namespace t56 {
     namespace inner {
 	/* check that top namespace constants are properly parsed */
 	print("%d %d %d\n", foo, bar, baz);
-    };
-};
+    }
+}
 int32_t t56i = t56.baz;
 print("%d %d %d\n", t56.foo, t56.bar, t56.baz);
 switch (t56i) {
