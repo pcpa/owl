@@ -83,6 +83,9 @@ extern void
 okey_hashentry(ohashentry_t *entry);
 
 extern void
+onew_hashtable(ohashtable_t **hash, oword_t size);
+
+extern void
 oput_hashentry(ohashtable_t *hash, ohashentry_t *entry);
 
 extern ohashentry_t *

@@ -50,6 +50,10 @@ typedef struct {
     ovector_t		*vec;
 } nat_ren_vec_t;
 typedef struct {
+    orenderer_t		*ren;
+    osurface_t		*srf;
+} nat_ren_srf_t;
+typedef struct {
     owindow_t		*win;
     oint32_t		 i32;
     ouint32_t		 u32;
@@ -60,6 +64,13 @@ typedef struct {
     orect_t		*src;
     orect_t		*dst;
 } nat_ren_tex_rec_rec_t;
+typedef struct {
+    orenderer_t		*ren;
+    ouint32_t		 u32;
+    oint32_t		 si0;
+    oint32_t		 si1;
+    oint32_t		 si2;
+} nat_ren_u32_i32_i32_i32_t;
 typedef struct {
     ovector_t		*vec;
     oint32_t		 si0, si1, si2, si3;
@@ -73,15 +84,26 @@ static void native_init(oobject_t list, oint32_t ac);
 static void native_get_error(oobject_t list, oint32_t ac);
 static void native_quit(oobject_t list, oint32_t ac);
 static void native_create_window(oobject_t list, oint32_t ac);
+static void native_change_window(oobject_t list, oint32_t ac);
+static void native_get_window_renderer(oobject_t list, oint32_t ac);
 static void native_destroy_window(oobject_t list, oint32_t ac);
+static void query_renderer(orenderer_t *or);
 static void native_create_renderer(oobject_t list, oint32_t ac);
+static void native_change_renderer(oobject_t list, oint32_t ac);
+static void native_get_renderer_window(oobject_t list, oint32_t ac);
 static void native_render_clear(oobject_t list, oint32_t ac);
 static void native_render_copy(oobject_t list, oint32_t ac);
 static void native_render_present(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
+static void query_texture(otexture_t *ot);
+static void handle_texture(otexture_t *tex);
+static void native_create_texture(oobject_t list, oint32_t ac);
+static void native_create_texture_from_surface(oobject_t list, oint32_t ac);
 static void native_load_texture(oobject_t list, oint32_t ac);
+static void native_change_texture(oobject_t list, oint32_t ac);
 static void native_destroy_texture(oobject_t list, oint32_t ac);
+static inline void translate_window(oevent_t *ev, ouint32_t id);
 static void translate_event(oevent_t *ev);
 static void native_poll_event(oobject_t list, oint32_t ac);
 static void native_wait_event(oobject_t list, oint32_t ac);
@@ -92,6 +114,15 @@ static void native_add_timer(oobject_t list, oint32_t ac);
 static void native_get_ticks(oobject_t list, oint32_t ac);
 static void native_delay(oobject_t list, oint32_t ac);
 static void native_remove_timer(oobject_t list, oint32_t ac);
+#if __WORDSIZE == 32
+static void ret_u32(oregister_t *r, ouint32_t v);
+#else
+#define ret_u32(R, V)							\
+    do {								\
+	R->t = t_word;							\
+	R->v.w = V;							\
+    } while (0)
+#endif
 
 /*
  * Initialization
@@ -411,7 +442,7 @@ static struct {
     { "EventTimer",			SDL_USEREVENT },
     /* create_window */
     { "WindowFullscreen",		SDL_WINDOW_FULLSCREEN },
-    { "WindowOpengl",			SDL_WINDOW_OPENGL },
+    { "WindowOpenGL",			SDL_WINDOW_OPENGL },
     { "WindowShown",			SDL_WINDOW_SHOWN },
     { "WindowHidden",			SDL_WINDOW_HIDDEN },
     { "WindowBorderless",		SDL_WINDOW_BORDERLESS },
@@ -426,14 +457,25 @@ static struct {
     { "WindowAllowHighDpi",		SDL_WINDOW_ALLOW_HIGHDPI },
     { "WindowposUndefined",		SDL_WINDOWPOS_UNDEFINED },
     { "WindowposCentered",		SDL_WINDOWPOS_CENTERED },
-    /* create_renderer */
+    /* create_renderer, renderer_t.flags */
     { "RendererSoftware",		SDL_RENDERER_SOFTWARE },
     { "RendererAccelerated",		SDL_RENDERER_ACCELERATED },
     { "RendererPresentVsync",		SDL_RENDERER_PRESENTVSYNC },
     { "RendererTargetTexture",		SDL_RENDERER_TARGETTEXTURE },
+    /* texture_t.access */
+    { "TextureAccessStatic",		SDL_TEXTUREACCESS_STATIC },
+    { "TextureAccessStreaming",		SDL_TEXTUREACCESS_STREAMING },
+    { "TextureAccessTarget",		SDL_TEXTUREACCESS_TARGET },
+    /* texture_t.blend */
+    { "BlendModeNone",			SDL_BLENDMODE_NONE },
+    { "BlendModeBlend",			SDL_BLENDMODE_BLEND },
+    { "BlendModeAdd",			SDL_BLENDMODE_ADD },
+    { "BlendModeMod",			SDL_BLENDMODE_MOD },
 };
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
+static ohashtable_t		*window_table;
+static ohashtable_t		*texture_table;
 
 /*
  * Implementation
@@ -450,6 +492,10 @@ init_sdl(void)
 
     oadd_root((oobject_t *)&error_vector);
     oadd_root((oobject_t *)&timer_vector);
+    oadd_root((oobject_t *)&window_table);
+    oadd_root((oobject_t *)&texture_table);
+    onew_hashtable(&window_table, 4);
+    onew_hashtable(&texture_table, 4);
     for (offset = 0; offset < osize(consts); ++offset) {
 	string = consts[offset].name;
 	onew_constant(sdl_record, oget_string((ouint8_t *)string,
@@ -497,6 +543,16 @@ init_sdl(void)
 	onew_argument(builtin, A3);					\
 	oend_builtin(builtin);						\
     } while (0)
+#define define_builtin5(TYPE, NAME, A0, A1, A2, A3, A4, VARARGS)	\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	oend_builtin(builtin);						\
+    } while (0)
 #define define_builtin6(TYPE, NAME, A0, A1, A2, A3, A4, A5, VARARGS)	\
     do {								\
 	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
@@ -519,6 +575,18 @@ init_sdl(void)
 	vector = oget_string((ouint8_t *)name, strlen(name));		\
 	offset = record->offset;					\
 	(void)onew_symbol(record, vector, symbol->tag);			\
+    } while (0)
+#define add_vec_field(type, name)					\
+    do {								\
+	vector = oget_string((ouint8_t *)type, strlen(type));		\
+	symbol = oget_identifier(vector);				\
+	if (!symbol->base) {						\
+	    symbol = oget_symbol(sdl_record, vector);			\
+	    /*assert(symbol && symbol->type);*/				\
+	}								\
+	vector = oget_string((ouint8_t *)name, strlen(name));		\
+	offset = record->offset;					\
+	(void)onew_symbol(record, vector, otag_vector(symbol->tag, 0));	\
     } while (0)
 #define add_union(type, name)						\
     do {								\
@@ -547,10 +615,44 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_window];
     add_field(pointer_string,	"*window*");
+    add_field("auto",		"*handle*");	/* gc it */
+    add_field("auto",		"*renderer*");	/* gc it */
+    add_field("int32_t",	"x");
+    add_field("int32_t",	"y");
+    add_field("int32_t",	"w");
+    add_field("int32_t",	"h");
+    add_field("int32_t",	"min_w");
+    add_field("int32_t",	"min_h");
+    add_field("int32_t",	"max_w");
+    add_field("int32_t",	"max_h");
+    add_field("uint32_t",	"flags");
+    add_field("string_t",	"title");
+    add_field("int32_t",	"*x*");
+    add_field("int32_t",	"*y*");
+    add_field("int32_t",	"*w*");
+    add_field("int32_t",	"*h*");
+    add_field("int32_t",	"*min_w*");
+    add_field("int32_t",	"*min_h*");
+    add_field("int32_t",	"*max_w*");
+    add_field("int32_t",	"*max_h*");
+    add_field("uint32_t",	"*flags*");
+    add_field("string_t",	"*title*");
     oend_record(record);
 
     record = type_vector->v.ptr[t_renderer];
     add_field(pointer_string,	"*renderer*");
+    add_field("auto",		"*window*");	/* gc it */
+    add_field("texture_t",	"target");
+    add_field("int32_t",	"log_w");
+    add_field("int32_t",	"log_h");
+    add_field("int32_t",	"max_w");
+    add_field("int32_t",	"max_h");
+    add_field("string_t",	"name");
+    add_field("uint32_t",	"flags");
+    add_vec_field("uint32_t",	"formats");
+    add_field("texture_t",	"*target*");
+    add_field("int32_t",	"*log_w*");
+    add_field("int32_t",	"*log_h*");
     oend_record(record);
 
     record = type_vector->v.ptr[t_surface];
@@ -559,10 +661,21 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_texture];
     add_field(pointer_string,	"*texture*");
+    add_field("auto",		"*handle*");	/* gc it */
     add_field("uint32_t",	"format");
     add_field("int32_t",	"access");
     add_field("int32_t",	"w");
     add_field("int32_t",	"h");
+    add_field("uint8_t",	"r");
+    add_field("uint8_t",	"g");
+    add_field("uint8_t",	"b");
+    add_field("uint8_t",	"a");
+    add_field("uint8_t",	"blend");
+    add_field("uint8_t",	"*r*");
+    add_field("uint8_t",	"*g*");
+    add_field("uint8_t",	"*b*");
+    add_field("uint8_t",	"*a*");
+    add_field("uint8_t",	"*blend*");
     oend_record(record);
 
     record = type_vector->v.ptr[t_timer];
@@ -578,11 +691,11 @@ init_sdl(void)
     /**/
     add_field("uint32_t",	"time");
     /**/
-    add_field("uint32_t",	"window");
-    add_union("uint32_t",	"gesture");
-    add_union("uint32_t",	"finger");
+    add_field("auto",		"window");	/* gc it */
+    add_union(pointer_string,	"gesture");
+    add_union(pointer_string,	"finger");
     /**/
-    add_field("uint32_t",	"device");
+    add_field("auto",		"device");	/* gc it */
     /**/
     add_field("int16_t",	"state");
     add_union("int16_t",	"event");
@@ -629,22 +742,33 @@ init_sdl(void)
     define_builtin0(t_string, get_error, false);
     define_builtin0(t_void,   quit, false);
 
-    define_builtin6(t_window, create_window,
+    define_builtin6(t_window,   create_window,
 		    t_string, t_int32, t_int32, t_int32, t_int32, t_uint32,
 		    false);
-    define_builtin1(t_void,   destroy_window, t_window, false);
+    define_builtin1(t_void,     change_window, t_window, false);
+    define_builtin1(t_renderer, get_window_renderer, t_window, false);
+    define_builtin1(t_void,     destroy_window, t_window, false);
 
     define_builtin3(t_renderer, create_renderer,
 		    t_window, t_int32, t_uint32,
 		    false);
-    define_builtin1(t_void,    render_clear, t_renderer, false);
-    define_builtin4(t_int32,   render_copy,
+    define_builtin1(t_int32,    change_renderer, t_renderer, false);
+    define_builtin1(t_window,   get_renderer_window, t_renderer, false);
+    define_builtin1(t_void,     render_clear, t_renderer, false);
+    define_builtin4(t_int32,    render_copy,
 		    t_renderer, t_texture, t_rect, t_rect,
 		    false);
     define_builtin1(t_void,    render_present, t_renderer, false);
     define_builtin1(t_void,    destroy_renderer, t_renderer, false);
 
+    define_builtin5(t_texture, create_texture,
+		    t_renderer, t_uint32, t_int32, t_int32, t_int32,
+		    false);
+    define_builtin2(t_texture, create_texture_from_surface,
+		    t_renderer, t_surface,
+		    false);
     define_builtin2(t_texture, load_texture, t_string, t_renderer, false);
+    define_builtin1(t_int32,   change_texture, t_texture, false);
     define_builtin1(t_void,    destroy_texture, t_texture, false);
 
     define_builtin1(t_int32,   poll_event, t_event, false);
@@ -664,8 +788,30 @@ init_sdl(void)
 void
 finish_sdl(void)
 {
+    orem_root((oobject_t *)&texture_table);
+    orem_root((oobject_t *)&window_table);
     orem_root((oobject_t *)&timer_vector);
     orem_root((oobject_t *)&error_vector);
+}
+
+void
+odestroy_window(owindow_t *window)
+{
+    if (window->__window) {
+	orem_hashentry(window_table, window->__handle);
+	SDL_DestroyWindow(window->__window);
+	window->__window = null;
+    }
+}
+
+extern void
+odestroy_texture(otexture_t *texture)
+{
+    if (texture->__texture) {
+	orem_hashentry(texture_table, texture->__handle);
+	SDL_DestroyTexture(texture->__texture);
+	texture->__texture = null;
+    }
 }
 
 static void
@@ -732,6 +878,7 @@ native_create_window(oobject_t list, oint32_t ac)
     owindow_t				*ow;
     oregister_t				*r0;
     nat_vec_i32_i32_i32_i32_u32_t	*alist;
+    const char				*buffer;
     oword_t				 length;
     char				 title[BUFSIZ];
 
@@ -750,12 +897,176 @@ native_create_window(oobject_t list, oint32_t ac)
     if ((sw = SDL_CreateWindow(title, alist->si0, alist->si1,
 			       alist->si2, alist->si3,
 			       alist->u32))) {
+	/* window */
 	onew_object(&thread_self->obj, t_window, sizeof(owindow_t));
 	ow = (owindow_t *)thread_self->obj;
 	ow->__window = sw;
+	/* handle */
+	onew_object((oobject_t *)&ow->__handle,
+		    t_hashentry, sizeof(ohashentry_t));
+	ow->__handle->nt = t_word;
+	ow->__handle->nv.w = SDL_GetWindowID(sw);
+	ow->__handle->vt = t_window;
+	ow->__handle->vv.o = ow;
+	okey_hashentry(ow->__handle);
+	assert(oget_hashentry(window_table, ow->__handle) == null);
+	oput_hashentry(window_table, ow->__handle);
+	/* x, y */
+	SDL_GetWindowPosition(sw, &ow->__x, &ow->__y);
+	ow->x = ow->__x;
+	ow->y = ow->__y;
+	/* w, h */
+	SDL_GetWindowSize(sw, &ow->__w, &ow->__h);
+	ow->w = ow->__w;
+	ow->h = ow->__h;
+	/* min_w, min_h */
+	SDL_GetWindowMinimumSize(sw, &ow->__min_w, &ow->__min_h);
+	ow->min_w = ow->__min_w;
+	ow->min_h = ow->__min_h;
+	/* max_w, max_h */
+	SDL_GetWindowMaximumSize(sw, &ow->__max_w, &ow->__max_h);
+	ow->max_w = ow->__max_w;
+	ow->max_h = ow->__max_h;
+	/* flags */
+	ow->__flags = SDL_GetWindowFlags(sw);
+	ow->flags = ow->__flags;
+	/* title */
+	buffer = SDL_GetWindowTitle(sw);
+	if (buffer)
+	    length = strlen(buffer);
+	else
+	    length = 0;
+	onew_vector((oobject_t *)&ow->__title, t_uint8, length);
+	if (length)
+	    memcpy(ow->__title->v.u8, buffer, length);
+	ow->title = ow->__title;
+	/**/
 	r0->v.o = thread_self->obj;
 	r0->t = t_window;
     }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_change_window(oobject_t list, oint32_t ac)
+/* void change_window(window_t window); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    owindow_t			*ow;
+    SDL_Window			*sw;
+    nat_win_t			*alist;
+    const char			*buffer;
+    oword_t			 length;
+    char			 title[BUFSIZ];
+
+    alist = (nat_win_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->win == null ||
+	otype(alist->win) != t_window || alist->win->__window == null)
+	ovm_raise(except_invalid_argument);
+    ow = alist->win;
+    sw = ow->__window;
+    /* x, y */
+    if (ow->x != ow->__x || ow->y != ow->__y) {
+	SDL_SetWindowPosition(sw, ow->x, ow->y);
+	SDL_GetWindowPosition(sw, &ow->__x, &ow->__y);
+	ow->x = ow->__x;
+	ow->y = ow->__y;
+    }
+    /* w, h */
+    if (ow->w != ow->__w || ow->h != ow->__h) {
+	SDL_SetWindowSize(sw, ow->w, ow->h);
+	SDL_GetWindowSize(sw, &ow->__w, &ow->__h);
+	ow->w = ow->__w;
+	ow->h = ow->__h;
+    }
+    /* min_w, min_h */
+    if (ow->min_w != ow->__min_w || ow->min_h != ow->__min_h) {
+	SDL_SetWindowMinimumSize(sw, ow->min_w, ow->min_h);
+	SDL_GetWindowMinimumSize(sw, &ow->__min_w, &ow->__min_h);
+	ow->min_w = ow->__min_w;
+	ow->min_h = ow->__min_h;
+    }
+    /* max_w, max_h */
+    if (ow->max_w != ow->__max_w || ow->max_h != ow->__max_h) {
+	SDL_SetWindowMaximumSize(sw, ow->max_w, ow->max_h);
+	SDL_GetWindowMaximumSize(sw, &ow->__max_w, &ow->__max_h);
+	ow->max_w = ow->__max_w;
+	ow->max_h = ow->__max_h;
+    }
+    /* flags */
+    if (ow->flags != ow->__flags) {
+#define change(FLAG)		((ow->flags & FLAG) ^ (ow->__flags & FLAG))
+#define set(FLAG)		(!!(ow->flags & FLAG))
+	if (change(SDL_WINDOW_FULLSCREEN))
+	    SDL_SetWindowFullscreen(sw, ow->flags &
+				    (SDL_WINDOW_FULLSCREEN_DESKTOP));
+	if (change(SDL_WINDOW_SHOWN) || change(SDL_WINDOW_HIDDEN)) {
+	    if (set(SDL_WINDOW_SHOWN) && !set(SDL_WINDOW_HIDDEN))
+		SDL_ShowWindow(sw);
+	    else if (!set(SDL_WINDOW_SHOWN) && set(SDL_WINDOW_HIDDEN))
+		SDL_HideWindow(sw);
+	}
+	if (!set(SDL_WINDOW_FULLSCREEN) &&
+	    (!change(SDL_WINDOW_MINIMIZED) || change(SDL_WINDOW_MAXIMIZED))) {
+	    if (set(SDL_WINDOW_MINIMIZED) && !set(SDL_WINDOW_MAXIMIZED))
+		SDL_MinimizeWindow(sw);
+	    else if (!set(SDL_WINDOW_MINIMIZED) && set(SDL_WINDOW_MAXIMIZED))
+		SDL_MaximizeWindow(sw);
+	    else
+		SDL_RestoreWindow(sw);
+	}
+	if (change(SDL_WINDOW_INPUT_GRABBED))
+	    SDL_SetWindowGrab(sw, set(SDL_WINDOW_INPUT_GRABBED));
+#undef set
+#undef unset
+#undef mismatch
+    }
+    /* actual flags may change based on previous changes */
+    ow->__flags = SDL_GetWindowFlags(sw);
+    ow->flags = ow->__flags;
+    /* title */
+    if (ow->title != ow->__title) {
+	if (ow->title == null)
+	    title[0] = '\0';
+	else if (otype(ow->title) != t_string)
+	    ovm_raise(except_invalid_argument);
+	else {
+	    if ((length = ow->title->length) > BUFSIZ - 1)
+		length = BUFSIZ - 1;
+	    memcpy(title, ow->title->v.ptr, length);
+	    title[length] = '\0';
+	}
+	SDL_SetWindowTitle(sw, title);
+	buffer = SDL_GetWindowTitle(sw);
+	if (buffer)
+	    length = strlen(buffer);
+	else
+	    length = 0;
+	orenew_vector(ow->__title, length);
+	if (length)
+	    memcpy(ow->__title->v.u8, buffer, length);
+	ow->title = ow->__title;
+    }
+    r0->t = t_void;
+}
+
+static void
+native_get_window_renderer(oobject_t list, oint32_t ac)
+/* renderer_t get_window_renderer(window_t window); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_win_t			*alist;
+
+    alist = (nat_win_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->win == null || otype(alist->win) != t_window)
+	ovm_raise(except_invalid_argument);
+    if ((r0->v.o = alist->win->__renderer))
+	r0->t = t_renderer;
     else
 	r0->t = t_void;
 }
@@ -770,23 +1081,43 @@ native_destroy_window(oobject_t list, oint32_t ac)
 
     alist = (nat_win_t *)list;
     r0 = &thread_self->r0;
-    if (alist->win && alist->win->__window) {
+    if (alist->win) {
 	if (otype(alist->win) != t_window)
 	    ovm_raise(except_invalid_argument);
-	SDL_DestroyWindow(alist->win->__window);
-	alist->win->__window = null;
+	odestroy_window(alist->win);
     }
     r0->t = t_void;
 }
 
 static void
+query_renderer(orenderer_t *or)
+{
+    SDL_Renderer		*sr;
+    SDL_Texture			*tx;
+    ohashentry_t		 et;
+    ohashentry_t		*ot;
+
+    sr = or->__renderer;
+    SDL_RenderGetLogicalSize(sr, &or->__log_w, &or->__log_h);
+    or->log_w = or->__log_w;
+    or->log_h = or->__log_h;
+    if ((tx = SDL_GetRenderTarget(sr))) {
+	et.nt = t_word;
+	et.nv.w = (oword_t)tx;
+	if ((ot = oget_hashentry(texture_table, &et)))
+	    or->target = or->__target = (otexture_t *)ot->nv.w;
+    }
+}
+
+static void
 native_create_renderer(oobject_t list, oint32_t ac)
-/* renderer_t create_renderer(window_t win, uint32_t flags); */
+/* renderer_t create_renderer(window_t win, int32_t index, uint32_t flags); */
 {
     GET_THREAD_SELF()
     orenderer_t			*or;
     SDL_Renderer		*sr;
     oregister_t			*r0;
+    SDL_RendererInfo		 info;
     nat_win_i32_u32_t		*alist;
 
     alist = (nat_win_i32_u32_t *)list;
@@ -798,9 +1129,77 @@ native_create_renderer(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_renderer, sizeof(orenderer_t));
 	or = (orenderer_t *)thread_self->obj;
 	or->__renderer = sr;
+	or->__window = alist->win;
+	or->__window->__renderer = or;
+	SDL_GetRendererInfo(sr, &info);
+	onew_vector((oobject_t *)&or->name, t_uint8,
+		    info.name ? strlen(info.name) : 0);
+	or->flags = info.flags;
+	if (info.name)
+	    memcpy(or->name->v.ptr, info.name, strlen(info.name));
+	onew_vector((oobject_t *)&or->formats, t_uint32,
+		    info.num_texture_formats);
+	memcpy(or->formats->v.ptr, info.texture_formats,
+	       info.num_texture_formats * sizeof(ouint32_t));
+	or->max_w = info.max_texture_width;
+	or->max_h = info.max_texture_height;
+	query_renderer(or);
 	r0->v.o = thread_self->obj;
 	r0->t = t_renderer;
     }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_change_renderer(oobject_t list, oint32_t ac)
+/* int32_t change_renderer(renderer_t ren); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    orenderer_t			*ren;
+    otexture_t			*tex;
+    ohashentry_t		 check;
+    ohashentry_t		*entry;
+    nat_ren_t			*alist;
+
+    alist = (nat_ren_t *)list;
+    r0 = &thread_self->r0;
+    ren = alist->ren;
+    if (ren == null || otype(ren) != t_renderer)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = 0;
+    if (ren->log_w != ren->__log_w || ren->log_h != ren->__log_h)
+	r0->v.w |= SDL_RenderSetLogicalSize(ren->__renderer,
+					    ren->log_w, ren->log_h);
+    if (ren->target != ren->__target) {
+	if (ren->target && otype(ren->target) != t_texture)
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = (oword_t)ren->target;
+	if ((entry = oget_hashentry(texture_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	tex = (otexture_t *)entry->nv.w;
+	r0->v.w |= SDL_SetRenderTarget(ren->__renderer, tex->__texture);
+    }
+    query_renderer(ren);
+}
+
+static void
+native_get_renderer_window(oobject_t list, oint32_t ac)
+/* window_t get_renderer_window(renderer_t ren); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_ren_t			*alist;
+
+    alist = (nat_ren_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->ren == null || otype(alist->ren) != t_renderer)
+	ovm_raise(except_invalid_argument);
+    if ((r0->v.o = alist->ren->__window))
+	r0->t = t_window;
     else
 	r0->t = t_void;
 }
@@ -878,6 +1277,96 @@ native_destroy_renderer(oobject_t list, oint32_t ac)
 }
 
 static void
+query_texture(otexture_t *ot)
+{
+    SDL_Texture			*st;
+    SDL_BlendMode		 blend;
+
+    st = ot->__texture;
+    SDL_QueryTexture(st, &ot->format, &ot->access, &ot->w, &ot->h);
+    SDL_GetTextureColorMod(st, &ot->__r, &ot->__g, &ot->__b);
+    ot->r = ot->__r;
+    ot->g = ot->__g;
+    ot->b = ot->__b;
+    SDL_GetTextureAlphaMod(st, &ot->__a);
+    ot->a = ot->__a;
+    SDL_GetTextureBlendMode(st, &blend);
+    ot->blend = ot->__blend = blend;
+}
+
+static void
+handle_texture(otexture_t *tex)
+{
+    onew_object((oobject_t *)&tex->__handle,
+		t_hashentry, sizeof(ohashentry_t));
+    tex->__handle->nt = t_word;
+    tex->__handle->nv.w = (oword_t)tex->__texture;
+    tex->__handle->vt = t_word;
+    tex->__handle->vv.w = (oword_t)tex;
+    okey_hashentry(tex->__handle);
+    assert(oget_hashentry(texture_table, tex->__handle) == null);
+    oput_hashentry(texture_table, tex->__handle);
+}
+
+static void
+native_create_texture(oobject_t list, oint32_t ac)
+/* texture_t create_texture(renderer_t ren, uint32_t format,
+			    int32_t access, int32_t w, int32_t h); */
+{
+    GET_THREAD_SELF()
+    SDL_Texture			*st;
+    otexture_t			*ot;
+    oregister_t			*r0;
+    nat_ren_u32_i32_i32_i32_t	*alist;
+
+    alist = (nat_ren_u32_i32_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->ren == null || otype(alist->ren) != t_renderer)
+	ovm_raise(except_invalid_argument);
+    if ((st = SDL_CreateTexture(alist->ren->__renderer, alist->u32,
+				alist->si0, alist->si1, alist->si2))) {
+	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
+	ot = (otexture_t *)thread_self->obj;
+	ot->__texture = st;
+	handle_texture(ot);
+	query_texture(ot);
+	r0->v.o = thread_self->obj;
+	r0->t = t_texture;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_create_texture_from_surface(oobject_t list, oint32_t ac)
+/* texture_t create_texture_from_surface(renderer_t ren, surface_t surf); */
+{
+    GET_THREAD_SELF()
+    SDL_Texture			*st;
+    otexture_t			*ot;
+    oregister_t			*r0;
+    nat_ren_srf_t		*alist;
+
+    alist = (nat_ren_srf_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->ren == null || otype(alist->ren) != t_renderer ||
+	alist->srf == null || otype(alist->srf) != t_surface)
+	ovm_raise(except_invalid_argument);
+    if ((st = SDL_CreateTextureFromSurface(alist->ren->__renderer,
+					   alist->srf->__surface))) {
+	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
+	ot = (otexture_t *)thread_self->obj;
+	ot->__texture = st;
+	handle_texture(ot);
+	query_texture(ot);
+	r0->v.o = thread_self->obj;
+	r0->t = t_texture;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
 native_load_texture(oobject_t list, oint32_t ac)
 /* texture_t load_texture(renderer_t ren, string_t path); */
 {
@@ -889,6 +1378,7 @@ native_load_texture(oobject_t list, oint32_t ac)
     char			 path[BUFSIZ];
 
     alist = (nat_ren_vec_t *)list;
+    r0 = &thread_self->r0;
     if (alist->ren == null || otype(alist->ren) != t_renderer ||
 	alist->vec == null || otype(alist->vec) != t_string)
 	ovm_raise(except_invalid_argument);
@@ -896,12 +1386,12 @@ native_load_texture(oobject_t list, oint32_t ac)
 	ovm_raise(except_out_of_bounds);
     memcpy(path, alist->vec->v.ptr, alist->vec->length);
     path[alist->vec->length] = '\0';
-    r0 = &thread_self->r0;
     if ((st = IMG_LoadTexture(alist->ren->__renderer, path))) {
 	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
 	ot = (otexture_t *)thread_self->obj;
 	ot->__texture = st;
-	SDL_QueryTexture(st, &ot->format, &ot->access, &ot->w, &ot->h);
+	handle_texture(ot);
+	query_texture(ot);
 	r0->v.o = thread_self->obj;
 	r0->t = t_texture;
     }
@@ -910,7 +1400,33 @@ native_load_texture(oobject_t list, oint32_t ac)
 }
 
 static void
+native_change_texture(oobject_t list, oint32_t ac)
+/* int32_t change_texture(texture_t tex); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    otexture_t			*ot;
+    nat_tex_t			*alist;
+
+    alist = (nat_tex_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->tex == null && otype(alist->tex) != t_texture)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = 0;
+    ot = alist->tex;
+    if (ot->r != ot->__r || ot->g != ot->__g || ot->b != ot->__b)
+	r0->v.w |= SDL_SetTextureColorMod(ot->__texture, ot->r, ot->g, ot->b);
+    if (ot->a != ot->__a)
+	r0->v.w |= SDL_SetTextureAlphaMod(ot->__texture, ot->a);
+    if (ot->blend != ot->__blend)
+	r0->v.w |= SDL_SetTextureBlendMode(ot->__texture, ot->blend);
+    query_texture(ot);
+}
+
+static void
 native_destroy_texture(oobject_t list, oint32_t ac)
+/* void destroy_texture(texture_t tex); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -921,10 +1437,24 @@ native_destroy_texture(oobject_t list, oint32_t ac)
     if (alist->tex && alist->tex->__texture) {
 	if (otype(alist->tex) != t_texture)
 	    ovm_raise(except_invalid_argument);
-	SDL_DestroyTexture(alist->tex->__texture);
-	alist->tex->__texture = null;
+	odestroy_texture(alist->tex);
     }
     r0->t = t_void;
+}
+
+static inline void
+translate_window(oevent_t *ev, ouint32_t id)
+{
+    ohashentry_t		 e;
+    ohashentry_t		*v;
+
+    e.nt = t_word;
+    e.nv.w = id;
+    okey_hashentry(&e);
+    if ((v = oget_hashentry(window_table, &e)))
+	ev->window = v->vv.o;
+    else
+	ev->window = null;
 }
 
 static void
@@ -938,7 +1468,7 @@ translate_event(oevent_t *ev)
 	case SDL_QUIT:
 	    break;
 	case SDL_WINDOWEVENT:
-	    ev->window = sv->window.windowID;
+	    translate_window(ev, sv->window.windowID);
 	    switch ((ev->event = sv->window.event)) {
 		case SDL_WINDOWEVENT_MOVED:
 		    ev->x	= sv->window.data1;
@@ -953,13 +1483,13 @@ translate_event(oevent_t *ev)
 	    }
 	    break;
 	case SDL_KEYDOWN:	case SDL_KEYUP:
-	    ev->window		= sv->key.windowID;
+	    translate_window(ev, sv->key.windowID);
 	    ev->state		= sv->key.state;
 	    ev->repeat		= sv->key.repeat;
 	    ev->keysym		= sv->key.keysym.sym;
 	    break;
 	case SDL_TEXTEDITING:
-	    ev->window		= sv->key.windowID;
+	    translate_window(ev, sv->edit.windowID);
 	    if (ev->text == null)
 		onew_vector((oobject_t *)&ev->text, t_uint8,
 			    SDL_TEXTEDITINGEVENT_TEXT_SIZE);
@@ -972,7 +1502,7 @@ translate_event(oevent_t *ev)
 	    ev->length		= sv->edit.length;
 	    break;
 	case SDL_TEXTINPUT:
-	    ev->window		= sv->key.windowID;
+	    translate_window(ev, sv->text.windowID);
 	    if (ev->text == null)
 		onew_vector((oobject_t *)&ev->text, t_uint8,
 			    SDL_TEXTINPUTEVENT_TEXT_SIZE);
@@ -983,8 +1513,10 @@ translate_event(oevent_t *ev)
 		   SDL_TEXTINPUTEVENT_TEXT_SIZE);
 	    break;
 	case SDL_MOUSEMOTION:
-	    ev->window		= sv->motion.windowID;
+	    translate_window(ev, sv->motion.windowID);
+#if 0
 	    ev->device		= sv->motion.which;
+#endif
 	    ev->state		= sv->motion.state;
 	    ev->x		= sv->motion.x;
 	    ev->y		= sv->motion.y;
@@ -992,8 +1524,10 @@ translate_event(oevent_t *ev)
 	    ev->dy		= sv->motion.yrel;
 	    break;
 	case SDL_MOUSEBUTTONDOWN:	case SDL_MOUSEBUTTONUP:
-	    ev->window		= sv->button.windowID;
+	    translate_window(ev, sv->button.windowID);
+#if 0
 	    ev->device		= sv->button.which;
+#endif
 	    ev->button		= sv->button.button;
 	    ev->state		= sv->button.state;
 	    ev->repeat		= sv->button.clicks;
@@ -1001,52 +1535,72 @@ translate_event(oevent_t *ev)
 	    ev->y		= sv->button.y;
 	    break;
 	case SDL_MOUSEWHEEL:
-	    ev->window		= sv->wheel.windowID;
+	    translate_window(ev, sv->wheel.windowID);
+#if 0
 	    ev->device		= sv->wheel.which;
+#endif
 	    ev->x		= sv->wheel.x;
 	    ev->y		= sv->wheel.y;
 	    break;
 	case SDL_JOYAXISMOTION:
+#if 0
 	    ev->device		= sv->jaxis.which;
+#endif
 	    ev->axis		= sv->jaxis.axis;
 	    ev->value		= sv->jaxis.value;
 	    break;
 	case SDL_JOYBALLMOTION:
+#if 0
 	    ev->device		= sv->jball.which;
+#endif
 	    ev->ball		= sv->jball.ball;
 	    ev->dx		= sv->jball.xrel;
 	    ev->dy		= sv->jball.yrel;
 	    break;
 	case SDL_JOYHATMOTION:
+#if 0
 	    ev->device		= sv->jhat.which;
+#endif
 	    ev->hat		= sv->jhat.hat;
 	    ev->value		= sv->jhat.value;
 	    break;
 	case SDL_JOYBUTTONDOWN:		case SDL_JOYBUTTONUP:
+#if 0
 	    ev->device		= sv->jbutton.which;
+#endif
 	    ev->button		= sv->jbutton.button;
 	    ev->state		= sv->jbutton.state;
 	    break;
 	case SDL_JOYDEVICEADDED:	case SDL_JOYDEVICEREMOVED:
+#if 0
 	    ev->device		= sv->jdevice.which;
+#endif
 	    break;
 	case SDL_CONTROLLERAXISMOTION:
+#if 0
 	    ev->device		= sv->caxis.which;
+#endif
 	    ev->axis		= sv->caxis.axis;
 	    ev->value		= sv->caxis.value;
 	    break;
 	case SDL_CONTROLLERBUTTONDOWN:	case SDL_CONTROLLERBUTTONUP:
+#if 0
 	    ev->device		= sv->cbutton.which;
+#endif
 	    ev->button		= sv->cbutton.button;
 	    ev->state		= sv->cbutton.state;
 	    break;
 	case SDL_CONTROLLERDEVICEADDED:	case SDL_CONTROLLERDEVICEREMOVED:
+#if 0
 	    ev->device		= sv->cdevice.which;
+#endif
 	    break;
 	case SDL_FINGERMOTION:		case SDL_FINGERDOWN:
 	case SDL_FINGERUP:
+#if 0
 	    ev->device		= sv->tfinger.touchId;
 	    ev->finger		= sv->tfinger.fingerId;
+#endif
 	    ev->fx		= sv->tfinger.x;
 	    ev->fy		= sv->tfinger.y;
 	    ev->fdx		= sv->tfinger.dx;
@@ -1054,7 +1608,9 @@ translate_event(oevent_t *ev)
 	    ev->pressure	= sv->tfinger.pressure;
 	    break;
 	case SDL_MULTIGESTURE:
+#if 0
 	    ev->device		= sv->mgesture.touchId;
+#endif
 	    ev->fx		= sv->mgesture.x;
 	    ev->fy		= sv->mgesture.y;
 	    ev->theta		= sv->mgesture.dTheta;
@@ -1062,8 +1618,10 @@ translate_event(oevent_t *ev)
 	    ev->fingers		= sv->mgesture.numFingers;
 	    break;
 	case SDL_DOLLARGESTURE:
+#if 0
 	    ev->gesture		= sv->dgesture.gestureId;
 	    ev->device		= sv->dgesture.touchId;
+#endif
 	    ev->fingers		= sv->dgesture.numFingers;
 	    ev->ferror		= sv->dgesture.error;
 	    ev->fx		= sv->dgesture.x;
@@ -1202,8 +1760,7 @@ native_get_ticks(oobject_t list, oint32_t ac)
     oregister_t			*r0;
 
     r0 = &thread_self->r0;
-    r0->t = t_word;
-    r0->v.w = SDL_GetTicks();
+    ret_u32(r0, SDL_GetTicks());
 }
 
 static void
@@ -1242,3 +1799,18 @@ native_remove_timer(oobject_t list, oint32_t ac)
     else
 	r0->v.w = false;
 }
+
+#if __WORDSIZE == 32
+static void
+ret_u32(oregister_t *r, ouint32_t v)
+{
+    if ((oint32_t)v < 0) {
+	mpz_set_ui(ozr(r), v);
+	r->t = t_mpz;
+    }
+    else {
+	r->t = t_word;
+	r->v.w = v;
+    }
+}
+#endif

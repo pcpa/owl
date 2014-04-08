@@ -1289,7 +1289,7 @@ entry_store(ohashentry_t *entry, oregister_t *r)
 	    break;
 	default:
 	    entry->vv.o = r->v.o;
-	    entry->vt = t_rat;
+	    entry->vt = r->t;
 	    break;
     }
 }

@@ -104,6 +104,12 @@ okey_hashentry(ohashentry_t *entry)
 }
 
 void
+onew_hashtable(ohashtable_t **hash, oword_t size)
+{
+    new_hashtable((oobject_t *)hash, size);
+}
+
+void
 oput_hashentry(ohashtable_t *hash, ohashentry_t *entry)
 {
     oword_t		 key;

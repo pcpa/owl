@@ -1,3 +1,4 @@
+#define DEBUG	1
 if (sdl.init()) {
     print("init error: %s\n", sdl.get_error());
     exit(1);
@@ -11,6 +12,38 @@ if (win == null) {
     print("create_window error: %s\n", sdl.get_error());
     exit(1);
 }
+#if DEBUG
+print("\n\
+window	%a\n\
+x:	%d\n\
+y:	%d\n\
+w:	%d\n\
+h:	%d\n\
+min_w:	%d\n\
+min_h:	%d\n\
+max_w:	%d\n\
+max_h:	%d\n\
+flags:	%s%s%s%s%s%s%s%s%s%s%s%s\n\
+title:	%#a\n",
+      win,
+      win.x, win.y, win.w, win.h, win.min_w, win.min_h, win.max_w, win.max_h,
+      win.flags & sdl.WindowFullscreenDesktop ?
+      (win.flags & sdl.WindowFullscreenDesktop == sdl.WindowFullscreenDesktop ?
+       "WindowFullscreenDesktop " : "WindowFullscreen ") : "",
+      win.flags & sdl.WindowOpenGL ? "OpenGL " : "",
+      win.flags & sdl.WindowShown ? "Shown " : "",
+      win.flags & sdl.WindowHidden ? "Hidden " : "",
+      win.flags & sdl.WindowBorderless ? "Borderless " : "",
+      win.flags & sdl.WindowResizable ? "Resizable " : "",
+      win.flags & sdl.WindowMinimized ? "Minimized " : "",
+      win.flags & sdl.WindowMaximized ? "Maximized " : "",
+      win.flags & sdl.WindowInputGrabbed ? "InputGrabbed " : "",
+      win.flags & sdl.WindowInputFocus ? "InputFocus " : "",
+      win.flags & sdl.WindowMouseFocus ? "MouseFocus " : "",
+      win.flags & sdl.WindowForeign ? "Foreign " : "",
+      win.flags & sdl.WindowAllowHighDpi ? "AllowHighDpi " : "",
+      win.title);
+#endif
 sdl.renderer_t ren = sdl.create_renderer(win, -1,
 					 sdl.RendererAccelerated |
 					 sdl.RendererPresentVsync);
@@ -18,16 +51,97 @@ if (ren == null) {
     print("create_renderer error: %s\n", sdl.get_error());
     exit(1);
 }
+#if DEBUG
+print("\n\
+renderer%a\n\
+target:	%a\n\
+log_w:	%d\n\
+log_h:	%d\n\
+max_w:	%d\n\
+max_h:	%d\n\
+name:	%#s\n\
+flags:	%s%s%s%s\n\
+formats:",
+      ren,
+      ren.target, ren.log_w, ren.log_h, ren.max_w, ren.max_h, ren.name,
+      ren.flags & sdl.RendererSoftware ? "Software " : "",
+      ren.flags & sdl.RendererAccelerated ? "Accelerated " : "",
+      ren.flags & sdl.RendererPresentVsync ? "PresentVsync " : "",
+      ren.flags & sdl.RendererTargetTexture ? "TargetTexture " : "");
+int32_t i;
+for (i = 0; i < sizeof(ren.formats); ++i)
+    print("%#x ", ren.formats[i]);
+print("\n\
+max_w:	%d\n\
+max_h:	%d\n",
+      ren.max_w, ren.max_h);
+print("\n\
+get_window_renderer(win) = %a\n\
+get_renderer_window(ren) = %a\n",
+      sdl.get_window_renderer(win), sdl.get_renderer_window(ren));
+#endif
 sdl.texture_t bg = sdl.load_texture(ren, "check/0.png");
 if (bg == null) {
     print("load_texture error: %s\n", sdl.get_error());
     exit(1);
 }
+#if DEBUG
+print("\n\
+texture\n\
+format:	%#x\n\
+access:	%s\n\
+w:	%d\n\
+h:	%d\n\
+r:	%#x\n\
+g:	%#x\n\
+b:	%#x\n\
+a:	%#x\n",
+      bg.format,
+      bg.access == sdl.TextureAccessStatic ? "Static" :
+      bg.access == sdl.TextureAccessStreaming ? "Streaming" :
+      bg.access == sdl.TextureAccessTarget ? "Target" : "???",
+      bg.w, bg.h, bg.r, bg.g, bg.b, bg.a);
+if (bg.blend)
+    print("\
+blend:	%s%s%s\n",
+	  bg.blend & sdl.BlendModeBlend ? "Blend " : "",
+	  bg.blend & sdl.BlendModeAdd ? "Add " : "",
+	  bg.blend & sdl.BlendModeMod ? "Mod " : "");
+else
+    print("\
+blend:	None\n");
+#endif
 sdl.texture_t fg = sdl.load_texture(ren, "check/1.png");
 if (fg == null) {
     print("load_texture error: %s\n", sdl.get_error());
     exit(1);
 }
+#if DEBUG
+print("\n\
+texture\n\
+format:	%#x\n\
+access:	%s\n\
+w:	%d\n\
+h:	%d\n\
+r:	%#x\n\
+g:	%#x\n\
+b:	%#x\n\
+a:	%#x\n",
+      fg.format,
+      fg.access == sdl.TextureAccessStatic ? "Static" :
+      fg.access == sdl.TextureAccessStreaming ? "Streaming" :
+      fg.access == sdl.TextureAccessTarget ? "Target" : "???",
+      fg.w, fg.h, fg.r, fg.g, fg.b, fg.a);
+if (fg.blend)
+    print("\
+blend:	%s%s%s\n",
+	  fg.blend & sdl.BlendModeBlend ? "Blend " : "",
+	  fg.blend & sdl.BlendModeAdd ? "Add " : "",
+	  fg.blend & sdl.BlendModeMod ? "Mod " : "");
+else
+    print("\
+blend:	None\n");
+#endif
 
 sdl.rect_t rec = { 0, 0, fg.w, fg.h };
 void paint() {

@@ -37,10 +37,44 @@ struct orect {		/* Must match SDL_Rect */
 
 struct owindow {
     SDL_Window		*__window;
+    ohashentry_t	*__handle;		/* convert id to owindow_t */
+    orenderer_t		*__renderer;
+    oint32_t		 x;
+    oint32_t		 y;
+    oint32_t		 w;
+    oint32_t		 h;
+    oint32_t		 min_w;
+    oint32_t		 min_h;
+    oint32_t		 max_w;
+    oint32_t		 max_h;
+    ouint32_t		 flags;
+    ovector_t		*title;
+    oint32_t		 __x;
+    oint32_t		 __y;
+    oint32_t		 __w;
+    oint32_t		 __h;
+    oint32_t		 __min_w;
+    oint32_t		 __min_h;
+    oint32_t		 __max_w;
+    oint32_t		 __max_h;
+    ouint32_t		 __flags;
+    ovector_t		*__title;
 };
 
 struct orenderer {
     SDL_Renderer	*__renderer;
+    owindow_t		*__window;
+    otexture_t		*target;
+    oint32_t		 log_w;
+    oint32_t		 log_h;
+    oint32_t		 max_w;
+    oint32_t		 max_h;
+    ovector_t		*name;
+    ouint32_t		 flags;
+    ovector_t		*formats;
+    otexture_t		*__target;
+    oint32_t		 __log_w;
+    oint32_t		 __log_h;
 };
 
 struct osurface {
@@ -49,10 +83,21 @@ struct osurface {
 
 struct otexture {
     SDL_Texture		*__texture;
+    ohashentry_t	*__handle;		/* convert pointers */
     ouint32_t		 format;
     oint32_t		 access;
     oint32_t		 w;
     oint32_t		 h;
+    ouint8_t		 r;
+    ouint8_t		 g;
+    ouint8_t		 b;
+    ouint8_t		 a;
+    ouint8_t		 blend;
+    ouint8_t		 __r;
+    ouint8_t		 __g;
+    ouint8_t		 __b;
+    ouint8_t		 __a;
+    ouint8_t		 __blend;
 };
 
 struct ofont {
@@ -64,11 +109,11 @@ struct oevent {
     ouint32_t		 type;			/* type */
     ouint32_t		 time;			/* timestamp */
     union {
-	ouint32_t	 window;		/* window id if applicable */
-	ouint32_t	 gesture;		/* gesture id if applicable */
-	ouint32_t	 finger;		/* finger id if applicable */
+	oobject_t	 window;		/* window id if applicable */
+	oobject_t	 gesture;		/* gesture id if applicable */
+	oobject_t	 finger;		/* finger id if applicable */
     };
-    ouint32_t		 device;		/* mouse or joystick or touch */
+    oobject_t		 device;		/* mouse or joystick or touch */
     union {
 	ouint16_t	 state;			/* button or key,
 						 * Pressed or Released */
@@ -134,6 +179,12 @@ init_sdl(void);
 
 extern void
 finish_sdl(void);
+
+extern void
+odestroy_window(owindow_t *window);
+
+extern void
+odestroy_texture(otexture_t *texture);
 
 /*
  * Externs

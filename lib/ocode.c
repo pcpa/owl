@@ -330,8 +330,9 @@ oeval_ast_tag(oast_t *ast)
 	    vector = symbol->name;
 	    if ((symbol = oget_symbol(record, vector)) == null)
 		oparse_error(ast, "'%p' has no %s named '%p'",
+			     record->name,
 			     tag->type == tag_class ? "field" : "symbol",
-			     record->name, vector);
+			     vector);
 	    rast->l.value = symbol;
 	    return (symbol->tag);
 	case tok_explicit:

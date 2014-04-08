@@ -810,10 +810,13 @@ gc(void)
 		    if (o.surface->__surface)
 			SDL_FreeSurface(o.surface->__surface);
 		    break;
+		case t_texture:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_texture(o.texture);
+		    break;
 		case t_window:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.window->__window)
-			SDL_DestroyWindow(o.window->__window);
+		    odestroy_window(o.window);
 		    break;
 		case t_timer:
 		    o.object = memory_to_object(oobject_t, memory);
