@@ -107,16 +107,16 @@ static oword_t
 scan_obj(ostream_t *stream, oscan_t *scan);
 
 static oint32_t
-getc_quoted(ostream_t *stream);
+getc_quoted(ostream_t *stream, onote_t *note);
 
 static oword_t
-scan_chr(ostream_t *stream);
+scan_chr(ostream_t *stream, onote_t *note);
 
 static oword_t
 scan_chr_len(ostream_t *stream, oword_t len, obool_t uppr);
 
 static oword_t
-scan_str(ostream_t *stream);
+scan_str(ostream_t *stream, onote_t *note);
 
 static oword_t
 scan_str_set(ostream_t *stream, oint32_t *set, oword_t width);
@@ -580,7 +580,7 @@ scan_obj(ostream_t *stream, oscan_t *scan)
 		/* character */
 		if (scan->read) {
 		    if (ogetc(stream) != '\'' ||
-			(count = scan_chr(stream)) <= 0)
+			(count = scan_chr(stream, null)) <= 0)
 			goto done;
 		    bytes += count + 2;
 		}
@@ -596,7 +596,7 @@ scan_obj(ostream_t *stream, oscan_t *scan)
 		/* string */
 		if (scan->read) {
 		    if (ogetc(stream) != '"' ||
-			(count = scan_str(stream)) == eof)
+			(count = scan_str(stream, null)) == eof)
 			goto done;
 		    bytes += count + 2;
 		}
@@ -621,7 +621,7 @@ done:
 }
 
 static oint32_t
-getc_quoted(ostream_t *stream)
+getc_quoted(ostream_t *stream, onote_t *note)
 {
     oint32_t		i;
     oint32_t		ch;
@@ -685,8 +685,10 @@ getc_quoted(ostream_t *stream)
 		    oungetc(stream, value);
 		break;
 	    case '\n':
+		if (note)
+		    ++note->lineno;
 		quote = 0;
-		ch = getc_quoted(stream);
+		ch = getc_quoted(stream, note);
 		break;
 	}
     }
@@ -695,7 +697,7 @@ getc_quoted(ostream_t *stream)
 }
 
 static oword_t
-scan_chr(ostream_t *stream)
+scan_chr(ostream_t *stream, onote_t *note)
 {
     GET_THREAD_SELF()
     oint32_t		 ch;
@@ -706,9 +708,9 @@ scan_chr(ostream_t *stream)
     bytes = 0;
     r0->v.w = 0;
     r0->t = t_word;
-    for (ch = getc_quoted(stream);
+    for (ch = getc_quoted(stream, note);
 	 ch != eof && ch != '\'';
-	 ch = getc_quoted(stream)) {
+	 ch = getc_quoted(stream, note)) {
 	if (ch == '\n')
 	    return (eof);
 	++bytes;
@@ -767,7 +769,7 @@ scan_chr_len(ostream_t *stream, oword_t len, obool_t uppr)
 }
 
 static oword_t
-scan_str(ostream_t *stream)
+scan_str(ostream_t *stream, onote_t *note)
 {
     GET_THREAD_SELF()
     oint32_t		 ch;
@@ -781,9 +783,9 @@ scan_str(ostream_t *stream)
     string = r0->vec->v.u8;
     size = r0->vec->length;
 
-    for (ch = getc_quoted(stream);
+    for (ch = getc_quoted(stream, note);
 	 ch != eof && ch != '"';
-	 ch = getc_quoted(stream)) {
+	 ch = getc_quoted(stream, note)) {
 	if (ch == '\n')
 	    return (eof);
 	if (length >= size) {
@@ -1309,7 +1311,7 @@ read_character(void)
     oobject_t		 object;
 
     r0 = &thread_self->r0;
-    bytes = scan_chr(input->stream);
+    bytes = scan_chr(input->stream, &input_note);
     if (bytes == 0)
 	oread_error("character constant too short");
     else if (bytes == eof)
@@ -1330,7 +1332,7 @@ read_string(void)
     oregister_t		*r0;
     oword_t		 length;
 
-    if ((length = scan_str(input->stream)) < 0)
+    if ((length = scan_str(input->stream, &input_note)) < 0)
 	oread_error("expecting double quote");
     r0 = &thread_self->r0;
 
@@ -2927,7 +2929,7 @@ macro_ignore(void)
 	}
 	else if (ch == '"' || ch == '\'') {
 	    quote = ch;
-	    while ((ch = getc_quoted(input->stream)) != quote) {
+	    while ((ch = getc_quoted(input->stream, &input_note)) != quote) {
 		if (ch == eof || ch == '\n')
 		    oread_error("expecting '\\%c'", quote);
 	    }
