@@ -530,6 +530,7 @@ onew_vector_base(oobject_t *pointer,
     if (bytes < length)
 	oerror("out of bounds");
     new_object(&vector->v.obj, type, bytes);
+    vector->memory = bytes;
 
     gc_unlock();
 }
@@ -539,7 +540,6 @@ orenew_vector(ovector_t *vector, oword_t length)
 {
     memory_t		*memory;
     oword_t		 new_bytes;
-    oword_t		 old_bytes;
     oword_t		 new_length;
     oword_t		 old_length;
     memory_t		*new_memory;
@@ -574,13 +574,12 @@ orenew_vector(ovector_t *vector, oword_t length)
     }
 
     new_bytes = ((new_length + 15) & ~15) + sizeof(memory_t);
-    old_bytes = ((old_length + 15) & ~15) + sizeof(memory_t);
 
     if (unlikely(new_bytes < new_length))
 	oerror("out of bounds");
     vector->length = length;
 
-    if (new_bytes != old_bytes) {
+    if (new_bytes != vector->memory) {
 	memory = object_to_memory(vector);
 	assert(memory->next == old_memory);
 	if (unlikely((new_memory = realloc(old_memory, new_bytes)) == null))
@@ -607,6 +606,7 @@ orenew_vector(ovector_t *vector, oword_t length)
 	    gc_bytes = 0;
 	}
 #endif
+	vector->memory = new_bytes;
     }
     else if (new_length > old_length)
 	memset(vector->v.u8 + old_length, 0, new_length - old_length);

@@ -68,6 +68,7 @@ struct ohashtable {
     ohashentry_t	**entries;
     oword_t		  size;			/* size of entries vector */
     oword_t		  count;		/* number of entries */
+    oword_t		  memory;
 };
 
 /*

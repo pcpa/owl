@@ -30,6 +30,7 @@ struct ostream {
     ouint8_t		*ptr;
     oword_t		 length;
     oword_t		 offset;
+    oword_t		 memory;
     oword_t		 size;
     oint32_t		 fileno;
 

@@ -200,6 +200,7 @@ struct ovector {
     } v;
     oword_t		 length;
     oword_t		 offset;
+    oword_t		 memory;	/* real memory in bytes length */
 };
 
 struct ortti {
