@@ -797,8 +797,7 @@ gc(void)
 #if SDL
 		case t_font:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.font)
-			TTF_CloseFont(o.font->__font);
+		    odestroy_font(o.font);
 		    break;
 		case t_renderer:
 		    o.object = memory_to_object(oobject_t, memory);

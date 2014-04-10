@@ -35,6 +35,13 @@ struct orect {		/* Must match SDL_Rect */
     oint32_t		 h;
 };
 
+struct ocolor {		/* Must match SDL_Color */
+    ouint8_t		 r;
+    ouint8_t		 g;
+    ouint8_t		 b;
+    ouint8_t		 a;
+};
+
 struct owindow {
     SDL_Window		*__window;
     ohashentry_t	*__handle;		/* convert id to owindow_t */
@@ -49,6 +56,7 @@ struct owindow {
     oint32_t		 max_h;
     ouint32_t		 flags;
     ovector_t		*title;
+    ofloat32_t		 brightness;
     oint32_t		 __x;
     oint32_t		 __y;
     oint32_t		 __w;
@@ -59,6 +67,7 @@ struct owindow {
     oint32_t		 __max_h;
     ouint32_t		 __flags;
     ovector_t		*__title;
+    ofloat32_t		 __brightness;
 };
 
 struct orenderer {
@@ -72,9 +81,39 @@ struct orenderer {
     ovector_t		*name;
     ouint32_t		 flags;
     ovector_t		*formats;
+    oint32_t		 view_x;
+    oint32_t		 view_y;
+    oint32_t		 view_w;
+    oint32_t		 view_h;
+    oint32_t		 clip_x;
+    oint32_t		 clip_y;
+    oint32_t		 clip_w;
+    oint32_t		 clip_h;
+    ofloat32_t		 scale_x;
+    ofloat32_t		 scale_y;
+    ouint8_t		 r;
+    ouint8_t		 g;
+    ouint8_t		 b;
+    ouint8_t		 a;
+    ouint8_t		 blend;
     otexture_t		*__target;
     oint32_t		 __log_w;
     oint32_t		 __log_h;
+    oint32_t		 __view_x;
+    oint32_t		 __view_y;
+    oint32_t		 __view_w;
+    oint32_t		 __view_h;
+    oint32_t		 __clip_x;
+    oint32_t		 __clip_y;
+    oint32_t		 __clip_w;
+    oint32_t		 __clip_h;
+    ofloat32_t		 __scale_x;
+    ofloat32_t		 __scale_y;
+    ouint8_t		 __r;
+    ouint8_t		 __g;
+    ouint8_t		 __b;
+    ouint8_t		 __a;
+    ouint8_t		 __blend;
 };
 
 struct osurface {
@@ -102,6 +141,36 @@ struct otexture {
 
 struct ofont {
     TTF_Font		*__font;
+    oint8_t		 style;
+    oint8_t		 hinting;
+    oint8_t		 kerning;
+    oint32_t		 outline;
+    oint32_t		 height;		/* read only */
+    oint32_t		 ascent;		/* read only */
+    oint32_t		 descent;		/* read only */
+    oint32_t		 skip;			/* read only */
+    oword_t		 faces;			/* read only */
+    ovector_t		*style_name;		/* read only */
+    ovector_t		*family_name;		/* read only */
+    oint8_t		 fixed;			/* read only */
+    oint8_t		 __style;
+    oint8_t		 __hinting;
+    oint8_t		 __kerning;
+    oint32_t		 __outline;
+};
+
+struct oglyph_metrics {
+    int32_t		min_x;
+    int32_t		max_x;
+    int32_t		min_y;
+    int32_t		max_y;
+    int32_t		advance;
+};
+
+struct otimer {
+    ouint32_t		 __timer;		/* SDL_TimerID */
+    ouint32_t		 msec;
+    oobject_t		 data;
 };
 
 struct oevent {
@@ -109,9 +178,9 @@ struct oevent {
     ouint32_t		 type;			/* type */
     ouint32_t		 time;			/* timestamp */
     union {
-	oobject_t	 window;		/* window id if applicable */
-	oobject_t	 gesture;		/* gesture id if applicable */
-	oobject_t	 finger;		/* finger id if applicable */
+	oobject_t	 window;		/* window_t */
+	oobject_t	 gesture;		/* finger_t (to be defined) */
+	oobject_t	 finger;		/* finger_t (to be defined) */
     };
     oobject_t		 device;		/* mouse or joystick or touch */
     union {
@@ -165,12 +234,6 @@ struct oevent {
     otimer_t		*timer;			/* timer event information */
 };
 
-struct otimer {
-    ouint32_t		 __timer;		/* SDL_TimerID */
-    ouint32_t		 msec;
-    oobject_t		 data;
-};
-
 /*
  * Prototypes
  */
@@ -185,6 +248,9 @@ odestroy_window(owindow_t *window);
 
 extern void
 odestroy_texture(otexture_t *texture);
+
+extern void
+odestroy_font(ofont_t *font);
 
 /*
  * Externs

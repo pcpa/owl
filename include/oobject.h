@@ -110,11 +110,13 @@ enum otype {
     t_sdl,			/* sdl namespace */
     t_point,
     t_rect,
+    t_color,
     t_window,
     t_renderer,
     t_surface,
     t_texture,
     t_font,
+    t_glyph_metrics,
     t_timer,
     t_event,
 #endif

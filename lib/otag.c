@@ -89,11 +89,13 @@ static struct {
 static char *sdl[] = {
     "point_t",
     "rect_t",
+    "color_t",
     "window_t",
     "renderer_t",
     "surface_t",
     "texture_t",
     "font_t",
+    "glyph_metrics_t",
     "timer_t",
     "event_t",
 };

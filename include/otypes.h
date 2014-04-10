@@ -69,11 +69,13 @@ typedef __mpc_struct*		ompc_t;
 #if SDL
 typedef struct opoint		opoint_t;
 typedef struct orect		orect_t;
+typedef struct ocolor		ocolor_t;
 typedef struct owindow		owindow_t;
 typedef struct osurface		osurface_t;
 typedef struct orenderer	orenderer_t;
 typedef struct otexture		otexture_t;
 typedef struct ofont		ofont_t;
+typedef struct oglyph_metrics	oglyph_metrics_t;
 typedef struct otimer		otimer_t;
 typedef struct oevent		oevent_t;
 #endif
