@@ -118,6 +118,7 @@ enum otype {
     t_font,
     t_glyph_metrics,
     t_timer,
+    t_music,
     t_event,
 #endif
 

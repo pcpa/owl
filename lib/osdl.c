@@ -36,6 +36,9 @@ typedef struct {
     otexture_t		*tex;
 } nat_tex_t;
 typedef struct {
+    ovector_t		*vec;
+} nat_vec_t;
+typedef struct {
     oevent_t		*ev;
 } nat_ev_t;
 typedef struct {
@@ -47,6 +50,9 @@ typedef struct {
 typedef struct {
     otimer_t		*tm;
 } nat_tm_t;
+typedef struct {
+    omusic_t		*mus;
+} nat_mus_t;
 typedef struct {
     ouint32_t		 u32;
     oobject_t		 obj;
@@ -63,6 +69,10 @@ typedef struct {
     ovector_t		*vec;
     oint32_t		 i32;
 } nat_vec_i32_t;
+typedef struct {
+    omusic_t		*mus;
+    oint32_t		 i32;
+} nat_mus_i32_t;
 typedef struct {
     owindow_t		*win;
     oint32_t		 i32;
@@ -97,6 +107,12 @@ typedef struct {
     ovector_t		*vec;
     ocolor_t		*col;
 } nat_fnt_vec_col_t;
+typedef struct {
+    oint32_t		si0;
+    ouint16_t		u16;
+    oint32_t		si1;
+    oint32_t		si2;
+} nat_i32_u16_i32_i32_t;
 typedef struct {
     ofont_t		*fnt;
     ovector_t		*vec;
@@ -222,6 +238,13 @@ static void native_add_timer(oobject_t list, oint32_t ac);
 static void native_get_ticks(oobject_t list, oint32_t ac);
 static void native_delay(oobject_t list, oint32_t ac);
 static void native_remove_timer(oobject_t list, oint32_t ac);
+static void native_open_audio(oobject_t list, oint32_t ac);
+static void native_allocate_channels(oobject_t list, oint32_t ac);
+static void native_load_music(oobject_t list, oint32_t ac);
+static void native_play_music(oobject_t list, oint32_t ac);
+static void native_volume_music(oobject_t list, oint32_t ac);
+static void native_playing_music(oobject_t list, oint32_t ac);
+static void native_free_music(oobject_t list, oint32_t ac);
 
 #if __WORDSIZE == 32
 static void ret_u32(oregister_t *r, ouint32_t v);
@@ -595,6 +618,10 @@ static struct {
     { "HintingLight",			TTF_HINTING_LIGHT },
     { "HintingMono",			TTF_HINTING_MONO },
     { "HintingNone",			TTF_HINTING_NONE },
+    /* open_audio flags */
+    { "MixerDefaultFrequency",		MIX_DEFAULT_FREQUENCY },
+    { "MixerDefaultFormat",		MIX_DEFAULT_FORMAT },
+    { "MixerDefaultChannels",		MIX_DEFAULT_CHANNELS },
 };
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
@@ -889,6 +916,10 @@ init_sdl(void)
     add_field("auto",		"data");
     oend_record(record);
 
+    record = type_vector->v.ptr[t_music];
+    add_field(pointer_string,	"*music*");
+    oend_record(record);
+
     record = type_vector->v.ptr[t_event];
     add_field("auto",		"*event*");	/* gc it */
     /**/
@@ -1056,6 +1087,15 @@ init_sdl(void)
     define_builtin1(t_void,    delay, t_uint32, false);
     define_builtin1(t_int32,   remove_timer, t_timer, false);
 
+    define_builtin4(t_int32, open_audio,
+		    t_int32, t_uint16, t_int32, t_int32, false);
+    define_builtin1(t_int32, allocate_channels, t_int32, false);
+    define_builtin1(t_music, load_music, t_string, false);
+    define_builtin2(t_int32, play_music, t_music, t_int32, false);
+    define_builtin1(t_int32, volume_music, t_uint8, false);
+    define_builtin0(t_int32, playing_music, false);
+    define_builtin1(t_void,  free_music, t_music, false);
+
     current_record = record;
 #undef add_field
 #undef define_builtin1
@@ -1112,7 +1152,10 @@ native_init(oobject_t list, oint32_t ac)
     r0->v.w = ((SDL_Init(SDL_INIT_EVERYTHING) != 0) |
 	       (IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG|
 			 IMG_INIT_TIF|IMG_INIT_WEBP) == 0) |
-	       (TTF_Init() != 0));
+	       (TTF_Init() != 0) |
+	       (Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
+			 MIX_INIT_MODPLUG|MIX_INIT_MP3|
+			 MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
 }
 
 static void
@@ -1151,6 +1194,7 @@ native_quit(oobject_t list, oint32_t ac)
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
+    Mix_Quit();
 }
 
 static void
@@ -3040,6 +3084,126 @@ native_remove_timer(oobject_t list, oint32_t ac)
     }
     else
 	r0->v.w = false;
+}
+
+static void
+native_open_audio(oobject_t list, oint32_t ac)
+/* music_t open_audio(int32_t frequency, uint16_t format, int32_t channel,
+		      int32_t chunksize); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_u16_i32_i32_t	*alist;
+
+    alist = (nat_i32_u16_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_OpenAudio(alist->si0, alist->u16, alist->si1, alist->si2);
+}
+
+static void
+native_allocate_channels(oobject_t list, oint32_t ac)
+/* int32_t allocate_channels(int32_t channels); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_AllocateChannels(alist->i32);
+}
+
+static void
+native_load_music(oobject_t list, oint32_t ac)
+/* music_t load_music(string_t path); */
+{
+    GET_THREAD_SELF()
+    Mix_Music			*sm;
+    omusic_t			*om;
+    oregister_t			*r0;
+    nat_vec_t			*alist;
+    char			 path[BUFSIZ];
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->vec == null || otype(alist->vec) != t_string)
+	ovm_raise(except_invalid_argument);
+    if (alist->vec->length >= BUFSIZ - 1)
+	ovm_raise(except_out_of_bounds);
+    memcpy(path, alist->vec->v.ptr, alist->vec->length);
+    path[alist->vec->length] = '\0';
+    if ((sm = Mix_LoadMUS(path))) {
+	onew_object(&thread_self->obj, t_music, sizeof(omusic_t));
+	om = (omusic_t *)thread_self->obj;
+	om->__music = sm;
+	r0->v.o = thread_self->obj;
+	r0->t = t_music;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_play_music(oobject_t list, oint32_t ac)
+/* int32_t play_music(music_t music, int32_t loops); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_mus_i32_t		*alist;
+
+    alist = (nat_mus_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->mus == null || otype(alist->mus) != t_music)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = Mix_PlayMusic(alist->mus->__music, alist->i32);
+}
+
+static void
+native_volume_music(oobject_t list, oint32_t ac)
+/* int32_t volume_music(uint8_t volume); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_VolumeMusic(alist->i32);
+}
+
+static void
+native_playing_music(oobject_t list, oint32_t ac)
+/* int32_t playing_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_PlayingMusic();
+}
+
+static void
+native_free_music(oobject_t list, oint32_t ac)
+/* void free_music(music_t music); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_mus_t			*alist;
+
+    alist = (nat_mus_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    if (alist->mus == null || otype(alist->mus) != t_music)
+	ovm_raise(except_invalid_argument);
+    if (alist->mus->__music) {
+	Mix_FreeMusic(alist->mus->__music);
+	alist->mus->__music = null;
+    }
 }
 
 #if __WORDSIZE == 32

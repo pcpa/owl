@@ -97,6 +97,7 @@ static char *sdl[] = {
     "font_t",
     "glyph_metrics_t",
     "timer_t",
+    "music_t",
     "event_t",
 };
 #endif

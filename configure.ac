@@ -165,6 +165,10 @@ if test "x$SDL" != "xno"; then
     if test x"$HAVE_SDL_ttf" = "xno"; then
 	AC_MSG_ERROR([SDL2_ttf not found, see http://www.libsdl.org/])
     fi
+    AC_CHECK_LIB(SDL2_mixer, Mix_Init, , [HAVE_SDL_mixer="no"])
+    if test x"$HAVE_SDL_mixer" = "xno"; then
+	AC_MSG_ERROR([SDL2_mixer not found, see http://www.libsdl.org/])
+    fi
 fi
 AM_CONDITIONAL(WITH_SDL, [test "x$SDL" != "xno"])
 if test "x$SDL" != "xno"; then

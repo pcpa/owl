@@ -1,4 +1,4 @@
-#define DEBUG	1
+#define DEBUG	0
 if (sdl.init()) {
     print("init error: %s\n", sdl.get_error());
     exit(1);
@@ -259,6 +259,7 @@ fixed:		%s\n",
 	print("create_texture_from_surface error: %s\n", sdl.get_error());
 	exit(1);
     }
+#if DEBUG
 print("\n\
 texture\n\
 format:		%#x\n\
@@ -283,6 +284,7 @@ blend:		%s%s%s\n",
 else
     print("\
 blend:		None\n");
+#endif
     sdl.free_surface(srf);
     sdl.close_font(fnt);
 }
@@ -450,6 +452,24 @@ while (!done) {
 	paint();
 }
 
+sdl.open_audio(sdl.MixerDefaultFrequency, sdl.MixerDefaultFormat,
+	       sdl.MixerDefaultChannels, 1024);
+//sdl.allocate_channels(0);
+;;sdl.volume_music(64);
+/* do not fail below if this does not exist
+$ $ rpm -qf /usr/share/sounds/KDE-K3B-Finish-Success.ogg
+kde-runtime-4.12.97-1.fc21.x86_64
+ */
+sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
+if (mus != null) {
+    if (sdl.play_music(mus, 0))
+	print("%s\n", sdl.get_error());
+    while (sdl.playing_music())
+	sdl.delay(10);
+    sdl.free_music(mus);
+}
+else
+    print("%s\n", sdl.get_error());
 if (txt)
     sdl.destroy_texture(txt);
 sdl.destroy_texture(bg);

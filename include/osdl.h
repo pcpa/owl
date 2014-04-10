@@ -173,6 +173,10 @@ struct otimer {
     oobject_t		 data;
 };
 
+struct omusic {
+    Mix_Music		*__music;
+};
+
 struct oevent {
     SDL_Event		*__event;
     ouint32_t		 type;			/* type */

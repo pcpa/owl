@@ -698,12 +698,13 @@ gc(void)
 #if SDL
     union {
 	ofont_t		*font;
+	omusic_t	*music;
 	oobject_t	 object;
 	orenderer_t	*renderer;
 	osurface_t	*surface;
 	otexture_t	*texture;
-	owindow_t	*window;
 	otimer_t	*timer;
+	owindow_t	*window;
     } o;
 #endif
 
@@ -816,6 +817,11 @@ gc(void)
 		case t_window:
 		    o.object = memory_to_object(oobject_t, memory);
 		    odestroy_window(o.window);
+		    break;
+		case t_music:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.music->__music)
+			Mix_FreeMusic(o.music->__music);
 		    break;
 		case t_timer:
 		    o.object = memory_to_object(oobject_t, memory);
