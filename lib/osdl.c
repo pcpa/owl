@@ -241,6 +241,7 @@ static void native_remove_timer(oobject_t list, oint32_t ac);
 static void native_open_audio(oobject_t list, oint32_t ac);
 static void native_allocate_channels(oobject_t list, oint32_t ac);
 static void native_load_music(oobject_t list, oint32_t ac);
+static void music_callback(void);
 static void native_play_music(oobject_t list, oint32_t ac);
 static void native_volume_music(oobject_t list, oint32_t ac);
 static void native_playing_music(oobject_t list, oint32_t ac);
@@ -573,6 +574,7 @@ static struct {
     { "EventDollarRecord",		SDL_DOLLARRECORD },
     { "EventMultiGesture",		SDL_MULTIGESTURE },
     { "EventTimer",			SDL_USEREVENT },
+    { "EventMusicFinished",		SDL_USEREVENT + 1 },
     /* create_window */
     { "WindowFullscreen",		SDL_WINDOW_FULLSCREEN },
     { "WindowOpenGL",			SDL_WINDOW_OPENGL },
@@ -1184,6 +1186,7 @@ native_init(oobject_t list, oint32_t ac)
 	       (Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
 			 MIX_INIT_MODPLUG|MIX_INIT_MP3|
 			 MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
+    Mix_HookMusicFinished(music_callback);
 }
 
 static void
@@ -2238,6 +2241,8 @@ translate_event(oevent_t *ev)
 	case SDL_USEREVENT:
 	    ev->timer		= sv->user.data1;
 	    break;
+	case SDL_USEREVENT + 1:
+	    break;
 	default:
 	    abort();
     }
@@ -3178,6 +3183,18 @@ native_load_music(oobject_t list, oint32_t ac)
     }
     else
 	r0->t = t_void;
+}
+
+static void
+music_callback(void)
+{
+    SDL_Event			 ev;
+
+    ev.user.type = SDL_USEREVENT + 1;
+    ev.user.code = 0;
+    ev.user.data1 = null;
+    ev.user.data2 = null;
+    SDL_PushEvent(&ev);
 }
 
 static void

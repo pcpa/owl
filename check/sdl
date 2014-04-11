@@ -471,13 +471,30 @@ au.channels:		%d (%d)\n",
     /* do not fail below if this does not exist
 	$ rpm -qf /usr/share/sounds/KDE-K3B-Finish-Success.ogg
 	kde-runtime-4.12.97-1.fc21.x86_64
+	$ rpm -qf /usr/share/sounds/freedesktop/stereo/complete.oga
+	sound-theme-freedesktop-0.8-3.fc20.noarch
      */
-    sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
+    // distorted output, sdl_mixer issue?
+    //sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
+    // this looks (sounds) a lot better
+    sdl.music_t mus = sdl.load_music("/usr/share/sounds/freedesktop/stereo/complete.oga");
     if (mus != null) {
 	if (sdl.play_music(mus, 0))
 	    print("%s\n", sdl.get_error());
+#if 0
+	/* Poll every 10 ms */
 	while (sdl.playing_music())
 	    sdl.delay(10);
+#else
+	/* Wait music finished event */
+	done = false;
+	while (!done) {
+	    if (!sdl.wait_event(e))
+		continue;
+	    if (e.type == sdl.EventMusicFinished)
+		done = true;
+	}
+#endif
 	sdl.free_music(mus);
     }
     else
