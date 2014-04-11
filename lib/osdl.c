@@ -51,6 +51,9 @@ typedef struct {
     otimer_t		*tm;
 } nat_tm_t;
 typedef struct {
+    ochunk_t		*chu;
+} nat_chu_t;
+typedef struct {
     omusic_t		*mus;
 } nat_mus_t;
 typedef struct {
@@ -73,6 +76,11 @@ typedef struct {
     omusic_t		*mus;
     oint32_t		 i32;
 } nat_mus_i32_t;
+typedef struct {
+    oint32_t		 si0;
+    ochunk_t		*chu;
+    oint32_t		 si1;
+} nat_i32_chu_i32_t;
 typedef struct {
     owindow_t		*win;
     oint32_t		 i32;
@@ -240,11 +248,16 @@ static void native_delay(oobject_t list, oint32_t ac);
 static void native_remove_timer(oobject_t list, oint32_t ac);
 static void native_open_audio(oobject_t list, oint32_t ac);
 static void native_allocate_channels(oobject_t list, oint32_t ac);
+static void native_load_chunk(oobject_t list, oint32_t ac);
+static void native_play_channel(oobject_t list, oint32_t ac);
+static void native_halt_channel(oobject_t list, oint32_t ac);
+static void native_free_chunk(oobject_t list, oint32_t ac);
 static void native_load_music(oobject_t list, oint32_t ac);
 static void music_callback(void);
 static void native_play_music(oobject_t list, oint32_t ac);
 static void native_volume_music(oobject_t list, oint32_t ac);
 static void native_playing_music(oobject_t list, oint32_t ac);
+static void native_halt_music(oobject_t list, oint32_t ac);
 static void native_free_music(oobject_t list, oint32_t ac);
 static void native_close_audio(oobject_t list, oint32_t ac);
 
@@ -917,6 +930,10 @@ init_sdl(void)
     add_field("auto",		"data");
     oend_record(record);
 
+    record = type_vector->v.ptr[t_chunk];
+    add_field(pointer_string,	"*chunk*");
+    oend_record(record);
+
     record = type_vector->v.ptr[t_music];
     add_field(pointer_string,	"*music*");
     oend_record(record);
@@ -1097,10 +1114,15 @@ init_sdl(void)
     define_builtin4(t_audio, open_audio,
 		    t_int32, t_uint16, t_int32, t_int32, false);
     define_builtin1(t_int32, allocate_channels, t_int32, false);
+    define_builtin1(t_chunk, load_chunk, t_string, false);
+    define_builtin1(t_int32, halt_channel, t_int32, false);
+    define_builtin3(t_int32, play_channel, t_int32, t_chunk, t_int32, false);
+    define_builtin1(t_void,  free_chunk, t_chunk, false);
     define_builtin1(t_music, load_music, t_string, false);
     define_builtin2(t_int32, play_music, t_music, t_int32, false);
     define_builtin1(t_int32, volume_music, t_uint8, false);
     define_builtin0(t_int32, playing_music, false);
+    define_builtin0(t_void,  halt_music, false);
     define_builtin1(t_void,  free_music, t_music, false);
     define_builtin0(t_void,  close_audio, false);
 
@@ -3156,6 +3178,85 @@ native_allocate_channels(oobject_t list, oint32_t ac)
 }
 
 static void
+native_load_chunk(oobject_t list, oint32_t ac)
+/* chunk_t load_chunk(string_t path); */
+{
+    GET_THREAD_SELF()
+    Mix_Chunk			*sc;
+    ochunk_t			*oc;
+    oregister_t			*r0;
+    nat_vec_t			*alist;
+    char			 path[BUFSIZ];
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->vec == null || otype(alist->vec) != t_string)
+	ovm_raise(except_invalid_argument);
+    if (alist->vec->length >= BUFSIZ - 1)
+	ovm_raise(except_out_of_bounds);
+    memcpy(path, alist->vec->v.ptr, alist->vec->length);
+    path[alist->vec->length] = '\0';
+    if ((sc = Mix_LoadWAV(path))) {
+	onew_object(&thread_self->obj, t_chunk, sizeof(ochunk_t));
+	oc = (ochunk_t *)thread_self->obj;
+	oc->__chunk = sc;
+	r0->v.o = thread_self->obj;
+	r0->t = t_chunk;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_play_channel(oobject_t list, oint32_t ac)
+/* int32_t play_channel(int32_t channel, chunk_t chunk, int32_t loops); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_chu_i32_t		*alist;
+
+    alist = (nat_i32_chu_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->chu == null || otype(alist->chu) != t_chunk)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = Mix_PlayChannel(alist->si0, alist->chu->__chunk, alist->si1);
+}
+
+static void
+native_halt_channel(oobject_t list, oint32_t ac)
+/* int32_t halt_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_HaltChannel(alist->i32);
+}
+
+static void
+native_free_chunk(oobject_t list, oint32_t ac)
+/* void free_chunk(chunk_t chunk); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_chu_t			*alist;
+
+    alist = (nat_chu_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    if (alist->chu == null || otype(alist->chu) != t_chunk)
+	ovm_raise(except_invalid_argument);
+    if (alist->chu->__chunk) {
+	Mix_FreeChunk(alist->chu->__chunk);
+	alist->chu->__chunk = null;
+    }
+}
+
+static void
 native_load_music(oobject_t list, oint32_t ac)
 /* music_t load_music(string_t path); */
 {
@@ -3237,6 +3338,18 @@ native_playing_music(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_word;
     r0->v.w = Mix_PlayingMusic();
+}
+
+static void
+native_halt_music(oobject_t list, oint32_t ac)
+/* int32_t halt_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_HaltMusic();
 }
 
 static void

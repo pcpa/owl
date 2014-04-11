@@ -77,6 +77,7 @@ typedef struct otexture		otexture_t;
 typedef struct ofont		ofont_t;
 typedef struct oglyph		oglyph_t;
 typedef struct otimer		otimer_t;
+typedef struct ochunk		ochunk_t;
 typedef struct omusic		omusic_t;
 typedef struct oaudio		oaudio_t;
 typedef struct oevent		oevent_t;

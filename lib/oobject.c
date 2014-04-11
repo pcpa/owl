@@ -698,6 +698,7 @@ gc(void)
 #if SDL
     union {
 	ofont_t		*font;
+	ochunk_t	*chunk;
 	omusic_t	*music;
 	oobject_t	 object;
 	orenderer_t	*renderer;
@@ -816,6 +817,11 @@ gc(void)
 		case t_window:
 		    o.object = memory_to_object(oobject_t, memory);
 		    odestroy_window(o.window);
+		    break;
+		case t_chunk:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.chunk->__chunk)
+			Mix_FreeChunk(o.chunk->__chunk);
 		    break;
 		case t_music:
 		    o.object = memory_to_object(oobject_t, memory);

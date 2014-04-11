@@ -174,6 +174,10 @@ struct otimer {
     oobject_t		 data;
 };
 
+struct ochunk {
+    Mix_Chunk		*__chunk;
+};
+
 struct omusic {
     Mix_Music		*__music;
 };
