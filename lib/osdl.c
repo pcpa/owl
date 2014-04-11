@@ -196,7 +196,7 @@ static void native_destroy_renderer(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
 static void native_free_surface(oobject_t list, oint32_t ac);
 static void query_texture(otexture_t *ot);
-static void handle_texture(otexture_t *tex);
+static void handle_texture(orenderer_t *ren, otexture_t *tex);
 static void native_create_texture(oobject_t list, oint32_t ac);
 static void native_create_texture_from_surface(oobject_t list, oint32_t ac);
 static void native_load_texture(oobject_t list, oint32_t ac);
@@ -245,6 +245,7 @@ static void native_play_music(oobject_t list, oint32_t ac);
 static void native_volume_music(oobject_t list, oint32_t ac);
 static void native_playing_music(oobject_t list, oint32_t ac);
 static void native_free_music(oobject_t list, oint32_t ac);
+static void native_close_audio(oobject_t list, oint32_t ac);
 
 #if __WORDSIZE == 32
 static void ret_u32(oregister_t *r, ouint32_t v);
@@ -626,7 +627,6 @@ static struct {
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
 static ohashtable_t		*window_table;
-static ohashtable_t		*texture_table;
 
 /*
  * Implementation
@@ -644,9 +644,7 @@ init_sdl(void)
     oadd_root((oobject_t *)&error_vector);
     oadd_root((oobject_t *)&timer_vector);
     oadd_root((oobject_t *)&window_table);
-    oadd_root((oobject_t *)&texture_table);
     onew_hashtable(&window_table, 4);
-    onew_hashtable(&texture_table, 4);
     for (offset = 0; offset < osize(consts); ++offset) {
 	string = consts[offset].name;
 	onew_constant(sdl_record, oget_string((ouint8_t *)string,
@@ -815,6 +813,7 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_renderer];
     add_field(pointer_string,	"*renderer*");
+    add_field("auto",		"*textures*");	/* gc it */
     add_field("auto",		"*window*");	/* gc it */
     add_field("texture_t",	"target");
     add_field("int32_t",	"log_w");
@@ -902,7 +901,7 @@ init_sdl(void)
     add_field("int32_t",	"*outline*");
     oend_record(record);
 
-    record = type_vector->v.ptr[t_glyph_metrics];
+    record = type_vector->v.ptr[t_glyph];
     add_field("int32_t",	"min_x");
     add_field("int32_t",	"max_x");
     add_field("int32_t",	"min_y");
@@ -918,6 +917,12 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_music];
     add_field(pointer_string,	"*music*");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_audio];
+    add_field("int32_t",	"frequency");
+    add_field("uint16_t",	"format");
+    add_field("int32_t",	"channels");
     oend_record(record);
 
     record = type_vector->v.ptr[t_event];
@@ -1043,7 +1048,7 @@ init_sdl(void)
     define_builtin2(t_font,  open_font, t_string, t_int32, false);
     define_builtin1(t_int32, change_font, t_font, false);
     define_builtin2(t_int32, glyph_is_provided, t_font, t_uint16, false);
-    define_builtin2(t_glyph_metrics, glyph_metrics, t_font, t_uint16, false);
+    define_builtin2(t_glyph, glyph_metrics, t_font, t_uint16, false);
     define_builtin3(t_int32, size_text, t_font, t_string, t_point, false);
     define_builtin3(t_int32, size_utf8, t_font, t_string, t_point, false);
     define_builtin3(t_int32, size_unicode,
@@ -1087,7 +1092,7 @@ init_sdl(void)
     define_builtin1(t_void,    delay, t_uint32, false);
     define_builtin1(t_int32,   remove_timer, t_timer, false);
 
-    define_builtin4(t_int32, open_audio,
+    define_builtin4(t_audio, open_audio,
 		    t_int32, t_uint16, t_int32, t_int32, false);
     define_builtin1(t_int32, allocate_channels, t_int32, false);
     define_builtin1(t_music, load_music, t_string, false);
@@ -1095,6 +1100,7 @@ init_sdl(void)
     define_builtin1(t_int32, volume_music, t_uint8, false);
     define_builtin0(t_int32, playing_music, false);
     define_builtin1(t_void,  free_music, t_music, false);
+    define_builtin0(t_void,  close_audio, false);
 
     current_record = record;
 #undef add_field
@@ -1105,8 +1111,8 @@ init_sdl(void)
 void
 finish_sdl(void)
 {
-    orem_root((oobject_t *)&texture_table);
     orem_root((oobject_t *)&window_table);
+    window_table = null;
     orem_root((oobject_t *)&timer_vector);
     orem_root((oobject_t *)&error_vector);
 }
@@ -1115,17 +1121,39 @@ void
 odestroy_window(owindow_t *window)
 {
     if (window->__window) {
-	orem_hashentry(window_table, window->__handle);
+	if (window_table)
+	    orem_hashentry(window_table, window->__handle);
 	SDL_DestroyWindow(window->__window);
 	window->__window = null;
     }
 }
 
-extern void
+void
+odestroy_renderer(orenderer_t *renderer)
+{
+    ohashtable_t	*table;
+    ohashentry_t	*entry;
+    oword_t		 offset;
+
+    if (renderer->__renderer) {
+	if (renderer->__target) {
+	    odestroy_texture(renderer->__target);
+	    renderer->__target = renderer->target = null;
+	}
+	table = renderer->__textures;
+	for (offset = 0; offset < table->size; offset++) {
+	    for (entry = table->entries[offset]; entry; entry = entry->next)
+		odestroy_texture((otexture_t *)entry->vv.w);
+	}
+	SDL_DestroyRenderer(renderer->__renderer);
+	renderer->__renderer = null;
+    }
+}
+
+void
 odestroy_texture(otexture_t *texture)
 {
     if (texture->__texture) {
-	orem_hashentry(texture_table, texture->__handle);
 	SDL_DestroyTexture(texture->__texture);
 	texture->__texture = null;
     }
@@ -1446,7 +1474,7 @@ query_renderer(orenderer_t *or)
     if ((tx = SDL_GetRenderTarget(sr))) {
 	et.nt = t_word;
 	et.nv.w = (oword_t)tx;
-	if ((ot = oget_hashentry(texture_table, &et)))
+	if ((ot = oget_hashentry(or->__textures, &et)))
 	    or->target = or->__target = (otexture_t *)ot->nv.w;
     }
     SDL_RenderGetViewport(sr, (SDL_Rect *)&or->__view_x);
@@ -1491,6 +1519,7 @@ native_create_renderer(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_renderer, sizeof(orenderer_t));
 	or = (orenderer_t *)thread_self->obj;
 	or->__renderer = sr;
+	onew_hashtable(&or->__textures, 4);
 	or->__window = alist->win;
 	or->__window->__renderer = or;
 	SDL_GetRendererInfo(sr, &info);
@@ -1545,7 +1574,7 @@ native_change_renderer(oobject_t list, oint32_t ac)
 	    ovm_raise(except_invalid_argument);
 	check.nt = t_word;
 	check.nv.w = (oword_t)ren->target;
-	if ((entry = oget_hashentry(texture_table, &check)) == null)
+	if ((entry = oget_hashentry(alist->ren->__textures, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	tex = (otexture_t *)entry->nv.w;
 	r0->v.w |= SDL_SetRenderTarget(ren->__renderer, tex->__texture);
@@ -1831,15 +1860,14 @@ native_destroy_renderer(oobject_t list, oint32_t ac)
     if (alist->ren && alist->ren->__renderer) {
 	if (otype(alist->ren) != t_renderer)
 	    ovm_raise(except_invalid_argument);
-	SDL_DestroyRenderer(alist->ren->__renderer);
-	alist->ren->__renderer = null;
+	odestroy_renderer(alist->ren);
     }
     r0->t = t_void;
 }
 
 static void
 native_free_surface(oobject_t list, oint32_t ac)
-/* void destroy_renderer(renderer_t ren); */
+/* void free_surface(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1875,7 +1903,7 @@ query_texture(otexture_t *ot)
 }
 
 static void
-handle_texture(otexture_t *tex)
+handle_texture(orenderer_t *ren, otexture_t *tex)
 {
     onew_object((oobject_t *)&tex->__handle,
 		t_hashentry, sizeof(ohashentry_t));
@@ -1884,8 +1912,8 @@ handle_texture(otexture_t *tex)
     tex->__handle->vt = t_word;
     tex->__handle->vv.w = (oword_t)tex;
     okey_hashentry(tex->__handle);
-    assert(oget_hashentry(texture_table, tex->__handle) == null);
-    oput_hashentry(texture_table, tex->__handle);
+    assert(oget_hashentry(ren->__textures, tex->__handle) == null);
+    oput_hashentry(ren->__textures, tex->__handle);
 }
 
 static void
@@ -1908,7 +1936,7 @@ native_create_texture(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
 	ot = (otexture_t *)thread_self->obj;
 	ot->__texture = st;
-	handle_texture(ot);
+	handle_texture(alist->ren, ot);
 	query_texture(ot);
 	r0->v.o = thread_self->obj;
 	r0->t = t_texture;
@@ -1937,7 +1965,7 @@ native_create_texture_from_surface(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
 	ot = (otexture_t *)thread_self->obj;
 	ot->__texture = st;
-	handle_texture(ot);
+	handle_texture(alist->ren, ot);
 	query_texture(ot);
 	r0->v.o = thread_self->obj;
 	r0->t = t_texture;
@@ -1970,7 +1998,7 @@ native_load_texture(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_texture, sizeof(otexture_t));
 	ot = (otexture_t *)thread_self->obj;
 	ot->__texture = st;
-	handle_texture(ot);
+	handle_texture(alist->ren, ot);
 	query_texture(ot);
 	r0->v.o = thread_self->obj;
 	r0->t = t_texture;
@@ -2364,11 +2392,11 @@ native_glyph_is_provided(oobject_t list, oint32_t ac)
 
 static void
 native_glyph_metrics(oobject_t list, oint32_t ac)
-/* glyph_metrics_t glyph_metrics(font_t font, uint16_t ch) */
+/* glyph_t glyph_metrics(font_t font, uint16_t ch) */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    oglyph_metrics_t		 ogm;
+    oglyph_t			 ogm;
     nat_fnt_u16_t		*alist;
 
     alist = (nat_fnt_u16_t *)list;
@@ -2378,11 +2406,10 @@ native_glyph_metrics(oobject_t list, oint32_t ac)
     if (TTF_GlyphMetrics(alist->fnt->__font, alist->u16,
 			 &ogm.min_x, &ogm.max_x, &ogm.min_y, &ogm.max_y,
 			 &ogm.advance) == 0) {
-	onew_object(&thread_self->obj, t_glyph_metrics,
-		    sizeof(oglyph_metrics_t));
-	memcpy(thread_self->obj, &ogm, sizeof(oglyph_metrics_t));
+	onew_object(&thread_self->obj, t_glyph, sizeof(oglyph_t));
+	memcpy(thread_self->obj, &ogm, sizeof(oglyph_t));
 	r0->v.o = thread_self->obj;
-	r0->t = t_glyph_metrics;
+	r0->t = t_glyph;
     }
     else
 	r0->t = t_void;
@@ -3088,17 +3115,25 @@ native_remove_timer(oobject_t list, oint32_t ac)
 
 static void
 native_open_audio(oobject_t list, oint32_t ac)
-/* music_t open_audio(int32_t frequency, uint16_t format, int32_t channel,
+/* audio_t open_audio(int32_t frequency, uint16_t format, int32_t channels,
 		      int32_t chunksize); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
+    oaudio_t			 oau;
     nat_i32_u16_i32_i32_t	*alist;
 
     alist = (nat_i32_u16_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    r0->t = t_word;
-    r0->v.w = Mix_OpenAudio(alist->si0, alist->u16, alist->si1, alist->si2);
+    if (Mix_OpenAudio(alist->si0, alist->u16, alist->si1, alist->si2) == 0 &&
+	Mix_QuerySpec(&oau.frequency, &oau.format, &oau.channels)) {
+	onew_object(&thread_self->obj, t_audio, sizeof(oaudio_t));
+	memcpy(thread_self->obj, &oau, sizeof(oaudio_t));
+	r0->v.o = thread_self->obj;
+	r0->t = t_audio;
+    }
+    else
+	r0->t = t_void;
 }
 
 static void
@@ -3204,6 +3239,18 @@ native_free_music(oobject_t list, oint32_t ac)
 	Mix_FreeMusic(alist->mus->__music);
 	alist->mus->__music = null;
     }
+}
+
+static void
+native_close_audio(oobject_t list, oint32_t ac)
+/* void close_audio(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_CloseAudio();
 }
 
 #if __WORDSIZE == 32

@@ -95,9 +95,10 @@ static char *sdl[] = {
     "surface_t",
     "texture_t",
     "font_t",
-    "glyph_metrics_t",
+    "glyph_t",
     "timer_t",
     "music_t",
+    "audio_t",
     "event_t",
 };
 #endif

@@ -72,6 +72,7 @@ struct owindow {
 
 struct orenderer {
     SDL_Renderer	*__renderer;
+    ohashtable_t	*__textures;
     owindow_t		*__window;
     otexture_t		*target;
     oint32_t		 log_w;
@@ -159,7 +160,7 @@ struct ofont {
     oint32_t		 __outline;
 };
 
-struct oglyph_metrics {
+struct oglyph {
     int32_t		min_x;
     int32_t		max_x;
     int32_t		min_y;
@@ -175,6 +176,12 @@ struct otimer {
 
 struct omusic {
     Mix_Music		*__music;
+};
+
+struct oaudio {
+    oint32_t		frequency;
+    ouint16_t		format;
+    oint32_t		channels;
 };
 
 struct oevent {
@@ -249,6 +256,9 @@ finish_sdl(void);
 
 extern void
 odestroy_window(owindow_t *window);
+
+extern void
+odestroy_renderer(orenderer_t *renderer);
 
 extern void
 odestroy_texture(otexture_t *texture);

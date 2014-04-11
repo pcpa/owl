@@ -452,26 +452,41 @@ while (!done) {
 	paint();
 }
 
-sdl.open_audio(sdl.MixerDefaultFrequency, sdl.MixerDefaultFormat,
-	       sdl.MixerDefaultChannels, 1024);
-//sdl.allocate_channels(0);
-;;sdl.volume_music(64);
-/* do not fail below if this does not exist
-$ $ rpm -qf /usr/share/sounds/KDE-K3B-Finish-Success.ogg
-kde-runtime-4.12.97-1.fc21.x86_64
- */
-sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
-if (mus != null) {
-    if (sdl.play_music(mus, 0))
+sdl.audio_t au;
+au = sdl.open_audio(sdl.MixerDefaultFrequency, sdl.MixerDefaultFormat,
+		    sdl.MixerDefaultChannels, 1024);
+if (au) {
+#if DEBUG
+    print("\
+audio\n\
+au.frequency:		%d (%d)\n\
+au.format:		%d (%d)\n\
+au.channels:		%d (%d)\n",
+	  au.frequency, sdl.MixerDefaultFrequency,
+	  au.format, sdl.MixerDefaultFormat,
+	  au.channels, sdl.MixerDefaultChannels);
+#endif
+    //sdl.allocate_channels(0);
+    //sdl.volume_music(64);
+    /* do not fail below if this does not exist
+	$ rpm -qf /usr/share/sounds/KDE-K3B-Finish-Success.ogg
+	kde-runtime-4.12.97-1.fc21.x86_64
+     */
+    sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
+    if (mus != null) {
+	if (sdl.play_music(mus, 0))
+	    print("%s\n", sdl.get_error());
+	while (sdl.playing_music())
+	    sdl.delay(10);
+	sdl.free_music(mus);
+    }
+    else
 	print("%s\n", sdl.get_error());
-    while (sdl.playing_music())
-	sdl.delay(10);
-    sdl.free_music(mus);
+    sdl.close_audio();
 }
-else
-    print("%s\n", sdl.get_error());
 if (txt)
     sdl.destroy_texture(txt);
+sdl.destroy_texture(fg);
 sdl.destroy_texture(bg);
 sdl.destroy_renderer(ren);
 sdl.destroy_window(win);

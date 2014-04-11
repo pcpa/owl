@@ -802,8 +802,7 @@ gc(void)
 		    break;
 		case t_renderer:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.renderer->__renderer)
-			SDL_DestroyRenderer(o.renderer->__renderer);
+		    odestroy_renderer(o.renderer);
 		    break;
 		case t_surface:
 		    o.object = memory_to_object(oobject_t, memory);

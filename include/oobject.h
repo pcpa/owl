@@ -116,9 +116,10 @@ enum otype {
     t_surface,
     t_texture,
     t_font,
-    t_glyph_metrics,
+    t_glyph,
     t_timer,
     t_music,
+    t_audio,
     t_event,
 #endif
 
