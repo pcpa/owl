@@ -180,6 +180,7 @@ struct ochunk {
 
 struct omusic {
     Mix_Music		*__music;
+    ouint8_t		 type;			/* read only */
 };
 
 struct oaudio {
@@ -217,6 +218,7 @@ struct oevent {
 	oint32_t	 value;			/* joystick axis value
 						 * (-32768 to 32767) */
 	ofloat32_t	 pressure;
+	oint32_t	 channel;		/* channel finished */
     };
     union {
 	oint32_t	 x;			/* X coordinate */

@@ -459,9 +459,9 @@ if (au) {
 #if DEBUG
     print("\
 audio\n\
-au.frequency:		%d (%d)\n\
-au.format:		%d (%d)\n\
-au.channels:		%d (%d)\n",
+au.frequency:	%d (%d)\n\
+au.format:	%d (%d)\n\
+au.channels:	%d (%d)\n",
 	  au.frequency, sdl.MixerDefaultFrequency,
 	  au.format, sdl.MixerDefaultFormat,
 	  au.channels, sdl.MixerDefaultChannels);
@@ -479,6 +479,47 @@ au.channels:		%d (%d)\n",
     // this looks (sounds) a lot better
     sdl.music_t mus = sdl.load_music("/usr/share/sounds/freedesktop/stereo/complete.oga");
     if (mus != null) {
+#if DEBUG
+	print("\
+music\n\
+type:		");
+	switch (mus.type) {
+	    case sdl.MusicNone:
+		print("None");
+		break;
+	    case sdl.MusicCmd:
+		print("None");
+		break;
+	    case sdl.MusicWav:
+		print("Wav");
+		break;
+	    case sdl.MusicMod:
+		print("Mod");
+		break;
+	    case sdl.MusicMid:
+		print("Mid");
+		break;
+	    case sdl.MusicOgg:
+		print("Ogg");
+		break;
+	    case sdl.MusicMp3:
+		print("Mp3");
+		break;
+	    case sdl.MusicMp3Mad:
+		print("Mp3Mad");
+		break;
+	    case sdl.MusicFlac:
+		print("Flac");
+		break;
+	    case sdl.MusicModplug:
+		print("Modlug");
+		break;
+	    default:
+		print("???");
+		break;
+	}
+	print("\n");
+#endif
 	if (sdl.play_music(mus, 0))
 	    print("%s\n", sdl.get_error());
 #if 0
@@ -508,7 +549,23 @@ au.channels:		%d (%d)\n",
     sdl.chunk_t chu = sdl.load_chunk("/usr/share/sounds/pop.wav");
     if (chu) {
 	int32_t cha = sdl.play_channel(-1, chu, 0);
+#if 0
 	sdl.delay(100);
+#else
+	/* Wait channel finished event */
+	done = false;
+	while (!done) {
+	    if (!sdl.wait_event(e))
+		continue;
+	    if (e.type == sdl.EventChannelFinished) {
+#if DEBUG
+		print("channel finished: cha = %d, e.channel = %d\n",
+		      cha, e.channel);
+#endif
+		done = true;
+	    }
+	}
+#endif
 	sdl.halt_channel(cha);
 	sdl.free_chunk(chu);
     }

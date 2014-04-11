@@ -27,6 +27,9 @@ typedef struct {
     ouint32_t		 u32;
 } nat_u32_t;
 typedef struct {
+    ofloat64_t		 f64;
+} nat_f64_t;
+typedef struct {
     owindow_t		*win;
 } nat_win_t;
 typedef struct {
@@ -57,6 +60,18 @@ typedef struct {
     omusic_t		*mus;
 } nat_mus_t;
 typedef struct {
+    oint32_t		 i32;
+    oint8_t		 i8;
+} nat_i32_i8_t;
+typedef struct {
+    oint32_t		 i32;
+    ouint8_t		 u8;
+} nat_i32_u8_t;
+typedef struct {
+    oint32_t		 si0;
+    ouint8_t		 si1;
+} nat_i32_i32_t;
+typedef struct {
     ouint32_t		 u32;
     oobject_t		 obj;
 } nat_u32_obj_t;
@@ -73,9 +88,32 @@ typedef struct {
     oint32_t		 i32;
 } nat_vec_i32_t;
 typedef struct {
+    ochunk_t		*chu;
+    oint32_t		 i32;
+} nat_chu_i32_t;
+typedef struct {
     omusic_t		*mus;
     oint32_t		 i32;
 } nat_mus_i32_t;
+typedef struct {
+    ofont_t		*fnt;
+    ouint16_t		 u16;
+} nat_fnt_u16_t;
+typedef struct {
+    oint32_t		 i32;
+    ouint8_t		 ui0;
+    ouint8_t		 ui1;
+} nat_i32_u8_u8_t;
+typedef struct {
+    oint32_t		 i32;
+    oint16_t		 i16;
+    uint8_t		 u8;
+} nat_i32_i16_u8_t;
+typedef struct {
+    oint32_t		 si0;
+    oint32_t		 si1;
+    oint32_t		 si2;
+} nat_i32_i32_i32_t;
 typedef struct {
     oint32_t		 si0;
     ochunk_t		*chu;
@@ -92,9 +130,10 @@ typedef struct {
     oint32_t		 si1;
 } nat_ren_i32_i32_t;
 typedef struct {
-    ofont_t		*fnt;
-    ouint16_t		 u16;
-} nat_fnt_u16_t;
+    omusic_t		*mus;
+    oint32_t		 si0;
+    oint32_t		 si1;
+} nat_mus_i32_i32_t;
 typedef struct {
     ofont_t		*fnt;
     ouint16_t		 ui0;
@@ -121,6 +160,12 @@ typedef struct {
     oint32_t		si1;
     oint32_t		si2;
 } nat_i32_u16_i32_i32_t;
+typedef struct {
+    oint32_t		 si0;
+    ochunk_t		*chu;
+    oint32_t		 si1;
+    oint32_t		 si2;
+} nat_i32_chu_i32_i32_t;
 typedef struct {
     ofont_t		*fnt;
     ovector_t		*vec;
@@ -249,14 +294,44 @@ static void native_remove_timer(oobject_t list, oint32_t ac);
 static void native_open_audio(oobject_t list, oint32_t ac);
 static void native_allocate_channels(oobject_t list, oint32_t ac);
 static void native_load_chunk(oobject_t list, oint32_t ac);
+static void channel_callback(int channel);
 static void native_play_channel(oobject_t list, oint32_t ac);
+static void native_fade_in_channel(oobject_t list, oint32_t ac);
+static void native_volume_chunk(oobject_t list, oint32_t ac);
+static void native_panning_channel(oobject_t list, oint32_t ac);
+static void native_position_channel(oobject_t list, oint32_t ac);
+static void native_distance_channel(oobject_t list, oint32_t ac);
+static void native_reverse_stereo_channel(oobject_t list, oint32_t ac);
+static void native_fade_out_channel(oobject_t list, oint32_t ac);
+static void native_playing_channel(oobject_t list, oint32_t ac);
+static void native_fading_channel(oobject_t list, oint32_t ac);
+static void native_expire_channel(oobject_t list, oint32_t ac);
+static void native_pause_channel(oobject_t list, oint32_t ac);
+static void native_resume_channel(oobject_t list, oint32_t ac);
+static void native_paused_channel(oobject_t list, oint32_t ac);
 static void native_halt_channel(oobject_t list, oint32_t ac);
 static void native_free_chunk(oobject_t list, oint32_t ac);
+static void native_group_channel(oobject_t list, oint32_t ac);
+static void native_group_channels(oobject_t list, oint32_t ac);
+static void native_group_available(oobject_t list, oint32_t ac);
+static void native_group_count(oobject_t list, oint32_t ac);
+static void native_group_oldest(oobject_t list, oint32_t ac);
+static void native_group_newer(oobject_t list, oint32_t ac);
+static void native_fade_out_group(oobject_t list, oint32_t ac);
+static void native_halt_group(oobject_t list, oint32_t ac);
 static void native_load_music(oobject_t list, oint32_t ac);
 static void music_callback(void);
 static void native_play_music(oobject_t list, oint32_t ac);
+static void native_fade_in_music(oobject_t list, oint32_t ac);
 static void native_volume_music(oobject_t list, oint32_t ac);
 static void native_playing_music(oobject_t list, oint32_t ac);
+static void native_fade_out_music(oobject_t list, oint32_t ac);
+static void native_fading_music(oobject_t list, oint32_t ac);
+static void native_pause_music(oobject_t list, oint32_t ac);
+static void native_resume_music(oobject_t list, oint32_t ac);
+static void native_rewind_music(oobject_t list, oint32_t ac);
+static void native_paused_music(oobject_t list, oint32_t ac);
+static void native_set_music_position(oobject_t list, oint32_t ac);
 static void native_halt_music(oobject_t list, oint32_t ac);
 static void native_free_music(oobject_t list, oint32_t ac);
 static void native_close_audio(oobject_t list, oint32_t ac);
@@ -588,6 +663,7 @@ static struct {
     { "EventMultiGesture",		SDL_MULTIGESTURE },
     { "EventTimer",			SDL_USEREVENT },
     { "EventMusicFinished",		SDL_USEREVENT + 1 },
+    { "EventChannelFinished",		SDL_USEREVENT + 2 },
     /* create_window */
     { "WindowFullscreen",		SDL_WINDOW_FULLSCREEN },
     { "WindowOpenGL",			SDL_WINDOW_OPENGL },
@@ -638,6 +714,23 @@ static struct {
     { "MixerDefaultFrequency",		MIX_DEFAULT_FREQUENCY },
     { "MixerDefaultFormat",		MIX_DEFAULT_FORMAT },
     { "MixerDefaultChannels",		MIX_DEFAULT_CHANNELS },
+    /* music_t.type */
+    { "MusicNone",			MUS_NONE },
+    { "MusicCmd",			MUS_CMD },
+    { "MusicWav",			MUS_WAV },
+    { "MusicMod",			MUS_MOD },
+    { "MusicMid",			MUS_MID },
+    { "MusicOgg",			MUS_OGG },
+    { "MusicMp3",			MUS_MP3 },
+    { "MusicMp3Mad",			MUS_MP3_MAD },
+    { "MusicFlac",			MUS_FLAC },
+    { "MusicModplug",			MUS_MODPLUG },
+    /* Special channel effects identifier */
+    { "MixerChannelPost",		MIX_CHANNEL_POST },
+    /* Mix_Fadding */
+    { "FadingNone",			MIX_NO_FADING },
+    { "FadingOut",			MIX_FADING_OUT },
+    { "FadingIn",			MIX_FADING_IN },
 };
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
@@ -936,6 +1029,7 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_music];
     add_field(pointer_string,	"*music*");
+    add_field("uint8_t",	"type");
     oend_record(record);
 
     record = type_vector->v.ptr[t_audio];
@@ -970,6 +1064,7 @@ init_sdl(void)
     add_union("int32_t",	"keysym");
     add_union("int32_t",	"value");
     add_union("float32_t",	"pressure");
+    add_union("int32_t",	"channel");
     /**/
     add_field("int32_t",	"x");
     add_union("int32_t",	"w");
@@ -1115,14 +1210,45 @@ init_sdl(void)
 		    t_int32, t_uint16, t_int32, t_int32, false);
     define_builtin1(t_int32, allocate_channels, t_int32, false);
     define_builtin1(t_chunk, load_chunk, t_string, false);
-    define_builtin1(t_int32, halt_channel, t_int32, false);
     define_builtin3(t_int32, play_channel, t_int32, t_chunk, t_int32, false);
+    define_builtin4(t_int32, fade_in_channel,
+		    t_int32, t_chunk, t_int32, t_int32, false);
+    define_builtin2(t_int32, volume_chunk, t_chunk, t_int32, false);
+    define_builtin3(t_int32, panning_channel, t_int32, t_uint8, t_uint8, false);
+    define_builtin3(t_int32, position_channel,
+		    t_int32, t_int16, t_uint8, false);
+    define_builtin2(t_int32, distance_channel, t_int32, t_uint8, false);
+    define_builtin2(t_int32, reverse_stereo_channel, t_int32, t_int8, false);
+    define_builtin2(t_int32, fade_out_channel, t_int32, t_int32, false);
+    define_builtin1(t_int32, playing_channel, t_int32, false);
+    define_builtin1(t_int32, fading_channel, t_int32, false);
+    define_builtin2(t_int32, expire_channel, t_int32, t_int32, false);
+    define_builtin1(t_void, pause_channel, t_int32, false);
+    define_builtin1(t_void, resume_channel, t_int32, false);
+    define_builtin1(t_int32, paused_channel, t_int32, false);
+    define_builtin1(t_int32, halt_channel, t_int32, false);
     define_builtin1(t_void,  free_chunk, t_chunk, false);
+    define_builtin2(t_int32, group_channel, t_int32, t_int32, false);
+    define_builtin3(t_int32, group_channels, t_int32, t_int32, t_int32, false);
+    define_builtin1(t_int32, group_available, t_int32, false);
+    define_builtin1(t_int32, group_count, t_int32, false);
+    define_builtin1(t_int32, group_oldest, t_int32, false);
+    define_builtin1(t_int32, group_newer, t_int32, false);
+    define_builtin1(t_int32, fade_out_group, t_int32, false);
+    define_builtin1(t_int32, halt_group, t_int32, false);
     define_builtin1(t_music, load_music, t_string, false);
     define_builtin2(t_int32, play_music, t_music, t_int32, false);
+    define_builtin3(t_int32, fade_in_music, t_music, t_int32, t_int32, false);
     define_builtin1(t_int32, volume_music, t_uint8, false);
     define_builtin0(t_int32, playing_music, false);
-    define_builtin0(t_void,  halt_music, false);
+    define_builtin1(t_int32,  fade_out_music, t_int32, false);
+    define_builtin0(t_int32,  fading_music, false);
+    define_builtin0(t_void,  pause_music, false);
+    define_builtin0(t_void,  resume_music, false);
+    define_builtin0(t_void,  rewind_music, false);
+    define_builtin0(t_int32,  paused_music, false);
+    define_builtin1(t_int32,  set_music_position, t_float64, false);
+    define_builtin0(t_int32,  halt_music, false);
     define_builtin1(t_void,  free_music, t_music, false);
     define_builtin0(t_void,  close_audio, false);
 
@@ -1209,6 +1335,7 @@ native_init(oobject_t list, oint32_t ac)
 			 MIX_INIT_MODPLUG|MIX_INIT_MP3|
 			 MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
     Mix_HookMusicFinished(music_callback);
+    Mix_ChannelFinished(channel_callback);
 }
 
 static void
@@ -2265,6 +2392,9 @@ translate_event(oevent_t *ev)
 	    break;
 	case SDL_USEREVENT + 1:
 	    break;
+	case SDL_USEREVENT + 2:
+	    ev->channel		= (int32_t)(oword_t)sv->user.data1;
+	    break;
 	default:
 	    abort();
     }
@@ -3208,6 +3338,18 @@ native_load_chunk(oobject_t list, oint32_t ac)
 }
 
 static void
+channel_callback(int channel)
+{
+    SDL_Event			 ev;
+
+    ev.user.type = SDL_USEREVENT + 2;
+    ev.user.code = 0;
+    ev.user.data1 = (oobject_t)(oword_t)channel;
+    ev.user.data2 = null;
+    SDL_PushEvent(&ev);
+}
+
+static void
 native_play_channel(oobject_t list, oint32_t ac)
 /* int32_t play_channel(int32_t channel, chunk_t chunk, int32_t loops); */
 {
@@ -3221,6 +3363,194 @@ native_play_channel(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_PlayChannel(alist->si0, alist->chu->__chunk, alist->si1);
+}
+
+static void
+native_fade_in_channel(oobject_t list, oint32_t ac)
+/* int32_t channel_fade_in(int32_t channel, chunk_t chunk,
+			  int32_t loops, int32_t ms); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_chu_i32_i32_t	*alist;
+
+    alist = (nat_i32_chu_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->chu == null || otype(alist->chu) != t_chunk)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = Mix_FadeInChannel(alist->si0, alist->chu->__chunk,
+				alist->si1, alist->si2);
+}
+
+static void
+native_volume_chunk(oobject_t list, oint32_t ac)
+/* int32_t volume_chunk(chunk_t chunk, int32_t volume); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_chu_i32_t		*alist;
+
+    alist = (nat_chu_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->chu == null || otype(alist->chu) != t_chunk)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = Mix_VolumeChunk(alist->chu->__chunk, alist->i32);
+}
+
+static void
+native_panning_channel(oobject_t list, oint32_t ac)
+/* int32_t panning_channel(int32_t channel, uint8_t left, uint8_t right); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_u8_u8_t		*alist;
+
+    alist = (nat_i32_u8_u8_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_SetPanning(alist->i32, alist->ui0, alist->ui1);
+}
+
+static void
+native_position_channel(oobject_t list, oint32_t ac)
+/* int32_t position_channel(int32_t channel, int16_t angle, uint8_t dist); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i16_u8_t		*alist;
+
+    alist = (nat_i32_i16_u8_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_SetPosition(alist->i32, alist->i16, alist->u8);
+}
+
+static void
+native_distance_channel(oobject_t list, oint32_t ac)
+/* int32_t distance_channel(int32_t channel, uint8_t dist); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_u8_t		*alist;
+
+    alist = (nat_i32_u8_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_SetDistance(alist->i32, alist->u8);
+}
+
+static void
+native_reverse_stereo_channel(oobject_t list, oint32_t ac)
+/* int32_t reverse_stereo_channel(int32_t channel, int8_t flip); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i8_t		*alist;
+
+    alist = (nat_i32_i8_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_SetReverseStereo(alist->i32, alist->i8);
+}
+
+static void
+native_fade_out_channel(oobject_t list, oint32_t ac)
+/* int32_t fade_out_channel(int32_t channel, int32_t ms); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i32_t		*alist;
+
+    alist = (nat_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_FadeOutChannel(alist->si0, alist->si1);
+}
+
+static void
+native_playing_channel(oobject_t list, oint32_t ac)
+/* int32_t playing_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_Playing(alist->i32);
+}
+
+static void
+native_fading_channel(oobject_t list, oint32_t ac)
+/* int32_t fading_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_FadingChannel(alist->i32);
+}
+
+static void
+native_expire_channel(oobject_t list, oint32_t ac)
+/* int32_t expire_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i32_t		*alist;
+
+    alist = (nat_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_ExpireChannel(alist->si0, alist->si1);
+}
+
+static void
+native_pause_channel(oobject_t list, oint32_t ac)
+/* void pause_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_Pause(alist->i32);
+}
+
+static void
+native_resume_channel(oobject_t list, oint32_t ac)
+/* void resume_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_Resume(alist->i32);
+}
+
+static void
+native_paused_channel(oobject_t list, oint32_t ac)
+/* void paused_channel(int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_Paused(alist->i32);
 }
 
 static void
@@ -3257,6 +3587,119 @@ native_free_chunk(oobject_t list, oint32_t ac)
 }
 
 static void
+native_group_channel(oobject_t list, oint32_t ac)
+/* int32_t group_channel(int32_t channel, int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i32_t		*alist;
+
+    alist = (nat_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupChannel(alist->si0, alist->si1);
+}
+
+static void
+native_group_channels(oobject_t list, oint32_t ac)
+/* int32_t group_channels(int32_t from_channel, int32_t to_channel,
+			  int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i32_i32_t		*alist;
+
+    alist = (nat_i32_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupChannels(alist->si0, alist->si1, alist->si2);
+}
+
+static void
+native_group_available(oobject_t list, oint32_t ac)
+/* int32_t group_available(int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupAvailable(alist->i32);
+}
+
+static void
+native_group_count(oobject_t list, oint32_t ac)
+/* int32_t group_count(int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupCount(alist->i32);
+}
+
+static void
+native_group_oldest(oobject_t list, oint32_t ac)
+/* int32_t group_oldest(int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupOldest(alist->i32);
+}
+
+static void
+native_group_newer(oobject_t list, oint32_t ac)
+/* int32_t group_newer(int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_GroupNewer(alist->i32);
+}
+
+static void
+native_fade_out_group(oobject_t list, oint32_t ac)
+/* int32_t fade_out_group(int32_t tag, int32_t ms); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_i32_t		*alist;
+
+    alist = (nat_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_FadeOutGroup(alist->si0, alist->si1);
+}
+
+static void
+native_halt_group(oobject_t list, oint32_t ac)
+/* int32_t halt_group(int32_t tag); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_HaltGroup(alist->i32);
+}
+
+static void
 native_load_music(oobject_t list, oint32_t ac)
 /* music_t load_music(string_t path); */
 {
@@ -3279,6 +3722,7 @@ native_load_music(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_music, sizeof(omusic_t));
 	om = (omusic_t *)thread_self->obj;
 	om->__music = sm;
+	om->type = Mix_GetMusicType(sm);
 	r0->v.o = thread_self->obj;
 	r0->t = t_music;
     }
@@ -3315,6 +3759,22 @@ native_play_music(oobject_t list, oint32_t ac)
 }
 
 static void
+native_fade_in_music(oobject_t list, oint32_t ac)
+/* int32_t fade_in_music(music_t music, int32_t loops, int ms); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_mus_i32_i32_t		*alist;
+
+    alist = (nat_mus_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->mus == null || otype(alist->mus) != t_music)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = Mix_FadeInMusic(alist->mus->__music, alist->si0, alist->si1);
+}
+
+static void
 native_volume_music(oobject_t list, oint32_t ac)
 /* int32_t volume_music(uint8_t volume); */
 {
@@ -3338,6 +3798,94 @@ native_playing_music(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_word;
     r0->v.w = Mix_PlayingMusic();
+}
+
+static void
+native_fade_out_music(oobject_t list, oint32_t ac)
+/* int32_t fade_out_music(int32_t ms); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_FadeOutMusic(alist->i32);
+}
+
+static void
+native_fading_music(oobject_t list, oint32_t ac)
+/* int32_t fading_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_FadingMusic();
+}
+
+static void
+native_pause_music(oobject_t list, oint32_t ac)
+/* void pause_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_PauseMusic();
+}
+
+static void
+native_resume_music(oobject_t list, oint32_t ac)
+/* void resume_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_ResumeMusic();
+}
+
+static void
+native_rewind_music(oobject_t list, oint32_t ac)
+/* void rewind_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    Mix_RewindMusic();
+}
+
+static void
+native_paused_music(oobject_t list, oint32_t ac)
+/* void paused_music(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_PausedMusic();
+}
+
+static void
+native_set_music_position(oobject_t list, oint32_t ac)
+/* int32_t set_music_position(float64_t position); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_f64_t			*alist;
+
+    alist = (nat_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = Mix_SetMusicPosition(alist->f64);
 }
 
 static void
@@ -3384,6 +3932,10 @@ native_close_audio(oobject_t list, oint32_t ac)
 }
 
 #if __WORDSIZE == 32
+/*   This is only required because the returned value may be
+ * stored in an auto variable, and then sign will matter,
+ * otherwise, it will just make a trip to a mpz_t (without
+ * memory allocation/deallocation) */
 static void
 ret_u32(oregister_t *r, ouint32_t v)
 {
