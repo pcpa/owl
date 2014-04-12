@@ -2283,12 +2283,15 @@ unary_field(void)
     /* check for explicit namespace type access */
     if (ast->l.ast->token == tok_symbol) {
 	symbol = ast->l.ast->l.value;
-	if ((symbol = oget_bound_symbol(symbol->name)) && symbol->namespace) {
+	/* ast may have been already replaced with final symbol */
+	if (!symbol->namespace)
+	    symbol = oget_namespace_symbol(symbol->name);
+	if (symbol && symbol->namespace) {
 	    record = current_record;
 	    current_record = symbol->value;
 	    symbol = ast->r.ast->l.value;
 	    assert(osymbol_p(symbol));
-	    symbol = oget_bound_symbol(symbol->name);
+	    symbol = oget_namespace_symbol(symbol->name);
 	    current_record = record;
 	    if (symbol == null)
 		oparse_error(ast->r.ast, "namespace %p has no %p symbol",

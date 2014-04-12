@@ -115,6 +115,43 @@ oget_bound_symbol(ovector_t *name)
     return (null);
 }
 
+/* This function avoids some weird logic due to the way symbols are made
+ * visible between namespaces, example of what is done here:
+ *
+ *	namespace foo {
+ *		int32_t fn();
+ *		namespace bar {
+ *			int32_t v;
+ *		}
+ *	}
+ *	foo.bar.fn();		<=== WRONG
+ *	foo.fn();		<=== OK
+ */
+osymbol_t *
+oget_namespace_symbol(ovector_t *name)
+{
+    osymbol_t		*symbol;
+    orecord_t		*record;
+
+    record = current_record;
+    if ((symbol = oget_symbol(record, name)))
+	return (symbol);
+    if (otype(record) != t_namespace) {
+	for (record = record->parent; record; record = record->parent) {
+	    if ((symbol = oget_symbol(record, name)))
+		return (symbol);
+	    if (otype(record) == t_namespace)
+		break;
+	}
+    }
+    /* Check if accessing a symbol from the toplevel namespace */
+    if ((symbol = oget_symbol(root_record, name)) && symbol->namespace)
+	return (symbol);
+
+    return (null);
+
+}
+
 osymbol_t *
 onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag)
 {
