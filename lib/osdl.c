@@ -224,6 +224,7 @@ typedef struct {
  */
 static void native_init(oobject_t list, oint32_t ac);
 static void native_get_error(oobject_t list, oint32_t ac);
+static void native_clear_error(oobject_t list, oint32_t ac);
 static void native_quit(oobject_t list, oint32_t ac);
 static void native_create_window(oobject_t list, oint32_t ac);
 static void native_change_window(oobject_t list, oint32_t ac);
@@ -247,6 +248,7 @@ static void native_render_copy_ex(oobject_t list, oint32_t ac);
 static void native_render_present(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
+static void native_load_surface(oobject_t list, oint32_t ac);
 static void native_free_surface(oobject_t list, oint32_t ac);
 static void query_texture(otexture_t *ot);
 static void handle_texture(orenderer_t *ren, otexture_t *tex);
@@ -905,6 +907,7 @@ init_sdl(void)
     add_field("int32_t",	"max_h");
     add_field("uint32_t",	"flags");
     add_field("string_t",	"title");
+    add_field("surface_t",	"icon");
     add_field("float32_t",	"brightness");
     add_field("int32_t",	"*x*");
     add_field("int32_t",	"*y*");
@@ -916,6 +919,7 @@ init_sdl(void)
     add_field("int32_t",	"*max_h*");
     add_field("uint32_t",	"*flags*");
     add_field("string_t",	"*title*");
+    add_field("surface_t",	"*icon*");
     add_field("float32_t",	"*brightness*");
     oend_record(record);
 
@@ -1095,6 +1099,7 @@ init_sdl(void)
 
     define_builtin0(t_int32,  init, false);
     define_builtin0(t_string, get_error, false);
+    define_builtin0(t_void,   clear_error, false);
     define_builtin0(t_void,   quit, false);
 
     define_builtin6(t_window,   create_window,
@@ -1144,6 +1149,7 @@ init_sdl(void)
     define_builtin1(t_void,    render_present, t_renderer, false);
     define_builtin1(t_void,    destroy_renderer, t_renderer, false);
 
+    define_builtin1(t_surface, load_surface, t_string, false);
     define_builtin1(t_void,    free_surface, t_surface, false);
 
     define_builtin5(t_texture, create_texture,
@@ -1363,6 +1369,18 @@ native_get_error(oobject_t list, oint32_t ac)
 }
 
 static void
+native_clear_error(oobject_t list, oint32_t ac)
+/* void get_error(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    SDL_ClearError();
+    r0->t = t_void;
+}
+
+static void
 native_quit(oobject_t list, oint32_t ac)
 /* void quit(); */
 {
@@ -1564,6 +1582,13 @@ native_change_window(oobject_t list, oint32_t ac)
 	if (length)
 	    memcpy(ow->__title->v.u8, buffer, length);
 	ow->title = ow->__title;
+    }
+    /* icon */
+    if (ow->icon != ow->__icon) {
+	if (ow->icon && otype(ow->icon) != t_surface)
+	    ovm_raise(except_invalid_argument);
+	SDL_SetWindowIcon(ow->__window, ow->icon->__surface);
+	ow->__icon = ow->icon;
     }
     /* brightness */
     if (ow->brightness != ow->__brightness) {
@@ -2015,6 +2040,36 @@ native_destroy_renderer(oobject_t list, oint32_t ac)
 	odestroy_renderer(alist->ren);
     }
     r0->t = t_void;
+}
+
+static void
+native_load_surface(oobject_t list, oint32_t ac)
+/* surface_t load_surface(string_t path); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface			*ss;
+    osurface_t			*os;
+    oregister_t			*r0;
+    nat_ren_vec_t		*alist;
+    char			 path[BUFSIZ];
+
+    alist = (nat_ren_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->vec == null || otype(alist->vec) != t_string)
+	ovm_raise(except_invalid_argument);
+    if (alist->vec->length >= BUFSIZ - 1)
+	ovm_raise(except_out_of_bounds);
+    memcpy(path, alist->vec->v.ptr, alist->vec->length);
+    path[alist->vec->length] = '\0';
+    if ((ss = IMG_Load(path))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
 }
 
 static void

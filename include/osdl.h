@@ -56,6 +56,7 @@ struct owindow {
     oint32_t		 max_h;
     ouint32_t		 flags;
     ovector_t		*title;
+    osurface_t		*icon;
     ofloat32_t		 brightness;
     oint32_t		 __x;
     oint32_t		 __y;
@@ -67,6 +68,7 @@ struct owindow {
     oint32_t		 __max_h;
     ouint32_t		 __flags;
     ovector_t		*__title;
+    osurface_t		*__icon;
     ofloat32_t		 __brightness;
 };
 
