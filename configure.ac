@@ -169,6 +169,14 @@ if test "x$SDL" != "xno"; then
     if test x"$HAVE_SDL_mixer" = "xno"; then
 	AC_MSG_ERROR([SDL2_mixer not found, see http://www.libsdl.org/])
     fi
+    AC_CHECK_LIB(GL, glBegin, , [HAVE_GL="no"])
+    if test x"$HAVE_GL" = "xno"; then
+	AC_MSG_ERROR([GL not found, see http://www.opengl.org/])
+    fi
+    AC_CHECK_LIB(GLU, gluPerspective, , [HAVE_GLU="no"])
+    if test x"$HAVE_GLU" = "xno"; then
+	AC_MSG_ERROR([GLU not found, see http://www.opengl.org/])
+    fi
 fi
 AM_CONDITIONAL(WITH_SDL, [test "x$SDL" != "xno"])
 if test "x$SDL" != "xno"; then

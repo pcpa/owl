@@ -1,0 +1,390 @@
+/* Simplified mesa-demos/xdemos/gxlgears.c (using SDL).
+ */
+
+#define DEBUG		0
+#define M_PI		3.14159265
+
+int32_t winWidth = 300, winHeight = 300;
+
+int32_t frames = 0;
+float64_t tRot0 = -1.0, tRate0 = -1.0;
+
+float64_t view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
+int32_t gear1, gear2, gear3;
+float64_t angle = 0.0;
+
+uint8_t stereo = false;		/* Enable stereo.  */
+int32_t samples = 0;		/* Choose visual with at least N samples. */
+uint8_t animate = true;		/* Animation */
+float64_t eyesep = 5.0;		/* Eye separation. */
+float64_t fix_point = 40.0;	/* Fixation point distance.  */
+float64_t left, right, asp;	/* Stereo frustum params.  */
+
+if (sdl.init()) {
+    print("init error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+sdl.window_t win = sdl.create_window("gears",
+				     sdl.WindowposCentered,
+				     sdl.WindowposCentered,
+				     winWidth, winHeight,
+				     sdl.WindowOpenGL |
+				     sdl.WindowResizable |
+				     sdl.WindowShown);
+if (win == null) {
+    print("create_window error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.context_t ctx = sdl.gl.create_context(win);
+if (ctx == null) {
+    print("create_context error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_swap_interval(1);
+sdl.gl.make_current(win, ctx);
+
+void gear(float64_t inner_radius, float64_t outer_radius, float64_t width,
+	  int32_t teeth, float64_t tooth_depth) {
+    int32_t i;
+    float64_t r0, r1, r2;
+    float64_t angle, da;
+    float64_t u, v, len;
+
+    r0 = inner_radius;
+    r1 = outer_radius - tooth_depth / 2.0;
+    r2 = outer_radius + tooth_depth / 2.0;
+
+    da = 2.0 * M_PI / teeth / 4.0;
+
+    gl.ShadeModel(gl.FLAT);
+
+    gl.Normal3(0.0, 0.0, 1.0);
+
+    /* draw front face */
+    gl.Begin(gl.QUAD_STRIP);
+    for (i = 0; i <= teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+	gl.Vertex3(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+	if (i < teeth) {
+	    gl.Vertex3(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+	    gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		       width * 0.5);
+	}
+    }
+    gl.End();
+
+    /* draw front sides of teeth */
+    gl.Begin(gl.QUADS);
+    da = 2.0 * M_PI / teeth / 4.0;
+    for (i = 0; i < teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+	gl.Vertex3(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
+	gl.Vertex3(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		   width * 0.5);
+	gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		   width * 0.5);
+    }
+    gl.End();
+
+    gl.Normal3(0.0, 0.0, -1.0);
+
+    /* draw back face */
+    gl.Begin(gl.QUAD_STRIP);
+    for (i = 0; i <= teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+	gl.Vertex3(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+	if (i < teeth) {
+	    gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		       -width * 0.5);
+	    gl.Vertex3(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+	}
+    }
+    gl.End();
+
+    /* draw back sides of teeth */
+    gl.Begin(gl.QUADS);
+    da = 2.0 * M_PI / teeth / 4.0;
+    for (i = 0; i < teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+
+	gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		   -width * 0.5);
+	gl.Vertex3(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		   -width * 0.5);
+	gl.Vertex3(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+    }
+    gl.End();
+
+    /* draw outward faces of teeth */
+    gl.Begin(gl.QUAD_STRIP);
+    for (i = 0; i < teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+	gl.Vertex3(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+	u = r2 * cos(angle + da) - r1 * cos(angle);
+	v = r2 * sin(angle + da) - r1 * sin(angle);
+	len = sqrt(u * u + v * v);
+	u /= len;
+	v /= len;
+	gl.Normal3(v, -u, 0.0);
+	gl.Vertex3(r2 * cos(angle + da), r2 * sin(angle + da), width * 0.5);
+	gl.Vertex3(r2 * cos(angle + da), r2 * sin(angle + da), -width * 0.5);
+	gl.Normal3(cos(angle), sin(angle), 0.0);
+	gl.Vertex3(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		   width * 0.5);
+	gl.Vertex3(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),
+		   -width * 0.5);
+	u = r1 * cos(angle + 3 * da) - r2 * cos(angle + 2 * da);
+	v = r1 * sin(angle + 3 * da) - r2 * sin(angle + 2 * da);
+	gl.Normal3(v, -u, 0.0);
+	gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		   width * 0.5);
+	gl.Vertex3(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),
+		   -width * 0.5);
+	gl.Normal3(cos(angle), sin(angle), 0.0);
+    }
+
+    gl.Vertex3(r1 * cos(0), r1 * sin(0), width * 0.5);
+    gl.Vertex3(r1 * cos(0), r1 * sin(0), -width * 0.5);
+
+    gl.End();
+
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* draw inside radius cylinder */
+    gl.Begin(gl.QUAD_STRIP);
+    for (i = 0; i <= teeth; ++i) {
+	angle = i * 2.0 * M_PI / teeth;
+	gl.Normal3(-cos(angle), -sin(angle), 0.0);
+	gl.Vertex3(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+	gl.Vertex3(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+    }
+    gl.End();
+}
+
+void draw() {
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.PushMatrix();
+    gl.Rotate(view_rotx, 1.0, 0.0, 0.0);
+    gl.Rotate(view_roty, 0.0, 1.0, 0.0);
+    gl.Rotate(view_rotz, 0.0, 0.0, 1.0);
+
+    gl.PushMatrix();
+    gl.Translate(-3.0, -2.0, 0.0);
+    gl.Rotate(angle, 0.0, 0.0, 1.0);
+    gl.CallList(gear1);
+    gl.PopMatrix();
+
+    gl.PushMatrix();
+    gl.Translate(3.1, -2.0, 0.0);
+    gl.Rotate(-2.0 * angle - 9.0, 0.0, 0.0, 1.0);
+    gl.CallList(gear2);
+    gl.PopMatrix();
+
+    gl.PushMatrix();
+    gl.Translate(-3.1, 4.2, 0.0);
+    gl.Rotate(-2.0 * angle - 25.0, 0.0, 0.0, 1.0);
+    gl.CallList(gear3);
+    gl.PopMatrix();
+
+    gl.PopMatrix();
+}
+
+
+void draw_gears() {
+    if (stereo) {
+      /* First left eye.  */
+	gl.DrawBuffer(gl.BACK_LEFT);
+
+	gl.MatrixMode(gl.PROJECTION);
+	gl.LoadIdentity();
+	gl.Frustum(left, right, -asp, asp, 5.0, 60.0);
+
+	gl.MatrixMode(gl.MODELVIEW);
+
+	gl.PushMatrix();
+	gl.Translate(+0.5 * eyesep, 0.0, 0.0);
+	draw();
+	gl.PopMatrix();
+
+	/* Then right eye.  */
+	gl.DrawBuffer(gl.BACK_RIGHT);
+
+	gl.MatrixMode(gl.PROJECTION);
+	gl.LoadIdentity();
+	gl.Frustum(-right, -left, -asp, asp, 5.0, 60.0);
+
+	gl.MatrixMode(gl.MODELVIEW);
+
+	gl.PushMatrix();
+	gl.Translate(-0.5 * eyesep, 0.0, 0.0);
+	draw();
+	gl.PopMatrix();
+    }
+    else
+	draw();
+}
+
+/** Draw single frame, do SwapBuffers, compute FPS */
+void draw_frame() {
+    float64_t dt, t = sdl.get_ticks() / 1000.0;	/* get_ticks is in ms */
+
+    if (tRot0 < 0.0)
+	tRot0 = t;
+    dt = t - tRot0;
+    tRot0 = t;
+
+    if (animate) {
+	/* advance rotation for next frame */
+	angle += 70.0 * dt;	/* 70 degrees per second */
+	if (angle > 3600.0)
+	    angle -= 3600.0;
+    }
+
+    draw_gears();
+    sdl.gl.swap_window(win);
+
+    ++frames;
+
+    if (tRate0 < 0.0)
+	tRate0 = t;
+    if (t - tRate0 >= 5.0) {
+	float64_t seconds = t - tRate0;
+	float64_t fps = frames / seconds;
+	print("%d frames in %3.1f seconds = %6.3f FPS\n", frames, seconds,
+	      fps);
+	tRate0 = t;
+	frames = 0;
+    }
+}
+
+void reshape(int32_t width, int32_t height) {
+    float64_t		d;
+
+    gl.Viewport(0, 0, width, height);
+    if (stereo) {
+	asp = height / width;
+	d = fix_point * (1.0 / 5.0);
+
+	left = -5.0 * ((d - 0.5 * eyesep) / fix_point);
+	right = 5.0 * ((d + 0.5 * eyesep) / fix_point);
+    }
+    else {
+	d = height / width;
+	gl.MatrixMode(gl.PROJECTION);
+	gl.LoadIdentity();
+	gl.Frustum(-1.0, 1.0, -d, d, 5.0, 60.0);
+    }
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+    gl.Translate(0.0, 0.0, -40.0);
+}
+
+
+void init() {
+    float32_t pos[4]   = { 5.0, 5.0, 10.0, 0.0 };
+    float32_t red[4]   = { 0.8, 0.1,  0.0, 1.0 };
+    float32_t green[4] = { 0.0, 0.8,  0.2, 1.0 };
+    float32_t blue[4]  = { 0.2, 0.2,  1.0, 1.0 };
+
+    gl.Lightv(gl.LIGHT0, gl.POSITION, pos);
+    gl.Enable(gl.CULL_FACE);
+    gl.Enable(gl.LIGHTING);
+    gl.Enable(gl.LIGHT0);
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* make the gears */
+    gear1 = gl.GenLists(1);
+    gl.NewList(gear1, gl.COMPILE);
+    gl.Materialv(gl.FRONT, gl.AMBIENT_AND_DIFFUSE, red);
+    gear(1.0, 4.0, 1.0, 20, 0.7);
+    gl.EndList();
+
+    gear2 = gl.GenLists(1);
+    gl.NewList(gear2, gl.COMPILE);
+    gl.Materialv(gl.FRONT, gl.AMBIENT_AND_DIFFUSE, green);
+    gear(0.5, 2.0, 2.0, 10, 0.7);
+    gl.EndList();
+
+    gear3 = gl.GenLists(1);
+    gl.NewList(gear3, gl.COMPILE);
+    gl.Materialv(gl.FRONT, gl.AMBIENT_AND_DIFFUSE, blue);
+    gear(1.3, 2.0, 0.5, 10, 0.7);
+    gl.EndList();
+
+    gl.Enable(gl.NORMALIZE);
+}
+
+void event_loop() {
+    int8_t done = false, change;
+    sdl.event_t e = {};
+    while (!done) {
+	do {
+	    if (sdl.poll_event(e)) {
+		switch (e.type) {
+		    case sdl.EventQuit:
+			done = true;
+			break;
+		    case sdl.EventWindow:
+			switch (e.event) {
+			    case sdl.WindowEventResized:
+				reshape(e.w, e.h);
+				break;
+			    default:
+				break;
+			}
+			change = true;
+			break;
+		    case sdl.EventKeyDown:
+			switch (e.keysym) {
+			    case sdl.Key_Left:
+				view_roty += 5.0;
+				break;
+			    case sdl.Key_Right:
+				view_roty -= 5.0;
+				break;
+			    case sdl.Key_Up:
+				view_rotx += 5.0;
+				break;
+			    case sdl.Key_Down:
+				view_rotx -= 5.0;
+				break;
+			    case sdl.Key_a:
+				animate = !animate;
+				break;
+			    case sdl.Key_Escape:
+				done = true;
+				break;
+			}
+		}
+		if (change)
+		    draw_frame();
+	    }
+	} while (!animate);
+	draw_frame();
+    }
+}
+
+#if DEBUG
+print("GL_RENDERER   = %s\n", gl.GetString(gl.RENDERER));
+print("GL_VERSION    = %s\n", gl.GetString(gl.VERSION));
+print("GL_VENDOR     = %s\n", gl.GetString(gl.VENDOR));
+print("GL_EXTENSIONS = %s\n", gl.GetString(gl.EXTENSIONS));
+#endif
+
+init();
+reshape(winWidth, winHeight);
+event_loop();
+
+sdl.gl.delete_context(ctx);
+sdl.destroy_window(win);
+sdl.quit();

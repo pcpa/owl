@@ -64,5 +64,7 @@ libowl_la_SOURCES =	\
 
 if WITH_SDL
 libowl_la_SOURCES +=	\
-	osdl.c
+	osdl.c		\
+	ogl.c		\
+	oglu.c
 endif

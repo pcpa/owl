@@ -432,7 +432,7 @@ call(oast_t *ast)
 
     offset = 0;
     vector = function->record->vector;
-    for (list = prev = ast->r.ast; offset < vector->offset; offset++) {
+    for (prev = ast, list = ast->r.ast; offset < vector->offset; offset++) {
 	symbol = vector->v.ptr[offset];
 	if (!symbol->argument)
 	    break;

@@ -23,6 +23,117 @@
 #define obuiltin_p(object)	(otype(object) == t_builtin)
 #define ofunction_p(object)	(otype(object) == t_function)
 
+#define define_builtin0(TYPE, NAME)					\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin1(TYPE, NAME, A0)					\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin2(TYPE, NAME, A0, A1)				\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin3(TYPE, NAME, A0, A1, A2)				\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin4(TYPE, NAME, A0, A1, A2, A3)			\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin5(TYPE, NAME, A0, A1, A2, A3, A4)			\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin6(TYPE, NAME, A0, A1, A2, A3, A4, A5)		\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin7(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6)		\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	onew_argument(builtin, A6);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin8(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7)	\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	onew_argument(builtin, A6);					\
+	onew_argument(builtin, A7);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin9(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7, A8)	\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	onew_argument(builtin, A6);					\
+	onew_argument(builtin, A7);					\
+	onew_argument(builtin, A8);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin10(TYPE,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)	\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	onew_argument(builtin, A6);					\
+	onew_argument(builtin, A7);					\
+	onew_argument(builtin, A8);					\
+	onew_argument(builtin, A9);					\
+	oend_builtin(builtin);						\
+    } while (0)
+
 /*
  * Types
  */

@@ -107,7 +107,11 @@ enum otype {
     t_mpc,
 
 #if SDL
-    t_sdl,			/* sdl namespace */
+    /* Note that these can be created dynamically, but are
+     * statically assigned here to have constant identifiers,
+     * for example, if dynamically created, would have a "t_sdl"
+     * variable instead of a "t_sdl" constant */
+    t_sdl,		/* sdl namespace */
     t_point,
     t_rect,
     t_color,
@@ -122,6 +126,13 @@ enum otype {
     t_music,
     t_audio,
     t_event,
+    t_sdl_gl,		/* sdl.gl namespace */
+    t_context,
+    t_gl,		/* gl namespace */
+    t_glu,		/* glu namespace */
+    t_nurbs,
+    t_quadric,
+    t_tesselator,
 #endif
 
     t_root,		/* root module */

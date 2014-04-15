@@ -21,6 +21,9 @@
  * Types
  */
 typedef struct {
+    oint8_t		 i8;
+} nat_i8_t;
+typedef struct {
     oint32_t		 i32;
 } nat_i32_t;
 typedef struct {
@@ -60,6 +63,9 @@ typedef struct {
     omusic_t		*mus;
 } nat_mus_t;
 typedef struct {
+    ocontext_t		*ctx;
+} nat_ctx_t;
+typedef struct {
     oint32_t		 i32;
     oint8_t		 i8;
 } nat_i32_i8_t;
@@ -76,6 +82,10 @@ typedef struct {
     oobject_t		 obj;
 } nat_u32_obj_t;
 typedef struct {
+    oint32_t		 i32;
+    ovector_t		*vec;
+} nat_i32_vec_t;
+typedef struct {
     orenderer_t		*ren;
     ovector_t		*vec;
 } nat_ren_vec_t;
@@ -87,6 +97,10 @@ typedef struct {
     ovector_t		*vec;
     oint32_t		 i32;
 } nat_vec_i32_t;
+typedef struct {
+    owindow_t		*win;
+    ocontext_t		*ctx;
+} nat_win_ctx_t;
 typedef struct {
     ochunk_t		*chu;
     oint32_t		 i32;
@@ -222,6 +236,7 @@ typedef struct {
 /*
  * Prototypes
  */
+/* sdl */
 static void native_init(oobject_t list, oint32_t ac);
 static void native_get_error(oobject_t list, oint32_t ac);
 static void native_clear_error(oobject_t list, oint32_t ac);
@@ -337,6 +352,18 @@ static void native_set_music_position(oobject_t list, oint32_t ac);
 static void native_halt_music(oobject_t list, oint32_t ac);
 static void native_free_music(oobject_t list, oint32_t ac);
 static void native_close_audio(oobject_t list, oint32_t ac);
+/* sdl.gl */
+static void native_reset_attributes(oobject_t list, oint32_t ac);
+static void native_set_attribute(oobject_t list, oint32_t ac);
+static void native_get_attribute(oobject_t list, oint32_t ac);
+static void native_create_context(oobject_t list, oint32_t ac);
+static void native_make_current(oobject_t list, oint32_t ac);
+static void native_get_current_window(oobject_t list, oint32_t ac);
+static void native_get_current_context(oobject_t list, oint32_t ac);
+static void native_set_swap_interval(oobject_t list, oint32_t ac);
+static void native_get_swap_interval(oobject_t list, oint32_t ac);
+static void native_swap_window(oobject_t list, oint32_t ac);
+static void native_delete_context(oobject_t list, oint32_t ac);
 
 #if __WORDSIZE == 32
 static void ret_u32(oregister_t *r, ouint32_t v);
@@ -352,11 +379,12 @@ static void ret_u32(oregister_t *r, ouint32_t v);
  * Initialization
  */
 orecord_t	*sdl_record;
+orecord_t	*sdl_gl_record;
 
 static struct {
     char	*name;
     int		 value;
-} consts[] = {
+} sdl[] = {
     /* event_t.state */
     { "Pressed",			SDL_PRESSED },
     { "Released",			SDL_RELEASED },
@@ -734,9 +762,51 @@ static struct {
     { "FadingOut",			MIX_FADING_OUT },
     { "FadingIn",			MIX_FADING_IN },
 };
+static struct {
+    char	*name;
+    int		 value;
+} gl[] = {
+    /* SDL_GLattr */
+    { "RedSize",			SDL_GL_RED_SIZE },
+    { "GreenSize",			SDL_GL_GREEN_SIZE },
+    { "BlueSize",			SDL_GL_BLUE_SIZE },
+    { "AlphaSize",			SDL_GL_ALPHA_SIZE },
+    { "BufferSize",			SDL_GL_BUFFER_SIZE },
+    { "DoubleBuffer",			SDL_GL_DOUBLEBUFFER },
+    { "DepthSize",			SDL_GL_DEPTH_SIZE },
+    { "StencilSize",			SDL_GL_STENCIL_SIZE },
+    { "AccumRedSize",			SDL_GL_ACCUM_RED_SIZE },
+    { "AccumGreenSize",			SDL_GL_ACCUM_GREEN_SIZE },
+    { "AccumBlueSize",			SDL_GL_ACCUM_BLUE_SIZE },
+    { "AccumAlphaSize",			SDL_GL_ACCUM_ALPHA_SIZE },
+    { "Stereo",				SDL_GL_STEREO },
+    { "MultiSampleBuffers",		SDL_GL_MULTISAMPLEBUFFERS },
+    { "MultiSampleSamples",		SDL_GL_MULTISAMPLESAMPLES },
+    { "AcceleratedVisual",		SDL_GL_ACCELERATED_VISUAL },
+    { "RetainedBacking",		SDL_GL_RETAINED_BACKING },
+    { "ContextMajorVersion",		SDL_GL_CONTEXT_MAJOR_VERSION },
+    { "ContextMinorVersion",		SDL_GL_CONTEXT_MINOR_VERSION },
+    { "ContextEgl",			SDL_GL_CONTEXT_EGL },
+    { "ContextFlags",			SDL_GL_CONTEXT_FLAGS },
+    { "ContextProfileMask",		SDL_GL_CONTEXT_PROFILE_MASK },
+    { "ShareWithCurrentContext",	SDL_GL_SHARE_WITH_CURRENT_CONTEXT },
+    { "FramebufferSrgbCapable",		SDL_GL_FRAMEBUFFER_SRGB_CAPABLE },
+    /* SDL_GLprofile */
+    { "ContextProfileCore",		SDL_GL_CONTEXT_PROFILE_CORE },
+    { "ContextProfileCompatibility",	SDL_GL_CONTEXT_PROFILE_COMPATIBILITY },
+    { "ContextProfileEs",		SDL_GL_CONTEXT_PROFILE_ES },
+    /* SDL_GLcontextFlag */
+    { "ContextDebugFlag",		SDL_GL_CONTEXT_DEBUG_FLAG },
+    { "ContextForwardCompatibleFlag",	SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG },
+    { "ContextRobustAccessFlag",	SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG },
+    { "ContextResetIsolationFlag",	SDL_GL_CONTEXT_RESET_ISOLATION_FLAG },
+};
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
 static ohashtable_t		*window_table;
+/* No need to create hash tables for queries */
+static	owindow_t		*current_window;
+static	ocontext_t		*current_context;
 
 /*
  * Implementation
@@ -755,11 +825,17 @@ init_sdl(void)
     oadd_root((oobject_t *)&timer_vector);
     oadd_root((oobject_t *)&window_table);
     onew_hashtable(&window_table, 4);
-    for (offset = 0; offset < osize(consts); ++offset) {
-	string = consts[offset].name;
+    for (offset = 0; offset < osize(sdl); ++offset) {
+	string = sdl[offset].name;
 	onew_constant(sdl_record, oget_string((ouint8_t *)string,
 					      strlen(string)),
-		      consts[offset].value);
+		      sdl[offset].value);
+    }
+    for (offset = 0; offset < osize(gl); ++offset) {
+	string = gl[offset].name;
+	onew_constant(sdl_gl_record, oget_string((ouint8_t *)string,
+						 strlen(string)),
+		      gl[offset].value);
     }
 
 #if __WORDSIZE == 32
@@ -769,74 +845,7 @@ init_sdl(void)
 #  define word_string		"int64_t"
 #  define pointer_string	"uint64_t"
 #endif
-#define define_builtin0(TYPE, NAME, VARARGS)				\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin1(TYPE, NAME, A0, VARARGS)			\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin2(TYPE, NAME, A0, A1, VARARGS)			\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin3(TYPE, NAME, A0, A1, A2, VARARGS)		\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	onew_argument(builtin, A2);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin4(TYPE, NAME, A0, A1, A2, A3, VARARGS)		\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	onew_argument(builtin, A2);					\
-	onew_argument(builtin, A3);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin5(TYPE, NAME, A0, A1, A2, A3, A4, VARARGS)	\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	onew_argument(builtin, A2);					\
-	onew_argument(builtin, A3);					\
-	onew_argument(builtin, A4);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin6(TYPE, NAME, A0, A1, A2, A3, A4, A5, VARARGS)	\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	onew_argument(builtin, A2);					\
-	onew_argument(builtin, A3);					\
-	onew_argument(builtin, A4);					\
-	onew_argument(builtin, A5);					\
-	oend_builtin(builtin);						\
-    } while (0)
-#define define_builtin7(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, VARARGS)\
-    do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, VARARGS);	\
-	onew_argument(builtin, A0);					\
-	onew_argument(builtin, A1);					\
-	onew_argument(builtin, A2);					\
-	onew_argument(builtin, A3);					\
-	onew_argument(builtin, A4);					\
-	onew_argument(builtin, A5);					\
-	onew_argument(builtin, A6);					\
-	oend_builtin(builtin);						\
-    } while (0)
+
 #define add_field(type, name)						\
     do {								\
 	vector = oget_string((ouint8_t *)type, strlen(type));		\
@@ -874,6 +883,7 @@ init_sdl(void)
 	(void)onew_symbol(record, vector, symbol->tag);			\
     } while (0)
 
+    /* sdl */
     record = type_vector->v.ptr[t_point];
     add_field("int32_t",	"x");
     add_field("int32_t",	"y");
@@ -1094,174 +1104,170 @@ init_sdl(void)
     add_field("timer_t",	"timer");
     oend_record(record);
 
+    /* sdl.gl */
+    record = type_vector->v.ptr[t_context];
+    add_field(pointer_string,	"*context*");
+    oend_record(record);
+
     record = current_record;
     current_record = sdl_record;
 
-    define_builtin0(t_int32,  init, false);
-    define_builtin0(t_string, get_error, false);
-    define_builtin0(t_void,   clear_error, false);
-    define_builtin0(t_void,   quit, false);
+    define_builtin0(t_int32,  init);
+    define_builtin0(t_string, get_error);
+    define_builtin0(t_void,   clear_error);
+    define_builtin0(t_void,   quit);
 
     define_builtin6(t_window,   create_window,
-		    t_string, t_int32, t_int32, t_int32, t_int32, t_uint32,
-		    false);
-    define_builtin1(t_void,     change_window, t_window, false);
-    define_builtin1(t_renderer, get_window_renderer, t_window, false);
-    define_builtin1(t_void,     destroy_window, t_window, false);
+		    t_string, t_int32, t_int32, t_int32, t_int32, t_uint32);
+    define_builtin1(t_void,     change_window, t_window);
+    define_builtin1(t_renderer, get_window_renderer, t_window);
+    define_builtin1(t_void,     destroy_window, t_window);
 
     define_builtin3(t_renderer, create_renderer,
-		    t_window, t_int32, t_uint32,
-		    false);
-    define_builtin1(t_int32,    change_renderer, t_renderer, false);
-    define_builtin1(t_window,   get_renderer_window, t_renderer, false);
-    define_builtin1(t_void,     render_clear, t_renderer, false);
+		    t_window, t_int32, t_uint32);
+    define_builtin1(t_int32,    change_renderer, t_renderer);
+    define_builtin1(t_window,   get_renderer_window, t_renderer);
+    define_builtin1(t_void,     render_clear, t_renderer);
     define_builtin3(t_int32,    render_draw_point,
-		    t_renderer, t_int32, t_int32,
-		    false);
+		    t_renderer, t_int32, t_int32);
     define_builtin2(t_int32,    render_draw_points,
-		    t_renderer, t_vector|t_int32,
-		    false);
+		    t_renderer, t_vector|t_int32);
     define_builtin5(t_int32,    render_draw_line,
-		    t_renderer, t_int32, t_int32, t_int32, t_int32,
-		    false);
+		    t_renderer, t_int32, t_int32, t_int32, t_int32);
     define_builtin2(t_int32,    render_draw_lines,
-		    t_renderer, t_vector|t_int32,
-		    false);
+		    t_renderer, t_vector|t_int32);
     define_builtin5(t_int32,    render_draw_rect,
-		    t_renderer, t_int32, t_int32, t_int32, t_int32,
-		    false);
+		    t_renderer, t_int32, t_int32, t_int32, t_int32);
     define_builtin2(t_int32,    render_draw_rects,
-		    t_renderer, t_vector|t_int32,
-		    false);
+		    t_renderer, t_vector|t_int32);
     define_builtin5(t_int32,    render_fill_rect,
-		    t_renderer, t_int32, t_int32, t_int32, t_int32,
-		    false);
+		    t_renderer, t_int32, t_int32, t_int32, t_int32);
     define_builtin2(t_int32,    render_fill_rects,
-		    t_renderer, t_vector|t_int32,
-		    false);
+		    t_renderer, t_vector|t_int32);
     define_builtin4(t_int32,    render_copy,
-		    t_renderer, t_texture, t_rect, t_rect,
-		    false);
+		    t_renderer, t_texture, t_rect, t_rect);
     define_builtin7(t_int32,    render_copy_ex,
 		    t_renderer, t_texture, t_rect, t_rect,
-		    t_float64, t_point, t_int32,
-		    false);
-    define_builtin1(t_void,    render_present, t_renderer, false);
-    define_builtin1(t_void,    destroy_renderer, t_renderer, false);
+		    t_float64, t_point, t_int32);
+    define_builtin1(t_void,    render_present, t_renderer);
+    define_builtin1(t_void,    destroy_renderer, t_renderer);
 
-    define_builtin1(t_surface, load_surface, t_string, false);
-    define_builtin1(t_void,    free_surface, t_surface, false);
+    define_builtin1(t_surface, load_surface, t_string);
+    define_builtin1(t_void,    free_surface, t_surface);
 
     define_builtin5(t_texture, create_texture,
-		    t_renderer, t_uint32, t_int32, t_int32, t_int32,
-		    false);
+		    t_renderer, t_uint32, t_int32, t_int32, t_int32);
     define_builtin2(t_texture, create_texture_from_surface,
-		    t_renderer, t_surface,
-		    false);
-    define_builtin2(t_texture, load_texture, t_string, t_renderer, false);
-    define_builtin1(t_int32,   change_texture, t_texture, false);
-    define_builtin1(t_void,    destroy_texture, t_texture, false);
+		    t_renderer, t_surface);
+    define_builtin2(t_texture, load_texture, t_string, t_renderer);
+    define_builtin1(t_int32,   change_texture, t_texture);
+    define_builtin1(t_void,    destroy_texture, t_texture);
 
-    define_builtin1(t_int32,   poll_event, t_event, false);
-    define_builtin1(t_int32,   wait_event, t_event, false);
+    define_builtin1(t_int32,   poll_event, t_event);
+    define_builtin1(t_int32,   wait_event, t_event);
 
-    define_builtin2(t_font,  open_font, t_string, t_int32, false);
-    define_builtin1(t_int32, change_font, t_font, false);
-    define_builtin2(t_int32, glyph_is_provided, t_font, t_uint16, false);
-    define_builtin2(t_glyph, glyph_metrics, t_font, t_uint16, false);
-    define_builtin3(t_int32, size_text, t_font, t_string, t_point, false);
-    define_builtin3(t_int32, size_utf8, t_font, t_string, t_point, false);
-    define_builtin3(t_int32, size_unicode,
-		    t_font, t_vector|t_uint16, t_point,
-		    false);
-    define_builtin3(t_surface, render_text_solid,
-		    t_font, t_string, t_color, false);
-    define_builtin3(t_surface, render_utf8_solid,
-		    t_font, t_string, t_color, false);
+    define_builtin2(t_font,  open_font, t_string, t_int32);
+    define_builtin1(t_int32, change_font, t_font);
+    define_builtin2(t_int32, glyph_is_provided, t_font, t_uint16);
+    define_builtin2(t_glyph, glyph_metrics, t_font, t_uint16);
+    define_builtin3(t_int32, size_text, t_font, t_string, t_point);
+    define_builtin3(t_int32, size_utf8, t_font, t_string, t_point);
+    define_builtin3(t_int32, size_unicode, t_font, t_vector|t_uint16, t_point);
+    define_builtin3(t_surface, render_text_solid, t_font, t_string, t_color);
+    define_builtin3(t_surface, render_utf8_solid, t_font, t_string, t_color);
     define_builtin3(t_surface, render_unicode_solid,
-		    t_font, t_vector|t_uint16, t_color, false);
-    define_builtin3(t_surface, render_glyph_solid,
-		    t_font, t_uint16, t_color, false);
+		    t_font, t_vector|t_uint16, t_color);
+    define_builtin3(t_surface, render_glyph_solid, t_font, t_uint16, t_color);
     define_builtin4(t_surface, render_text_shaded,
-		    t_font, t_string, t_color, t_color, false);
+		    t_font, t_string, t_color, t_color);
     define_builtin4(t_surface, render_utf8_shaded,
-		    t_font, t_string, t_color, t_color, false);
+		    t_font, t_string, t_color, t_color);
     define_builtin4(t_surface, render_unicode_shaded,
-		    t_font, t_vector|t_uint16, t_color, t_color, false);
+		    t_font, t_vector|t_uint16, t_color, t_color);
     define_builtin4(t_surface, render_glyph_shaded,
-		    t_font, t_uint16, t_color, t_color, false);
-    define_builtin3(t_surface, render_text_blended,
-		    t_font, t_string, t_color, false);
-    define_builtin3(t_surface, render_utf8_blended,
-		    t_font, t_string, t_color, false);
+		    t_font, t_uint16, t_color, t_color);
+    define_builtin3(t_surface, render_text_blended, t_font, t_string, t_color);
+    define_builtin3(t_surface, render_utf8_blended, t_font, t_string, t_color);
     define_builtin3(t_surface, render_unicode_blended,
-		    t_font, t_vector|t_uint16, t_color, false);
-    define_builtin3(t_surface, render_glyph_blended,
-		    t_font, t_uint16, t_color, false);
+		    t_font, t_vector|t_uint16, t_color);
+    define_builtin3(t_surface, render_glyph_blended, t_font, t_uint16, t_color);
     define_builtin4(t_surface, render_text_blended_wrapped,
-		    t_font, t_string, t_color, t_uint32, false);
+		    t_font, t_string, t_color, t_uint32);
     define_builtin4(t_surface, render_utf8_blended_wrapped,
-		    t_font, t_string, t_color, t_uint32, false);
+		    t_font, t_string, t_color, t_uint32);
     define_builtin4(t_surface, render_unicode_blended_wrapped,
-		    t_font, t_vector|t_uint16, t_color, t_uint32, false);
-    define_builtin3(t_int32, get_kerning, t_font, t_uint16, t_uint16, false);
-    define_builtin1(t_void,  close_font, t_font, false);
+		    t_font, t_vector|t_uint16, t_color, t_uint32);
+    define_builtin3(t_int32, get_kerning, t_font, t_uint16, t_uint16);
+    define_builtin1(t_void,  close_font, t_font);
 
-    define_builtin2(t_timer,   add_timer, t_uint32, t_void, false);
-    define_builtin0(t_uint32,  get_ticks, false);
-    define_builtin1(t_void,    delay, t_uint32, false);
-    define_builtin1(t_int32,   remove_timer, t_timer, false);
+    define_builtin2(t_timer,   add_timer, t_uint32, t_void);
+    define_builtin0(t_uint32,  get_ticks);
+    define_builtin1(t_void,    delay, t_uint32);
+    define_builtin1(t_int32,   remove_timer, t_timer);
 
     define_builtin4(t_audio, open_audio,
-		    t_int32, t_uint16, t_int32, t_int32, false);
-    define_builtin1(t_int32, allocate_channels, t_int32, false);
-    define_builtin1(t_chunk, load_chunk, t_string, false);
-    define_builtin3(t_int32, play_channel, t_int32, t_chunk, t_int32, false);
+		    t_int32, t_uint16, t_int32, t_int32);
+    define_builtin1(t_int32, allocate_channels, t_int32);
+    define_builtin1(t_chunk, load_chunk, t_string);
+    define_builtin3(t_int32, play_channel, t_int32, t_chunk, t_int32);
     define_builtin4(t_int32, fade_in_channel,
-		    t_int32, t_chunk, t_int32, t_int32, false);
-    define_builtin2(t_int32, volume_chunk, t_chunk, t_int32, false);
-    define_builtin3(t_int32, panning_channel, t_int32, t_uint8, t_uint8, false);
-    define_builtin3(t_int32, position_channel,
-		    t_int32, t_int16, t_uint8, false);
-    define_builtin2(t_int32, distance_channel, t_int32, t_uint8, false);
-    define_builtin2(t_int32, reverse_stereo_channel, t_int32, t_int8, false);
-    define_builtin2(t_int32, fade_out_channel, t_int32, t_int32, false);
-    define_builtin1(t_int32, playing_channel, t_int32, false);
-    define_builtin1(t_int32, fading_channel, t_int32, false);
-    define_builtin2(t_int32, expire_channel, t_int32, t_int32, false);
-    define_builtin1(t_void, pause_channel, t_int32, false);
-    define_builtin1(t_void, resume_channel, t_int32, false);
-    define_builtin1(t_int32, paused_channel, t_int32, false);
-    define_builtin1(t_int32, halt_channel, t_int32, false);
-    define_builtin1(t_void,  free_chunk, t_chunk, false);
-    define_builtin2(t_int32, group_channel, t_int32, t_int32, false);
-    define_builtin3(t_int32, group_channels, t_int32, t_int32, t_int32, false);
-    define_builtin1(t_int32, group_available, t_int32, false);
-    define_builtin1(t_int32, group_count, t_int32, false);
-    define_builtin1(t_int32, group_oldest, t_int32, false);
-    define_builtin1(t_int32, group_newer, t_int32, false);
-    define_builtin1(t_int32, fade_out_group, t_int32, false);
-    define_builtin1(t_int32, halt_group, t_int32, false);
-    define_builtin1(t_music, load_music, t_string, false);
-    define_builtin2(t_int32, play_music, t_music, t_int32, false);
-    define_builtin3(t_int32, fade_in_music, t_music, t_int32, t_int32, false);
-    define_builtin1(t_int32, volume_music, t_uint8, false);
-    define_builtin0(t_int32, playing_music, false);
-    define_builtin1(t_int32,  fade_out_music, t_int32, false);
-    define_builtin0(t_int32,  fading_music, false);
-    define_builtin0(t_void,  pause_music, false);
-    define_builtin0(t_void,  resume_music, false);
-    define_builtin0(t_void,  rewind_music, false);
-    define_builtin0(t_int32,  paused_music, false);
-    define_builtin1(t_int32,  set_music_position, t_float64, false);
-    define_builtin0(t_int32,  halt_music, false);
-    define_builtin1(t_void,  free_music, t_music, false);
-    define_builtin0(t_void,  close_audio, false);
+		    t_int32, t_chunk, t_int32, t_int32);
+    define_builtin2(t_int32, volume_chunk, t_chunk, t_int32);
+    define_builtin3(t_int32, panning_channel, t_int32, t_uint8, t_uint8);
+    define_builtin3(t_int32, position_channel, t_int32, t_int16, t_uint8);
+    define_builtin2(t_int32, distance_channel, t_int32, t_uint8);
+    define_builtin2(t_int32, reverse_stereo_channel, t_int32, t_int8);
+    define_builtin2(t_int32, fade_out_channel, t_int32, t_int32);
+    define_builtin1(t_int32, playing_channel, t_int32);
+    define_builtin1(t_int32, fading_channel, t_int32);
+    define_builtin2(t_int32, expire_channel, t_int32, t_int32);
+    define_builtin1(t_void, pause_channel, t_int32);
+    define_builtin1(t_void, resume_channel, t_int32);
+    define_builtin1(t_int32, paused_channel, t_int32);
+    define_builtin1(t_int32, halt_channel, t_int32);
+    define_builtin1(t_void,  free_chunk, t_chunk);
+    define_builtin2(t_int32, group_channel, t_int32, t_int32);
+    define_builtin3(t_int32, group_channels, t_int32, t_int32, t_int32);
+    define_builtin1(t_int32, group_available, t_int32);
+    define_builtin1(t_int32, group_count, t_int32);
+    define_builtin1(t_int32, group_oldest, t_int32);
+    define_builtin1(t_int32, group_newer, t_int32);
+    define_builtin1(t_int32, fade_out_group, t_int32);
+    define_builtin1(t_int32, halt_group, t_int32);
+    define_builtin1(t_music, load_music, t_string);
+    define_builtin2(t_int32, play_music, t_music, t_int32);
+    define_builtin3(t_int32, fade_in_music, t_music, t_int32, t_int32);
+    define_builtin1(t_int32, volume_music, t_uint8);
+    define_builtin0(t_int32, playing_music);
+    define_builtin1(t_int32,  fade_out_music, t_int32);
+    define_builtin0(t_int32,  fading_music);
+    define_builtin0(t_void,  pause_music);
+    define_builtin0(t_void,  resume_music);
+    define_builtin0(t_void,  rewind_music);
+    define_builtin0(t_int32,  paused_music);
+    define_builtin1(t_int32,  set_music_position, t_float64);
+    define_builtin0(t_int32,  halt_music);
+    define_builtin1(t_void,  free_music, t_music);
+    define_builtin0(t_void,  close_audio);
+
+    current_record = sdl_gl_record;
+
+    define_builtin0(t_void,    reset_attributes);
+    define_builtin2(t_int32,   set_attribute, t_int32, t_int32);
+    define_builtin2(t_int32,   get_attribute, t_int32, t_vector|t_int32);
+    define_builtin1(t_context, create_context, t_window);
+    define_builtin2(t_int32,   make_current, t_window, t_context);
+    define_builtin0(t_window,  get_current_window);
+    define_builtin0(t_context, get_current_context);
+    define_builtin1(t_int32,   set_swap_interval, t_int8);
+    define_builtin0(t_int8,    get_swap_interval);
+    define_builtin1(t_void,    swap_window, t_window);
+    define_builtin1(t_void,    delete_context, t_context);
 
     current_record = record;
+#undef add_vec_field
+#undef add_union
 #undef add_field
-#undef define_builtin1
-#undef define_builtin0
 }
 
 void
@@ -1281,6 +1287,8 @@ odestroy_window(owindow_t *window)
 	    orem_hashentry(window_table, window->__handle);
 	SDL_DestroyWindow(window->__window);
 	window->__window = null;
+	if (current_window == window)
+	    current_window = null;
     }
 }
 
@@ -1321,6 +1329,17 @@ odestroy_font(ofont_t *font)
     if (font->__font) {
 	TTF_CloseFont(font->__font);
 	font->__font = null;
+    }
+}
+
+void
+odestroy_context(ocontext_t *context)
+{
+    if (context->__context) {
+	SDL_GL_DeleteContext(context->__context);
+	context->__context = null;
+	if (current_context == context)
+	    current_context = null;
     }
 }
 
@@ -4004,3 +4023,182 @@ ret_u32(oregister_t *r, ouint32_t v)
     }
 }
 #endif
+
+static void
+native_reset_attributes(oobject_t list, oint32_t ac)
+/* void reset_attributes(); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+
+    r0 = &thread_self->r0;
+    SDL_GL_ResetAttributes();
+    r0->t = t_void;
+}
+
+static void
+native_set_attribute(oobject_t list, oint32_t ac)
+/* int32_t set_attribute(int32_t attr, int32_t value); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_i32_t			*alist;
+
+    alist = (nat_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = SDL_GL_SetAttribute(alist->si0, alist->si1);
+}
+
+static void
+native_get_attribute(oobject_t list, oint32_t ac)
+/* int32_t get_attribute(int32_t attr, int32_t value[1]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    alist = (nat_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->vec == null ||
+	otype(alist->vec) != (t_vector|t_int32) || alist->vec->length != 1)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = SDL_GL_GetAttribute(alist->i32, alist->vec->v.i32);
+}
+
+static void
+native_create_context(oobject_t list, oint32_t ac)
+/* context_t create_context(window_t window); */
+{
+    GET_THREAD_SELF()
+    SDL_GLContext			 sc;
+    ocontext_t				*oc;
+    oregister_t				*r0;
+    nat_win_t				*alist;
+
+    alist = (nat_win_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->win == null || otype(alist->win) != t_window)
+	ovm_raise(except_invalid_argument);
+    if ((sc = SDL_GL_CreateContext(alist->win->__window))) {
+	onew_object(&thread_self->obj, t_context, sizeof(ocontext_t));
+	oc = (ocontext_t *)thread_self->obj;
+	oc->__context = sc;
+	r0->v.o = thread_self->obj;
+	r0->t = t_context;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_make_current(oobject_t list, oint32_t ac)
+/* int32_t make_current(window_t window, context_t context); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_win_ctx_t			*alist;
+
+    alist = (nat_win_ctx_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->win == null || otype(alist->win) != t_window ||
+	alist->ctx == null || otype(alist->ctx) != t_context)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = SDL_GL_MakeCurrent(alist->win->__window, alist->ctx->__context);
+    current_window = alist->win;
+    current_context = alist->ctx;
+}
+
+static void
+native_get_current_window(oobject_t list, oint32_t ac)
+/* window_t get_current_window(); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+
+    r0 = &thread_self->r0;
+    if (current_window) {
+	assert(current_window->__window == SDL_GL_GetCurrentWindow());
+	r0->v.o = current_window;
+	r0->t = t_window;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_get_current_context(oobject_t list, oint32_t ac)
+/* context_t get_current_context(); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+
+    r0 = &thread_self->r0;
+    if (current_context) {
+	assert(current_context->__context == SDL_GL_GetCurrentContext());
+	r0->v.o = current_context;
+	r0->t = t_context;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_set_swap_interval(oobject_t list, oint32_t ac)
+/* int32_t set_swap_interval(int8_t interval); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i8_t				*alist;
+
+    alist = (nat_i8_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = SDL_GL_SetSwapInterval(alist->i8);
+}
+
+static void
+native_get_swap_interval(oobject_t list, oint32_t ac)
+/* int8_t get_swap_interval(); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = SDL_GL_GetSwapInterval();
+}
+
+static void
+native_swap_window(oobject_t list, oint32_t ac)
+/* void swap_window(window_t window); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_win_t				*alist;
+
+    alist = (nat_win_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->win == null || otype(alist->win) != t_window)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    SDL_GL_SwapWindow(alist->win->__window);
+}
+
+static void
+native_delete_context(oobject_t list, oint32_t ac)
+/* void delete_context(context_t context); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_ctx_t				*alist;
+
+    alist = (nat_ctx_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->ctx == null || otype(alist->ctx) != t_context)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    odestroy_context(alist->ctx);
+}

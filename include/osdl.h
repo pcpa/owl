@@ -253,6 +253,10 @@ struct oevent {
     otimer_t		*timer;			/* timer event information */
 };
 
+struct ocontext {
+    SDL_GLContext	__context;
+};
+
 /*
  * Prototypes
  */
@@ -274,9 +278,13 @@ odestroy_texture(otexture_t *texture);
 extern void
 odestroy_font(ofont_t *font);
 
+extern void
+odestroy_context(ocontext_t *context);
+
 /*
  * Externs
  */
 extern orecord_t	*sdl_record;
+extern orecord_t	*sdl_gl_record;
 
 #endif /* _osdl_h */

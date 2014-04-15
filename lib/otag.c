@@ -102,6 +102,14 @@ static char *sdl[] = {
     "audio_t",
     "event_t",
 };
+static char *sdl_gl[] = {
+    "context_t",
+};
+static char *glu[] = {
+    "nurbs_t",
+    "quadric_t",
+    "tesselator_t",
+};
 #endif
 
 /*
@@ -148,6 +156,37 @@ init_tag(void)
 					     strlen(sdl[offset])));
 	onew_record(symbol);
     }
+
+    /* Also initialize sdl.gl namespace and types */
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"gl", 2), null);
+    sdl_gl_record = onew_namespace(symbol);
+    current_record = sdl_gl_record;
+    for (offset = 0; offset < osize(sdl_gl); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)sdl_gl[offset],
+					     strlen(sdl_gl[offset])));
+	onew_record(symbol);
+    }
+
+    current_record = record;
+
+    /* Initialize top level gl namespace */
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"gl", 2), null);
+    gl_record = onew_namespace(symbol);
+
+    /* Initialize top level glu namespace */
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"glu", 3), null);
+    glu_record = onew_namespace(symbol);
+
+    current_record = glu_record;
+    for (offset = 0; offset < osize(glu); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)glu[offset],
+					     strlen(glu[offset])));
+	onew_record(symbol);
+    }
+
     current_record = record;
 #endif
 

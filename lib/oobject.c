@@ -699,6 +699,7 @@ gc(void)
     union {
 	ofont_t		*font;
 	ochunk_t	*chunk;
+	ocontext_t	*context;
 	omusic_t	*music;
 	oobject_t	 object;
 	orenderer_t	*renderer;
@@ -706,6 +707,9 @@ gc(void)
 	otexture_t	*texture;
 	otimer_t	*timer;
 	owindow_t	*window;
+	onurbs_t	*nurbs;
+	oquadric_t	*quadric;
+	otesselator_t	*tesselator;
     } o;
 #endif
 
@@ -832,6 +836,26 @@ gc(void)
 		    o.object = memory_to_object(oobject_t, memory);
 		    if (o.timer->__timer)
 			SDL_RemoveTimer(o.timer->__timer);
+		    break;
+		case t_context:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_context(o.context);
+		    break;
+		case t_nurbs:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.nurbs->__nurbs)
+			gluDeleteNurbsRenderer(o.nurbs->__nurbs);
+		    break;
+		case t_quadric:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.quadric->__quadric)
+			gluDeleteQuadric(o.quadric->__quadric);
+		    break;
+		case t_tesselator:
+		    o.object = memory_to_object(oobject_t, memory);
+		    if (o.tesselator->__tesselator)
+			gluDeleteTess(o.tesselator->__tesselator);
+		    break;
 #endif
 		default:
 		    break;

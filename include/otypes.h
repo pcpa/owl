@@ -67,6 +67,7 @@ typedef __cqq_struct*		ocqq_t;
 typedef __mpc_struct*		ompc_t;
 
 #if SDL
+/* sdl */
 typedef struct opoint		opoint_t;
 typedef struct orect		orect_t;
 typedef struct ocolor		ocolor_t;
@@ -81,6 +82,12 @@ typedef struct ochunk		ochunk_t;
 typedef struct omusic		omusic_t;
 typedef struct oaudio		oaudio_t;
 typedef struct oevent		oevent_t;
+/* sdl.gl */
+typedef struct ocontext		ocontext_t;
+/* glu */
+typedef struct onurbs		onurbs_t;
+typedef struct oquadric		oquadric_t;
+typedef struct otesselator	otesselator_t;
 #endif
 
 /* Virtual machine hash table */

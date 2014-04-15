@@ -29,6 +29,8 @@ EXTRA_DIST =		\
 	oerror.h	\
 	oeval.h		\
 	ofunction.h	\
+	ogl.h		\
+	oglu.h		\
 	ohash.h		\
 	ohashtable.h	\
 	omath.h		\

@@ -99,6 +99,8 @@ ocfg_main(int argc, char *argv[])
     init_hashtable();
 #if SDL
     init_sdl();
+    init_gl();
+    init_glu();
 #endif
 
     if (optind < argc) {
@@ -135,6 +137,8 @@ ocfg_main(int argc, char *argv[])
     jit_destroy_state();
 
 #if SDL
+    finish_glu();
+    finish_gl();
     finish_sdl();
 #endif
     finish_hashtable();

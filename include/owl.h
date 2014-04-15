@@ -39,6 +39,8 @@
 #  include <SDL_image.h>
 #  include <SDL_ttf.h>
 #  include <SDL_mixer.h>
+#  include <SDL_opengl.h>
+#  include <GL/glu.h>
 #endif
 
 #include "cqq.h"
@@ -64,6 +66,8 @@
 #include "orealize.h"
 #if SDL
 #  include "osdl.h"
+#  include "ogl.h"
+#  include "oglu.h"
 #endif
 #include "ostream.h"
 #include "ostring.h"
