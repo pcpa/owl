@@ -121,6 +121,8 @@ struct orenderer {
 
 struct osurface {
     SDL_Surface		*__surface;
+    oint32_t		 w;
+    oint32_t		 h;
 };
 
 struct otexture {

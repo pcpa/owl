@@ -1,0 +1,226 @@
+/* Simplified mesa-demos/demos/bounce.c (using SDL).
+ */
+
+#define COS(X)   cos( (X) * 3.14159/180.0 )
+#define SIN(X)   sin( (X) * 3.14159/180.0 )
+
+#define RED 1
+#define WHITE 2
+#define CYAN 3
+
+uint32_t Ball;
+uint32_t Mode;
+float64_t Zrot = 0.0, Zstep = 180.0;
+float64_t Xpos = 0.0, Ypos = 1.0;
+float64_t Xvel = 2.0, Yvel = 0.0;
+float64_t Xmin = -4.0, Xmax = 4.0;
+float64_t Ymin = -3.8, Ymax = 4.0;
+float64_t G = -9.8;
+
+if (sdl.init()) {
+    print("init error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+sdl.window_t win = sdl.create_window("bounce",
+				     sdl.WindowposCentered,
+				     sdl.WindowposCentered,
+				     600, 450,
+				     sdl.WindowOpenGL |
+				     sdl.WindowResizable |
+				     sdl.WindowShown);
+if (win == null) {
+    print("create_window error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.context_t ctx = sdl.gl.create_context(win);
+if (ctx == null) {
+    print("create_context error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_swap_interval(1);
+sdl.gl.make_current(win, ctx);
+
+uint32_t make_ball() {
+    uint32_t list;
+    float64_t a, b;
+    float64_t da = 18.0, db = 18.0;
+    float64_t radius = 1.0;
+    uint32_t color;
+    float64_t x, y, z;
+
+    list = gl.GenLists(1);
+
+    gl.NewList(list, gl.COMPILE);
+
+    color = 0;
+    for (a = -90.0; a + da <= 90.0; a += da) {
+	gl.Begin(gl.QUAD_STRIP);
+	for (b = 0.0; b <= 360.0; b += db) {
+	    if (color) {
+		gl.Index(RED);
+	        gl.Color3(1, 0, 0);
+	    }
+	    else {
+		gl.Index(WHITE);
+	        gl.Color3(1, 1, 1);
+	    }
+
+	    x = radius * COS(b) * COS(a);
+	    y = radius * SIN(b) * COS(a);
+	    z = radius * SIN(a);
+	    gl.Vertex3(x, y, z);
+
+	    x = radius * COS(b) * COS(a + da);
+	    y = radius * SIN(b) * COS(a + da);
+	    z = radius * SIN(a + da);
+	    gl.Vertex3(x, y, z);
+
+	    color = 1 - color;
+	}
+	gl.End();
+    }
+
+    gl.EndList();
+
+    return list;
+}
+
+void reshape(int32_t width, int32_t height)
+{
+    float64_t aspect = width / height;
+    gl.Viewport(0, 0, width, height);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    gl.Ortho(-6.0 * aspect, 6.0 * aspect, -6.0, 6.0, -6.0, 6.0);
+    gl.MatrixMode(gl.MODELVIEW);
+}
+
+void draw() {
+    float64_t i;
+
+    gl.Clear(gl.COLOR_BUFFER_BIT);
+
+    gl.Index(CYAN);
+    gl.Color3(0, 1, 1);
+    gl.Begin(gl.LINES);
+    for (i = -5,0; i <= 5.0; i += 1.0) {
+	gl.Vertex2(i, -5);
+	gl.Vertex2(i, 5);
+    }
+    for (i = -5.0; i <= 5.0; i += 1.0) {
+	gl.Vertex2(-5, i);
+	gl.Vertex2(5, i);
+    }
+    for (i = -5.0; i <= 5.0; i += 1.0) {
+	gl.Vertex2(i, -5);
+	gl.Vertex2(i * 1.15, -5.9);
+    }
+    gl.Vertex2(-5.3, -5.35);
+    gl.Vertex2(5.3, -5.35);
+    gl.Vertex2(-5.75, -5.9);
+    gl.Vertex2(5.75, -5.9);
+    gl.End();
+
+    gl.PushMatrix();
+    gl.Translate(Xpos, Ypos, 0.0);
+    gl.Scale(2.0, 2.0, 2.0);
+    gl.Rotate(8.0, 0.0, 0.0, 1.0);
+    gl.Rotate(90.0, 1.0, 0.0, 0.0);
+    gl.Rotate(Zrot, 0.0, 0.0, 1.0);
+
+    gl.CallList(Ball);
+
+    gl.PopMatrix();
+
+    gl.Flush();
+
+    sdl.gl.swap_window(win);
+}
+
+float64_t vel0 = -100.0;
+float64_t t0 = -1.0;
+void idle() {
+    float64_t t, dt;
+    t = sdl.get_ticks() / 1000.0;
+    if (t0 < 0.0)
+	t0 = t;
+    dt = t - t0;
+    t0 = t;
+
+    Zrot += Zstep * dt;
+
+    Xpos += Xvel * dt;
+    if (Xpos >= Xmax) {
+	Xpos = Xmax;
+	Xvel = -Xvel;
+	Zstep = -Zstep;
+    }
+    if (Xpos <= Xmin) {
+	Xpos = Xmin;
+	Xvel = -Xvel;
+	Zstep = -Zstep;
+    }
+    Ypos += Yvel * dt;
+    Yvel += G * dt;
+    if (Ypos < Ymin) {
+	Ypos = Ymin;
+	if (vel0 == -100.0)
+	    vel0 = abs(Yvel);
+	Yvel = vel0;
+    }
+
+    draw();
+}
+
+void event_loop() {
+    int8_t done = false, visible;
+    sdl.event_t e = {};
+    while (!done) {
+	do {
+	    if (sdl.poll_event(e)) {
+		switch (e.type) {
+		    case sdl.EventQuit:
+			done = true;
+			break;
+		    case sdl.EventWindow:
+			switch (e.event) {
+			    case sdl.WindowEventResized:
+				reshape(e.w, e.h);
+				visible = true;
+				break;
+			    case sdl.WindowEventHidden:
+			    case sdl.WindowEventMinimized:
+				visible = false;
+				break;
+			    default:
+				visible = true;
+				break;
+			}
+			break;
+		    case sdl.EventKeyDown:
+			switch (e.keysym) {
+			    case sdl.Key_Escape:
+				done = true;
+				break;
+			}
+		}
+	    }
+	} while (!visible);
+	idle();
+    }
+}
+
+Ball = make_ball();
+gl.CullFace(gl.BACK);
+gl.Enable(gl.CULL_FACE);
+gl.Disable(gl.DITHER);
+gl.ShadeModel(gl.FLAT);
+
+reshape(600, 450);
+event_loop();
+
+sdl.gl.delete_context(ctx);
+sdl.destroy_window(win);
+sdl.quit();

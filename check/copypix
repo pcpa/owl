@@ -1,0 +1,244 @@
+/* Simplified mesa-demos/demos/copypix.c (using SDL).
+ */
+
+int32_t WinWidth = 800, WinHeight = 800;
+int32_t Xpos, Ypos;
+int32_t Scissor = 0;
+float64_t Xzoom, Yzoom;
+uint32_t DrawFront = false;
+uint32_t Dither = true;
+uint32_t Invert = false;
+
+if (sdl.init()) {
+    print("init error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+sdl.window_t win = sdl.create_window("copypix",
+				     sdl.WindowposCentered,
+				     sdl.WindowposCentered,
+				     WinWidth, WinHeight,
+				     sdl.WindowOpenGL |
+				     sdl.WindowResizable |
+				     sdl.WindowShown);
+if (win == null) {
+    print("create_window error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.context_t ctx = sdl.gl.create_context(win);
+if (ctx == null) {
+    print("create_context error: %s\n", sdl.get_error());
+    exit(1);
+}
+sdl.gl.set_swap_interval(1);
+sdl.gl.make_current(win, ctx);
+sdl.surface_t Image;
+
+void Reset() {
+    Xpos = Ypos = 20;
+    Scissor = 0;
+    Xzoom = Yzoom = 1.0;
+}
+
+void Init() {
+   print("GL_VERSION = %s\n", gl.GetString(gl.VERSION));
+   print("GL_RENDERER = %s\n", gl.GetString(gl.RENDERER));
+
+   Image = sdl.load_surface("check/arch.png");
+    if (Image == null) {
+	print("load_surface error: %s\n", sdl.get_error());
+	exit(1);
+    }
+
+    print("Loaded %d by %d image\n", Image.w, Image.h);
+
+    gl.PixelStore(gl.UNPACK_ALIGNMENT, 1);
+    gl.PixelStore(gl.UNPACK_ROW_LENGTH, Image.w);
+
+    Reset();
+    Reshape(WinWidth, WinHeight);
+}
+
+void Display() {
+   int32_t dx = (WinWidth - Image.w) \ 2;
+   int32_t dy = (WinHeight - Image.h) \ 2;
+
+    if (DrawFront) {
+	gl.DrawBuffer(gl.FRONT);
+	gl.ReadBuffer(gl.FRONT);
+    }
+    else {
+	gl.DrawBuffer(gl.BACK);
+	gl.ReadBuffer(gl.BACK);
+    }
+
+    gl.Clear(gl.COLOR_BUFFER_BIT);
+
+   /* draw original image */
+    gl.WindowPos2(dx, dy);                    
+    sdl.gl.DrawPixels(Image);
+
+    if (Scissor)
+	gl.Enable(gl.SCISSOR_TEST);
+
+    if (Invert) {
+	gl.PixelTransfer(gl.RED_SCALE, -1.0);
+	gl.PixelTransfer(gl.GREEN_SCALE, -1.0);
+	gl.PixelTransfer(gl.BLUE_SCALE, -1.0);
+	gl.PixelTransfer(gl.RED_BIAS, 1.0);
+	gl.PixelTransfer(gl.GREEN_BIAS, 1.0);
+	gl.PixelTransfer(gl.BLUE_BIAS, 1.0);
+   }
+
+    /* draw copy */
+    gl.PixelZoom(Xzoom, Yzoom);
+    gl.WindowPos2(Xpos, Ypos);
+    gl.CopyPixels(dx, dy, Image.w, Image.h, gl.COLOR);
+    gl.PixelZoom(1, 1);
+
+    gl.Disable(gl.SCISSOR_TEST);
+
+    if (Invert) {
+	gl.PixelTransfer(gl.RED_SCALE, 1.0);
+	gl.PixelTransfer(gl.GREEN_SCALE, 1.0);
+	gl.PixelTransfer(gl.BLUE_SCALE, 1.0);
+	gl.PixelTransfer(gl.RED_BIAS, 0.0);
+	gl.PixelTransfer(gl.GREEN_BIAS, 0.0);
+	gl.PixelTransfer(gl.BLUE_BIAS, 0.0);
+    }
+
+    if (DrawFront)
+	gl.Finish();
+    else
+	sdl.gl.swap_window(win);
+}
+
+void Reshape(int32_t width, int32_t height) {
+    WinWidth = width;
+    WinHeight = height;
+
+    gl.Viewport(0, 0, width, height);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    gl.Ortho(0.0, width, 0.0, height, 0.0, 2.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+
+    gl.Scissor(width\4, height\4, width\2, height\2);
+}
+
+void Usage()
+{
+   print("Keys:\n");
+   print("       SPACE  Reset Parameters\n");
+   print("     Up/Down  Move image up/down (SHIFT for large step)\n");
+   print("  Left/Right  Move image left/right (SHIFT for large step)\n");
+   print("           x  Decrease X-axis PixelZoom\n");
+   print("           X  Increase X-axis PixelZoom\n");
+   print("           y  Decrease Y-axis PixelZoom\n");
+   print("           Y  Increase Y-axis PixelZoom\n");
+   print("           s  Toggle GL_SCISSOR_TEST\n");
+   print("           f  Toggle front/back buffer drawing\n");
+   print("         ESC  Exit\n");
+}
+
+void event_loop() {
+    int8_t done = false;
+    int32_t step;
+    sdl.event_t e = {};
+    while (!done) {
+	if (!sdl.wait_event(e))
+	    continue;
+	switch (e.type) {
+	    case sdl.EventQuit:
+		done = true;
+		break;
+	    case sdl.EventWindow:
+		switch (e.event) {
+		    case sdl.WindowEventResized:
+			Reshape(e.w, e.h);
+			break;
+		    case sdl.WindowEventHidden:
+		    case sdl.WindowEventMinimized:
+			continue;
+		    default:
+			break;
+		}
+		break;
+	    case sdl.EventKeyDown:
+		switch (e.keysym) {
+		    case sdl.Key_Space:
+			Reset();
+			break;
+		    case sdl.Key_d:
+			Dither = !Dither;
+			if (Dither)
+			    gl.Enable(gl.DITHER);
+			else
+			    gl.Disable(gl.DITHER);
+			break;
+			/* Missing in Usage() */
+		    case sdl.Key_i:
+			Invert = !Invert;
+			break;
+		    case sdl.Key_s:
+			Scissor = !Scissor;
+			break;
+		    case sdl.Key_x:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Xzoom += 0.1;
+			else
+			    Xzoom -= 0.1;
+			break;
+		    case sdl.Key_y:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Yzoom += 0.1;
+			else
+			    Yzoom -= 0.1;
+			break;
+		    case sdl.Key_f:
+			DrawFront = !DrawFront;
+			print("glDrawBuffer(%s)\n", DrawFront ?
+			      "GL_FRONT" : "GL_BACK");
+			break;
+		    case sdl.Key_Up:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Ypos += 10;
+			else
+			    ++Ypos;
+			break;
+		    case sdl.Key_Down:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Ypos -= 10;
+			else
+			    --Ypos;
+			break;
+		    case sdl.Key_Left:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Xpos -= 10;
+			else
+			    --Xpos;
+			break;
+		    case sdl.Key_Right:
+			if (sdl.get_mod_state() & sdl.KmodShift)
+			    Xpos += 10;
+			else
+			    ++Xpos;
+			break;
+		    case sdl.Key_Escape:
+			done = true;
+			break;
+		}
+	}
+	Display();
+    }
+}
+
+Init();
+Usage();
+event_loop();
+
+sdl.gl.delete_context(ctx);
+sdl.destroy_window(win);
+sdl.quit();

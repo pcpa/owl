@@ -17,6 +17,18 @@
 
 #include "owl.h"
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#  define R_MASK		0x000000ff
+#  define G_MASK		0x0000ff00
+#  define B_MASK		0x00ff0000
+#  define A_MASK		0xff000000
+#else
+#  define R_MASK		0xff000000
+#  define G_MASK		0x00ff0000
+#  define B_MASK		0x0000ff00
+#  define A_MASK		0x000000ff
+#endif
+
 /*
  * Types
  */
@@ -48,7 +60,7 @@ typedef struct {
     oevent_t		*ev;
 } nat_ev_t;
 typedef struct {
-    osurface_t		*srf;
+    osurface_t		*a0;
 } nat_srf_t;
 typedef struct {
     ofont_t		*fnt;
@@ -144,6 +156,11 @@ typedef struct {
     oint32_t		 si1;
 } nat_ren_i32_i32_t;
 typedef struct {
+    osurface_t		*a0;
+    oint32_t		 a1;
+    oint32_t		 a2;
+} nat_srf_i32_i32_t;
+typedef struct {
     omusic_t		*mus;
     oint32_t		 si0;
     oint32_t		 si1;
@@ -232,6 +249,20 @@ typedef struct {
     oint32_t		 si0, si1, si2, si3;
     ouint32_t		 u32;
 } nat_vec_i32_i32_i32_i32_u32_t;
+typedef struct {
+    oint32_t		 a0;
+    oint32_t		 a1;
+    oint32_t		 a2;
+    oint32_t		 a3;
+    ouint32_t		 a4;
+} nat_i32_i32_i32_i32_u32_t;
+typedef struct {
+    osurface_t		*a0;
+    oint32_t		 a1;
+    oint32_t		 a2;
+    oint32_t		 a3;
+    oint32_t		 a4;
+} nat_srf_i32_i32_i32_i32_t;
 
 /*
  * Prototypes
@@ -263,6 +294,7 @@ static void native_render_copy_ex(oobject_t list, oint32_t ac);
 static void native_render_present(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
 static void native_destroy_renderer(oobject_t list, oint32_t ac);
+static void query_surface(osurface_t *surface);
 static void native_load_surface(oobject_t list, oint32_t ac);
 static void native_free_surface(oobject_t list, oint32_t ac);
 static void query_texture(otexture_t *ot);
@@ -301,6 +333,7 @@ static void native_render_utf8_blended_wrapped(oobject_t list, oint32_t ac);
 static void native_render_unicode_blended_wrapped(oobject_t list, oint32_t ac);
 static void native_get_kerning(oobject_t list, oint32_t ac);
 static void native_close_font(oobject_t list, oint32_t ac);
+static void native_get_mod_state(oobject_t list, oint32_t ac);
 static Uint32 timer_callback(Uint32 ms, void *data);
 static void pop_timer(oobject_t *pointer);
 static void push_timer(otimer_t *timer);
@@ -364,6 +397,13 @@ static void native_set_swap_interval(oobject_t list, oint32_t ac);
 static void native_get_swap_interval(oobject_t list, oint32_t ac);
 static void native_swap_window(oobject_t list, oint32_t ac);
 static void native_delete_context(oobject_t list, oint32_t ac);
+
+static void native_ReadPixels(oobject_t list, oint32_t ac);
+static void native_DrawPixels(oobject_t list, oint32_t ac);
+static void native_TexImage1D(oobject_t list, oint32_t ac);
+static void native_TexImage2D(oobject_t list, oint32_t ac);
+static void native_TexSubImage1D(oobject_t list, oint32_t ac);
+static void native_TexSubImage2D(oobject_t list, oint32_t ac);
 
 #if __WORDSIZE == 32
 static void ret_u32(oregister_t *r, ouint32_t v);
@@ -761,6 +801,23 @@ static struct {
     { "FadingNone",			MIX_NO_FADING },
     { "FadingOut",			MIX_FADING_OUT },
     { "FadingIn",			MIX_FADING_IN },
+    /* SDL_KeyMod */
+    { "KmodNone",			KMOD_NONE },
+    { "KmodLShift",			KMOD_LSHIFT },
+    { "KmodRShift",			KMOD_RSHIFT },
+    { "KmodLCtrl",			KMOD_LCTRL },
+    { "KmodRCtrl",			KMOD_RCTRL },
+    { "KmodLAlt",			KMOD_LALT },
+    { "KmodRAlt",			KMOD_RALT },
+    { "KmodLGui",			KMOD_LGUI },
+    { "KmodRGui",			KMOD_RGUI },
+    { "KmodNum",			KMOD_NUM },
+    { "KmodCaps",			KMOD_CAPS },
+    { "KmodMode",			KMOD_MODE },
+    { "KmodCtrl",			KMOD_CTRL },
+    { "KmodShift",			KMOD_SHIFT },
+    { "KmodAlt",			KMOD_ALT },
+    { "KmodGui",			KMOD_GUI },
 };
 static struct {
     char	*name;
@@ -982,6 +1039,8 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_surface];
     add_field(pointer_string,	"*surface*");
+    add_field("int32_t",	"w");
+    add_field("int32_t",	"h");
     oend_record(record);
 
     record = type_vector->v.ptr[t_texture];
@@ -1200,6 +1259,8 @@ init_sdl(void)
     define_builtin3(t_int32, get_kerning, t_font, t_uint16, t_uint16);
     define_builtin1(t_void,  close_font, t_font);
 
+    define_builtin0(t_uint32, get_mod_state);
+
     define_builtin2(t_timer,   add_timer, t_uint32, t_void);
     define_builtin0(t_uint32,  get_ticks);
     define_builtin1(t_void,    delay, t_uint32);
@@ -1263,6 +1324,14 @@ init_sdl(void)
     define_builtin0(t_int8,    get_swap_interval);
     define_builtin1(t_void,    swap_window, t_window);
     define_builtin1(t_void,    delete_context, t_context);
+
+    define_builtin4(t_surface, ReadPixels, t_int32, t_int32, t_int32, t_int32);
+    define_builtin1(t_void,    DrawPixels, t_surface);
+    define_builtin1(t_void,    TexImage1D, t_surface);
+    define_builtin1(t_void,    TexImage2D, t_surface);
+    define_builtin3(t_void,    TexSubImage1D, t_surface, t_int32, t_int32);
+    define_builtin5(t_void,    TexSubImage2D,
+		    t_surface, t_int32, t_int32, t_int32, t_int32);
 
     current_record = record;
 #undef add_vec_field
@@ -2061,6 +2130,16 @@ native_destroy_renderer(oobject_t list, oint32_t ac)
     r0->t = t_void;
 }
 
+void
+query_surface(osurface_t *os)
+{
+    SDL_Surface			*ss;
+
+    ss = os->__surface;
+    os->w = ss->w;
+    os->h = ss->h;
+}
+
 static void
 native_load_surface(oobject_t list, oint32_t ac)
 /* surface_t load_surface(string_t path); */
@@ -2069,10 +2148,10 @@ native_load_surface(oobject_t list, oint32_t ac)
     SDL_Surface			*ss;
     osurface_t			*os;
     oregister_t			*r0;
-    nat_ren_vec_t		*alist;
+    nat_vec_t			*alist;
     char			 path[BUFSIZ];
 
-    alist = (nat_ren_vec_t *)list;
+    alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     if (alist->vec == null || otype(alist->vec) != t_string)
 	ovm_raise(except_invalid_argument);
@@ -2084,6 +2163,7 @@ native_load_surface(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2101,11 +2181,11 @@ native_free_surface(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
-    if (alist->srf && alist->srf->__surface) {
-	if (otype(alist->srf) != t_surface)
+    if (alist->a0 && alist->a0->__surface) {
+	if (otype(alist->a0) != t_surface)
 	    ovm_raise(except_invalid_argument);
-	SDL_FreeSurface(alist->srf->__surface);
-	alist->srf->__surface = null;
+	SDL_FreeSurface(alist->a0->__surface);
+	alist->a0->__surface = null;
     }
     r0->t = t_void;
 }
@@ -2750,6 +2830,7 @@ native_render_text_solid(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2780,6 +2861,7 @@ native_render_utf8_solid(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2810,6 +2892,7 @@ native_render_unicode_solid(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2837,6 +2920,7 @@ native_render_glyph_solid(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2870,6 +2954,7 @@ native_render_text_shaded(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2903,6 +2988,7 @@ native_render_utf8_shaded(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2936,6 +3022,7 @@ native_render_unicode_shaded(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2966,6 +3053,7 @@ native_render_glyph_shaded(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -2996,6 +3084,7 @@ native_render_text_blended(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3026,6 +3115,7 @@ native_render_utf8_blended(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3056,6 +3146,7 @@ native_render_unicode_blended(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3083,6 +3174,7 @@ native_render_glyph_blended(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3115,6 +3207,7 @@ native_render_text_blended_wrapped(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3147,6 +3240,7 @@ native_render_utf8_blended_wrapped(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3179,6 +3273,7 @@ native_render_unicode_blended_wrapped(oobject_t list, oint32_t ac)
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
+	query_surface(os);
 	r0->v.o = thread_self->obj;
 	r0->t = t_surface;
     }
@@ -3217,6 +3312,18 @@ native_close_font(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     odestroy_font(alist->fnt);
+}
+
+static void
+native_get_mod_state(oobject_t list, oint32_t ac)
+/* void get_mode_state(); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = SDL_GetModState();
 }
 
 static Uint32
@@ -4201,4 +4308,142 @@ native_delete_context(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     odestroy_context(alist->ctx);
+}
+
+static void
+native_ReadPixels(oobject_t list, oint32_t ac)
+/* surface_t ReadPixels(int32_t x, int32_t y, int32_t width, int32_t height); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    osurface_t				*os;
+    oregister_t				*r0;
+    nat_i32_i32_i32_i32_u32_t		*alist;
+
+    alist = (nat_i32_i32_i32_i32_u32_t *)list;
+    r0 = &thread_self->r0;
+    if ((ss = SDL_CreateRGBSurface(0, alist->a2, alist->a3,
+				   32, R_MASK, G_MASK, B_MASK, A_MASK))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	glReadPixels(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
+		     GL_RGBA, ss->pixels);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_DrawPixels(oobject_t list, oint32_t ac)
+/* void DrawPixels(surface_t surf); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    oregister_t				*r0;
+    nat_srf_t				*alist;
+    ouint32_t				 format;
+
+    alist = (nat_srf_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a0 == null || otype(alist->a0) != t_surface)
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    ss = alist->a0->__surface;
+    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    glDrawPixels(ss->w, ss->h, format, GL_UNSIGNED_BYTE, ss->pixels);
+}
+
+static void
+native_TexImage1D(oobject_t list, oint32_t ac)
+/* void TexImage1D(surface_t surf); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    oregister_t				*r0;
+    nat_srf_t				*alist;
+    ouint32_t				 format;
+
+    alist = (nat_srf_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a0 == null || otype(alist->a0) != t_surface)
+	ovm_raise(except_invalid_argument);
+    ss = alist->a0->__surface;
+    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    r0->t = t_void;
+    glTexImage1D(GL_TEXTURE_1D, 0, format, ss->w, 0, format,
+		 GL_UNSIGNED_BYTE, ss->pixels);
+}
+
+static void
+native_TexImage2D(oobject_t list, oint32_t ac)
+/* void TexImage2D(surface_t surf); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    oregister_t				*r0;
+    nat_srf_t				*alist;
+    ouint32_t				 format;
+
+    alist = (nat_srf_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a0 == null || otype(alist->a0) != t_surface)
+	ovm_raise(except_invalid_argument);
+    ss = alist->a0->__surface;
+    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    r0->t = t_void;
+    glTexImage2D(GL_TEXTURE_2D, 0, format, ss->w, ss->h, 0, format,
+		 GL_UNSIGNED_BYTE, ss->pixels);
+}
+
+
+static void
+native_TexSubImage1D(oobject_t list, oint32_t ac)
+/* void TexSubImage1D(surface_t surf, int32_t xoff, int32_t width); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    oregister_t				*r0;
+    nat_srf_i32_i32_t			*alist;
+    ouint32_t				 format;
+
+    alist = (nat_srf_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a0 == null || otype(alist->a0) != t_surface)
+	ovm_raise(except_invalid_argument);
+    ss = alist->a0->__surface;
+    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    r0->t = t_void;
+    glTexSubImage1D(GL_TEXTURE_1D, 0, alist->a1, alist->a2, format,
+		    GL_UNSIGNED_BYTE, ss->pixels);
+}
+
+static void
+native_TexSubImage2D(oobject_t list, oint32_t ac)
+/* void TexSubImage2D(surface_t surf, int32_t xoff, int32_t yoff,
+		      int32_t width, int32_t height); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface				*ss;
+    oregister_t				*r0;
+    nat_srf_i32_i32_i32_i32_t		*alist;
+    ouint32_t				 format;
+
+    alist = (nat_srf_i32_i32_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a0 == null || otype(alist->a0) != t_surface)
+	ovm_raise(except_invalid_argument);
+    ss = alist->a0->__surface;
+    if ((ouint32_t)alist->a1 > ss->w || (ouint32_t)alist->a3 > ss->w ||
+	alist->a1 + alist->a3 > ss->w ||
+	(ouint32_t)alist->a2 > ss->h ||	(ouint32_t)alist->a4 > ss->h ||
+	alist->a2 + alist->a4 > ss->w)
+	ovm_raise(except_invalid_argument);
+    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    r0->t = t_void;
+    glTexSubImage2D(GL_TEXTURE_2D, 0, alist->a1, alist->a2,
+		    alist->a3, alist->a4, format, GL_UNSIGNED_BYTE, ss->pixels);
 }
