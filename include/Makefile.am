@@ -19,6 +19,7 @@ AM_CFLAGS = @OWL_CFLAGS@
 
 EXTRA_DIST =		\
 	cqq.h		\
+	obuiltin.h	\
 	ocache.h	\
 	ocfg.h		\
 	ocode.h		\

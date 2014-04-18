@@ -16,6 +16,7 @@
  */
 
 #include "owl.h"
+#include "obuiltin.h"
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define R_MASK		0x000000ff
@@ -28,244 +29,6 @@
 #  define B_MASK		0x0000ff00
 #  define A_MASK		0x000000ff
 #endif
-
-/*
- * Types
- */
-typedef struct {
-    oint8_t		 a0;
-} nat_i8_t;
-typedef struct {
-    oint32_t		 a0;
-} nat_i32_t;
-typedef struct {
-    ouint32_t		 a0;
-} nat_u32_t;
-typedef struct {
-    ofloat64_t		 a0;
-} nat_f64_t;
-typedef struct {
-    owindow_t		*a0;
-} nat_win_t;
-typedef struct {
-    orenderer_t		*a0;
-} nat_ren_t;
-typedef struct {
-    otexture_t		*a0;
-} nat_tex_t;
-typedef struct {
-    ovector_t		*a0;
-} nat_vec_t;
-typedef struct {
-    oevent_t		*a0;
-} nat_evt_t;
-typedef struct {
-    osurface_t		*a0;
-} nat_srf_t;
-typedef struct {
-    ofont_t		*a0;
-} nat_fnt_t;
-typedef struct {
-    otimer_t		*a0;
-} nat_tm_t;
-typedef struct {
-    ochunk_t		*a0;
-} nat_chu_t;
-typedef struct {
-    omusic_t		*a0;
-} nat_mus_t;
-typedef struct {
-    ocontext_t		*a0;
-} nat_ctx_t;
-typedef struct {
-    oint32_t		 a0;
-    oint8_t		 a1;
-} nat_i32_i8_t;
-typedef struct {
-    oint32_t		 a0;
-    ouint8_t		 a1;
-} nat_i32_u8_t;
-typedef struct {
-    oint32_t		 a0;
-    ouint8_t		 a1;
-} nat_i32_i32_t;
-typedef struct {
-    ouint32_t		 a0;
-    oobject_t		 a1;
-} nat_u32_obj_t;
-typedef struct {
-    oint32_t		 a0;
-    ovector_t		*a1;
-} nat_i32_vec_t;
-typedef struct {
-    orenderer_t		*a0;
-    ovector_t		*a1;
-} nat_ren_vec_t;
-typedef struct {
-    orenderer_t		*a0;
-    osurface_t		*a1;
-} nat_ren_srf_t;
-typedef struct {
-    ovector_t		*a0;
-    oint32_t		 a1;
-} nat_vec_i32_t;
-typedef struct {
-    owindow_t		*a0;
-    ocontext_t		*a1;
-} nat_win_ctx_t;
-typedef struct {
-    ochunk_t		*a0;
-    oint32_t		 a1;
-} nat_chu_i32_t;
-typedef struct {
-    omusic_t		*a0;
-    oint32_t		 a1;
-} nat_mus_i32_t;
-typedef struct {
-    ofont_t		*a0;
-    ouint16_t		 a1;
-} nat_fnt_u16_t;
-typedef struct {
-    oint32_t		 a0;
-    ouint8_t		 a1;
-    ouint8_t		 a2;
-} nat_i32_u8_u8_t;
-typedef struct {
-    oint32_t		 a0;
-    oint16_t		 a1;
-    uint8_t		 a2;
-} nat_i32_i16_u8_t;
-typedef struct {
-    oint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-} nat_i32_i32_i32_t;
-typedef struct {
-    oint32_t		 a0;
-    ochunk_t		*a1;
-    oint32_t		 a2;
-} nat_i32_chu_i32_t;
-typedef struct {
-    owindow_t		*a0;
-    oint32_t		 a1;
-    ouint32_t		 a2;
-} nat_win_i32_u32_t;
-typedef struct {
-    orenderer_t		*a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-} nat_ren_i32_i32_t;
-typedef struct {
-    osurface_t		*a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-} nat_srf_i32_i32_t;
-typedef struct {
-    omusic_t		*a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-} nat_mus_i32_i32_t;
-typedef struct {
-    ofont_t		*a0;
-    ouint16_t		 a1;
-    ouint16_t		 a2;
-} nat_fnt_u16_u16_t;
-typedef struct {
-    ofont_t		*a0;
-    ovector_t		*a1;
-    opoint_t		*a2;
-} nat_fnt_vec_pnt_t;
-typedef struct {
-    ofont_t		*a0;
-    ouint16_t		 a1;
-    ocolor_t		*a2;
-} nat_fnt_u16_col_t;
-typedef struct {
-    ofont_t		*a0;
-    ovector_t		*a1;
-    ocolor_t		*a2;
-} nat_fnt_vec_col_t;
-typedef struct {
-    oint32_t		a0;
-    ouint16_t		a1;
-    oint32_t		a2;
-    oint32_t		a3;
-} nat_i32_u16_i32_i32_t;
-typedef struct {
-    oint32_t		 a0;
-    ochunk_t		*a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-} nat_i32_chu_i32_i32_t;
-typedef struct {
-    ofont_t		*a0;
-    ovector_t		*a1;
-    ocolor_t		*a2;
-    ouint32_t		 a3;
-} nat_fnt_vec_col_u32_t;
-typedef struct {
-    ofont_t		*a0;
-    ouint16_t		 a1;
-    ocolor_t		*a2;
-    ocolor_t		*a3;
-} nat_fnt_u16_col_col_t;
-typedef struct {
-    ofont_t		*a0;
-    ovector_t		*a1;
-    ocolor_t		*a2;
-    ocolor_t		*a3;
-} nat_fnt_vec_col_col_t;
-typedef struct {
-    orenderer_t		*a0;
-    otexture_t		*a1;
-    orect_t		*a2;
-    orect_t		*a3;
-} nat_ren_tex_rec_rec_t;
-typedef struct {
-    orenderer_t		*a0;
-    ouint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-} nat_ren_i32_i32_i32_i32_t;
-typedef struct {
-    orenderer_t		*a0;
-    ouint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-} nat_ren_u32_i32_i32_i32_t;
-typedef struct {
-    orenderer_t		*a0;
-    otexture_t		*a1;
-    orect_t		*a2;
-    orect_t		*a3;
-    ofloat64_t		 a4;
-    opoint_t		*a5;
-    int32_t		 a6;
-} nat_ren_tex_rec_rec_f64_pnt_i32_t;
-typedef struct {
-    ovector_t		*a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-    ouint32_t		 a5;
-} nat_vec_i32_i32_i32_i32_u32_t;
-typedef struct {
-    oint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    ouint32_t		 a4;
-} nat_i32_i32_i32_i32_u32_t;
-typedef struct {
-    osurface_t		*a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-} nat_srf_i32_i32_i32_i32_t;
 
 /*
  * Prototypes
@@ -1587,8 +1350,7 @@ native_change_window(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_word;
     r0->v.w = 0;
-    if (alist->a0 == null ||
-	otype(alist->a0) != t_window || alist->a0->__window == null)
+    if (bad_arg_type_field(a0, t_window, __window))
 	ovm_raise(except_invalid_argument);
     ow = alist->a0;
     sw = ow->__window;
@@ -1700,7 +1462,7 @@ native_get_window_renderer(oobject_t list, oint32_t ac)
 
     alist = (nat_win_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_window)
+    if (bad_arg_type_field(a0, t_window, __window))
 	ovm_raise(except_invalid_argument);
     if ((r0->v.o = alist->a0->__renderer))
 	r0->t = t_renderer;
@@ -1779,7 +1541,7 @@ native_create_renderer(oobject_t list, oint32_t ac)
     nat_win_i32_u32_t		*alist;
 
     alist = (nat_win_i32_u32_t *)list;
-    if (alist->a0 == null || otype(alist->a0) != t_window)
+    if (bad_arg_type_field(a0, t_window, __window))
 	ovm_raise(except_invalid_argument);
     r0 = &thread_self->r0;
     if ((sr = SDL_CreateRenderer(alist->a0->__window,
@@ -1877,7 +1639,7 @@ native_get_renderer_window(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type(a0, t_renderer))
 	ovm_raise(except_invalid_argument);
     if ((r0->v.o = alist->a0->__window))
 	r0->t = t_window;
@@ -1895,7 +1657,7 @@ native_render_clear(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderClear(alist->a0->__renderer);
@@ -1911,7 +1673,7 @@ native_render_draw_point(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderDrawPoint(alist->a0->__renderer,
@@ -1928,8 +1690,8 @@ native_render_draw_points(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_int32) ||
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type(a1, t_vector|t_int32) ||
 	!alist->a1->length || (alist->a1->length & 1))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
@@ -1949,7 +1711,7 @@ native_render_draw_line(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_i32_i32_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderDrawLine(alist->a0->__renderer,
@@ -1967,8 +1729,8 @@ native_render_draw_lines(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_int32) ||
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type(a1, t_vector|t_int32) ||
 	alist->a1->length < 4 || (alist->a1->length & 1))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
@@ -1988,7 +1750,7 @@ native_render_draw_rect(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_i32_i32_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderDrawRect(alist->a0->__renderer,
@@ -2005,9 +1767,8 @@ native_render_draw_rects(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_int32) ||
-	(alist->a1->length & 3))
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type(a1, t_vector|t_int32) || (alist->a1->length & 3))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderDrawRects(alist->a0->__renderer,
@@ -2026,7 +1787,7 @@ native_render_fill_rect(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_i32_i32_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderFillRect(alist->a0->__renderer,
@@ -2043,9 +1804,8 @@ native_render_fill_rects(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_int32) ||
-	(alist->a1->length & 3))
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type(a1, t_vector|t_int32) || (alist->a1->length & 3))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_RenderFillRects(alist->a0->__renderer,
@@ -2064,8 +1824,8 @@ native_render_copy(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_tex_rec_rec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != t_texture ||
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type_field(a1, t_texture, __texture) ||
 	(alist->a2 && otype(alist->a2) != t_rect) ||
 	(alist->a3 && otype(alist->a3) != t_rect))
 	ovm_raise(except_invalid_argument);
@@ -2087,8 +1847,8 @@ native_render_copy_ex(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_tex_rec_rec_f64_pnt_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != t_texture ||
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type_field(a1, t_texture, __texture) ||
 	(alist->a2 && otype(alist->a2) != t_rect) ||
 	(alist->a3 && otype(alist->a3) != t_rect) ||
 	(alist->a5 && otype(alist->a5) != t_point))
@@ -2109,7 +1869,7 @@ native_render_present(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     SDL_RenderPresent(alist->a0->__renderer);
     r0->t = t_void;
@@ -2156,7 +1916,7 @@ native_load_surface(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_string)
+    if (bad_arg_type(a0, t_string))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->length >= BUFSIZ - 1)
 	ovm_raise(except_out_of_bounds);
@@ -2238,7 +1998,7 @@ native_create_texture(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_u32_i32_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer)
+    if (bad_arg_type_field(a0, t_renderer, __renderer))
 	ovm_raise(except_invalid_argument);
     if ((st = SDL_CreateTexture(alist->a0->__renderer, alist->a1,
 				alist->a2, alist->a3, alist->a4))) {
@@ -2266,8 +2026,8 @@ native_create_texture_from_surface(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_srf_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != t_surface)
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type_field(a1, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     if ((st = SDL_CreateTextureFromSurface(alist->a0->__renderer,
 					   alist->a1->__surface))) {
@@ -2296,8 +2056,8 @@ native_load_texture(oobject_t list, oint32_t ac)
 
     alist = (nat_ren_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_renderer ||
-	alist->a1 == null || otype(alist->a1) != t_string)
+    if (bad_arg_type_field(a0, t_renderer, __renderer) ||
+	bad_arg_type(a1, t_string))
 	ovm_raise(except_invalid_argument);
     if (alist->a1->length >= BUFSIZ - 1)
 	ovm_raise(except_out_of_bounds);
@@ -2327,7 +2087,7 @@ native_change_texture(oobject_t list, oint32_t ac)
 
     alist = (nat_tex_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null && otype(alist->a0) != t_texture)
+    if (bad_arg_type_field(a0, t_texture, __texture))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = 0;
@@ -2567,7 +2327,7 @@ native_poll_event(oobject_t list, oint32_t ac)
 
     alist = (nat_evt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_event)
+    if (bad_arg_type(a0, t_event))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     if (alist->a0->__event == null)
@@ -2587,7 +2347,7 @@ native_wait_event(oobject_t list, oint32_t ac)
 
     alist = (nat_evt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_event)
+    if (bad_arg_type(a0, t_event))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     if (alist->a0->__event == null)
@@ -2624,7 +2384,7 @@ native_open_font(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_string)
+    if (bad_arg_type(a0, t_string))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->length >= BUFSIZ - 1)
 	ovm_raise(except_out_of_bounds);
@@ -2671,7 +2431,7 @@ native_change_font(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font)
+    if (bad_arg_type_field(a0, t_font, __font))
 	ovm_raise(except_invalid_argument);
     of = alist->a0;
     sf = of->__font;
@@ -2698,7 +2458,7 @@ native_glyph_is_provided(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font)
+    if (bad_arg_type_field(a0, t_font, __font))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = TTF_GlyphIsProvided(alist->a0->__font, alist->a1);
@@ -2715,7 +2475,7 @@ native_glyph_metrics(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font)
+    if (bad_arg_type_field(a0, t_font, __font))
 	ovm_raise(except_invalid_argument);
     if (TTF_GlyphMetrics(alist->a0->__font, alist->a1,
 			 &ogm.min_x, &ogm.max_x, &ogm.min_y, &ogm.max_y,
@@ -2757,9 +2517,8 @@ native_size_text(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_pnt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_point)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) || bad_arg_type(a2, t_point))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     r0->t = t_word;
@@ -2778,9 +2537,8 @@ native_size_utf8(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_pnt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_point)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) || bad_arg_type(a2, t_point))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     r0->t = t_word;
@@ -2799,9 +2557,8 @@ native_size_unicode(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_pnt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_uint16) ||
-	alist->a2 == null || otype(alist->a2) != t_point)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_vector|t_uint16) || bad_arg_type(a2, t_point))
 	ovm_raise(except_invalid_argument);
     make_vec_unicode(alist->a1);
     r0->t = t_word;
@@ -2822,9 +2579,8 @@ native_render_text_solid(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderText_Solid(alist->a0->__font,
@@ -2853,9 +2609,8 @@ native_render_utf8_solid(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderUTF8_Solid(alist->a0->__font,
@@ -2884,9 +2639,8 @@ native_render_unicode_solid(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_uint16) ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_vector|t_uint16) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_unicode(alist->a1);
     if ((ss = TTF_RenderUNICODE_Solid(alist->a0->__font,
@@ -2915,8 +2669,7 @@ native_render_glyph_solid(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     if ((ss = TTF_RenderGlyph_Solid(alist->a0->__font, alist->a1,
 				    *(SDL_Color *)alist->a2))) {
@@ -2944,10 +2697,9 @@ native_render_text_shaded(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color ||
-	alist->a3 == null || otype(alist->a3) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||
+	bad_arg_type(a2, t_color) || bad_arg_type(a3, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderText_Shaded(alist->a0->__font,
@@ -2978,10 +2730,9 @@ native_render_utf8_shaded(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color ||
-	alist->a3 == null || otype(alist->a3) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||
+	bad_arg_type(a2, t_color) || bad_arg_type(a3, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderUTF8_Shaded(alist->a0->__font,
@@ -3012,10 +2763,9 @@ native_render_unicode_shaded(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_uint16) ||
-	alist->a2 == null || otype(alist->a2) != t_color ||
-	alist->a3 == null || otype(alist->a3) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_vector|t_uint16) ||
+	bad_arg_type(a2, t_color) || bad_arg_type(a3, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_unicode(alist->a1);
     if ((ss = TTF_RenderUNICODE_Shaded(alist->a0->__font,
@@ -3046,9 +2796,8 @@ native_render_glyph_shaded(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_col_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a2 == null || otype(alist->a2) != t_color ||
-	alist->a3 == null || otype(alist->a3) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a2, t_color) || bad_arg_type(a3, t_color))
 	ovm_raise(except_invalid_argument);
     if ((ss = TTF_RenderGlyph_Shaded(alist->a0->__font, alist->a1,
 				     *(SDL_Color *)alist->a2,
@@ -3076,9 +2825,8 @@ native_render_text_blended(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||	bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderText_Blended(alist->a0->__font,
@@ -3107,9 +2855,8 @@ native_render_utf8_blended(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||	bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderUTF8_Blended(alist->a0->__font,
@@ -3138,9 +2885,8 @@ native_render_unicode_blended(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_uint16) ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_vector|t_uint16) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_unicode(alist->a1);
     if ((ss = TTF_RenderUNICODE_Blended(alist->a0->__font,
@@ -3169,8 +2915,7 @@ native_render_glyph_blended(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_col_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     if ((ss = TTF_RenderGlyph_Blended(alist->a0->__font, alist->a1,
 				      *(SDL_Color *)alist->a2))) {
@@ -3198,9 +2943,8 @@ native_render_text_blended_wrapped(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||	bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderText_Blended_Wrapped(alist->a0->__font,
@@ -3231,9 +2975,8 @@ native_render_utf8_blended_wrapped(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_string) ||	bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_text(alist->a1);
     if ((ss = TTF_RenderUTF8_Blended_Wrapped(alist->a0->__font,
@@ -3264,9 +3007,8 @@ native_render_unicode_blended_wrapped(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_vec_col_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font ||
-	alist->a1 == null || otype(alist->a1) != t_string ||
-	alist->a2 == null || otype(alist->a2) != t_color)
+    if (bad_arg_type_field(a0, t_font, __font) ||
+	bad_arg_type(a1, t_vector|t_uint16) || bad_arg_type(a2, t_color))
 	ovm_raise(except_invalid_argument);
     make_vec_unicode(alist->a1);
     if ((ss = TTF_RenderUNICODE_Blended_Wrapped(alist->a0->__font,
@@ -3294,7 +3036,7 @@ native_get_kerning(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_u16_u16_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font)
+    if (bad_arg_type_field(a0, t_font, __font))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = TTF_GetFontKerningSize(alist->a0->__font, alist->a1, alist->a2);
@@ -3310,7 +3052,7 @@ native_close_font(oobject_t list, oint32_t ac)
 
     alist = (nat_fnt_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_font)
+    if (bad_arg_type_field(a0, t_font, __font))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     odestroy_font(alist->a0);
@@ -3436,12 +3178,12 @@ native_remove_timer(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_tm_t			*alist;
+    nat_tmr_t			*alist;
 
-    alist = (nat_tm_t *)list;
+    alist = (nat_tmr_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_word;
-    if (alist->a0 == null || otype(alist->a0) != t_timer)
+    if (bad_arg_type(a0, t_timer))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->__timer) {
 	r0->v.w = SDL_RemoveTimer(alist->a0->__timer);
@@ -3503,7 +3245,7 @@ native_load_chunk(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_string)
+    if (bad_arg_type(a0, t_string))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->length >= BUFSIZ - 1)
 	ovm_raise(except_out_of_bounds);
@@ -3542,7 +3284,7 @@ native_play_channel(oobject_t list, oint32_t ac)
 
     alist = (nat_i32_chu_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a1 == null || otype(alist->a1) != t_chunk)
+    if (bad_arg_type_field(a1, t_chunk, __chunk))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_PlayChannel(alist->a0, alist->a1->__chunk, alist->a2);
@@ -3559,7 +3301,7 @@ native_fade_in_channel(oobject_t list, oint32_t ac)
 
     alist = (nat_i32_chu_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a1 == null || otype(alist->a1) != t_chunk)
+    if (bad_arg_type_field(a1, t_chunk, __chunk))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_FadeInChannel(alist->a0, alist->a1->__chunk,
@@ -3576,7 +3318,7 @@ native_volume_chunk(oobject_t list, oint32_t ac)
 
     alist = (nat_chu_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_chunk)
+    if (bad_arg_type_field(a0, t_chunk, __chunk))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_VolumeChunk(alist->a0->__chunk, alist->a1);
@@ -3761,7 +3503,7 @@ native_free_chunk(oobject_t list, oint32_t ac)
     alist = (nat_chu_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null || otype(alist->a0) != t_chunk)
+    if (bad_arg_type(a0, t_chunk))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->__chunk) {
 	Mix_FreeChunk(alist->a0->__chunk);
@@ -3895,7 +3637,7 @@ native_load_music(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_string)
+    if (bad_arg_type(a0, t_string))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->length >= BUFSIZ - 1)
 	ovm_raise(except_out_of_bounds);
@@ -3935,7 +3677,7 @@ native_play_music(oobject_t list, oint32_t ac)
 
     alist = (nat_mus_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_music)
+    if (bad_arg_type_field(a0, t_music, __music))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_PlayMusic(alist->a0->__music, alist->a1);
@@ -3951,7 +3693,7 @@ native_fade_in_music(oobject_t list, oint32_t ac)
 
     alist = (nat_mus_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_music)
+    if (bad_arg_type_field(a0, t_music, __music))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = Mix_FadeInMusic(alist->a0->__music, alist->a1, alist->a2);
@@ -4094,7 +3836,7 @@ native_free_music(oobject_t list, oint32_t ac)
     alist = (nat_mus_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null || otype(alist->a0) != t_music)
+    if (bad_arg_type(a0, t_music))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->__music) {
 	Mix_FreeMusic(alist->a0->__music);
@@ -4169,9 +3911,9 @@ native_get_attribute(oobject_t list, oint32_t ac)
 
     alist = (nat_i32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a1 == null ||
-	otype(alist->a1) != (t_vector|t_int32) || alist->a1->length != 1)
+    if (bad_arg_type(a1, t_vector|t_int32))
 	ovm_raise(except_invalid_argument);
+    orenew_vector(alist->a1, 1);
     r0->t = t_word;
     r0->v.w = SDL_GL_GetAttribute(alist->a0, alist->a1->v.i32);
 }
@@ -4188,7 +3930,7 @@ native_create_context(oobject_t list, oint32_t ac)
 
     alist = (nat_win_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_window)
+    if (bad_arg_type_field(a0, t_window, __window))
 	ovm_raise(except_invalid_argument);
     if ((sc = SDL_GL_CreateContext(alist->a0->__window))) {
 	onew_object(&thread_self->obj, t_context, sizeof(ocontext_t));
@@ -4211,8 +3953,8 @@ native_make_current(oobject_t list, oint32_t ac)
 
     alist = (nat_win_ctx_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_window ||
-	alist->a1 == null || otype(alist->a1) != t_context)
+    if (bad_arg_type_field(a0, t_window, __window) ||
+	bad_arg_type_field(a1, t_context, __context))
 	ovm_raise(except_invalid_argument);
     r0->t = t_word;
     r0->v.w = SDL_GL_MakeCurrent(alist->a0->__window, alist->a1->__context);
@@ -4290,7 +4032,7 @@ native_swap_window(oobject_t list, oint32_t ac)
 
     alist = (nat_win_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_window)
+    if (bad_arg_type_field(a0, t_window, __window))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     SDL_GL_SwapWindow(alist->a0->__window);
@@ -4306,7 +4048,7 @@ native_delete_context(oobject_t list, oint32_t ac)
 
     alist = (nat_ctx_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_context)
+    if (bad_arg_type(a0, t_context))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     odestroy_context(alist->a0);
@@ -4351,7 +4093,7 @@ native_DrawPixels(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_surface)
+    if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     ss = alist->a0->__surface;
@@ -4371,7 +4113,7 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_surface)
+    if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
     format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
@@ -4392,7 +4134,7 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_surface)
+    if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
     format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
@@ -4414,7 +4156,7 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_surface)
+    if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
     format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;

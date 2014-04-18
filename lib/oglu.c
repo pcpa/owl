@@ -16,242 +16,13 @@
  */
 
 #include "owl.h"
+#include "obuiltin.h"
 
 #define check_mult(x, y)						\
     do {								\
 	if (0x7fffffff / (y) < (x))					\
 	    ovm_raise(except_not_a_32_bits_integer);			\
     } while (0)
-
-/*
- * Types
- */
-typedef struct {
-    ouint32_t		 a0;
-} nat_u32_t;
-typedef struct {
-    onurbs_t		*a0;
-} nat_nur_t;
-typedef struct {
-    oquadric_t		*a0;
-} nat_qua_t;
-typedef struct {
-    otesselator_t	*a0;
-} nat_tes_t;
-typedef struct {
-    oquadric_t		*a0;
-    ouint32_t		 a1;
-} nat_qua_u32_t;
-typedef struct {
-    otesselator_t	*a0;
-    ouint32_t		 a1;
-} nat_tes_u32_t;
-typedef struct {
-    otesselator_t	*a0;
-    ovector_t		*a1;
-} nat_tes_vec_t;
-typedef struct {
-    ovector_t		*a0;
-    ovector_t		*a1;
-} nat_vec_vec_t;
-typedef struct {
-    oquadric_t		*a0;
-    ouint8_t		 a1;
-} nat_qua_u8_t;
-typedef struct {
-    onurbs_t		*a0;
-    ouint32_t		 a1;
-    ofloat32_t		 a2;
-} nat_nur_u32_f32_t;
-typedef struct {
-    onurbs_t		*a0;
-    ouint32_t		 a1;
-    ovector_t		*a2;
-} nat_nur_u32_vec_t;
-typedef struct {
-    onurbs_t		*a0;
-    ovector_t		*a1;
-    ouint32_t		 a2;
-} nat_nur_vec_u32_t;
-typedef struct {
-    otesselator_t	*a0;
-    ouint32_t		 a1;
-    ovector_t		*a2;
-} nat_tes_u32_vec_t;
-typedef struct {
-    otesselator_t	*a0;
-    ouint32_t		 a1;
-    ofloat64_t		 a2;
-} nat_tes_u32_f64_t;
-typedef struct {
-    ofloat64_t		 a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-} nat_f64_f64_f64_f64_t;
-typedef struct {
-    onurbs_t		*a0;
-    ovector_t		*a1;
-    ovector_t		*a2;
-    ovector_t		*a3;
-} nat_nur_vec_vec_vec_t;
-typedef struct {
-    oquadric_t		*a0;
-    ofloat64_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-} nat_qua_f64_i32_i32_t;
-typedef struct {
-    otesselator_t	*a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-} nat_tes_f64_f64_f64_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    ouint32_t		 a3;
-    ovector_t		*a4;
-} nat_u32_i32_i32_u32_vec_t;
-typedef struct {
-    ofloat64_t		 a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-    ovector_t		*a4;
-} nat_f64_f64_f64_f64_vec_t;
-typedef struct {
-    onurbs_t		*a0;
-    ovector_t		*a1;
-    ovector_t		*a2;
-    oint32_t		 a3;
-    ouint32_t		 a4;
-} nat_nur_vec_vec_i32_u32_t;
-typedef struct {
-    oquadric_t		*a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-} nat_qua_f64_f64_i32_i32_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    ouint32_t		 a4;
-    ovector_t		*a5;
-} nat_u32_i32_i32_i32_u32_vec_t;
-typedef struct {
-    oquadric_t		*a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-    oint32_t		 a4;
-    oint32_t		 a5;
-} nat_qua_f64_f64_f64_i32_i32_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-    ouint32_t		 a5;
-    ovector_t		*a6;
-} nat_u32_i32_i32_i32_i32_u32_vec_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    ovector_t		*a3;
-    oint32_t		 a4;
-    oint32_t		 a5;
-    ovector_t		*a6;
-} nat_u32_i32_i32_vec_i32_i32_vec_t;
-typedef struct {
-    ofloat64_t		 a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ovector_t		*a3;
-    ovector_t		*a4;
-    ovector_t		*a5;
-    ovector_t		*a6;
-} nat_f64_f64_f64_vec_vec_vec_vec_t;
-typedef struct {
-    onurbs_t		*a0;
-    ovector_t		*a1;
-    ovector_t		*a2;
-    ovector_t		*a3;
-    oint32_t		 a4;
-    oint32_t		 a5;
-    ouint32_t		 a6;
-} nat_nur_vec_vec_vec_i32_i32_u32_t;
-typedef struct {
-    oquadric_t		*a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-    ofloat64_t		 a5;
-    ofloat64_t		 a6;
-} nat_qua_f64_f64_i32_i32_f64_f64_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    ouint32_t		 a3;
-    oint32_t		 a4;
-    oint32_t		 a5;
-    oint32_t		 a6;
-    ovector_t		*a7;
-} nat_u32_i32_i32_u32_i32_i32_i32_vec_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    ouint32_t		 a4;
-    oint32_t		 a5;
-    oint32_t		 a6;
-    oint32_t		 a7;
-    ovector_t		*a8;
-} nat_u32_i32_i32_i32_u32_i32_i32_i32_vec_t;
-typedef struct {
-    ofloat64_t		 a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-    ofloat64_t		 a4;
-    ofloat64_t		 a5;
-    ofloat64_t		 a6;
-    ofloat64_t		 a7;
-    ofloat64_t		 a8;
-} nat_f64_f64_f64_f64_f64_f64_f64_f64_f64_t;
-typedef struct {
-    ouint32_t		 a0;
-    oint32_t		 a1;
-    oint32_t		 a2;
-    oint32_t		 a3;
-    oint32_t		 a4;
-    ouint32_t		 a5;
-    oint32_t		 a6;
-    oint32_t		 a7;
-    oint32_t		 a8;
-    ovector_t		*a9;
-} nat_u32_i32_i32_i32_i32_u32_i32_i32_i32_vec_t;
-typedef struct {
-    ofloat64_t		 a0;
-    ofloat64_t		 a1;
-    ofloat64_t		 a2;
-    ofloat64_t		 a3;
-    ovector_t		*a4;
-    ovector_t		*a5;
-    ovector_t		*a6;
-    ofloat64_t		 a7;
-    ofloat64_t		 a8;
-    ovector_t		*a9;
-} nat_f64_f64_f64_f64_vec_vec_vec_f64_f64_vec_t;
 
 /*
  * Prototypes
@@ -671,7 +442,7 @@ native_BeginCurve(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluBeginCurve(alist->a0->__nurbs);
@@ -687,7 +458,7 @@ native_BeginPolygon(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluBeginPolygon(alist->a0->__tesselator);
@@ -703,7 +474,7 @@ native_BeginSurface(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluBeginSurface(alist->a0->__nurbs);
@@ -719,7 +490,7 @@ native_BeginTrim(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluBeginTrim(alist->a0->__nurbs);
@@ -765,8 +536,7 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a7 == null || otype(alist->a7) != (t_vector|t_float32) ||
-	alist->a7->length < length)
+    if (bad_arg_type(a7, t_vector|t_float32) || alist->a7->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild1DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3, GL_FLOAT,
 			   alist->a4, alist->a5, alist->a6, alist->a7->v.f32);
@@ -811,8 +581,7 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a4 == null || otype(alist->a4) != (t_vector|t_float32) ||
-	alist->a4->length < length)
+    if (bad_arg_type(a4, t_vector|t_float32) || alist->a4->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild1DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, GL_FLOAT,
 		      alist->a4->v.f32);
@@ -864,8 +633,7 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a8 == null || otype(alist->a8) != (t_vector|t_float32) ||
-	alist->a8->length < length)
+    if (bad_arg_type(a8, t_vector|t_float32) || alist->a8->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild2DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
 			   alist->a4, GL_FLOAT, alist->a5, alist->a6,
@@ -917,8 +685,7 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a5 == null || otype(alist->a5) != (t_vector|t_float32) ||
-	alist->a5->length < length)
+    if (bad_arg_type(a5, t_vector|t_float32) || alist->a5->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild2DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
 		      GL_FLOAT, alist->a5->v.f32);
@@ -978,8 +745,7 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a9 == null || otype(alist->a9) != (t_vector|t_float32) ||
-	alist->a9->length < length)
+    if (bad_arg_type(a9, t_vector|t_float32) || alist->a9->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild3DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
 			   alist->a4, alist->a5, GL_FLOAT, alist->a6,
@@ -1039,8 +805,7 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (alist->a6 == null || otype(alist->a6) != (t_vector|t_float32) ||
-	alist->a6->length < length)
+    if (bad_arg_type(a6, t_vector|t_float32) || alist->a6->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild3DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
 		      alist->a5, GL_FLOAT, alist->a6->v.f32);
@@ -1056,8 +821,7 @@ native_CheckExtension(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_string ||
-	alist->a1 == null || otype(alist->a1) != t_string)
+    if (bad_arg_type(a0, t_string) || bad_arg_type(a1, t_string))
 	ovm_raise(except_invalid_argument);
     /* XXX know internals about 16 byte alignment, and if already aligned,
      * cause it to reallocate (what is a noop if previously reallocated)
@@ -1085,7 +849,7 @@ native_Cylinder(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_f64_f64_f64_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluCylinder(alist->a0->__quadric, alist->a1, alist->a2, alist->a3,
@@ -1102,7 +866,7 @@ native_DeleteNurbsRenderer(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type(a0, t_nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     if (alist->a0->__nurbs) {
@@ -1121,7 +885,7 @@ native_DeleteQuadric(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type(a0, t_quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     if (alist->a0->__quadric) {
@@ -1140,7 +904,7 @@ native_DeleteTess(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type(a0, t_tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     if (alist->a0->__tesselator) {
@@ -1160,7 +924,7 @@ native_Disk(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_f64_f64_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluDisk(alist->a0->__quadric, alist->a1, alist->a2, alist->a3, alist->a4);
@@ -1176,7 +940,7 @@ native_EndCurve(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluEndCurve(alist->a0->__nurbs);
@@ -1192,7 +956,7 @@ native_EndPolygon(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluEndPolygon(alist->a0->__tesselator);
@@ -1208,7 +972,7 @@ native_EndSurface(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluEndSurface(alist->a0->__nurbs);
@@ -1224,7 +988,7 @@ native_EndTrim(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluEndTrim(alist->a0->__nurbs);
@@ -1264,8 +1028,8 @@ native_GetNurbsProperty(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs ||
-	alist->a2 == null || otype(alist->a2) != (t_vector|t_float32))
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs) ||
+	bad_arg_type(a2, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
     /* Verify in case of extensions or unexpected future properties return
      * more than one value */
@@ -1323,8 +1087,8 @@ native_GetTessProperty(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator ||
-	alist->a2 == null || otype(alist->a2) != (t_vector|t_float64))
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator) ||
+	bad_arg_type(a2, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
     /* Verify in case of extensions or unexpected future properties return
      * more than one value */
@@ -1352,13 +1116,10 @@ native_LoadSamplingMatrices(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_float32) ||
-	alist->a1->length != 16 ||
-	alist->a2 == null || otype(alist->a2) != (t_vector|t_float32) ||
-	alist->a2->length != 16 ||
-	alist->a3 == null || otype(alist->a3) != (t_vector|t_int32) ||
-	alist->a3->length != 4)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs) ||
+	bad_arg_type_length(a1, t_vector|t_float32, 16) ||
+	bad_arg_type_length(a2, t_vector|t_float32, 16) ||
+	bad_arg_type_length(a3, t_vector|t_int32, 4))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluLoadSamplingMatrices(alist->a0->__nurbs, alist->a1->v.f32,
@@ -1456,7 +1217,7 @@ native_NextContour(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluNextContour(alist->a0->__tesselator, alist->a1);
@@ -1474,9 +1235,9 @@ native_NurbsCurve(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_vec_vec_i32_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_float32) ||
-	alist->a2 == null || otype(alist->a2) != (t_vector|t_float32))
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs) ||
+	bad_arg_type(a1, t_vector|t_float32) ||
+	bad_arg_type(a2, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
     length = alist->a1->length;
     if (alist->a3 < length)
@@ -1527,7 +1288,7 @@ native_NurbsProperty(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_u32_f32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs)
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluNurbsProperty(alist->a0->__nurbs, alist->a1, alist->a2);
@@ -1546,10 +1307,10 @@ native_NurbsSurface(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_vec_vec_vec_i32_i32_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_float32) ||
-	alist->a2 == null || otype(alist->a2) != (t_vector|t_float32) ||
-	alist->a3 == null || otype(alist->a3) != (t_vector|t_float32))
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs) ||
+	bad_arg_type(a1, t_vector|t_float32) ||
+	bad_arg_type(a2, t_vector|t_float32) ||
+	bad_arg_type(a3, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
     /* FIXME this minimum vector length check is probably wrong */
     check_mult(alist->a1->length, alist->a2->length);
@@ -1576,7 +1337,7 @@ native_PartialDisk(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_f64_f64_i32_i32_f64_f64_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluPartialDisk(alist->a0->__quadric, alist->a1, alist->a2, alist->a3,
@@ -1609,7 +1370,7 @@ native_PickMatrix(oobject_t list, oint32_t ac)
 
     alist = (nat_f64_f64_f64_f64_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a4 == null || otype(alist->a4) != (t_vector|t_int32))
+    if (bad_arg_type(a4, t_vector|t_int32))
 	ovm_raise(except_invalid_argument);
     orenew_vector(alist->a4, 4);
     r0->t = t_void;
@@ -1628,13 +1389,10 @@ native_Project(oobject_t list, oint32_t ac)
 
     alist = (nat_f64_f64_f64_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a3 == null || otype(alist->a3) != (t_vector|t_float64) ||
-	alist->a3->length != 16 ||
-	alist->a4 == null || otype(alist->a4) != (t_vector|t_float64) ||
-	alist->a4->length != 16 ||
-	alist->a5 == null || otype(alist->a5) != (t_vector|t_int32) ||
-	alist->a5->length != 4 ||
-	alist->a6 == null || otype(alist->a6) != (t_vector|t_float64))
+    if (bad_arg_type_length(a3, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a4, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a5, t_vector|t_int32, 4) ||
+	bad_arg_type(a6, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
     orenew_vector(alist->a6, 3);
     r0->t = t_void;
@@ -1654,8 +1412,8 @@ native_PwlCurve(oobject_t list, oint32_t ac)
 
     alist = (nat_nur_vec_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_nurbs ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_float32))
+    if (bad_arg_type_field(a0, t_nurbs, __nurbs) ||
+	bad_arg_type(a1, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
     switch (alist->a2) {
 	case GLU_MAP1_TRIM_2:
@@ -1681,7 +1439,7 @@ native_QuadricDrawStyle(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluQuadricDrawStyle(alist->a0->__quadric, alist->a1);
@@ -1697,7 +1455,7 @@ native_QuadricNormals(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluQuadricNormals(alist->a0->__quadric, alist->a1);
@@ -1713,7 +1471,7 @@ native_QuadricOrientation(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluQuadricOrientation(alist->a0->__quadric, alist->a1);
@@ -1729,7 +1487,7 @@ native_QuadricTexture(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_u8_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluQuadricTexture(alist->a0->__quadric, alist->a1);
@@ -1748,8 +1506,8 @@ native_ScaleImage(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_i32_i32_vec_i32_i32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a3 == null || otype(alist->a3) != (t_vector|t_float32) ||
-	alist->a6 == null || otype(alist->a6) != (t_vector|t_float32))
+    if (bad_arg_type(a3, t_vector|t_float32) ||
+	bad_arg_type(a6, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
     check_mult(alist->a1, alist->a2);
     ilen = alist->a1 * alist->a2;
@@ -1801,7 +1559,7 @@ native_Sphere(oobject_t list, oint32_t ac)
 
     alist = (nat_qua_f64_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_quadric)
+    if (bad_arg_type_field(a0, t_quadric, __quadric))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluSphere(alist->a0->__quadric, alist->a1, alist->a2, alist->a3);
@@ -1818,7 +1576,7 @@ native_TessBeginContour(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessBeginContour(alist->a0->__tesselator);
@@ -1834,7 +1592,7 @@ native_TessBeginPolygon(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessBeginPolygon(alist->a0->__tesselator, null);
@@ -1850,7 +1608,7 @@ native_TessEndContour(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessEndContour(alist->a0->__tesselator);
@@ -1866,7 +1624,7 @@ native_TessEndPolygon(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessEndPolygon(alist->a0->__tesselator);
@@ -1883,7 +1641,7 @@ native_TessNormal(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_f64_f64_f64_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessNormal(alist->a0->__tesselator, alist->a1, alist->a2, alist->a3);
@@ -1899,7 +1657,7 @@ native_TessProperty(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_u32_f64_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessProperty(alist->a0->__tesselator, alist->a1, alist->a2);
@@ -1915,9 +1673,8 @@ native_TessVertex(oobject_t list, oint32_t ac)
 
     alist = (nat_tes_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_tesselator ||
-	alist->a1 == null || otype(alist->a1) != (t_vector|t_float64) ||
-	alist->a1->length < 3)
+    if (bad_arg_type_field(a0, t_tesselator, __tesselator) ||
+	bad_arg_type_length(a1, t_vector|t_float64, 3))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     gluTessVertex(alist->a0->__tesselator, alist->a1->v.f64, null);
@@ -1935,13 +1692,10 @@ native_UnProject(oobject_t list, oint32_t ac)
 
     alist = (nat_f64_f64_f64_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a3 == null || otype(alist->a3) != (t_vector|t_float64) ||
-	alist->a3->length != 16 ||
-	alist->a4 == null || otype(alist->a4) != (t_vector|t_float64) ||
-	alist->a4->length != 16 ||
-	alist->a5 == null || otype(alist->a5) != (t_vector|t_int32) ||
-	alist->a5->length != 4 ||
-	alist->a6 == null || otype(alist->a6) != (t_vector|t_float64))
+    if (bad_arg_type_length(a3, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a4, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a5, t_vector|t_int32, 4) ||
+	bad_arg_type(a6, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
     orenew_vector(alist->a6, 3);
     r0->t = t_word;
@@ -1965,13 +1719,10 @@ native_UnProject4(oobject_t list, oint32_t ac)
 
     alist = (nat_f64_f64_f64_f64_vec_vec_vec_f64_f64_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a4 == null || otype(alist->a4) != (t_vector|t_float64) ||
-	alist->a4->length != 16 ||
-	alist->a5 == null || otype(alist->a5) != (t_vector|t_float64) ||
-	alist->a5->length != 16 ||
-	alist->a6 == null || otype(alist->a6) != (t_vector|t_int32) ||
-	alist->a6->length != 4 ||
-	alist->a9 == null || otype(alist->a9) != (t_vector|t_float64))
+    if (bad_arg_type_length(a4, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a5, t_vector|t_float64, 16) ||
+	bad_arg_type_length(a6, t_vector|t_int32, 4) ||
+	bad_arg_type(a9, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
     orenew_vector(alist->a9, 4);
     r0->t = t_word;
