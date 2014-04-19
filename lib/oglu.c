@@ -332,21 +332,21 @@ init_glu(void)
     define_builtin1(t_void, BeginTrim, t_nurbs);
     define_builtin8(t_void, Build1DMipmapLevels,
 		    t_uint32, t_int32, t_int32, t_uint32, t_int32,
-		    t_int32, t_int32, t_vector|t_float32);
+		    t_int32, t_int32, t_vector|t_uint8);
     define_builtin5(t_void, Build1DMipmaps,
-		    t_uint32, t_int32, t_int32, t_uint32, t_vector|t_float32);
+		    t_uint32, t_int32, t_int32, t_uint32, t_vector|t_uint8);
     define_builtin9(t_void, Build2DMipmapLevels,
 		    t_uint32, t_int32, t_int32, t_int32, t_uint32, t_int32,
-		    t_int32, t_int32, t_vector|t_float32);
+		    t_int32, t_int32, t_vector|t_uint8);
     define_builtin6(t_void, Build2DMipmaps,
 		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
-		    t_vector|t_float32);
+		    t_vector|t_uint8);
     define_builtin10(t_void, Build3DMipmapLevels,
 		     t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
-		     t_int32, t_int32, t_int32, t_vector|t_float32);
+		     t_int32, t_int32, t_int32, t_vector|t_uint8);
     define_builtin7(t_void, Build3DMipmaps,
 		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
-		    t_vector|t_float32);
+		    t_vector|t_uint8);
     define_builtin2(t_uint8, CheckExtension, t_string, t_string);
     define_builtin6(t_void, Cylinder, t_quadric, t_float64, t_float64,
 		    t_float64, t_int32, t_int32);
@@ -402,8 +402,8 @@ init_glu(void)
     define_builtin2(t_void, QuadricOrientation, t_quadric, t_uint32);
     define_builtin2(t_void, QuadricTexture, t_quadric, t_uint8);
     define_builtin7(t_void, ScaleImage,
-		    t_uint32, t_int32, t_int32, t_vector|t_float32, t_int32,
-		    t_int32, t_vector|t_float32);
+		    t_uint32, t_int32, t_int32, t_vector|t_uint8, t_int32,
+		    t_int32, t_vector|t_uint8);
     define_builtin2(t_void, QuadricDrawStyle, t_quadric, t_uint32);
     define_builtin4(t_void,  Sphere,
 		    t_quadric, t_float64, t_int32, t_int32);
@@ -500,7 +500,7 @@ static void
 native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 /* void Build1DMipmapLevels(uint32_t target, int32_t internalformat,
 			    int32_t width, uint32_t format, int32_t level,
-			    int32_t base, int32_t max, float32_t data[]); */
+			    int32_t base, int32_t max, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -536,16 +536,17 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a7, t_vector|t_float32) || alist->a7->length < length)
+    if (bad_arg_type(a7, t_vector|t_uint8) || alist->a7->length < length)
 	ovm_raise(except_invalid_argument);
-    gluBuild1DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3, GL_FLOAT,
-			   alist->a4, alist->a5, alist->a6, alist->a7->v.f32);
+    gluBuild1DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
+			   GL_UNSIGNED_BYTE, alist->a4, alist->a5, alist->a6,
+			   alist->a7->v.u8);
 }
 
 static void
 native_Build1DMipmaps(oobject_t list, oint32_t ac)
 /* void Build1DMipmaps(uint32_t target, int32_t internalformat,
-		       int32_t width, uint32_t format, float32_t data[]); */
+		       int32_t width, uint32_t format, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -581,10 +582,10 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a4, t_vector|t_float32) || alist->a4->length < length)
+    if (bad_arg_type(a4, t_vector|t_uint8) || alist->a4->length < length)
 	ovm_raise(except_invalid_argument);
-    gluBuild1DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, GL_FLOAT,
-		      alist->a4->v.f32);
+    gluBuild1DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3,
+		      GL_UNSIGNED_BYTE, alist->a4->v.u8);
 }
 
 static void
@@ -592,7 +593,7 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 /* void Build2DMipmapLevels(uint32_t target, int32_t internalformat,
 			    int32_t width, int32_t height, uint32_t format,
 			    int32_t level, int32_t base, int32_t max,
-			    float32_t data[]); */
+			    uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -633,18 +634,18 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a8, t_vector|t_float32) || alist->a8->length < length)
+    if (bad_arg_type(a8, t_vector|t_uint8) || alist->a8->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild2DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
-			   alist->a4, GL_FLOAT, alist->a5, alist->a6,
-			   alist->a7, alist->a8->v.f32);
+			   alist->a4, GL_UNSIGNED_BYTE, alist->a5, alist->a6,
+			   alist->a7, alist->a8->v.u8);
 }
 
 static void
 native_Build2DMipmaps(oobject_t list, oint32_t ac)
 /* void Build2DMipmaps(uint32_t target, int32_t internalformat,
 		       int32_t width, int32_t height, uint32_t format,
-		       float32_t data[]); */
+		       uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -685,10 +686,10 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a5, t_vector|t_float32) || alist->a5->length < length)
+    if (bad_arg_type(a5, t_vector|t_uint8) || alist->a5->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild2DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		      GL_FLOAT, alist->a5->v.f32);
+		      GL_UNSIGNED_BYTE, alist->a5->v.u8);
 }
 
 static void
@@ -696,7 +697,7 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 /* void Build3DMipmapLevels(uint32_t target, int32_t internalformat,
 			    int32_t width, int32_t height, int32_t depth,
 			    uint32_t format, int32_t level, int32_t base,
-			    int32_t max, float32_t data[]); */
+			    int32_t max, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -745,18 +746,18 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a9, t_vector|t_float32) || alist->a9->length < length)
+    if (bad_arg_type(a9, t_vector|t_uint8) || alist->a9->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild3DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
-			   alist->a4, alist->a5, GL_FLOAT, alist->a6,
-			   alist->a7, alist->a8, alist->a9->v.f32);
+			   alist->a4, alist->a5, GL_UNSIGNED_BYTE, alist->a6,
+			   alist->a7, alist->a8, alist->a9->v.u8);
 }
 
 static void
 native_Build3DMipmaps(oobject_t list, oint32_t ac)
 /* void Build3DMipmaps(uint32_t target, int32_t internalformat,
 		       int32_t width, int32_t height, int32_t depth,
-		       uint32_t format, float32_t data[]); */
+		       uint32_t format, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -805,10 +806,10 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
-    if (bad_arg_type(a6, t_vector|t_float32) || alist->a6->length < length)
+    if (bad_arg_type(a6, t_vector|t_uint8) || alist->a6->length < length)
 	ovm_raise(except_invalid_argument);
     gluBuild3DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		      alist->a5, GL_FLOAT, alist->a6->v.f32);
+		      alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
 }
 
 static void
@@ -1500,8 +1501,8 @@ native_QuadricTexture(oobject_t list, oint32_t ac)
 static void
 native_ScaleImage(oobject_t list, oint32_t ac)
 /* void ScaleImage(uint32_t format,
-		   int32_t wIn, int32_t hIn, float32_t dataIn[],
-		   int32_t wOut, int32_t hOut, float32_t dataOut[]); */
+		   int32_t wIn, int32_t hIn, uint8_t dataIn[],
+		   int32_t wOut, int32_t hOut, uint8_t dataOut[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1510,8 +1511,8 @@ native_ScaleImage(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_i32_i32_vec_i32_i32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a3, t_vector|t_float32) ||
-	bad_arg_type(a6, t_vector|t_float32))
+    if (bad_arg_type(a3, t_vector|t_uint8) ||
+	bad_arg_type(a6, t_vector|t_uint8))
 	ovm_raise(except_invalid_argument);
     check_mult(alist->a1, alist->a2);
     ilen = alist->a1 * alist->a2;
@@ -1548,8 +1549,9 @@ native_ScaleImage(oobject_t list, oint32_t ac)
     if (alist->a6->length < olen)
 	orenew_vector(alist->a6, olen);
     r0->t = t_void;
-    gluScaleImage(alist->a0, alist->a1, alist->a2, GL_FLOAT, alist->a3->v.f32,
-		  alist->a4, alist->a5, GL_FLOAT, alist->a6->v.f32);
+    gluScaleImage(alist->a0, alist->a1, alist->a2, GL_UNSIGNED_BYTE,
+		  alist->a3->v.u8, alist->a4, alist->a5, GL_UNSIGNED_BYTE,
+		  alist->a6->v.u8);
 }
 
 static void
