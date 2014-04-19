@@ -123,6 +123,12 @@ struct osurface {
     SDL_Surface		*__surface;
     oint32_t		 w;
     oint32_t		 h;
+    ovector_t		*pixels;
+    ouint8_t		 bpp;
+    ouint32_t		 r_mask;
+    ouint32_t		 g_mask;
+    ouint32_t		 b_mask;
+    ouint32_t		 a_mask;
 };
 
 struct otexture {

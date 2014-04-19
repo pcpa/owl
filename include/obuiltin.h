@@ -335,6 +335,8 @@ TYPE4(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
 #if SDL
 TYPE4(oint32_t, ochunk_t*, oint32_t, oint32_t,
       i32_chu_i32_i32);
+TYPE4(osurface_t*, orect_t*, osurface_t*, orect_t*,
+      srf_rec_srf_rec);
 TYPE4(ofont_t*, ouint16_t, ocolor_t*, ocolor_t*,
       fnt_u16_col_col);
 TYPE4(ofont_t*, ovector_t*, ocolor_t*, ouint32_t,
