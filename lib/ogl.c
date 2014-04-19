@@ -145,9 +145,12 @@ static void native_ColorMaterial(oobject_t list, oint32_t ac);
 /* Raster functions */
 static void native_PixelZoom(oobject_t list, oint32_t ac);
 static void native_PixelStore(oobject_t list, oint32_t ac);
-static void native_PixelTransfer(oobject_t list, oint32_t ac);
-static void native_PixelMapv(oobject_t list, oint32_t ac);
-static void native_GetPixelMapv(oobject_t list, oint32_t ac);
+static void native_PixelTransferi(oobject_t list, oint32_t ac);
+static void native_PixelTransferf(oobject_t list, oint32_t ac);
+static void native_PixelMapuiv(oobject_t list, oint32_t ac);
+static void native_PixelMapfv(oobject_t list, oint32_t ac);
+static void native_GetPixelMapuiv(oobject_t list, oint32_t ac);
+static void native_GetPixelMapfv(oobject_t list, oint32_t ac);
 static void native_Bitmap(oobject_t list, oint32_t ac);
 static void native_ReadPixels(oobject_t list, oint32_t ac);
 static void native_ReadBitmap(oobject_t list, oint32_t ac);
@@ -164,12 +167,12 @@ static void native_TexGen(oobject_t list, oint32_t ac);
 static void native_TexGenv(oobject_t list, oint32_t ac);
 static void native_GetTexGen(oobject_t list, oint32_t ac);
 static void native_GetTexGenv(oobject_t list, oint32_t ac);
-static void native_TexEnvMode(oobject_t list, oint32_t ac);
-static void native_TexEnvLight(oobject_t list, oint32_t ac);
-static void native_TexEnvColor(oobject_t list, oint32_t ac);
-static void native_GetTexEnvMode(oobject_t list, oint32_t ac);
-static void native_GetTexEnvLight(oobject_t list, oint32_t ac);
-static void native_GetTexEnvColor(oobject_t list, oint32_t ac);
+static void native_TexEnvi(oobject_t list, oint32_t ac);
+static void native_TexEnvf(oobject_t list, oint32_t ac);
+static void native_TexEnvfv(oobject_t list, oint32_t ac);
+static void native_GetTexEnvi(oobject_t list, oint32_t ac);
+static void native_GetTexEnvf(oobject_t list, oint32_t ac);
+static void native_GetTexEnvfv(oobject_t list, oint32_t ac);
 static void native_TexParameteri(oobject_t list, oint32_t ac);
 static void native_TexParameterf(oobject_t list, oint32_t ac);
 static void native_TexParameterfv(oobject_t list, oint32_t ac);
@@ -1106,7 +1109,7 @@ init_gl(void)
     define_builtin1(t_void,    Vertex4v, t_vector|t_float64);
     define_builtin3(t_void,    Normal3, t_float64, t_float64, t_float64);
     define_builtin1(t_void,    Normal3v, t_vector|t_float64);
-    define_builtin1(t_void,    Index, t_float64);
+    define_builtin1(t_void,    Index, t_int32);
     define_builtin3(t_void,    Color3, t_float32, t_float32, t_float32);
     define_builtin4(t_void,    Color4,
 		    t_float32, t_float32, t_float32, t_float32);
@@ -1144,10 +1147,13 @@ init_gl(void)
 		    t_uint32, t_uint32, t_vector|t_float32);
     define_builtin2(t_void,    ColorMaterial, t_uint32, t_uint32);
     define_builtin2(t_void,    PixelZoom, t_float32, t_float32);
-    define_builtin2(t_void,    PixelStore, t_uint32, t_float32);
-    define_builtin2(t_void,    PixelTransfer, t_uint32, t_float32);
-    define_builtin2(t_void,    PixelMapv, t_uint32, t_vector|t_float32);
-    define_builtin2(t_void,    GetPixelMapv, t_uint32, t_vector|t_float32);
+    define_builtin2(t_void,    PixelStore, t_uint32, t_int32);
+    define_builtin2(t_void,    PixelTransferi, t_uint32, t_int32);
+    define_builtin2(t_void,    PixelTransferf, t_uint32, t_float32);
+    define_builtin2(t_void,    PixelMapuiv, t_uint32, t_vector|t_uint32);
+    define_builtin2(t_void,    PixelMapfv, t_uint32, t_vector|t_float32);
+    define_builtin2(t_void,    GetPixelMapuiv, t_uint32, t_vector|t_uint32);
+    define_builtin2(t_void,    GetPixelMapfv, t_uint32, t_vector|t_float32);
     define_builtin7(t_void,    Bitmap,
 		    t_int32, t_int32, t_float32, t_float32,
 		    t_float32, t_float32, t_vector|t_uint8);
@@ -1172,12 +1178,14 @@ init_gl(void)
     define_builtin1(t_int32,   GetTexGen, t_uint32);
     define_builtin3(t_void,    GetTexGenv,
 		    t_uint32, t_uint32, t_vector|t_float64);
-    define_builtin1(t_void,    TexEnvMode, t_int32);
-    define_builtin1(t_void,    TexEnvLight, t_int32);
-    define_builtin1(t_void,    TexEnvColor, t_vector|t_float32);
-    define_builtin0(t_int32,   GetTexEnvMode);
-    define_builtin0(t_int32,   GetTexEnvLight);
-    define_builtin1(t_void,    GetTexEnvColor, t_vector|t_float32);
+    define_builtin3(t_void,    TexEnvi, t_uint32, t_uint32, t_int32);
+    define_builtin3(t_void,    TexEnvf, t_uint32, t_uint32, t_float32);
+    define_builtin3(t_void,    TexEnvfv,
+		    t_uint32, t_uint32, t_vector|t_float32);
+    define_builtin3(t_int32,   GetTexEnvi, t_uint32, t_uint32, t_int32);
+    define_builtin3(t_float64, GetTexEnvf, t_uint32, t_uint32, t_float32);
+    define_builtin3(t_void,    GetTexEnvfv,
+		    t_uint32, t_uint32, t_vector|t_float32);
     define_builtin3(t_void,    TexParameteri, t_uint32, t_uint32, t_int32);
     define_builtin3(t_void,    TexParameterf, t_uint32, t_uint32, t_float32);
     define_builtin3(t_void,    TexParameterfv,
@@ -1188,11 +1196,11 @@ init_gl(void)
 		    t_uint32, t_uint32, t_vector|t_float32);
     define_builtin3(t_int32,   GetTexLevelParameter,
 		    t_uint32, t_int32, t_uint32);
-    define_builtin7(t_void,    TexImage1D,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
+    define_builtin6(t_void,    TexImage1D,
+		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
-    define_builtin8(t_void,    TexImage2D,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32,
+    define_builtin7(t_void,    TexImage2D,
+		    t_uint32, t_int32, t_int32, t_int32, t_int32,
 		    t_uint32, t_vector|t_uint8);
     define_builtin4(t_void,    GetTexImage,
 		    t_uint32, t_int32, t_uint32, t_vector|t_uint8);
@@ -1210,17 +1218,17 @@ init_gl(void)
     define_builtin7(t_void,    TexSubImage2D,
 		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
-    define_builtin7(t_void,    CopyTexImage1D,
-		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
-		    t_int32);
-    define_builtin8(t_void,    CopyTexImage2D,
+    define_builtin8(t_void,    CopyTexImage1D,
 		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
 		    t_int32, t_int32);
-    define_builtin6(t_void,    CopyTexSubImage1D,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32);
-    define_builtin8(t_void,    CopyTexSubImage2D,
+    define_builtin9(t_void,    CopyTexImage2D,
+		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
+		    t_int32, t_int32, t_int32);
+    define_builtin5(t_void,    CopyTexSubImage1D,
+		    t_uint32, t_int32, t_int32, t_int32, t_int32);
+    define_builtin7(t_void,    CopyTexSubImage2D,
 		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32,
-		    t_int32, t_int32);
+		    t_int32);
     define_builtin5(t_void,    Map1,
 		    t_uint32, t_float64, t_float64, t_int32,
 		    t_vector|t_float64);
@@ -2709,16 +2717,16 @@ native_Normal3v(oobject_t list, oint32_t ac)
 
 static void
 native_Index(oobject_t list, oint32_t ac)
-/* void Index(float64_t c); */
+/* void Index(int32_t c); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_f64_t				*alist;
+    nat_i32_t				*alist;
 
-    alist = (nat_f64_t *)list;
+    alist = (nat_i32_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glIndexd(alist->a0);
+    glIndexi(alist->a0);
 }
 
 static void
@@ -3266,21 +3274,44 @@ native_PixelZoom(oobject_t list, oint32_t ac)
 
 static void
 native_PixelStore(oobject_t list, oint32_t ac)
-/* void PixelStore(uint32_t pname, float32_t param); */
+/* void PixelStore(uint32_t pname, int32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_u32_f32_t			*alist;
+    nat_u32_i32_t			*alist;
 
-    alist = (nat_u32_f32_t *)list;
+    alist = (nat_u32_i32_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glPixelStoref(alist->a0, alist->a1);
+    glPixelStorei(alist->a0, alist->a1);
 }
 
 static void
-native_PixelTransfer(oobject_t list, oint32_t ac)
-/* void PixelTransfer(uint32_t pname, float32_t param); */
+native_PixelTransferi(oobject_t list, oint32_t ac)
+/* void PixelTransferi(uint32_t pname, int32_t param); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_t			*alist;
+
+    alist = (nat_u32_i32_t *)list;
+    r0 = &thread_self->r0;
+    switch (alist->a0) {
+	case GL_MAP_COLOR:
+	case GL_MAP_STENCIL:
+	case GL_INDEX_SHIFT:
+	case GL_INDEX_OFFSET:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+    glPixelTransferi(alist->a0, alist->a1);
+}
+
+static void
+native_PixelTransferf(oobject_t list, oint32_t ac)
+/* void PixelTransferf(uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3288,13 +3319,71 @@ native_PixelTransfer(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_f32_t *)list;
     r0 = &thread_self->r0;
+    switch (alist->a0) {
+	case GL_RED_SCALE:
+	case GL_GREEN_SCALE:
+	case GL_BLUE_SCALE:
+	case GL_ALPHA_SCALE:
+	case GL_DEPTH_SCALE:
+	case GL_RED_BIAS:
+	case GL_GREEN_BIAS:
+	case GL_BLUE_BIAS:
+	case GL_ALPHA_BIAS:
+	case GL_DEPTH_BIAS:
+	case GL_POST_COLOR_MATRIX_RED_SCALE:
+	case GL_POST_COLOR_MATRIX_GREEN_SCALE:
+	case GL_POST_COLOR_MATRIX_BLUE_SCALE:
+	case GL_POST_COLOR_MATRIX_ALPHA_SCALE:
+	case GL_POST_COLOR_MATRIX_RED_BIAS:
+	case GL_POST_COLOR_MATRIX_GREEN_BIAS:
+	case GL_POST_COLOR_MATRIX_BLUE_BIAS:
+	case GL_POST_COLOR_MATRIX_ALPHA_BIAS:
+	case GL_POST_CONVOLUTION_RED_SCALE:
+	case GL_POST_CONVOLUTION_GREEN_SCALE:
+	case GL_POST_CONVOLUTION_BLUE_SCALE:
+	case GL_POST_CONVOLUTION_ALPHA_SCALE:
+	case GL_POST_CONVOLUTION_RED_BIAS:
+	case GL_POST_CONVOLUTION_GREEN_BIAS:
+	case GL_POST_CONVOLUTION_BLUE_BIAS:
+	case GL_POST_CONVOLUTION_ALPHA_BIAS:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
     glPixelTransferf(alist->a0, alist->a1);
 }
 
 static void
-native_PixelMapv(oobject_t list, oint32_t ac)
-/* void PixelMapv(uint32_t map, float32_t values[]); */
+native_PixelMapuiv(oobject_t list, oint32_t ac)
+/* void PixelMapuiv(uint32_t map, uint32_t values[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type(a1, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a0) {
+	case GL_PIXEL_MAP_I_TO_I:
+	case GL_PIXEL_MAP_S_TO_S:
+	case GL_PIXEL_MAP_I_TO_R:
+	case GL_PIXEL_MAP_I_TO_G:
+	case GL_PIXEL_MAP_I_TO_B:
+	case GL_PIXEL_MAP_I_TO_A:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+    glPixelMapuiv(alist->a0, alist->a1->length, alist->a1->v.u32);
+}
+
+static void
+native_PixelMapfv(oobject_t list, oint32_t ac)
+/* void PixelMapfv(uint32_t map, float32_t values[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3304,13 +3393,53 @@ native_PixelMapv(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a1, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
+    switch (alist->a0) {
+	case GL_PIXEL_MAP_R_TO_R:
+	case GL_PIXEL_MAP_G_TO_G:
+	case GL_PIXEL_MAP_B_TO_B:
+	case GL_PIXEL_MAP_A_TO_A:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
     glPixelMapfv(alist->a0, alist->a1->length, alist->a1->v.f32);
 }
 
 static void
-native_GetPixelMapv(oobject_t list, oint32_t ac)
-/* void GetPixelMapv(uint32_t map, float32_t values[]); */
+native_GetPixelMapuiv(oobject_t list, oint32_t ac)
+/* void GetPixelMapuiv(uint32_t map, uint32_t values[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    int					 length;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    glGetIntegerv(alist->a0, &length);
+    if (bad_arg_type(a1, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
+    switch (alist->a0) {
+	case GL_PIXEL_MAP_I_TO_I:
+	case GL_PIXEL_MAP_S_TO_S:
+	case GL_PIXEL_MAP_I_TO_R:
+	case GL_PIXEL_MAP_I_TO_G:
+	case GL_PIXEL_MAP_I_TO_B:
+	case GL_PIXEL_MAP_I_TO_A:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+    glGetPixelMapuiv(alist->a0, alist->a1->v.u32);
+}
+
+static void
+native_GetPixelMapfv(oobject_t list, oint32_t ac)
+/* void GetPixelMapfv(uint32_t map, float32_t values[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3324,6 +3453,15 @@ native_GetPixelMapv(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     if (alist->a1->length != length)
 	orenew_vector(alist->a1, length);
+    switch (alist->a0) {
+	case GL_PIXEL_MAP_R_TO_R:
+	case GL_PIXEL_MAP_G_TO_G:
+	case GL_PIXEL_MAP_B_TO_B:
+	case GL_PIXEL_MAP_A_TO_A:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
     glGetPixelMapfv(alist->a0, alist->a1->v.f32);
 }
@@ -3541,6 +3679,13 @@ native_TexGenv(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type_length(a2, t_vector|t_float64, 4))
 	ovm_raise(except_invalid_argument);
+    switch (alist->a1) {
+	case GL_OBJECT_PLANE:
+	case GL_EYE_PLANE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
     glTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
 }
@@ -3573,6 +3718,13 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a2, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
+    switch (alist->a1) {
+	case GL_OBJECT_PLANE:
+	case GL_EYE_PLANE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     if (alist->a2->length != 4)
 	orenew_vector(alist->a2, 4);
     r0->t = t_void;
@@ -3580,93 +3732,167 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
 }
 
 static void
-native_TexEnvMode(oobject_t list, oint32_t ac)
-/* void TexEnvMode(int32_t param); */
+native_TexEnvi(oobject_t list, oint32_t ac)
+/* void TexEnvi(uint32_t target, uint32_t pname, int32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_u32_t				*alist;
+    nat_u32_u32_i32_t			*alist;
 
-    alist = (nat_u32_t *)list;
+    alist = (nat_u32_u32_i32_t *)list;
     r0 = &thread_self->r0;
+    switch (alist->a1) {
+	case GL_TEXTURE_ENV_MODE:
+	case GL_COMBINE_RGB:
+	case GL_COMBINE_ALPHA:
+	case GL_SRC0_RGB:
+	case GL_SRC1_RGB:
+	case GL_SRC2_RGB:
+	case GL_SRC0_ALPHA:
+	case GL_SRC1_ALPHA:
+	case GL_SRC2_ALPHA:
+	case GL_OPERAND0_RGB:
+	case GL_OPERAND1_RGB:
+	case GL_OPERAND2_RGB:
+	case GL_OPERAND0_ALPHA:
+	case GL_OPERAND1_ALPHA:
+	case GL_OPERAND2_ALPHA:
+	case GL_COORD_REPLACE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, alist->a0);
+    glTexEnvi(alist->a0, alist->a1, alist->a2);
 }
 
 static void
-native_TexEnvLight(oobject_t list, oint32_t ac)
-/* void TexEnvLight(int32_t param); */
+native_TexEnvf(oobject_t list, oint32_t ac)
+/* void TexEnvf(uint32_t target, uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_u32_t				*alist;
+    nat_u32_u32_f32_t			*alist;
 
-    alist = (nat_u32_t *)list;
+    alist = (nat_u32_u32_f32_t *)list;
     r0 = &thread_self->r0;
+    switch (alist->a1) {
+	case GL_TEXTURE_LOD_BIAS:
+	case GL_RGB_SCALE:
+	case GL_ALPHA_SCALE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_LIGHTING_MODE_HP, alist->a0);
+    glTexEnvf(alist->a0, alist->a1, alist->a2);
 }
 
 static void
-native_TexEnvColor(oobject_t list, oint32_t ac)
-/* void TexEnvColor(float32_t color[]); */
+native_TexEnvfv(oobject_t list, oint32_t ac)
+/* void TexEnvfv(uint32_t target, uint32_t pname, float32_t param[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_vec_t				*alist;
+    nat_u32_u32_vec_t			*alist;
 
-    alist = (nat_vec_t *)list;
+    alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a0, t_vector|t_float32, 4))
+    if (bad_arg_type_length(a2, t_vector|t_float32, 4))
 	ovm_raise(except_invalid_argument);
+    switch (alist->a1) {
+	case GL_TEXTURE_ENV_COLOR:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_void;
-    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, alist->a0->v.f32);
+    glTexEnvfv(alist->a0, alist->a1, alist->a2->v.f32);
 }
 
 static void
-native_GetTexEnvMode(oobject_t list, oint32_t ac)
-/* int32_t GetTexEnvMode(); */
+native_GetTexEnvi(oobject_t list, oint32_t ac)
+/* int32_t GetTexEnvi(uint32_t target, uint32_t pname); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    GLint				 value[4];
+    nat_u32_u32_t			*alist;
+    GLint				 value[1];
 
+    alist = (nat_u32_u32_t *)list;
     r0 = &thread_self->r0;
+    switch (alist->a1) {
+	case GL_TEXTURE_ENV_MODE:
+	case GL_COMBINE_RGB:
+	case GL_COMBINE_ALPHA:
+	case GL_SRC0_RGB:
+	case GL_SRC1_RGB:
+	case GL_SRC2_RGB:
+	case GL_SRC0_ALPHA:
+	case GL_SRC1_ALPHA:
+	case GL_SRC2_ALPHA:
+	case GL_OPERAND0_RGB:
+	case GL_OPERAND1_RGB:
+	case GL_OPERAND2_RGB:
+	case GL_OPERAND0_ALPHA:
+	case GL_OPERAND1_ALPHA:
+	case GL_OPERAND2_ALPHA:
+	case GL_COORD_REPLACE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
     r0->t = t_word;
-    glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, value);
+    glGetTexEnviv(alist->a0, alist->a1, value);
     r0->v.w = value[0];
 }
 
 static void
-native_GetTexEnvLight(oobject_t list, oint32_t ac)
-/* int32_t GetTexEnvLight(); */
+native_GetTexEnvf(oobject_t list, oint32_t ac)
+/* float64_t GetTexEnvf(uint32_t target, uint32_t pname); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    GLint				 value[4];
+    nat_u32_u32_t			*alist;
+    GLfloat				 value[1];
 
+    alist = (nat_u32_u32_t *)list;
     r0 = &thread_self->r0;
-    r0->t = t_word;
-    glGetTexEnviv(GL_TEXTURE_ENV, GL_TEXTURE_LIGHTING_MODE_HP, value);
-    r0->v.w = value[0];
+    switch (alist->a1) {
+	case GL_TEXTURE_LOD_BIAS:
+	case GL_RGB_SCALE:
+	case GL_ALPHA_SCALE:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_float;
+    glGetTexEnvfv(alist->a0, alist->a1, value);
+    r0->v.d = value[0];
 }
 
 static void
-native_GetTexEnvColor(oobject_t list, oint32_t ac)
-/* void GetTexEnvColor(float32_t color[]); */
+native_GetTexEnvfv(oobject_t list, oint32_t ac)
+/* void GetTexEnvfv(uint32_t target, uint32_t pname, float32_t param[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_vec_t				*alist;
+    nat_u32_u32_vec_t			*alist;
 
-    alist = (nat_vec_t *)list;
+    alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_float32))
+    if (bad_arg_type(a2, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    if (alist->a0->length != 4)
-	orenew_vector(alist->a0, 4);
+    switch (alist->a1) {
+	case GL_TEXTURE_ENV_COLOR:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    if (alist->a2->length != 4)
+	orenew_vector(alist->a2, 4);
     r0->t = t_void;
-    glGetTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, alist->a0->v.f32);
+    glGetTexEnvfv(alist->a0, alist->a1, alist->a2->v.f32);
 }
 
 static void
@@ -3831,9 +4057,57 @@ native_GetTexLevelParameter(oobject_t list, oint32_t ac)
 
 static void
 native_TexImage1D(oobject_t list, oint32_t ac)
-/* void TexImage1D(uint32_t target, int32_t level, int32_t internalformat,
+/* void TexImage1D(uint32_t target, int32_t level,
 		   int32_t width, int32_t border, uint32_t format,
 		   uint8_t pixels[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_i32_u32_vec_t	*alist;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_i32_i32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+
+    /* width must be !2^n - (border * 2)" for an integer "n" */
+    length = alist->a2 /* width */ - (alist->a3 /* border */ << 1);
+    if (length & (length - 1))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a4 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    length = alist->a2;		/* width */
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a2, 3);
+	    length = alist->a2 * 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a2, 4);
+	    length = alist->a2 * 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    if (bad_arg_type_length(a5, t_vector|t_uint8, length))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glTexImage1D(alist->a0, alist->a1, alist->a4, alist->a2, alist->a3,
+		 alist->a4, GL_UNSIGNED_BYTE, alist->a5->v.u8);
+}
+
+static void
+native_TexImage2D(oobject_t list, oint32_t ac)
+/* void TexImage2D(uint32_t target, int32_t level,
+		   int32_t width, int32_t height, int32_t border,
+		   uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3842,8 +4116,12 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_i32_i32_i32_i32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    /* width must be !2^n - (border * 2)" for an integer "n" */
-    length = alist->a3 /* width */ - (alist->a4 /* border */ << 1);
+    /* width and height must be !2^n - (border * 2)" for an integer "n" */
+    length = alist->a2 /* width */ - (alist->a4 /* border */ << 1);
+    if (length & (length - 1))
+	ovm_raise(except_invalid_argument);
+    /* width and height must be !2^n - (border * 2)" for an integer "n" */
+    length = alist->a3 /* height */ - (alist->a4 /* border */ << 1);
     if (length & (length - 1))
 	ovm_raise(except_invalid_argument);
     switch (alist->a5 /* format */) {
@@ -3855,15 +4133,19 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 	case GL_LUMINANCE:
 	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
-	    length = alist->a3;		/* width */
+	    check_mult(alist->a2, alist->a3);
+	    length = alist->a2 * alist->a3;
 	    break;
 	case GL_RGB:
-	    check_mult(alist->a3, 3);
-	    length = alist->a3 * 3;
+	    check_mult(alist->a2, alist->a3);
+	    length = alist->a2 * alist->a3;
+	    check_mult(length, 3);
+	    length *= 3;
 	    break;
 	case GL_RGBA:
-	    check_mult(alist->a3, 4);
-	    length = alist->a3 * 4;
+	    check_mult(alist->a2, alist->a3);
+	    check_mult(length, 4);
+	    length *= 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
@@ -3872,63 +4154,8 @@ native_TexImage1D(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a6, t_vector|t_uint8, length))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
-    glTexImage1D(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		 alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
-}
-
-static void
-native_TexImage2D(oobject_t list, oint32_t ac)
-/* void TexImage2D(uint32_t target, int32_t level, int32_t internalformat,
-		   int32_t width, int32_t height, int32_t border,
-		   uint32_t format, uint8_t pixels[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_i32_i32_i32_u32_vec_t	*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_i32_i32_i32_u32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* width and height must be !2^n - (border * 2)" for an integer "n" */
-    length = alist->a3 /* width */ - (alist->a5 /* border */ << 1);
-    if (length & (length - 1))
-	ovm_raise(except_invalid_argument);
-    /* width and height must be !2^n - (border * 2)" for an integer "n" */
-    length = alist->a4 /* height */ - (alist->a5 /* border */ << 1);
-    if (length & (length - 1))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a6 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a3, alist->a4);
-	    length = alist->a3 * alist->a4;
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a3, alist->a4);
-	    length = alist->a3 * alist->a4;
-	    check_mult(length, 3);
-	    length *= 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a3, alist->a4);
-	    check_mult(length, 4);
-	    length *= 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    if (bad_arg_type_length(a7, t_vector|t_uint8, length))
-	ovm_raise(except_invalid_argument);
-    r0->t = t_void;
-    glTexImage2D(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		 alist->a5, alist->a6, GL_UNSIGNED_BYTE, alist->a7->v.u8);
+    glTexImage2D(alist->a0, alist->a1, alist->a5, alist->a2, alist->a3,
+		 alist->a4, alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
 }
 
 static void
@@ -4176,7 +4403,7 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexImage1D(oobject_t list, oint32_t ac)
-/* void CopyTexImage1D(uint32_t target, int32_t level, uint32_t internalformat,
+/* void CopyTexImage1D(uint32_t target, int32_t level, int32_t format,
 		       int32_t x, int32_t y, int32_t width, int32_t border); */
 {
     GET_THREAD_SELF()
@@ -4192,7 +4419,7 @@ native_CopyTexImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexImage2D(oobject_t list, oint32_t ac)
-/* void CopyTexImage2D(uint32_t target, int32_t level, uint32_t internalformat,
+/* void CopyTexImage2D(uint32_t target, int32_t level, int32_t format,
 		       int32_t x, int32_t y, int32_t width, int32_t height,
 		       int32_t border); */
 {

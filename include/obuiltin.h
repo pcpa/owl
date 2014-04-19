@@ -401,6 +401,8 @@ TYPE6(oint32_t, ofloat64_t, ofloat64_t, oint32_t, ofloat64_t, ofloat64_t,
       i32_f64_f64_i32_f64_f64);
 TYPE6(ouint32_t, oint32_t, oint32_t, oint32_t, oint32_t, oint32_t,
       u32_i32_i32_i32_i32_i32);
+TYPE6(ouint32_t, oint32_t, ouint32_t, oint32_t, oint32_t, oint32_t,
+      u32_i32_u32_i32_i32_i32);
 TYPE6(ouint32_t, oint32_t, oint32_t, oint32_t, ouint32_t, ovector_t*,
       u32_i32_i32_i32_u32_vec);
 TYPE6(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
@@ -425,6 +427,8 @@ typedef struct {							\
 } nat_##N##_t
 TYPE7(oint32_t,oint32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ovector_t*,
       i32_i32_f32_f32_f32_f32_vec);
+TYPE7(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,oint32_t,oint32_t,
+      u32_i32_i32_i32_i32_i32_i32);
 TYPE7(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,ouint32_t,oint32_t,
       u32_i32_i32_i32_i32_u32_i32);
 TYPE7(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,ouint32_t,ovector_t*,
