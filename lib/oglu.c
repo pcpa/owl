@@ -1047,7 +1047,8 @@ native_GetNurbsProperty(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a2, 1);
+    if (alist->a2->length != 1)
+	orenew_vector(alist->a2, 1);
     r0->t = t_void;
     gluGetNurbsProperty(alist->a0->__nurbs, alist->a1, alist->a2->v.f32);
 }
@@ -1100,7 +1101,8 @@ native_GetTessProperty(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a2, 1);
+    if (alist->a2->length != 1)
+	orenew_vector(alist->a2, 1);
     r0->t = t_void;
     gluGetTessProperty(alist->a0->__tesselator, alist->a1, alist->a2->v.f64);
 }
@@ -1372,7 +1374,8 @@ native_PickMatrix(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a4, t_vector|t_int32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a4, 4);
+    if (alist->a4->length != 4)
+	orenew_vector(alist->a4, 4);
     r0->t = t_void;
     gluPickMatrix(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4->v.i32);
 }
@@ -1394,7 +1397,8 @@ native_Project(oobject_t list, oint32_t ac)
 	bad_arg_type_length(a5, t_vector|t_int32, 4) ||
 	bad_arg_type(a6, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a6, 3);
+    if (alist->a6->length != 3)
+	orenew_vector(alist->a6, 3);
     r0->t = t_void;
     gluProject(alist->a0, alist->a1, alist->a2, alist->a3->v.f64,
 	       alist->a4->v.f64, alist->a5->v.i32, alist->a6->v.f64 + 0,
@@ -1697,7 +1701,8 @@ native_UnProject(oobject_t list, oint32_t ac)
 	bad_arg_type_length(a5, t_vector|t_int32, 4) ||
 	bad_arg_type(a6, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a6, 3);
+    if (alist->a6->length != 3)
+	orenew_vector(alist->a6, 3);
     r0->t = t_word;
     r0->v.w = gluUnProject(alist->a0, alist->a1, alist->a2, alist->a3->v.f64,
 			   alist->a4->v.f64, alist->a5->v.i32,
@@ -1724,7 +1729,8 @@ native_UnProject4(oobject_t list, oint32_t ac)
 	bad_arg_type_length(a6, t_vector|t_int32, 4) ||
 	bad_arg_type(a9, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a9, 4);
+    if (alist->a9->length != 4)
+	orenew_vector(alist->a9, 4);
     r0->t = t_word;
     r0->v.w = gluUnProject4(alist->a0, alist->a1, alist->a2, alist->a3,
 			    alist->a4->v.f64, alist->a5->v.f64,

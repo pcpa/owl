@@ -1431,7 +1431,8 @@ native_change_window(oobject_t list, oint32_t ac)
 	    length = strlen(buffer);
 	else
 	    length = 0;
-	orenew_vector(ow->__title, length);
+	if (ow->__title->length != length)
+	    orenew_vector(ow->__title, length);
 	if (length)
 	    memcpy(ow->__title->v.u8, buffer, length);
 	ow->title = ow->__title;
@@ -3913,7 +3914,8 @@ native_get_attribute(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a1, t_vector|t_int32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a1, 1);
+    if (alist->a1->length != 1)
+	orenew_vector(alist->a1, 1);
     r0->t = t_word;
     r0->v.w = SDL_GL_GetAttribute(alist->a0, alist->a1->v.i32);
 }

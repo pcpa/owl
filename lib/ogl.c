@@ -1502,7 +1502,8 @@ native_GetPolygonStipple(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a0, t_vector|t_uint8))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a0, 128);
+    if (alist->a0->length != 128)
+	orenew_vector(alist->a0, 128);
     r0->t = t_void;
     glGetPolygonStipple(alist->a0->v.u8);
 }
@@ -1779,7 +1780,8 @@ native_GetBooleanv(oobject_t list, oint32_t ac)
 	    /* FIXME add more valid entries with proper bounds checking */
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetBooleanv(alist->a0, alist->a1->v.u8);
 }
@@ -1824,7 +1826,8 @@ native_GetDoublev(oobject_t list, oint32_t ac)
 	    /* FIXME add more valid entries with proper bounds checking */
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetDoublev(alist->a0, alist->a1->v.f64);
 }
@@ -1889,7 +1892,8 @@ native_GetFloatv(oobject_t list, oint32_t ac)
 	    /* FIXME add more valid entries with proper bounds checking */
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetFloatv(alist->a0, alist->a1->v.f32);
 }
@@ -2032,7 +2036,8 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 	    /* FIXME add more valid entries with proper bounds checking */
 	    ovm_raise(except_invalid_argument);
     }
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetIntegerv(alist->a0, alist->a1->v.i32);
 }
@@ -3087,7 +3092,8 @@ native_GetLightv(oobject_t list, oint32_t ac)
     }
     if (bad_arg_type(a2, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a2, length);
+    if (alist->a2->length != length)
+	orenew_vector(alist->a2, length);
     r0->t = t_void;
     glGetLightfv(alist->a0, alist->a1, alist->a2->v.f32);
 }
@@ -3212,7 +3218,8 @@ native_GetMaterialv(oobject_t list, oint32_t ac)
     }
     if (bad_arg_type(a2, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a2, length);
+    if (alist->a2->length != length)
+	orenew_vector(alist->a2, length);
     r0->t = t_void;
     glGetMaterialfv(alist->a0, alist->a1, alist->a2->v.f32);
 }
@@ -3303,7 +3310,8 @@ native_GetPixelMapv(oobject_t list, oint32_t ac)
     glGetIntegerv(alist->a0, &length);
     if (bad_arg_type(a1, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetPixelMapfv(alist->a0, alist->a1->v.f32);
 }
@@ -3348,7 +3356,8 @@ native_ReadPixels(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     check_mult(alist->a2, alist->a3);
     length = alist->a2 * alist->a3;
-    orenew_vector(alist->a5, length);
+    if (alist->a5->length != length)
+	orenew_vector(alist->a5, length);
     r0->t = t_void;
     glReadPixels(alist->a0, alist->a1, alist->a2, alist->a3,
 		 alist->a4, GL_FLOAT, alist->a5->v.f32);
@@ -3371,7 +3380,8 @@ native_ReadBitmap(oobject_t list, oint32_t ac)
     length = (alist->a2 + 7) & ~7;
     check_mult(length, alist->a3);
     length = (length * alist->a3) >> 3;
-    orenew_vector(alist->a5, length);
+    if (alist->a5->length != length)
+	orenew_vector(alist->a5, length);
     r0->t = t_void;
     glReadPixels(alist->a0, alist->a1, alist->a2, alist->a3,
 		 alist->a4, GL_BITMAP, alist->a5->v.u8);
@@ -3550,7 +3560,8 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a2, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a2, 4);
+    if (alist->a2->length != 4)
+	orenew_vector(alist->a2, 4);
     r0->t = t_void;
     glGetTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
 }
@@ -3639,7 +3650,8 @@ native_GetTexEnvColor(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type(a0, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a0, 4);
+    if (alist->a0->length != 4)
+	orenew_vector(alist->a0, 4);
     r0->t = t_void;
     glGetTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, alist->a0->v.f32);
 }
@@ -3750,7 +3762,8 @@ native_GetTexParameteriv(oobject_t list, oint32_t ac)
     r0->t = t_void;
     if (bad_arg_type_length(a2, t_vector|t_int32, length))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a2, length);
+    if (alist->a2->length != length)
+	orenew_vector(alist->a2, length);
     glGetTexParameteriv(alist->a0, alist->a1, alist->a2->v.i32);
 }
 
@@ -3781,7 +3794,8 @@ native_GetTexParameterfv(oobject_t list, oint32_t ac)
     r0->t = t_void;
     if (bad_arg_type_length(a2, t_vector|t_float32, length))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a2, length);
+    if (alist->a2->length != length)
+	orenew_vector(alist->a2, length);
     glGetTexParameterfv(alist->a0, alist->a1, alist->a2->v.f32);
 }
 
@@ -3960,7 +3974,8 @@ native_GetTexImage(oobject_t list, oint32_t ac)
     length *= mult;
     if (bad_arg_type(a3, t_vector|t_float32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a3, length);
+    if (alist->a3->length != length)
+	orenew_vector(alist->a3, length);
     r0->t = t_void;
     glGetTexImage(alist->a0, alist->a1, alist->a2, GL_FLOAT, alist->a3->v.f32);
 }
@@ -4370,7 +4385,8 @@ native_GetMapCoeff(oobject_t list, oint32_t ac)
     length *= mult;
     if (bad_arg_type(a1, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetMapdv(alist->a0, GL_COEFF, alist->a1->v.f64);
 }
@@ -4414,7 +4430,8 @@ native_GetMapOrder(oobject_t list, oint32_t ac)
     }
     if (bad_arg_type(a1, t_vector|t_int32))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a1, order);
+    if (alist->a1->length != order)
+	orenew_vector(alist->a1, order);
     r0->t = t_void;
     glGetMapiv(alist->a0, GL_ORDER, alist->a1->v.i32);
 }
@@ -4458,7 +4475,8 @@ native_GetMapDomain(oobject_t list, oint32_t ac)
     }
     if (bad_arg_type(a1, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
-    orenew_vector(alist->a1, length);
+    if (alist->a1->length != length)
+	orenew_vector(alist->a1, length);
     r0->t = t_void;
     glGetMapdv(alist->a0, GL_DOMAIN, alist->a1->v.f64);
 }
