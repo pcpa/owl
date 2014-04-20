@@ -378,7 +378,7 @@ oprint_wrd(ostream_t *stream, oformat_t *format, oword_t word)
 	/* if left aligned and result is one digit to the right */
 	if (format->left || bytes > format->width)
 	    memmove(base, ptr, count);
-	if (bytes - 1 > format->width)
+	if (bytes > format->width)
 	    --bytes;
     }
 

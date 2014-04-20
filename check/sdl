@@ -191,6 +191,103 @@ for (i = 0; i < 2; ++i) {
 	exit(1);
     }
 }
+
+sdl.surface_t tsf = sdl.create_rgba_surface(256, 256);
+print("\nrgba surface\n\
+w:		%d\n\
+h:		%d\n\
+r_mask:		%#10x\n\
+g_mask:		%#10x\n\
+b_mask:		%#10x\n\
+a_mask:		%#10x\n\
+r:		%#x\n\
+g:		%#x\n\
+b:		%#x\n\
+a:		%#x\n\
+clip_x:		%d\n\
+clip_y:		%d\n\
+clip_w:		%d\n\
+clip_h:		%d\n\
+key:		%#x\n",
+      tsf.w, tsf.h, tsf.r_mask, tsf.g_mask, tsf.b_mask, tsf.a_mask,
+      tsf.r, tsf.g, tsf.b, tsf.a, tsf.clip_x, tsf.clip_y,
+      tsf.clip_w, tsf.clip_h, tsf.key);
+if (tsf.blend)
+    print("\
+blend:		%s%s%s\n",
+	  tsf.blend & sdl.BlendModeBlend ? "Blend " : "",
+	  tsf.blend & sdl.BlendModeAdd ? "Add " : "",
+	  tsf.blend & sdl.BlendModeMod ? "Mod " : "");
+else
+    print("\
+blend:		None\n");
+sdl.pull_surface(tsf);
+uint8_t pixels[] = tsf.pixels;
+int32_t j, c;
+for (i = c = 0; i < 256 * 256 * 4; i += 256 * 4, ++c) {
+    for (j = 0; j < 256 * 4; j += 4) {
+	pixels[i + j] = c;
+	pixels[i + j + 1] = c;
+	pixels[i + j + 2] = c;
+	pixels[i + j + 3] = 0xff;
+    }
+}
+pixels = null;
+sdl.push_surface(tsf);
+sdl.texture_t tsr = sdl.create_texture_from_surface(ren, tsf);
+sdl.free_surface(tsf);
+sdl.rect_t tr0 = { 0, 0, 256, 256 };
+sdl.render_copy(ren, tsr, null, tr0);
+sdl.render_present(ren);
+sdl.delay(1000);
+sdl.destroy_texture(tsr);
+
+tsf = sdl.create_rgb_surface(256, 256);
+print("\nrgb surface\n\
+w:		%d\n\
+h:		%d\n\
+r_mask:		%#10x\n\
+g_mask:		%#10x\n\
+b_mask:		%#10x\n\
+a_mask:		%#10x\n\
+r:		%#x\n\
+g:		%#x\n\
+b:		%#x\n\
+a:		%#x\n\
+clip_x:		%d\n\
+clip_y:		%d\n\
+clip_w:		%d\n\
+clip_h:		%d\n\
+key:		%#x\n",
+      tsf.w, tsf.h, tsf.r_mask, tsf.g_mask, tsf.b_mask, tsf.a_mask,
+      tsf.r, tsf.g, tsf.b, tsf.a, tsf.clip_x, tsf.clip_y,
+      tsf.clip_w, tsf.clip_h, tsf.key);
+if (tsf.blend)
+    print("\
+blend:		%s%s%s\n",
+	  tsf.blend & sdl.BlendModeBlend ? "Blend " : "",
+	  tsf.blend & sdl.BlendModeAdd ? "Add " : "",
+	  tsf.blend & sdl.BlendModeMod ? "Mod " : "");
+else
+    print("\
+blend:		None\n");
+sdl.pull_surface(tsf);
+pixels = tsf.pixels;
+for (i = 0, c = 255; i < 256 * 256 * 3; i += 256 * 3, --c) {
+    for (j = 0; j < 256 * 3; j += 3) {
+	pixels[i + j] = c;
+	pixels[i + j + 1] = c;
+	pixels[i + j + 2] = c;
+    }
+}
+pixels = null;
+sdl.push_surface(tsf);
+tsr = sdl.create_texture_from_surface(ren, tsf);
+sdl.free_surface(tsf);
+sdl.render_copy(ren, tsr, null, tr0);
+sdl.render_present(ren);
+sdl.delay(1000);
+sdl.destroy_texture(tsr);
 #endif
 
 /* do not fail below if this does not exist

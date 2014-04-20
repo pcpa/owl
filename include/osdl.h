@@ -121,14 +121,34 @@ struct orenderer {
 
 struct osurface {
     SDL_Surface		*__surface;
-    oint32_t		 w;
-    oint32_t		 h;
+    oint32_t		 w;			/* read only */
+    oint32_t		 h;			/* read only */
     ovector_t		*pixels;
-    ouint8_t		 bpp;
-    ouint32_t		 r_mask;
-    ouint32_t		 g_mask;
-    ouint32_t		 b_mask;
-    ouint32_t		 a_mask;
+    ouint8_t		 bpp;			/* read only */
+    ouint32_t		 r_mask;		/* read only */
+    ouint32_t		 g_mask;		/* read only */
+    ouint32_t		 b_mask;		/* read only */
+    ouint32_t		 a_mask;		/* read only */
+    oint32_t		 clip_x;
+    oint32_t		 clip_y;
+    oint32_t		 clip_w;
+    oint32_t		 clip_h;
+    ouint8_t		 r;
+    ouint8_t		 g;
+    ouint8_t		 b;
+    ouint8_t		 a;
+    ouint8_t		 blend;
+    ouint32_t		 key;
+    oint32_t		 __clip_x;
+    oint32_t		 __clip_y;
+    oint32_t		 __clip_w;
+    oint32_t		 __clip_h;
+    ouint8_t		 __r;
+    ouint8_t		 __g;
+    ouint8_t		 __b;
+    ouint8_t		 __a;
+    ouint8_t		 __blend;
+    ouint32_t		 __key;
 };
 
 struct otexture {

@@ -70,6 +70,7 @@ static void query_surface(osurface_t *surface);
 static void native_load_surface(oobject_t list, oint32_t ac);
 static void native_create_rgb_surface(oobject_t list, oint32_t ac);
 static void native_create_rgba_surface(oobject_t list, oint32_t ac);
+static void native_change_surface(oobject_t list, oint32_t ac);
 static void native_pull_surface(oobject_t list, oint32_t ac);
 static void native_push_surface(oobject_t list, oint32_t ac);
 static void native_blit_surface(oobject_t list, oint32_t ac);
@@ -538,7 +539,7 @@ static struct {
     { "TextureAccessStatic",		SDL_TEXTUREACCESS_STATIC },
     { "TextureAccessStreaming",		SDL_TEXTUREACCESS_STREAMING },
     { "TextureAccessTarget",		SDL_TEXTUREACCESS_TARGET },
-    /* texture_t.blend */
+    /* surface_t.blend,texture_t.blend */
     { "BlendModeNone",			SDL_BLENDMODE_NONE },
     { "BlendModeBlend",			SDL_BLENDMODE_BLEND },
     { "BlendModeAdd",			SDL_BLENDMODE_ADD },
@@ -825,6 +826,26 @@ init_sdl(void)
     add_field("uint32_t",	"g_mask");
     add_field("uint32_t",	"b_mask");
     add_field("uint32_t",	"a_mask");
+    add_field("int32_t",	"clip_x");
+    add_field("int32_t",	"clip_y");
+    add_field("int32_t",	"clip_w");
+    add_field("int32_t",	"clip_h");
+    add_field("uint8_t",	"r");
+    add_field("uint8_t",	"g");
+    add_field("uint8_t",	"b");
+    add_field("uint8_t",	"a");
+    add_field("uint8_t",	"blend");
+    add_field("int32_t",	"key");
+    add_field("int32_t",	"*clip_x*");
+    add_field("int32_t",	"*clip_y*");
+    add_field("int32_t",	"*clip_w*");
+    add_field("int32_t",	"*clip_h*");
+    add_field("uint8_t",	"*r*");
+    add_field("uint8_t",	"*g*");
+    add_field("uint8_t",	"*b*");
+    add_field("uint8_t",	"*a*");
+    add_field("uint8_t",	"*blend*");
+    add_field("int32_t",	"*key*");
     oend_record(record);
 
     record = type_vector->v.ptr[t_texture];
@@ -996,6 +1017,7 @@ init_sdl(void)
     define_builtin1(t_void,    destroy_renderer, t_renderer);
 
     define_builtin1(t_surface, load_surface, t_string);
+    define_builtin1(t_int32,   change_surface, t_surface);
     define_builtin2(t_surface, create_rgb_surface, t_int32, t_int32);
     define_builtin2(t_surface, create_rgba_surface, t_int32, t_int32);
     define_builtin1(t_int32,   pull_surface, t_surface);
@@ -1924,6 +1946,7 @@ void
 query_surface(osurface_t *os)
 {
     SDL_Surface			*ss;
+    SDL_BlendMode		 blend;
 
     ss = os->__surface;
     os->w = ss->w;
@@ -1933,6 +1956,21 @@ query_surface(osurface_t *os)
     os->g_mask = ss->format->Gmask;
     os->b_mask = ss->format->Bmask;
     os->a_mask = ss->format->Amask;
+    SDL_GetClipRect(ss, (SDL_Rect *)&os->__clip_x);
+    os->clip_x = os->__clip_x;
+    os->clip_y = os->__clip_y;
+    os->clip_w = os->__clip_w;
+    os->clip_h = os->__clip_h;
+    SDL_GetSurfaceColorMod(ss, &os->__r, &os->__g, &os->__b);
+    os->r = os->__r;
+    os->g = os->__g;
+    os->b = os->__b;
+    SDL_GetSurfaceAlphaMod(ss, &os->__a);
+    os->a = os->__a;
+    SDL_GetSurfaceBlendMode(ss, &blend);
+    os->__blend = os->blend = blend;
+    SDL_GetColorKey(ss, &os->__key);
+    os->key = os->__key;
 }
 
 static void
@@ -2017,6 +2055,34 @@ native_create_rgba_surface(oobject_t list, oint32_t ac)
 }
 
 static void
+native_change_surface(oobject_t list, oint32_t ac)
+/* int32_t change_surface(surface_t surf); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    osurface_t			*os;
+    nat_srf_t			*alist;
+
+    alist = (nat_srf_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type_field(a0, t_surface, __surface))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_word;
+    r0->v.w = 0;
+    os = alist->a0;
+    if (os->clip_x != os->__clip_x || os->clip_y != os->__clip_y ||
+	os->clip_w != os->__clip_w || os->clip_h != os->__clip_h)
+	r0->v.w |= !SDL_SetClipRect(os->__surface, (SDL_Rect *)&os->clip_x);
+    if (os->r != os->__r || os->g != os->__g || os->b != os->__b)
+	r0->v.w |= SDL_SetSurfaceColorMod(os->__surface, os->r, os->g, os->b);
+    if (os->a != os->__a)
+	r0->v.w |= SDL_SetSurfaceAlphaMod(os->__surface, os->a);
+    if (os->blend != os->__blend)
+	r0->v.w |= SDL_SetSurfaceBlendMode(os->__surface, os->blend);
+    query_surface(os);
+}
+
+static void
 native_pull_surface(oobject_t list, oint32_t ac)
 /* int32_t pull_surface(renderer_t ren); */
 {
@@ -2040,6 +2106,8 @@ native_pull_surface(oobject_t list, oint32_t ac)
 	r0->v.w = 0;
 	check_mult(ss->w, ss->h);
 	length = ss->w * ss->h;
+	check_mult(length, ss->format->BytesPerPixel);
+	length *= ss->format->BytesPerPixel;
 	if (os->pixels == null)
 	    onew_vector((oobject_t *)&os->pixels, t_uint8, length);
 	else if (os->pixels->length != length)
@@ -2071,6 +2139,8 @@ native_push_surface(oobject_t list, oint32_t ac)
     ss = alist->a0->__surface;
     check_mult(ss->w, ss->h);
     length = ss->w * ss->h;
+    check_mult(length, ss->format->BytesPerPixel);
+    length *= ss->format->BytesPerPixel;
     if (os->pixels == null ||
 	otype(os->pixels) != t_vector_uint8 || os->pixels->length != length)
 	ovm_raise(except_invalid_argument);
