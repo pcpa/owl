@@ -1201,8 +1201,11 @@ prototype(otag_t *base, oast_t *proto)
 	if (function->tag != tag)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
     }
-    else
+    else {
+	if (oget_symbol(record, name))
+	    oparse_error(proto, "'%p' redeclared as a different type", name);
 	function = onew_function(record, name, tag);
+    }
 
     return (function);
 }
