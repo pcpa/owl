@@ -224,7 +224,7 @@ struct oevent {
     ouint32_t		 type;			/* type */
     ouint32_t		 time;			/* timestamp */
     union {
-	oobject_t	 window;		/* window_t */
+	owindow_t	*window;		/* window_t */
 	oobject_t	 gesture;		/* finger_t (to be defined) */
 	oobject_t	 finger;		/* finger_t (to be defined) */
     };

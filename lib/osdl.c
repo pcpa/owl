@@ -2413,10 +2413,18 @@ translate_event(oevent_t *ev)
 		case SDL_WINDOWEVENT_MOVED:
 		    ev->x	= sv->window.data1;
 		    ev->y	= sv->window.data2;
+		    if (ev->window) {
+			ev->window->x = ev->window->__x = ev->x;
+			ev->window->y = ev->window->__y = ev->y;
+		    }
 		    break;
 		case SDL_WINDOWEVENT_RESIZED:
 		    ev->w	= sv->window.data1;
 		    ev->h	= sv->window.data2;
+		    if (ev->window) {
+			ev->window->w = ev->window->__w = ev->w;
+			ev->window->h = ev->window->__h = ev->h;
+		    }
 		    break;
 		default:
 		    break;
