@@ -100,6 +100,15 @@ typedef struct nat_scanf {
     ovector_t		*vector;
 } nat_scanf_t;
 
+typedef struct nat_gets {
+    ovector_t		*vector;
+} nat_gets_t;
+
+typedef struct nat_fgets {
+    ostream_t		*stream;
+    ovector_t		*vector;
+} nat_fgets_t;
+
 /*
  * Prototypes
  */
@@ -274,6 +283,15 @@ native_scanf(oobject_t list, oint32_t size);
 static void
 native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector);
 
+static void
+native_gets(oobject_t list, oint32_t size);
+
+static void
+native_fgets(oobject_t list, oint32_t size);
+
+static void
+native_gets_impl(ostream_t *stream, ovector_t *vector);
+
 /*
  * Initialization
  */
@@ -396,6 +414,15 @@ init_read_builtin(void)
     builtin = onew_builtin("scanf", native_scanf, t_word, false);
     onew_argument(builtin, t_void);		/* stream */
     onew_argument(builtin, t_void);		/* format */
+    onew_argument(builtin, t_void);		/* vector */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("gets", native_gets, t_void, false);
+    onew_argument(builtin, t_void);		/* vector */
+    oend_builtin(builtin);
+
+    builtin = onew_builtin("fgets", native_fgets, t_void, false);
+    onew_argument(builtin, t_void);		/* stream */
     onew_argument(builtin, t_void);		/* vector */
     oend_builtin(builtin);
 
@@ -843,7 +870,7 @@ scan_str_set(ostream_t *stream, oint32_t *set, oword_t width)
 	    break;
     }
 
-    if (ch != eof || length) {
+    if (ch != eof) {
 	r0->t = t_string;
 	r0->v.o = r0->vec;
 	orenew_vector(r0->vec, length);
@@ -3402,8 +3429,11 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
     GET_THREAD_SELF()
     oint32_t		 c;
     oword_t		 i;
+    oregister_t		*r0;
+    otype_t		 type;
     obool_t		 prec;
     oscan_t		 scan;
+    ovector_t		*string;
     obool_t		 ignore;
     obool_t		 include;
     obool_t		 streamp;
@@ -3420,8 +3450,29 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 	othrow(except_invalid_argument);
     if (format == null || otype(format) != t_string)
 	othrow(except_invalid_argument);
-    if (vector == null || otype(vector) != t_vector)
+    if (vector == null || !(otype(vector) & t_vector))
 	othrow(except_invalid_argument);
+    switch ((type = otype(vector) & ~t_vector)) {
+	case t_uint8:
+	    type = t_int8;
+	    break;
+	case t_uint16:
+	    type = t_int16;
+	    break;
+	case t_uint32:
+	    type = t_int32;
+	    break;
+	case t_uint64:
+	    type = t_int64;
+	    break;
+	case t_void:	case t_int8:	case t_int16:
+	case t_int32:	case t_int64:	case t_float32:
+	case t_float64:
+	    break;
+	default:
+	    type = t_void;
+	    break;
+    }
 
 #define next_element()							\
     do {								\
@@ -3435,6 +3486,8 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
     t = format->v.u8;
     l = t + format->length;
     vector->offset = 0;
+
+    r0 = &thread_self->r0;
 
     ignore = false;
     while (t < l) {
@@ -3463,6 +3516,7 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 	    continue;
 	}
 
+	/* must read at least one byte */
 	prec = false;
 	scan.skip = true;
 	scan.read = scan.uppr = scan.width = false;
@@ -3532,7 +3586,7 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 			}
 		    }
 		} while (*t != ']');
-		scan.skip = 0;
+		scan.skip = false;
 		goto scan_object;
 	    case 'A':				scan.uppr = 1;
 	    case 'a':				scan.radix = -1;
@@ -3547,8 +3601,41 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 		    break;
 		}
 		next_element();
-		ovm_store(&thread_self->r0,
-			  vector->v.ptr + vector->offset - 1, t_void);
+		if (r0->t == t_string) {
+		    if (type != t_void) {
+			if (streamp)
+			    omutex_unlock(&stream->mutex);
+			othrow(except_invalid_argument);
+		    }
+		    onew_vector(&thread_self->obj, t_uint8, r0->vec->length);
+		    string = thread_self->obj;
+		    memcpy(string->v.ptr, r0->vec->v.ptr, r0->vec->length);
+		    r0->v.o = thread_self->obj;
+		}
+		switch (type) {
+		    case t_int8:
+			ovm_store_i8(r0, vector->v.i8 + vector->offset - 1);
+			break;
+		    case t_int16:
+			ovm_store_i16(r0, vector->v.i16 + vector->offset - 1);
+			break;
+		    case t_int32:
+			ovm_store_i32(r0, vector->v.i32 + vector->offset - 1);
+			break;
+		    case t_int64:
+			ovm_store_i64(r0, vector->v.i64 + vector->offset - 1);
+			break;
+		    case t_float32:
+			ovm_store_f32(r0, vector->v.f32 + vector->offset - 1);
+			break;
+		    case t_float64:
+			ovm_store_f64(r0, vector->v.f64 + vector->offset - 1);
+			break;
+		    default:
+			ovm_store(r0, vector->v.ptr + vector->offset - 1,
+				  t_void);
+			break;
+		}
 		break;
 	    default:
 	    overflow:
@@ -3563,6 +3650,70 @@ done:
     if (streamp)
 	omutex_unlock(&stream->mutex);
     orenew_vector(vector, vector->offset);
-    thread_self->r0.t = t_word;
-    thread_self->r0.v.w = vector->offset;
+    r0->t = t_word;
+    r0->v.w = vector->offset;
+}
+
+static void
+native_gets(oobject_t list, oint32_t size)
+{
+    nat_gets_t		*alist;
+
+    alist = (nat_gets_t *)list;
+    native_gets_impl(std_input, alist->vector);
+}
+
+static void
+native_fgets(oobject_t list, oint32_t size)
+{
+    nat_fgets_t		*alist;
+
+    alist = (nat_fgets_t *)list;
+    native_gets_impl(alist->stream, alist->vector);
+}
+
+static void
+native_gets_impl(ostream_t *stream, ovector_t *vector)
+{
+    GET_THREAD_SELF()
+    oint32_t		c;
+    oregister_t		*r0;
+    obool_t		 streamp;
+
+    if (stream == null)
+	othrow(except_invalid_argument);
+    if ((streamp = otype(stream) == t_stream) == false) {
+	if (otype(stream) != t_string)
+	    othrow(except_invalid_argument);
+	stream->offset = 0;
+    }
+    else if (!stream->s_read)
+	othrow(except_invalid_argument);
+    if (vector == null || otype(vector) != t_string)
+	othrow(except_invalid_argument);
+
+    if (streamp)
+	omutex_lock(&stream->mutex);
+
+    r0 = &thread_self->r0;
+    vector->offset = 0;
+    for (c = ogetc(stream); c != eof; c = ogetc(stream)) {
+	if (vector->offset >= vector->length)
+	    orenew_vector(vector, (vector->length + 4096) & -4096);
+	vector->v.u8[vector->offset++] = c;
+	if (c == '\n')
+	    break;
+    }
+
+    orenew_vector(vector, vector->offset);
+
+    if (streamp)
+	omutex_unlock(&stream->mutex);
+
+    if (vector->offset || c == '\n') {
+	r0->t = t_string;
+	r0->v.o = vector;
+    }
+    else
+	r0->t = t_void;
 }
