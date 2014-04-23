@@ -1202,10 +1202,11 @@ prototype(otag_t *base, oast_t *proto)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
     }
     else {
-	if (oget_symbol(record, name))
+	/* if not overriding a virtual method */
+	if ((symbol = oget_symbol(record, name)) && !symbol->method)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
-	function = onew_function(record, name, tag);
     }
+    function = onew_function(record, name, tag);
 
     return (function);
 }
