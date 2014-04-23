@@ -83,12 +83,12 @@ void Display() {
 	gl.Enable(gl.SCISSOR_TEST);
 
     if (Invert) {
-	gl.PixelTransfer(gl.RED_SCALE, -1.0);
-	gl.PixelTransfer(gl.GREEN_SCALE, -1.0);
-	gl.PixelTransfer(gl.BLUE_SCALE, -1.0);
-	gl.PixelTransfer(gl.RED_BIAS, 1.0);
-	gl.PixelTransfer(gl.GREEN_BIAS, 1.0);
-	gl.PixelTransfer(gl.BLUE_BIAS, 1.0);
+	gl.PixelTransferf(gl.RED_SCALE, -1.0);
+	gl.PixelTransferf(gl.GREEN_SCALE, -1.0);
+	gl.PixelTransferf(gl.BLUE_SCALE, -1.0);
+	gl.PixelTransferf(gl.RED_BIAS, 1.0);
+	gl.PixelTransferf(gl.GREEN_BIAS, 1.0);
+	gl.PixelTransferf(gl.BLUE_BIAS, 1.0);
    }
 
     /* draw copy */
@@ -100,12 +100,12 @@ void Display() {
     gl.Disable(gl.SCISSOR_TEST);
 
     if (Invert) {
-	gl.PixelTransfer(gl.RED_SCALE, 1.0);
-	gl.PixelTransfer(gl.GREEN_SCALE, 1.0);
-	gl.PixelTransfer(gl.BLUE_SCALE, 1.0);
-	gl.PixelTransfer(gl.RED_BIAS, 0.0);
-	gl.PixelTransfer(gl.GREEN_BIAS, 0.0);
-	gl.PixelTransfer(gl.BLUE_BIAS, 0.0);
+	gl.PixelTransferf(gl.RED_SCALE, 1.0);
+	gl.PixelTransferf(gl.GREEN_SCALE, 1.0);
+	gl.PixelTransferf(gl.BLUE_SCALE, 1.0);
+	gl.PixelTransferf(gl.RED_BIAS, 0.0);
+	gl.PixelTransferf(gl.GREEN_BIAS, 0.0);
+	gl.PixelTransferf(gl.BLUE_BIAS, 0.0);
     }
 
     if (DrawFront)
