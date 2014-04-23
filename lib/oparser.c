@@ -1414,16 +1414,13 @@ structure(void)
 	case tok_symbol:
 	    ast = top_ast();
 	    symbol = ast->l.value;
-	    if (symbol->record != (orecord_t *)language_table) {
-		name = oget_symbol(current_record, symbol->name);
-		if (name)
-		    symbol = name;
-	    }
+	    if ((name = oget_symbol(current_record, symbol->name)))
+		symbol = name;
 	    if (!symbol->type) {
 		record = onew_record(symbol);
 		symbol = record->name;
-		tag = symbol->tag;
 	    }
+	    tag = symbol->tag;
 	    record = symbol->value;
 	check:
 	    if (tag == null || tag->type != tag_class)
