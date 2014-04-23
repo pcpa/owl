@@ -330,22 +330,22 @@ init_glu(void)
     define_builtin1(t_void, BeginPolygon, t_tesselator);
     define_builtin1(t_void, BeginSurface, t_nurbs);
     define_builtin1(t_void, BeginTrim, t_nurbs);
-    define_builtin8(t_void, Build1DMipmapLevels,
+    define_builtin7(t_void, Build1DMipmapLevels,
+		    t_uint32, t_int32, t_uint32, t_int32,
+		    t_int32, t_int32, t_vector|t_uint8);
+    define_builtin4(t_void, Build1DMipmaps,
+		    t_uint32, t_int32, t_uint32, t_vector|t_uint8);
+    define_builtin8(t_void, Build2DMipmapLevels,
 		    t_uint32, t_int32, t_int32, t_uint32, t_int32,
 		    t_int32, t_int32, t_vector|t_uint8);
-    define_builtin5(t_void, Build1DMipmaps,
-		    t_uint32, t_int32, t_int32, t_uint32, t_vector|t_uint8);
-    define_builtin9(t_void, Build2DMipmapLevels,
-		    t_uint32, t_int32, t_int32, t_int32, t_uint32, t_int32,
-		    t_int32, t_int32, t_vector|t_uint8);
-    define_builtin6(t_void, Build2DMipmaps,
-		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
+    define_builtin5(t_void, Build2DMipmaps,
+		    t_uint32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
-    define_builtin10(t_void, Build3DMipmapLevels,
-		     t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
-		     t_int32, t_int32, t_int32, t_vector|t_uint8);
-    define_builtin7(t_void, Build3DMipmaps,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
+    define_builtin9(t_void, Build3DMipmapLevels,
+		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
+		    t_int32, t_int32, t_int32, t_vector|t_uint8);
+    define_builtin6(t_void, Build3DMipmaps,
+		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
     define_builtin2(t_uint8, CheckExtension, t_string, t_string);
     define_builtin6(t_void, Cylinder, t_quadric, t_float64, t_float64,
@@ -498,21 +498,22 @@ native_BeginTrim(oobject_t list, oint32_t ac)
 
 static void
 native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build1DMipmapLevels(uint32_t target, int32_t internalformat,
+/* void Build1DMipmapLevels(uint32_t target,
 			    int32_t width, uint32_t format, int32_t level,
 			    int32_t base, int32_t max, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_u32_i32_i32_u32_i32_i32_i32_vec_t	*alist;
+    nat_u32_i32_u32_i32_i32_i32_vec_t	*alist;
+    ouint32_t				 format;
     oword_t				 length;
 
-    alist = (nat_u32_i32_i32_u32_i32_i32_i32_vec_t *)list;
+    alist = (nat_u32_i32_u32_i32_i32_i32_vec_t *)list;
     r0 = &thread_self->r0;
     /* Validate width is a power of 2 */
-    if (alist->a2 & (alist->a2 - 1))
+    if (alist->a1 & (alist->a1 - 1))
 	ovm_raise(except_invalid_argument);
-    switch (alist->a3 /* format */) {
+    switch (alist->a2 /* format */) {
 	case GL_COLOR_INDEX:
 	case GL_RED:
 	case GL_GREEN:
@@ -521,285 +522,18 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 	case GL_LUMINANCE:
 	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
-	    length = alist->a2;		/* width */
+	    length = alist->a1;		/* width */
+	    format = 1;
 	    break;
 	case GL_RGB:
-	    check_mult(alist->a2, 3);
-	    length = alist->a2 * 3;
+	    check_mult(alist->a1, 3);
+	    length = alist->a1 * 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
-	    check_mult(alist->a2, 4);
-	    length = alist->a2 * 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    r0->t = t_void;
-    if (bad_arg_type(a7, t_vector|t_uint8) || alist->a7->length < length)
-	ovm_raise(except_invalid_argument);
-    gluBuild1DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
-			   GL_UNSIGNED_BYTE, alist->a4, alist->a5, alist->a6,
-			   alist->a7->v.u8);
-}
-
-static void
-native_Build1DMipmaps(oobject_t list, oint32_t ac)
-/* void Build1DMipmaps(uint32_t target, int32_t internalformat,
-		       int32_t width, uint32_t format, uint8_t data[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_u32_vec_t		*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_u32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* Validate width is a power of 2 */
-    if (alist->a2 & (alist->a2 - 1))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a3 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    length = alist->a2;		/* width */
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a2, 3);
-	    length = alist->a2 * 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a2, 4);
-	    length = alist->a2 * 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    r0->t = t_void;
-    if (bad_arg_type(a4, t_vector|t_uint8) || alist->a4->length < length)
-	ovm_raise(except_invalid_argument);
-    gluBuild1DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3,
-		      GL_UNSIGNED_BYTE, alist->a4->v.u8);
-}
-
-static void
-native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build2DMipmapLevels(uint32_t target, int32_t internalformat,
-			    int32_t width, int32_t height, uint32_t format,
-			    int32_t level, int32_t base, int32_t max,
-			    uint8_t data[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_i32_u32_i32_i32_i32_vec_t	*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_i32_u32_i32_i32_i32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* Validate width and height are powers of 2 */
-    if ((alist->a2 & (alist->a2 - 1)) || (alist->a3 & (alist->a3 - 1)))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a4 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 3);
-	    length *= 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 4);
-	    length *= 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    r0->t = t_void;
-    if (bad_arg_type(a8, t_vector|t_uint8) || alist->a8->length < length)
-	ovm_raise(except_invalid_argument);
-    gluBuild2DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
-			   alist->a4, GL_UNSIGNED_BYTE, alist->a5, alist->a6,
-			   alist->a7, alist->a8->v.u8);
-}
-
-static void
-native_Build2DMipmaps(oobject_t list, oint32_t ac)
-/* void Build2DMipmaps(uint32_t target, int32_t internalformat,
-		       int32_t width, int32_t height, uint32_t format,
-		       uint8_t data[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_i32_u32_vec_t	*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_i32_u32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* Validate width and height are powers of 2 */
-    if ((alist->a2 & (alist->a2 - 1)) || (alist->a3 & (alist->a3 - 1)))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a4 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 3);
-	    length *= 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 4);
-	    length *= 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    r0->t = t_void;
-    if (bad_arg_type(a5, t_vector|t_uint8) || alist->a5->length < length)
-	ovm_raise(except_invalid_argument);
-    gluBuild2DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		      GL_UNSIGNED_BYTE, alist->a5->v.u8);
-}
-
-static void
-native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build3DMipmapLevels(uint32_t target, int32_t internalformat,
-			    int32_t width, int32_t height, int32_t depth,
-			    uint32_t format, int32_t level, int32_t base,
-			    int32_t max, uint8_t data[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_i32_i32_u32_i32_i32_i32_vec_t	*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_i32_i32_u32_i32_i32_i32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* Validate width, height and depth are powers of 2 */
-    if ((alist->a2 & (alist->a2 - 1)) ||
-	(alist->a3 & (alist->a3 - 1)) || 
-	(alist->a3 & (alist->a4 - 1)))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a5 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    check_mult(length, 3);
-	    length *= 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    check_mult(length, 4);
-	    length *= 4;
-	    break;
-	default:
-	    ovm_raise(except_invalid_argument);
-	    break;
-    }
-    r0->t = t_void;
-    if (bad_arg_type(a9, t_vector|t_uint8) || alist->a9->length < length)
-	ovm_raise(except_invalid_argument);
-    gluBuild3DMipmapLevels(alist->a0, alist->a1, alist->a2, alist->a3,
-			   alist->a4, alist->a5, GL_UNSIGNED_BYTE, alist->a6,
-			   alist->a7, alist->a8, alist->a9->v.u8);
-}
-
-static void
-native_Build3DMipmaps(oobject_t list, oint32_t ac)
-/* void Build3DMipmaps(uint32_t target, int32_t internalformat,
-		       int32_t width, int32_t height, int32_t depth,
-		       uint32_t format, uint8_t data[]); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_i32_i32_i32_i32_u32_vec_t	*alist;
-    oword_t				 length;
-
-    alist = (nat_u32_i32_i32_i32_i32_u32_vec_t *)list;
-    r0 = &thread_self->r0;
-    /* Validate width, height and depth are powers of 2 */
-    if ((alist->a2 & (alist->a2 - 1)) ||
-	(alist->a3 & (alist->a3 - 1)) ||
-	(alist->a4 & (alist->a4 - 1)))
-	ovm_raise(except_invalid_argument);
-    switch (alist->a5 /* format */) {
-	case GL_COLOR_INDEX:
-	case GL_RED:
-	case GL_GREEN:
-	case GL_BLUE:
-	case GL_ALPHA:
-	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
-	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    break;
-	case GL_RGB:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    check_mult(length, 3);
-	    length *= 3;
-	    break;
-	case GL_RGBA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, alist->a4);
-	    length *= alist->a4;
-	    check_mult(length, 4);
-	    length *= 4;
+	    check_mult(alist->a1, 4);
+	    length = alist->a1 * 4;
+	    format = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
@@ -808,8 +542,298 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
     r0->t = t_void;
     if (bad_arg_type(a6, t_vector|t_uint8) || alist->a6->length < length)
 	ovm_raise(except_invalid_argument);
-    gluBuild3DMipmaps(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
-		      alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
+    gluBuild1DMipmapLevels(alist->a0, format, alist->a1, alist->a2,
+			   GL_UNSIGNED_BYTE, alist->a3, alist->a4, alist->a5,
+			   alist->a6->v.u8);
+}
+
+static void
+native_Build1DMipmaps(oobject_t list, oint32_t ac)
+/* void Build1DMipmaps(uint32_t target,
+		       int32_t width, uint32_t format, uint8_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_u32_vec_t		*alist;
+    ouint32_t				 format;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    /* Validate width is a power of 2 */
+    if (alist->a1 & (alist->a1 - 1))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a2 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    length = alist->a2;		/* width */
+	    format = 1;
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a1, 3);
+	    length = alist->a1 * 3;
+	    format = 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a1, 4);
+	    length = alist->a1 * 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    r0->t = t_void;
+    if (bad_arg_type(a3, t_vector|t_uint8) || alist->a3->length < length)
+	ovm_raise(except_invalid_argument);
+    gluBuild1DMipmaps(alist->a0, format, alist->a1, alist->a2,
+		      GL_UNSIGNED_BYTE, alist->a3->v.u8);
+}
+
+static void
+native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
+/* void Build2DMipmapLevels(uint32_t target,
+			    int32_t width, int32_t height, uint32_t format,
+			    int32_t level, int32_t base, int32_t max,
+			    uint8_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_u32_i32_i32_i32_vec_t	*alist;
+    ouint32_t				 format;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_i32_u32_i32_i32_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    /* Validate width and height are powers of 2 */
+    if ((alist->a1 & (alist->a1 - 1)) || (alist->a2 & (alist->a2 - 1)))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a3 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    format = 1;
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, 3);
+	    length *= 3;
+	    format = 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, 4);
+	    length *= 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    r0->t = t_void;
+    if (bad_arg_type(a7, t_vector|t_uint8) || alist->a7->length < length)
+	ovm_raise(except_invalid_argument);
+    gluBuild2DMipmapLevels(alist->a0, format, alist->a1, alist->a2,
+			   alist->a3, GL_UNSIGNED_BYTE, alist->a4, alist->a5,
+			   alist->a6, alist->a7->v.u8);
+}
+
+static void
+native_Build2DMipmaps(oobject_t list, oint32_t ac)
+/* void Build2DMipmaps(uint32_t target,
+		       int32_t width, int32_t height, uint32_t format,
+		       uint8_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_u32_vec_t		*alist;
+    ouint32_t				 format;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_i32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    /* Validate width and height are powers of 2 */
+    if ((alist->a1 & (alist->a1 - 1)) || (alist->a2 & (alist->a2 - 1)))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a3 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    format = 1;
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, 3);
+	    length *= 3;
+	    format = 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, 4);
+	    length *= 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    r0->t = t_void;
+    if (bad_arg_type(a4, t_vector|t_uint8) || alist->a4->length < length)
+	ovm_raise(except_invalid_argument);
+    gluBuild2DMipmaps(alist->a0, format, alist->a1, alist->a2, alist->a3,
+		      GL_UNSIGNED_BYTE, alist->a4->v.u8);
+}
+
+static void
+native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
+/* void Build3DMipmapLevels(uint32_t target,
+			    int32_t width, int32_t height, int32_t depth,
+			    uint32_t format, int32_t level, int32_t base,
+			    int32_t max, uint8_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_i32_u32_i32_i32_i32_vec_t	*alist;
+    ouint32_t				 format;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_i32_i32_u32_i32_i32_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    /* Validate width, height and depth are powers of 2 */
+    if ((alist->a1 & (alist->a1 - 1)) ||
+	(alist->a2 & (alist->a2 - 1)) || 
+	(alist->a3 & (alist->a3 - 1)))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a4 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    format = 1;
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    check_mult(length, 3);
+	    length *= 3;
+	    format = 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    check_mult(length, 4);
+	    length *= 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    r0->t = t_void;
+    if (bad_arg_type(a8, t_vector|t_uint8) || alist->a8->length < length)
+	ovm_raise(except_invalid_argument);
+    gluBuild3DMipmapLevels(alist->a0, format, alist->a1, alist->a2,
+			   alist->a3, alist->a4, GL_UNSIGNED_BYTE, alist->a5,
+			   alist->a6, alist->a7, alist->a8->v.u8);
+}
+
+static void
+native_Build3DMipmaps(oobject_t list, oint32_t ac)
+/* void Build3DMipmaps(uint32_t target,
+		       int32_t width, int32_t height, int32_t depth,
+		       uint32_t format, uint8_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_i32_u32_vec_t	*alist;
+    ouint32_t				 format;
+    oword_t				 length;
+
+    alist = (nat_u32_i32_i32_i32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    /* Validate width, height and depth are powers of 2 */
+    if ((alist->a1 & (alist->a1 - 1)) ||
+	(alist->a2 & (alist->a2 - 1)) ||
+	(alist->a3 & (alist->a3 - 1)))
+	ovm_raise(except_invalid_argument);
+    switch (alist->a4 /* format */) {
+	case GL_COLOR_INDEX:
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    format = 1;
+	    break;
+	case GL_RGB:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    check_mult(length, 3);
+	    length *= 3;
+	    format = 3;
+	    break;
+	case GL_RGBA:
+	    check_mult(alist->a1, alist->a2);
+	    length = alist->a1 * alist->a2;
+	    check_mult(length, alist->a3);
+	    length *= alist->a3;
+	    check_mult(length, 4);
+	    length *= 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+	    break;
+    }
+    r0->t = t_void;
+    if (bad_arg_type(a5, t_vector|t_uint8) || alist->a5->length < length)
+	ovm_raise(except_invalid_argument);
+    gluBuild3DMipmaps(alist->a0, format, alist->a1, alist->a2, alist->a3,
+		      alist->a4, GL_UNSIGNED_BYTE, alist->a5->v.u8);
 }
 
 static void

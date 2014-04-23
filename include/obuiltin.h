@@ -435,6 +435,8 @@ TYPE7(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,ouint32_t,oint32_t,
       u32_i32_i32_i32_i32_u32_i32);
 TYPE7(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,ouint32_t,ovector_t*,
       u32_i32_i32_i32_i32_u32_vec);
+TYPE7(ouint32_t,oint32_t,ouint32_t,oint32_t,oint32_t,oint32_t,ovector_t*,
+      u32_i32_u32_i32_i32_i32_vec);
 TYPE7(ouint32_t,oint32_t,ofloat32_t,oint32_t,oint32_t,ouint32_t,ovector_t*,
       u32_i32_f32_i32_i32_u32_vec);
 TYPE7(ouint32_t,oint32_t,oint32_t,ovector_t*,oint32_t,oint32_t,ovector_t*,
