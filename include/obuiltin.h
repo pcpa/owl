@@ -222,6 +222,8 @@ TYPE2(orenderer_t*,ovector_t*,
       ren_vec);
 TYPE2(orenderer_t*,osurface_t*,
       ren_srf);
+TYPE2(osurface_t*,ouint32_t,
+      srf_u32);
 TYPE2(otesselator_t*,ouint32_t,
       tes_u32);
 TYPE2(otesselator_t*,ovector_t*,

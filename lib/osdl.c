@@ -70,6 +70,7 @@ static void query_surface(osurface_t *surface);
 static void native_load_surface(oobject_t list, oint32_t ac);
 static void native_create_rgb_surface(oobject_t list, oint32_t ac);
 static void native_create_rgba_surface(oobject_t list, oint32_t ac);
+static void native_convert_surface(oobject_t list, oint32_t ac);
 static void native_change_surface(oobject_t list, oint32_t ac);
 static void native_pull_surface(oobject_t list, oint32_t ac);
 static void native_push_surface(oobject_t list, oint32_t ac);
@@ -176,7 +177,7 @@ static void native_set_swap_interval(oobject_t list, oint32_t ac);
 static void native_get_swap_interval(oobject_t list, oint32_t ac);
 static void native_swap_window(oobject_t list, oint32_t ac);
 static void native_delete_context(oobject_t list, oint32_t ac);
-
+static void query_format(SDL_Surface*, uint32_t*, uint32_t*);
 static void native_ReadPixels(oobject_t list, oint32_t ac);
 static void native_DrawPixels(oobject_t list, oint32_t ac);
 static void native_TexImage1D(oobject_t list, oint32_t ac);
@@ -580,6 +581,25 @@ static struct {
     { "FadingNone",			MIX_NO_FADING },
     { "FadingOut",			MIX_FADING_OUT },
     { "FadingIn",			MIX_FADING_IN },
+    /* Audio format */
+    { "AudioU8",			AUDIO_U8 },
+    { "AudioS8",			AUDIO_S8 },
+    { "AudioU16Lsb",			AUDIO_U16LSB },
+    { "AudioS16Lsb",			AUDIO_S16LSB },
+    { "AudioU16Msb",			AUDIO_U16MSB },
+    { "AudioS16Msb",			AUDIO_S16MSB },
+    { "AudioU16",			AUDIO_U16 },
+    { "AudioS16",			AUDIO_S16 },
+    { "AudioS32Lsb",			AUDIO_S32LSB },
+    { "AudioS32Msb",			AUDIO_S32MSB },
+    { "AudioS32",			AUDIO_S32 },
+    { "AudioF32Lsb",			AUDIO_F32LSB },
+    { "AudioF32Msb",			AUDIO_F32MSB },
+    { "AudioF32",			AUDIO_F32 },
+    { "AudioU16Sys",			AUDIO_U16SYS },
+    { "AudioS16Sys",			AUDIO_S16SYS },
+    { "AudioS32Sys",			AUDIO_S32SYS },
+    { "AudioF32Sys",			AUDIO_F32SYS },
     /* SDL_KeyMod */
     { "KmodNone",			KMOD_NONE },
     { "KmodLShift",			KMOD_LSHIFT },
@@ -597,6 +617,10 @@ static struct {
     { "KmodShift",			KMOD_SHIFT },
     { "KmodAlt",			KMOD_ALT },
     { "KmodGui",			KMOD_GUI },
+    /* Pixel format */
+    { "PixelformatBitmap",		SDL_PIXELFORMAT_INDEX1LSB },
+    { "PixelformatRgb",			SDL_PIXELFORMAT_RGB888 },
+    { "PixelformatRgba",		SDL_PIXELFORMAT_RGBA8888 },
 };
 static struct {
     char	*name;
@@ -1018,6 +1042,7 @@ init_sdl(void)
 
     define_builtin1(t_surface, load_surface, t_string);
     define_builtin1(t_int32,   change_surface, t_surface);
+    define_builtin2(t_surface, convert_surface, t_surface, t_uint32);
     define_builtin2(t_surface, create_rgb_surface, t_int32, t_int32);
     define_builtin2(t_surface, create_rgba_surface, t_int32, t_int32);
     define_builtin1(t_int32,   pull_surface, t_surface);
@@ -2043,6 +2068,33 @@ native_create_rgba_surface(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if ((ss = SDL_CreateRGBSurface(0, alist->a0, alist->a1,
 				   32, R_MASK, G_MASK, B_MASK, A_MASK))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_convert_surface(oobject_t list, oint32_t ac)
+/* surface_t convert_surface(surface_t surf, uint32_t format); */
+{
+    GET_THREAD_SELF()
+    SDL_Surface			*ss;
+    osurface_t			*os;
+    oregister_t			*r0;
+    nat_srf_u32_t		*alist;
+
+    alist = (nat_srf_u32_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type_field(a0, t_surface, __surface))
+	ovm_raise(except_invalid_argument);
+    if ((ss = SDL_ConvertSurfaceFormat(alist->a0->__surface,
+				       alist->a1, SDL_SWSURFACE))) {
 	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
 	os = (osurface_t *)thread_self->obj;
 	os->__surface = ss;
@@ -4354,6 +4406,29 @@ native_ReadPixels(oobject_t list, oint32_t ac)
 }
 
 static void
+query_format(SDL_Surface *surface, uint32_t *internal, uint32_t *format)
+{
+    if (internal)
+	*internal = surface->format->BytesPerPixel;
+    switch (surface->format->BytesPerPixel) {
+	case 3:
+	    if (surface->format->Rmask == 0x000000ff)
+		*format = GL_RGB;
+	    else
+		*format = GL_BGR;
+	    break;
+	case 4:
+	    if (surface->format->Rmask == 0x000000ff)
+		*format = GL_RGBA;
+	    else
+		*format = GL_BGRA;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+}
+
+static void
 native_DrawPixels(oobject_t list, oint32_t ac)
 /* void DrawPixels(surface_t surf); */
 {
@@ -4367,9 +4442,9 @@ native_DrawPixels(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
-    r0->t = t_void;
     ss = alist->a0->__surface;
-    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    query_format(ss, null, &format);
+    r0->t = t_void;
     glDrawPixels(ss->w, ss->h, format, GL_UNSIGNED_BYTE, ss->pixels);
 }
 
@@ -4382,15 +4457,16 @@ native_TexImage1D(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     nat_srf_t				*alist;
     ouint32_t				 format;
+    ouint32_t				 internal;
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
     if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
-    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    query_format(ss, &internal, &format);
     r0->t = t_void;
-    glTexImage1D(GL_TEXTURE_1D, 0, format, ss->w, 0, format,
+    glTexImage1D(GL_TEXTURE_1D, 0, internal, ss->w, 0, format,
 		 GL_UNSIGNED_BYTE, ss->pixels);
 }
 
@@ -4403,15 +4479,16 @@ native_TexImage2D(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     nat_srf_t				*alist;
     ouint32_t				 format;
+    ouint32_t				 internal;
 
     alist = (nat_srf_t *)list;
     r0 = &thread_self->r0;
     if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
-    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
+    query_format(ss, &internal, &format);
     r0->t = t_void;
-    glTexImage2D(GL_TEXTURE_2D, 0, format, ss->w, ss->h, 0, format,
+    glTexImage2D(GL_TEXTURE_2D, 0, internal, ss->w, ss->h, 0, format,
 		 GL_UNSIGNED_BYTE, ss->pixels);
 }
 
@@ -4431,8 +4508,8 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
     if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
-    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
     r0->t = t_void;
+    query_format(ss, null, &format);
     glTexSubImage1D(GL_TEXTURE_1D, 0, alist->a1, alist->a2, format,
 		    GL_UNSIGNED_BYTE, ss->pixels);
 }
@@ -4450,7 +4527,7 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 
     alist = (nat_srf_i32_i32_i32_i32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null || otype(alist->a0) != t_surface)
+    if (bad_arg_type_field(a0, t_surface, __surface))
 	ovm_raise(except_invalid_argument);
     ss = alist->a0->__surface;
     if ((ouint32_t)alist->a1 > ss->w || (ouint32_t)alist->a3 > ss->w ||
@@ -4458,8 +4535,8 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 	(ouint32_t)alist->a2 > ss->h ||	(ouint32_t)alist->a4 > ss->h ||
 	alist->a2 + alist->a4 > ss->w)
 	ovm_raise(except_invalid_argument);
-    format = ss->format->BytesPerPixel == 4 ? GL_RGBA : GL_RGB;
     r0->t = t_void;
+    query_format(ss, null, &format);
     glTexSubImage2D(GL_TEXTURE_2D, 0, alist->a1, alist->a2,
 		    alist->a3, alist->a4, format, GL_UNSIGNED_BYTE, ss->pixels);
 }

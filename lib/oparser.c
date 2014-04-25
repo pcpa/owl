@@ -2356,13 +2356,13 @@ unary_unary(otoken_t token)
     oword_t		 length;
 
     ast = top_ast();
-    if ((paren = lookahead() == tok_oparen))
+    if ((paren = lookahead_noeof() == tok_oparen))
 	consume();
     else if (token != tok_sizeof &&
 	     token != tok_new &&
 	     token != tok_typeof &&
 	     token != tok_thread)
-	oparse_error(ast, "expecting '(' %A", ast);
+	oparse_error(ast, "expecting '(' %A", head_ast);
     expression_noeof();
     ast->l.ast = pop_ast();
     if (token == tok_new) {
