@@ -195,6 +195,8 @@ TYPE2(ouint32_t,ouint32_t,
       u32_u32);
 TYPE2(ouint32_t,ofloat32_t,
       u32_f32);
+TYPE2(ouint32_t,ofloat64_t,
+      u32_f64);
 TYPE2(ouint32_t,ovector_t*,
       u32_vec);
 TYPE2(ouint32_t,oobject_t,
@@ -269,6 +271,8 @@ TYPE3(ouint32_t,ouint32_t,ouint32_t,
       u32_u32_u32);
 TYPE3(ouint32_t,ouint32_t,ofloat32_t,
       u32_u32_f32);
+TYPE3(ouint32_t,ofloat64_t,ofloat64_t,
+      u32_f64_f64);
 TYPE3(ofloat32_t,ofloat32_t,ofloat32_t,
       f32_f32_f32);
 TYPE3(ofloat64_t,ofloat64_t,ofloat64_t,
@@ -330,6 +334,8 @@ TYPE4(ouint32_t, oint32_t, ouint32_t, ovector_t*,
       u32_i32_u32_vec);
 TYPE4(ouint32_t, ouint32_t, ouint32_t, ouint32_t,
       u32_u32_u32_u32);
+TYPE4(ouint32_t, ofloat64_t, ofloat64_t, ofloat64_t,
+      u32_f64_f64_f64);
 TYPE4(ofloat32_t, ofloat32_t, ofloat32_t, ofloat32_t,
       f32_f32_f32_f32);
 TYPE4(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
@@ -372,6 +378,8 @@ TYPE5(ouint32_t, oint32_t, oint32_t, oint32_t, oint32_t,
       u32_i32_i32_i32_i32);
 TYPE5(ouint32_t, oint32_t, oint32_t, ouint32_t, ovector_t*,
       u32_i32_i32_u32_vec);
+TYPE5(ouint32_t, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
+      u32_f64_f64_f64_f64);
 TYPE5(ouint32_t, ofloat64_t, ofloat64_t, oint32_t, ovector_t*,
       u32_f64_f64_i32_vec);
 TYPE5(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ovector_t*,

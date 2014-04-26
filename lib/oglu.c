@@ -576,11 +576,13 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 	    format = 1;
 	    break;
 	case GL_RGB:
+	case GL_BGR:
 	    check_mult(alist->a1, 3);
 	    length = alist->a1 * 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
+	case GL_BGRA:
 	    check_mult(alist->a1, 4);
 	    length = alist->a1 * 4;
 	    format = 4;
@@ -628,6 +630,7 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	    format = 1;
 	    break;
 	case GL_RGB:
+	case GL_BGR:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, 3);
@@ -635,6 +638,7 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	    format = 3;
 	    break;
 	case GL_RGBA:
+	case GL_BGRA:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, 4);
@@ -684,6 +688,7 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	    format = 1;
 	    break;
 	case GL_RGB:
+	case GL_BGR:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, 3);
@@ -691,6 +696,7 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	    format = 3;
 	    break;
 	case GL_RGBA:
+	case GL_BGRA:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, 4);
@@ -744,6 +750,7 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	    format = 1;
 	    break;
 	case GL_RGB:
+	case GL_BGR:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, alist->a3);
@@ -753,6 +760,7 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	    format = 3;
 	    break;
 	case GL_RGBA:
+	case GL_BGRA:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, alist->a3);
@@ -808,6 +816,7 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	    format = 1;
 	    break;
 	case GL_RGB:
+	case GL_BGR:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, alist->a3);
@@ -817,6 +826,7 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	    format = 3;
 	    break;
 	case GL_RGBA:
+	case GL_BGRA:
 	    check_mult(alist->a1, alist->a2);
 	    length = alist->a1 * alist->a2;
 	    check_mult(length, alist->a3);
