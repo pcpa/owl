@@ -162,7 +162,6 @@ static void native_ClearStencil(oobject_t list, oint32_t ac);
 /* Texture mapping */
 static void native_TexGen(oobject_t list, oint32_t ac);
 static void native_TexGenv(oobject_t list, oint32_t ac);
-static void native_GetTexGen(oobject_t list, oint32_t ac);
 static void native_GetTexGenv(oobject_t list, oint32_t ac);
 static void native_TexEnv(oobject_t list, oint32_t ac);
 static void native_TexEnvv(oobject_t list, oint32_t ac);
@@ -1195,9 +1194,8 @@ init_gl(void)
     define_builtin1(t_void,    StencilMask, t_int32);
     define_builtin3(t_void,    StencilOp, t_uint32, t_uint32, t_uint32);
     define_builtin1(t_void,    ClearStencil, t_int32);
-    define_builtin2(t_void,    TexGen, t_uint32, t_int32);
+    define_builtin3(t_void,    TexGen, t_uint32, t_uint32, t_float64);
     define_builtin3(t_void,    TexGenv, t_uint32, t_uint32, t_vector|t_float64);
-    define_builtin1(t_int32,   GetTexGen, t_uint32);
     define_builtin3(t_void,    GetTexGenv,
 		    t_uint32, t_uint32, t_vector|t_float64);
     define_builtin3(t_void,    TexEnv, t_uint32, t_uint32, t_float32);
@@ -3662,16 +3660,16 @@ native_ClearStencil(oobject_t list, oint32_t ac)
 
 static void
 native_TexGen(oobject_t list, oint32_t ac)
-/* void TexGen(uint32_t coord, int32_t param); */
+/* void TexGen(uint32_t coord, uint32_t pname, float64_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
-    nat_u32_i32_t			*alist;
+    nat_u32_u32_f64_t			*alist;
 
-    alist = (nat_u32_i32_t *)list;
+    alist = (nat_u32_u32_f64_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glTexGeni(alist->a0, GL_TEXTURE_GEN_MODE, alist->a1);
+    glTexGend(alist->a0, alist->a1, alist->a2);
 }
 
 static void
@@ -3681,36 +3679,25 @@ native_TexGenv(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_u32_vec_t			*alist;
+    oword_t				 length;
 
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a2, t_vector|t_float64, 4))
-	ovm_raise(except_invalid_argument);
     switch (alist->a1) {
+	case GL_TEXTURE_GEN_MODE:
+	    length = 1;
+	    break;
 	case GL_OBJECT_PLANE:
 	case GL_EYE_PLANE:
+	    length = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
+    if (bad_arg_type_length(a2, t_vector|t_float64, length))
+	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     glTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
-}
-
-static void
-native_GetTexGen(oobject_t list, oint32_t ac)
-/* int32_t GetTexGen(uint32_t coord); */
-{
-    GET_THREAD_SELF()
-    oregister_t				*r0;
-    nat_u32_t				*alist;
-    GLint				 value[4];
-
-    alist = (nat_u32_t *)list;
-    r0 = &thread_self->r0;
-    r0->t = t_word;
-    glGetTexGeniv(alist->a0, GL_TEXTURE_GEN_MODE, value);
-    r0->v.w = value[0];
 }
 
 static void
@@ -3720,20 +3707,25 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_u32_vec_t			*alist;
+    oword_t				 length;
 
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
     if (bad_arg_type(a2, t_vector|t_float64))
 	ovm_raise(except_invalid_argument);
     switch (alist->a1) {
+	case GL_TEXTURE_GEN_MODE:
+	    length = 1;
+	    break;
 	case GL_OBJECT_PLANE:
 	case GL_EYE_PLANE:
+	    length = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2->length != 4)
-	orenew_vector(alist->a2, 4);
+    if (alist->a2->length != length)
+	orenew_vector(alist->a2, length);
     r0->t = t_void;
     glGetTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
 }
