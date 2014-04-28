@@ -317,13 +317,19 @@ oeval_ast_tag(oast_t *ast)
 		omove_ast_up_full(ast, rast);
 		rast = ast;
 	    }
-	    else if (tag->type != tag_class) {
-		if (ast->l.ast->token == tok_symbol) {
-		    symbol = ast->l.ast->l.value;
-		    oparse_error(ast, "'%p' is not a class or namespace %A",
-				 symbol->name, ast);
+	    else {
+		while (tag->type == tag_function) {
+		    vector = tag->name;
+		    tag = vector->v.ptr[0];
 		}
-		oparse_error(ast, "not a class or namespace %A", ast);
+		if (tag->type != tag_class) {
+		    if (ast->l.ast->token == tok_symbol) {
+			symbol = ast->l.ast->l.value;
+			oparse_error(ast, "'%p' is not a class or namespace %A",
+				     symbol->name, ast);
+		    }
+		    oparse_error(ast, "not a class or namespace %A", ast);
+		}
 	    }
 	    record = tag->name;
 	    symbol = rast->l.value;
@@ -353,6 +359,8 @@ oeval_ast_tag(oast_t *ast)
 	    return (string_tag);
 	case tok_ellipsis:
 	    return (varargs_tag);
+	case tok_call:
+	    return (oeval_ast_tag(ast->l.ast));
 	default:
 	    oparse_error(ast, "not a type or symbol reference %A", ast);
     }

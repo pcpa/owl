@@ -812,7 +812,7 @@ emit(oast_t *ast)
 	    op = operand_get(ast->offset);
 	    op->t = t_symbol;
 	    op->u.o = symbol_this;
-	    op->k = ast->t.value;
+	    op->k = otag_object(ast->t.value);
 	    break;
 	case tok_symbol:
 	    op = operand_get(ast->offset);
@@ -2522,7 +2522,9 @@ load_symbol(osymbol_t *symbol, ooperand_t *op)
     jit_int32_t		regval;
 
     op->u.w = get_register(true);
-    type = otag_to_type(symbol->tag);
+    if (op->k == null)
+	op->k = symbol->tag;
+    type = otag_to_type(op->k);
     if (symbol->global) {
 	if (GPR[GLOBAL] != JIT_NOREG)
 	    regval = GPR[GLOBAL];

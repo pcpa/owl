@@ -40581,3 +40581,42 @@ switch (t56i) {
 }
 if (t56.baz != t56i)
     print("error %d\n", __LINE__);
+
+namespace t57 {
+    class vector_t {
+	float64_t x, y, z;
+	vector_t add(vector_t v) {
+	    x += v.x;
+	    y += v.y;
+	    z += v.z;
+	    return this;
+	}
+	vector_t sub(vector_t v) {
+	    x -= v.x;
+	    y -= v.y;
+	    z -= v.z;
+	    return this;
+	}
+	vector_t scale(float64_t s) {
+	    x *= s;
+	    y *= s;
+	    z *= s;
+	    return this;
+	}
+	vector_t invert() {
+	    x = -x;
+	    y = -y;
+	    z = -z;
+	    return this;
+	}
+	void show() {
+	    print("%f %f %f\n", x, y, z);
+	}
+    };
+    vector_t a = { 1, 2, 3 }, b = { 4, 5, 6 };
+    /* 1+4, 2+5, 3+6 = 5.0 7.0 9.0 */
+    a.add(b).show();
+    /* -((5-4)*2), -((7-5)*2), -((9-6)*2) = -2.0 -4.0 -6.0 */
+    a.sub(b).invert().scale(2).show();
+    print("%f\n", b.invert().x);
+}

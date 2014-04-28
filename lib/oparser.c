@@ -393,7 +393,6 @@ init_parser(void)
 
     symbol_this = oget_identifier(oget_string((ouint8_t *)"this", 4));
     symbol_this->offset = THIS_OFFSET;
-    symbol_this->field = true;
 
     oadd_root((oobject_t *)&root_ast);
     oadd_root((oobject_t *)&head_ast);

@@ -1147,6 +1147,8 @@ emit_call_next(ooperand_t *rop,
 
     vector = function->name->tag->name;
     type = otag_to_type(vector->v.ptr[0]);
+    if (type && rop)
+	rop->k = vector->v.ptr[0];
 
     /* FIXME For the sake of keeping builtins as simple as possible,
      * generate a not so simple call sequence, that arguably would
