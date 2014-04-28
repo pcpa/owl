@@ -104,6 +104,9 @@ oget_bound_symbol(ovector_t *name);
 extern osymbol_t *
 oget_namespace_symbol(ovector_t *name);
 
+extern ovector_t *
+oget_namespace_string(osymbol_t *symbol);
+
 extern osymbol_t *
 onew_symbol(orecord_t *record, ovector_t *name, otag_t *tag);
 

@@ -309,7 +309,6 @@ static jit_int32_t	 SPL[6];
  * in {load/store}_vector */
 static jit_word_t	 tmp_mask;
 static jit_word_t	 reg_mask;
-static ovector_t	*name_vector;
 
 static char		*exceptions[] = {
     "nothing",
@@ -340,7 +339,6 @@ init_emit(void)
     onew_vector((oobject_t *)&stack, t_void, 16);
     oadd_root((oobject_t *)&branch);
     onew_vector((oobject_t *)&branch, t_void, 16);
-    oadd_root((oobject_t *)&name_vector);
 
     GPR[0] = JIT_V1;
     GPR[1] = JIT_V2;
@@ -408,7 +406,6 @@ init_emit(void)
 void
 finish_emit(void)
 {
-    orem_root((oobject_t *)&name_vector);
     orem_root((oobject_t *)&stack);
     orem_root((oobject_t *)&branch);
 }

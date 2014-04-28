@@ -44,12 +44,6 @@ static void
 emit_case(oast_t *ast);
 
 static void
-inner_get_namespace(orecord_t *record);
-
-static void
-get_namespace(osymbol_t *symbol);
-
-static void
 emit_function(ofunction_t *function);
 
 static void
@@ -623,27 +617,6 @@ emit_case(oast_t *ast)
 }
 
 static void
-inner_get_namespace(orecord_t *record)
-{
-    if (record && record->name) {
-	inner_get_namespace(record->parent);
-	owrite((ostream_t *)name_vector,
-	       record->name->name->v.ptr, record->name->name->length);
-	oputc((ostream_t *)name_vector, '.');
-    }
-}
-
-static void
-get_namespace(osymbol_t *symbol)
-{
-    if (name_vector == null)
-	onew_vector((oobject_t *)&name_vector, t_uint8, 16);
-    else
-	name_vector->offset = 0;
-    inner_get_namespace(symbol->record);
-}
-
-static void
 emit_function(ofunction_t *function)
 {
     oast_t		*ast;
@@ -654,27 +627,17 @@ emit_function(ofunction_t *function)
     jit_int32_t		 frame;
     jit_int32_t		 stack;
     jit_node_t		*label;
-    oword_t		 offset;
     oword_t		 length;
     ofunction_t		*parent;
     ovector_t		*vector;
     jit_node_t		*overflow;
     char		 name[1024];
 
-    if (function->name && function->name->record != root_record) {
-	get_namespace(function->name);
-	vector = name_vector;
-	if ((offset = vector->offset) >= sizeof(name) - 1)
-	    offset = sizeof(name) - 1;
-	memcpy(name, vector->v.obj, offset);
-    }
-    else
-	offset = 0;
-    vector = function->name->name;
-    if ((length = vector->length) >= sizeof(name) - offset - 1)
-	length = sizeof(name) - offset - 1;
-    memcpy(name + offset, vector->v.obj, length);
-    name[offset + length] = '\0';
+    vector = oget_namespace_string(function->name);
+    if ((length = vector->offset) >= sizeof(name) - 1)
+	length = sizeof(name) - 1;
+    memcpy(name, vector->v.obj, length);
+    name[length] = '\0';
     function->address = jit_name(name);
 
     /* Entry point */

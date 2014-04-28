@@ -464,8 +464,8 @@ vprint(const char *format, va_list ap)
 				owrite(std_error, vector->v.obj, length);
 				break;
 			    case t_symbol:
-				vector = ((osymbol_t *)object)->name;
-				length = vector->length;
+				vector = oget_namespace_string(object);
+				length = vector->offset;
 				owrite(std_error, vector->v.obj, length);
 				break;
 			    default:

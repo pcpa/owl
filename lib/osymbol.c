@@ -23,6 +23,9 @@
 /*
  * Prototypes
  */
+static void
+inner_get_namespace_string(orecord_t *record);
+
 static osymbol_t *
 new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add);
 
@@ -38,6 +41,7 @@ new_type(orecord_t *record, ovector_t *name);
 ovector_t		*type_vector;
 orecord_t		*root_record;
 ohash_t			*language_table;
+static ovector_t	*name_vector;
 
 /*
  * Implementation
@@ -59,12 +63,16 @@ init_symbol(void)
     oadd_root((oobject_t *)&language_table);
     onew_hash((oobject_t *)&language_table, 256);
 
+    oadd_root((oobject_t *)&name_vector);
+    onew_vector((oobject_t *)&name_vector, t_uint8, 16);
+
     current_record = root_record;
 }
 
 void
 finish_symbol(void)
 {
+    orem_root((oobject_t *)&name_vector);
     orem_root((oobject_t *)&type_vector);
     orem_root((oobject_t *)&language_table);
 }
@@ -150,6 +158,27 @@ oget_namespace_symbol(ovector_t *name)
 
     return (null);
 
+}
+
+static void
+inner_get_namespace_string(orecord_t *record)
+{
+    if (record && record->name) {
+	inner_get_namespace_string(record->parent);
+	owrite((ostream_t *)name_vector,
+	       record->name->name->v.ptr, record->name->name->length);
+	oputc((ostream_t *)name_vector, '.');
+    }
+}
+
+ovector_t *
+oget_namespace_string(osymbol_t *symbol)
+{
+    name_vector->offset = 0;
+    inner_get_namespace_string(symbol->record);
+    owrite((ostream_t *)name_vector, symbol->name->v.ptr, symbol->name->length);
+
+    return (name_vector);
 }
 
 osymbol_t *
