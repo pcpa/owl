@@ -3649,7 +3649,8 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 done:
     if (streamp)
 	omutex_unlock(&stream->mutex);
-    orenew_vector(vector, vector->offset);
+    if (vector->length != vector->offset)
+	orenew_vector(vector, vector->offset);
     r0->t = t_word;
     r0->v.w = vector->offset;
 }

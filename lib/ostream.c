@@ -307,7 +307,7 @@ oread(ostream_t *stream, void *data, size_t count)
 	}
 
 	/* if still needs to read data */
-	if (left) {
+	while (left) {
 	    bytes = left - (left % BUFSIZ);
 
 	    /* don't cache or iterate over large chunks */
@@ -321,7 +321,7 @@ oread(ostream_t *stream, void *data, size_t count)
 	    if (left) {
 		/* read any padding data to buffer */
 		bytes = sys_read(stream->fileno, stream->ptr,
-				 stream->size);
+				 stream->length);
 		stream->offset = 0;
 		stream->size = bytes;
 		stream->s_r_mode = 1;
