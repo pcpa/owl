@@ -1499,6 +1499,9 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
     symbol = oget_symbol(record, symbol->name);
     if (symbol == null)
 	oparse_error(last, "no field '%p' in '%p'", lop->u.o, record->name);
+    else if (symbol->function)
+	oparse_error(last->l.ast, "'%p.%p' is a method",
+		     record->name, symbol->name);
 
     if (rast) {
 	tok = get_token(ast);
