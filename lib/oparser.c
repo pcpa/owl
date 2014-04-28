@@ -1242,6 +1242,8 @@ function(void)
 		assert(list->next == null);
 		break;
 	    }
+	    else if (list->token != tok_declexpr)
+		oparse_error(list, "expecting argument specifier %A", list);
 	    symbol = declare(list->l.value, list->r.value);
 	    if (symbol == null)
 		oparse_error(list, "syntax error %A", list);
