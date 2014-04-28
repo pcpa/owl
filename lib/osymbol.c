@@ -272,6 +272,10 @@ onew_slot(orecord_t *record)
     }
     else {
 	assert(otype(record) == t_namespace);
+	/* FIXME this may be a bit confusing, but make easier to access
+	 * symbols by sharing the global data record, and storing
+	 * namespace variables in the root namespace record */
+	record = root_record;
 	record->offset = (record->offset + 7) & ~7;
 	record->length = record->offset + 16;
 	offset = record->offset;
