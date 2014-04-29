@@ -2745,7 +2745,6 @@ native_Normal3v(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     if (bad_arg_type_length(a0, t_vector|t_float64, 3))
 	ovm_raise(except_invalid_argument);
-	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     glNormal3dv(alist->a0->v.f64);
 }
