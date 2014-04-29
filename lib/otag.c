@@ -451,6 +451,9 @@ otag_ast(otag_t *tag, oast_t **list)
 		ast->token = tok_vecdcl;
 	    case tok_vecdcl:
 		if (ast->r.ast) {
+		    /* Handle constant expression */
+		    if (ast->r.ast->token != tok_number)
+			oeval_ast(ast->r.ast);
 		    if (ast->r.ast->token != tok_number ||
 			otype(ast->r.ast->l.value) != t_word)
 			oparse_error(ast->r.ast,
