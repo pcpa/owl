@@ -175,7 +175,8 @@ ovector_t *
 oget_namespace_string(osymbol_t *symbol)
 {
     name_vector->offset = 0;
-    inner_get_namespace_string(symbol->record);
+    if (otype(symbol->record) != t_hash)
+	inner_get_namespace_string(symbol->record);
     owrite((ostream_t *)name_vector, symbol->name->v.ptr, symbol->name->length);
 
     return (name_vector);
