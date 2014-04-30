@@ -165,6 +165,7 @@ static void native_set_music_position(oobject_t list, oint32_t ac);
 static void native_halt_music(oobject_t list, oint32_t ac);
 static void native_free_music(oobject_t list, oint32_t ac);
 static void native_close_audio(oobject_t list, oint32_t ac);
+static void native_show_cursor(oobject_t list, oint32_t ac);
 /* sdl.gl */
 static void native_reset_attributes(oobject_t list, oint32_t ac);
 static void native_set_attribute(oobject_t list, oint32_t ac);
@@ -1149,6 +1150,8 @@ init_sdl(void)
     define_builtin0(t_int32,  halt_music);
     define_builtin1(t_void,  free_music, t_music);
     define_builtin0(t_void,  close_audio);
+
+    define_builtin1(t_int32,  show_cursor, t_int32);
 
     current_record = sdl_gl_record;
 
@@ -4177,6 +4180,20 @@ native_close_audio(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
     Mix_CloseAudio();
+}
+
+static void
+native_show_cursor(oobject_t list, oint32_t ac)
+/* int32_t show_cursor(int32_t toggle); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_int32;
+    r0->v.w = SDL_ShowCursor(alist->a0);
 }
 
 #if __WORDSIZE == 32
