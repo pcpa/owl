@@ -2159,8 +2159,8 @@ native_RenderMode(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_t *)list;
     r0 = &thread_self->r0;
-    r0->t = t_void;
-    glRenderMode(alist->a0);
+    r0->t = t_word;
+    r0->v.w = glRenderMode(alist->a0);
 }
 
 static void
