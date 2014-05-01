@@ -1232,17 +1232,17 @@ init_gl(void)
     define_builtin7(t_void,    TexSubImage2D,
 		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
-    define_builtin8(t_void,    CopyTexImage1D,
+    define_builtin7(t_void,    CopyTexImage1D,
+		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
+		    t_int32);
+    define_builtin8(t_void,    CopyTexImage2D,
 		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
 		    t_int32, t_int32);
-    define_builtin9(t_void,    CopyTexImage2D,
-		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
-		    t_int32, t_int32, t_int32);
-    define_builtin5(t_void,    CopyTexSubImage1D,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32);
-    define_builtin7(t_void,    CopyTexSubImage2D,
+    define_builtin6(t_void,    CopyTexSubImage1D,
+		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32);
+    define_builtin8(t_void,    CopyTexSubImage2D,
 		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32,
-		    t_int32);
+		    t_int32, t_int32);
     define_builtin5(t_void,    Map1,
 		    t_uint32, t_float64, t_float64, t_int32,
 		    t_vector|t_float64);
