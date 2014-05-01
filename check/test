@@ -40620,3 +40620,22 @@ namespace t57 {
     a.sub(b).invert().scale(2).show();
     print("%f\n", b.invert().x);
 }
+
+/* Check a regression have been corrected */
+namespace t58 {
+    class a_t {
+	uint8_t     u[];
+    };
+    a_t a = {};
+    a.u = new uint8_t[32];
+    class b_t {
+	int32_t i, b;
+    };
+    b_t b = { 32, 4 };
+    int32_t c;
+    for (c = 0; c < b.i; c += b.b) {
+	uint8_t c0 = a.u[c];
+	uint8_t c2 = a.u[c + 2];
+	a.u[c] ^= a.u[c + 2] ^= c0 ^= c2;
+    }
+}

@@ -3233,7 +3233,7 @@ emit_reload(ooperand_t *op, obool_t same)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    jit_pushargr(JIT_R0);
-	    jit_finishi(ovm_load);
+	    emit_finish(ovm_load, mask1(op->u.w));
 	    break;
 	case t_half:	case t_word:
 	    if (regval == JIT_R0) {
