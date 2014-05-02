@@ -255,6 +255,8 @@ TYPE3(oint32_t,oint16_t,ouint8_t,
       i32_i16_u8);
 TYPE3(oint32_t,oint32_t,oint32_t,
       i32_i32_i32);
+TYPE3(oint32_t,oint32_t,ovector_t*,
+      i32_i32_vec);
 TYPE3(oint32_t,ofloat64_t,ofloat64_t,
       i32_f64_f64);
 TYPE3(ouint32_t,oint32_t,oint32_t,

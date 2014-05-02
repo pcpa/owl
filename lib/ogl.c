@@ -131,6 +131,22 @@ static void native_RasterPos3v(oobject_t list, oint32_t ac);
 static void native_RasterPos4v(oobject_t list, oint32_t ac);
 static void native_Rect(oobject_t list, oint32_t ac);
 static void native_Rectv(oobject_t list, oint32_t ac);
+/* Vertex Arrays */
+static void native_VertexPointer(oobject_t list, oint32_t ac);
+static void native_NormalPointer(oobject_t list, oint32_t ac);
+static void native_ColorPointer(oobject_t list, oint32_t ac);
+static void native_IndexPointer(oobject_t list, oint32_t ac);
+static void native_TexCoordPointer(oobject_t list, oint32_t ac);
+static void native_EdgeFlagPointer(oobject_t list, oint32_t ac);
+#if 0	/* FIXME */
+static void native_glGetPointerv(oobject_t list, oint32_t ac);
+#endif
+static void native_ArrayElement(oobject_t list, oint32_t ac);
+static void native_DrawArrays(oobject_t list, oint32_t ac);
+static void native_DrawElements(oobject_t list, oint32_t ac);
+#if 0	/* FIXME */
+static void native_InterleavedArrays(oobject_t list, oint32_t ac);
+#endif
 /* Lighting */
 static void native_ShadeModel(oobject_t list, oint32_t ac);
 static void native_Light(oobject_t list, oint32_t ac);
@@ -1124,6 +1140,15 @@ init_gl(void)
     define_builtin4(t_void,    Rect,
 		    t_float64, t_float64, t_float64, t_float64);
     define_builtin1(t_void,    Rectv, t_vector|t_float64);
+    define_builtin3(t_void,     VertexPointer, t_int32, t_int32, t_vector);
+    define_builtin2(t_void,     NormalPointer, t_int32, t_vector);
+    define_builtin3(t_void,     ColorPointer, t_int32, t_int32, t_vector);
+    define_builtin2(t_void,     IndexPointer, t_int32, t_vector);
+    define_builtin3(t_void,     TexCoordPointer, t_int32, t_int32, t_vector);
+    define_builtin2(t_void,     EdgeFlagPointer, t_int32, t_vector);
+    define_builtin1(t_void,     ArrayElement, t_int32);
+    define_builtin3(t_void,     DrawArrays, t_uint32, t_int32, t_int32);
+    define_builtin2(t_void,     DrawElements, t_uint32, t_vector);
     define_builtin1(t_void,    ShadeModel, t_uint32);
     define_builtin3(t_void,    Light, t_uint32, t_uint32, t_float32);
     define_builtin3(t_void,    Lightv, t_uint32, t_uint32, t_vector|t_float32);
@@ -1757,7 +1782,7 @@ native_GetBooleanv(oobject_t list, oint32_t ac)
 	case GL_MAP2_VERTEX_4:
 	case GL_MAP_COLOR:
 	case GL_MAP_STENCIL:
-	case GL_NORMAL_ARRAY:		/* XXX should not be used */
+	case GL_NORMAL_ARRAY:
 	case GL_NORMALIZE:
 	case GL_OCCLUSION_TEST_HP:
 	case GL_OCCLUSION_TEST_RESULT_HP:
@@ -1776,14 +1801,14 @@ native_GetBooleanv(oobject_t list, oint32_t ac)
 	case GL_STEREO:
 	case GL_TEXTURE_1D:
 	case GL_TEXTURE_2D:
-	case GL_TEXTURE_COORD_ARRAY:	/* XXX should not be used */
+	case GL_TEXTURE_COORD_ARRAY:
 	case GL_TEXTURE_GEN_Q:
 	case GL_TEXTURE_GEN_R:
 	case GL_TEXTURE_GEN_S:
 	case GL_TEXTURE_GEN_T:
 	case GL_UNPACK_LSB_FIRST:
 	case GL_UNPACK_SWAP_BYTES:
-	case GL_VERTEX_ARRAY:		/* XXX should not be used */
+	case GL_VERTEX_ARRAY:
 	    length = 1;
 	    break;
 #if defined(GL_VISIBILITY_TEST_HP)
@@ -1944,9 +1969,9 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 	case GL_BUFFER_SWAP_MODE_HINT_HP:
 #endif
 	case GL_CLIENT_ATTRIB_STACK_DEPTH:
-	case GL_COLOR_ARRAY_SIZE:	/* XXX should not be used */
-	case GL_COLOR_ARRAY_STRIDE:	/* XXX should not be used */
-	case GL_COLOR_ARRAY_TYPE:	/* XXX should not be used */
+	case GL_COLOR_ARRAY_SIZE:
+	case GL_COLOR_ARRAY_STRIDE:
+	case GL_COLOR_ARRAY_TYPE:
 	case GL_COLOR_MATERIAL_FACE:
 	case GL_COLOR_MATERIAL_PARAMETER:
 	case GL_CURRENT_INDEX:
@@ -1959,8 +1984,8 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 	case GL_FOG_MODE:
 	case GL_FRONT_FACE:
 	case GL_GREEN_BITS:
-	case GL_INDEX_ARRAY_STRIDE:	/* XXX should not be used */
-	case GL_INDEX_ARRAY_TYPE:	/* XXX should not be used */
+	case GL_INDEX_ARRAY_STRIDE:
+	case GL_INDEX_ARRAY_TYPE:
 	case GL_INDEX_BITS:
 	case GL_INDEX_CLEAR_VALUE:
 	case GL_INDEX_OFFSET:
@@ -1990,8 +2015,8 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 	case GL_MAX_TEXTURE_STACK_DEPTH:/* at least 2 */
 	case GL_MODELVIEW_STACK_DEPTH:
 	case GL_NAME_STACK_DEPTH:
-	case GL_NORMAL_ARRAY_STRIDE:	/* XXX should not be used */
-	case GL_NORMAL_ARRAY_TYPE:	/* XXX should not be used */
+	case GL_NORMAL_ARRAY_STRIDE:
+	case GL_NORMAL_ARRAY_TYPE:
 	case GL_PACK_ALIGNMENT:
 	case GL_PACK_ROW_LENGTH:
 	case GL_PACK_SKIP_PIXELS:
@@ -2031,17 +2056,17 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 #if defined(GL_TEXTURE_2D_BINDING)
 	case GL_TEXTURE_2D_BINDING:
 #endif
-	case GL_TEXTURE_COORD_ARRAY_SIZE:/* XXX should not be used */
-	case GL_TEXTURE_COORD_ARRAY_STRIDE:/* XXX should not be used */
-	case GL_TEXTURE_COORD_ARRAY_TYPE:/* XXX should not be used */
+	case GL_TEXTURE_COORD_ARRAY_SIZE:
+	case GL_TEXTURE_COORD_ARRAY_STRIDE:
+	case GL_TEXTURE_COORD_ARRAY_TYPE:
 	case GL_TEXTURE_STACK_DEPTH:
 	case GL_UNPACK_ALIGNMENT:
 	case GL_UNPACK_ROW_LENGTH:
 	case GL_UNPACK_SKIP_PIXELS:
 	case GL_UNPACK_SKIP_ROWS:
-	case GL_VERTEX_ARRAY_SIZE:	/* XXX should not be used */
-	case GL_VERTEX_ARRAY_STRIDE:	/* XXX should not be used */
-	case GL_VERTEX_ARRAY_TYPE:	/* XXX should not be used */
+	case GL_VERTEX_ARRAY_SIZE:
+	case GL_VERTEX_ARRAY_STRIDE:
+	case GL_VERTEX_ARRAY_TYPE:
 
 	case GL_MAX_TEXTURE_UNITS:
 
@@ -3014,6 +3039,340 @@ native_Rectv(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     glRectdv(alist->a0->v.f64, alist->a0->v.f64 + 2);
+}
+
+static void
+native_VertexPointer(oobject_t list, oint32_t ac)
+/* void VertexPointer(int32_t size, int32_t stride,
+		      (int16_t|int32_t|float32_t|float64_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_i32_vec_t *)list;
+    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
+	alist->a2 == null || !(otype(alist->a2) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    if (alist->a1 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    if (alist->a1 & 3)	/* stride & 7*/
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glVertexPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+}
+
+static void
+native_NormalPointer(oobject_t list, oint32_t ac)
+/* void NormalPointer(int32_t stride,
+		      (int8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_vec_t *)list;
+    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int8:
+	    type = GL_BYTE;
+	    break;
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    if (alist->a0 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    if (alist->a0 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    if (alist->a0 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    if (alist->a0 & 3)	/* stride & 7*/
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glNormalPointer(type, alist->a0, alist->a1->v.obj);
+}
+
+static void
+native_ColorPointer(oobject_t list, oint32_t ac)
+/* void ColorPointer(int32_t size, int32_t stride,
+		     (int8_t|uint8_t|int16_t|t_uint16_t|int32_t|t_uint32_t|
+		      float32_t|float64_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_i32_vec_t *)list;
+    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
+	alist->a2 == null || !(otype(alist->a2) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int8:
+	    type = GL_BYTE;
+	    break;
+	case t_vector|t_uint8:
+	    type = GL_UNSIGNED_BYTE;
+	    break;
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    if (alist->a1 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_uint16:
+	    type = GL_UNSIGNED_SHORT;
+	    if (alist->a1 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_uint32:
+	    type = GL_UNSIGNED_INT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    if (alist->a1 & 3)	/* stride & 7*/
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glColorPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+}
+
+static void
+native_IndexPointer(oobject_t list, oint32_t ac)
+/* void IndexPointer(int32_t stride,
+		     (uint8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_vec_t *)list;
+    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_uint8:
+	    type = GL_UNSIGNED_BYTE;
+	    break;
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    if (alist->a0 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    if (alist->a0 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    if (alist->a0 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    if (alist->a0 & 3)	/* stride & 7*/
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glIndexPointer(type, alist->a0, alist->a1->v.obj);
+}
+
+static void
+native_TexCoordPointer(oobject_t list, oint32_t ac)
+/* void TexCoordPointer(int32_t size, int32_t stride,
+			(int16_t|t_uint16_t|int32_t|float32_t|float64_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_i32_vec_t *)list;
+    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
+	alist->a2 == null || !(otype(alist->a2) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    if (alist->a1 & 1)	/* stride & 1*/
+		goto fail;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    if (alist->a1 & 3)	/* stride & 3*/
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    if (alist->a1 & 3)	/* stride & 7*/
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glTexCoordPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+}
+
+static void
+native_EdgeFlagPointer(oobject_t list, oint32_t ac)
+/* void EdgeFlagPointer(int32_t stride, uint8_t ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_vec_t *)list;
+    if (bad_arg_type(a1, t_vector|t_uint8))
+	ovm_raise(except_invalid_argument);
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glEdgeFlagPointer(alist->a0, alist->a1->v.obj);
+}
+
+static void
+native_ArrayElement(oobject_t list, oint32_t ac)
+/* void ArrayElement(int32_t i); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_t				*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glArrayElement(alist->a0);
+}
+
+static void
+native_DrawArrays(oobject_t list, oint32_t ac)
+/* void DrawArrays(uint32_t mode, int32_t first, int32_t count); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_i32_i32_t			*alist;
+
+    alist = (nat_u32_i32_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDrawArrays(alist->a0, alist->a1, alist->a2);
+}
+
+static void
+native_DrawElements(oobject_t list, oint32_t ac)
+/* void DrawElements(uint32_t mode, (uint8_t|t_uint16_t|uint32_t) ptr[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oint32_t				 type;
+    nat_i32_vec_t			*alist;
+
+    /* FIXME somehow keep track of vector length and cause
+     * a failure if glArrayElement, etc is called with an
+     * invalid index/length */
+    alist = (nat_i32_vec_t *)list;
+    switch (otype(alist->a1)) {
+	case t_vector|t_uint8:
+	    type = GL_UNSIGNED_BYTE;
+	    break;
+	case t_vector|t_uint16:
+	    type = GL_UNSIGNED_SHORT;
+	    break;
+	case t_vector|t_uint32:
+	    type = GL_UNSIGNED_INT;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDrawElements(alist->a0, alist->a1->length, type, alist->a1->v.obj);
 }
 
 static void
