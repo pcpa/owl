@@ -1200,10 +1200,15 @@ prototype(otag_t *base, oast_t *proto)
 	if (function->tag != tag)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
     }
-    else {
-	/* if not overriding a virtual method */
-	if ((symbol = oget_symbol(record, name)) && !symbol->method)
+    /* if not overriding a virtual method */
+    else if ((symbol = oget_symbol(record, name))) {
+	if (!symbol->method)
 	    oparse_error(proto, "'%p' redeclared as a different type", name);
+	/* FIXME this can be allowed, but for consistency and language
+	 * simplicity do not allow redefining virtual methods with a
+	 * different prototype */
+	else if (symbol->tag != tag)
+	    oparse_error(proto, "'%p' virtual function prototype changed", name);
     }
     function = onew_function(record, name, tag);
 
