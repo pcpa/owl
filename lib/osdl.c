@@ -844,9 +844,10 @@ init_sdl(void)
 
     record = type_vector->v.ptr[t_surface];
     add_field(pointer_string,	"*surface*");
+    add_field("string_t",	"pixels");
     add_field("int32_t",	"w");
     add_field("int32_t",	"h");
-    add_field("string_t",	"pixels");
+    add_field("int32_t",	"pitch");
     add_field("uint8_t",	"bpp");
     add_field("uint32_t",	"r_mask");
     add_field("uint32_t",	"g_mask");
@@ -2038,6 +2039,7 @@ query_surface(osurface_t *os)
     ss = os->__surface;
     os->w = ss->w;
     os->h = ss->h;
+    os->pitch = ss->pitch;
     os->bpp = ss->format->BytesPerPixel;
     os->r_mask = ss->format->Rmask;
     os->g_mask = ss->format->Gmask;
@@ -2218,10 +2220,8 @@ native_pull_surface(oobject_t list, oint32_t ac)
     r0->t = t_word;
     if (!SDL_MUSTLOCK(ss) || !SDL_LockSurface(ss)) {
 	r0->v.w = 0;
-	check_mult(ss->w, ss->h);
-	length = ss->w * ss->h;
-	check_mult(length, ss->format->BytesPerPixel);
-	length *= ss->format->BytesPerPixel;
+	check_mult(ss->pitch, ss->h);
+	length = ss->pitch * ss->h;
 	if (os->pixels == null)
 	    onew_vector((oobject_t *)&os->pixels, t_uint8, length);
 	else if (os->pixels->length != length)
@@ -2251,10 +2251,8 @@ native_push_surface(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     os = alist->a0;
     ss = alist->a0->__surface;
-    check_mult(ss->w, ss->h);
-    length = ss->w * ss->h;
-    check_mult(length, ss->format->BytesPerPixel);
-    length *= ss->format->BytesPerPixel;
+    check_mult(ss->pitch, ss->h);
+    length = ss->pitch * ss->h;
     if (os->pixels == null ||
 	otype(os->pixels) != t_vector_uint8 || os->pixels->length != length)
 	ovm_raise(except_invalid_argument);

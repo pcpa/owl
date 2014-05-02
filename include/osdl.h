@@ -121,9 +121,10 @@ struct orenderer {
 
 struct osurface {
     SDL_Surface		*__surface;
+    ovector_t		*pixels;
     oint32_t		 w;			/* read only */
     oint32_t		 h;			/* read only */
-    ovector_t		*pixels;
+    oint32_t		 pitch;			/* read only */
     ouint8_t		 bpp;			/* read only */
     ouint32_t		 r_mask;		/* read only */
     ouint32_t		 g_mask;		/* read only */
