@@ -1232,9 +1232,9 @@ init_gl(void)
     define_builtin6(t_void,    TexSubImage1D,
 		    t_uint32, t_int32, t_int32, t_int32, t_uint32,
 		    t_vector|t_uint8);
-    define_builtin7(t_void,    TexSubImage2D,
-		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_uint32,
-		    t_vector|t_uint8);
+    define_builtin8(t_void,    TexSubImage2D,
+		    t_uint32, t_int32, t_int32, t_int32, t_int32, t_int32,
+		    t_uint32, t_vector|t_uint8);
     define_builtin7(t_void,    CopyTexImage1D,
 		    t_uint32, t_int32, t_uint32, t_int32, t_int32, t_int32,
 		    t_int32);
