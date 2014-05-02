@@ -811,8 +811,7 @@ gc(void)
 		    break;
 		case t_surface:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.surface->__surface)
-			SDL_FreeSurface(o.surface->__surface);
+		    odestroy_surface(o.surface);
 		    break;
 		case t_texture:
 		    o.object = memory_to_object(oobject_t, memory);
@@ -824,18 +823,15 @@ gc(void)
 		    break;
 		case t_chunk:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.chunk->__chunk)
-			Mix_FreeChunk(o.chunk->__chunk);
+		    odestroy_chunk(o.chunk);
 		    break;
 		case t_music:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.music->__music)
-			Mix_FreeMusic(o.music->__music);
+		    odestroy_music(o.music);
 		    break;
 		case t_timer:
 		    o.object = memory_to_object(oobject_t, memory);
-		    if (o.timer->__timer)
-			SDL_RemoveTimer(o.timer->__timer);
+		    odestroy_timer(o.timer);
 		    break;
 		case t_context:
 		    o.object = memory_to_object(oobject_t, memory);

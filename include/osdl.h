@@ -309,6 +309,18 @@ odestroy_font(ofont_t *font);
 extern void
 odestroy_context(ocontext_t *context);
 
+extern void
+odestroy_surface(osurface_t *surface);
+
+extern void
+odestroy_chunk(ochunk_t *chunk);
+
+extern void
+odestroy_music(omusic_t *music);
+
+extern oint32_t
+odestroy_timer(otimer_t *timer);
+
 /*
  * Externs
  */

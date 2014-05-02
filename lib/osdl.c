@@ -666,8 +666,9 @@ static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
 static ohashtable_t		*window_table;
 /* No need to create hash tables for queries */
-static	owindow_t		*current_window;
-static	ocontext_t		*current_context;
+static owindow_t		*current_window;
+static ocontext_t		*current_context;
+static obool_t			 sdl_active;
 
 /*
  * Implementation
@@ -1196,7 +1197,8 @@ odestroy_window(owindow_t *window)
     if (window->__window) {
 	if (window_table)
 	    orem_hashentry(window_table, window->__handle);
-	SDL_DestroyWindow(window->__window);
+	if (sdl_active)
+	    SDL_DestroyWindow(window->__window);
 	window->__window = null;
 	if (current_window == window)
 	    current_window = null;
@@ -1220,7 +1222,8 @@ odestroy_renderer(orenderer_t *renderer)
 	    for (entry = table->entries[offset]; entry; entry = entry->next)
 		odestroy_texture((otexture_t *)entry->vv.w);
 	}
-	SDL_DestroyRenderer(renderer->__renderer);
+	if (sdl_active)
+	    SDL_DestroyRenderer(renderer->__renderer);
 	renderer->__renderer = null;
     }
 }
@@ -1229,7 +1232,8 @@ void
 odestroy_texture(otexture_t *texture)
 {
     if (texture->__texture) {
-	SDL_DestroyTexture(texture->__texture);
+	if (sdl_active)
+	    SDL_DestroyTexture(texture->__texture);
 	texture->__texture = null;
     }
 }
@@ -1238,7 +1242,8 @@ void
 odestroy_font(ofont_t *font)
 {
     if (font->__font) {
-	TTF_CloseFont(font->__font);
+	if (sdl_active)
+	    TTF_CloseFont(font->__font);
 	font->__font = null;
     }
 }
@@ -1247,11 +1252,57 @@ void
 odestroy_context(ocontext_t *context)
 {
     if (context->__context) {
-	SDL_GL_DeleteContext(context->__context);
+	if (sdl_active)
+	    SDL_GL_DeleteContext(context->__context);
 	context->__context = null;
 	if (current_context == context)
 	    current_context = null;
     }
+}
+
+void
+odestroy_surface(osurface_t *surface)
+{
+    if (surface->__surface) {
+	if (sdl_active)
+	    SDL_FreeSurface(surface->__surface);
+	surface->__surface = null;
+    }
+}
+
+void
+odestroy_chunk(ochunk_t *chunk)
+{
+    if (chunk->__chunk) {
+	if (sdl_active)
+	    Mix_FreeChunk(chunk->__chunk);
+	chunk->__chunk = null;
+    }
+}
+
+void
+odestroy_music(omusic_t *music)
+{
+    if (music->__music) {
+	if (sdl_active)
+	    Mix_FreeMusic(music->__music);
+	music->__music = null;
+    }
+}
+
+oint32_t
+odestroy_timer(otimer_t *timer)
+{
+    oint32_t			result;
+
+    result = -1;
+    if (timer->__timer) {
+	if (sdl_active)
+	    result = SDL_RemoveTimer(timer->__timer);
+	timer->__timer = 0;
+    }
+
+    return (result);
 }
 
 static void
@@ -1263,15 +1314,20 @@ native_init(oobject_t list, oint32_t ac)
 
     r0 = &thread_self->r0;
     r0->t = t_word;
-    r0->v.w = ((SDL_Init(SDL_INIT_EVERYTHING) != 0) |
-	       (IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG|
-			 IMG_INIT_TIF|IMG_INIT_WEBP) == 0) |
-	       (TTF_Init() != 0) |
-	       (Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
-			 MIX_INIT_MODPLUG|MIX_INIT_MP3|
-			 MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
-    Mix_HookMusicFinished(music_callback);
-    Mix_ChannelFinished(channel_callback);
+    if (!sdl_active) {
+	r0->v.w = ((SDL_Init(SDL_INIT_EVERYTHING) != 0) |
+		   (IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG|
+			     IMG_INIT_TIF|IMG_INIT_WEBP) == 0) |
+		   (TTF_Init() != 0) |
+		   (Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
+			     MIX_INIT_MODPLUG|MIX_INIT_MP3|
+			     MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
+	Mix_HookMusicFinished(music_callback);
+	Mix_ChannelFinished(channel_callback);
+	sdl_active = true;
+    }
+    else
+	r0->v.w = -1;
 }
 
 static void
@@ -1319,10 +1375,13 @@ native_quit(oobject_t list, oint32_t ac)
 
     r0 = &thread_self->r0;
     r0->t = t_void;
-    TTF_Quit();
-    IMG_Quit();
-    SDL_Quit();
-    Mix_Quit();
+    if (sdl_active) {
+	TTF_Quit();
+	IMG_Quit();
+	SDL_Quit();
+	Mix_Quit();
+	sdl_active = false;
+    }
 }
 
 static void
@@ -2265,8 +2324,7 @@ native_free_surface(oobject_t list, oint32_t ac)
     if (alist->a0 && alist->a0->__surface) {
 	if (otype(alist->a0) != t_surface)
 	    ovm_raise(except_invalid_argument);
-	SDL_FreeSurface(alist->a0->__surface);
-	alist->a0->__surface = null;
+	odestroy_surface(alist->a0);
     }
     r0->t = t_void;
 }
@@ -3411,8 +3469,7 @@ timer_callback(Uint32 ms, void *data)
 	SDL_PushEvent(&ev);
     }
     else {
-	SDL_RemoveTimer(ot->__timer);
-	ot->__timer = 0;
+	odestroy_timer(ot);
 	push_timer(ot);
     }
 
@@ -3512,8 +3569,7 @@ native_remove_timer(oobject_t list, oint32_t ac)
     if (bad_arg_type(a0, t_timer))
 	ovm_raise(except_invalid_argument);
     if (alist->a0->__timer) {
-	r0->v.w = SDL_RemoveTimer(alist->a0->__timer);
-	alist->a0->__timer = 0;
+	r0->v.w = odestroy_timer(alist->a0);
 	alist->a0->msec = 0;
 	push_timer(alist->a0);
     }
@@ -3831,10 +3887,7 @@ native_free_chunk(oobject_t list, oint32_t ac)
     r0->t = t_void;
     if (bad_arg_type(a0, t_chunk))
 	ovm_raise(except_invalid_argument);
-    if (alist->a0->__chunk) {
-	Mix_FreeChunk(alist->a0->__chunk);
-	alist->a0->__chunk = null;
-    }
+    odestroy_chunk(alist->a0);
 }
 
 static void
@@ -4164,10 +4217,7 @@ native_free_music(oobject_t list, oint32_t ac)
     r0->t = t_void;
     if (bad_arg_type(a0, t_music))
 	ovm_raise(except_invalid_argument);
-    if (alist->a0->__music) {
-	Mix_FreeMusic(alist->a0->__music);
-	alist->a0->__music = null;
-    }
+    odestroy_music(alist->a0);
 }
 
 static void
