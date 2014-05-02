@@ -46,6 +46,9 @@ static void
 data_set(oast_t *ast);
 
 static void
+data_return(oast_t *ast);
+
+static void
 data_init(oobject_t *p, otag_t *tag, oast_t *ast);
 
 static void
@@ -154,7 +157,11 @@ odata(oast_t *ast)
 	    data_stat(ast->l.ast);
 	    data_stat(ast->r.ast);
 	    break;
-	case tok_return:	case tok_throw:
+	case tok_return:
+	    if (ast->l.ast)
+		data_return(ast->l.ast);
+	    break;
+	case tok_throw:
 	    if (ast->l.ast)
 		odata(ast->l.ast);
 	    break;
@@ -272,6 +279,20 @@ data_set(oast_t *ast)
 		    abort();
 	    }
 	}
+    }
+}
+
+static void
+data_return(oast_t *ast)
+{
+    otag_t		*tag;
+    ovector_t		*vector;
+
+    if (ast->token == tok_data) {
+	assert(current_record->function->tag->type == tag_function);
+	vector = current_record->function->tag->name;
+	tag = vector->v.ptr[0];
+	data_init(&ast->r.value, tag, ast);
     }
 }
 
