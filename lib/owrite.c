@@ -1449,7 +1449,7 @@ native_print_impl(ostream_t *stream,
 		do {
 		    if (i >= 0x70000000 / 10)	goto overflow;
 		    i = i * 10 + (*t - '0');
-		    if (++t >= l)		goto format_object;
+		    if (++t >= l)		goto done;
 		} while (*t >= '0' && *t <= '9');
 		if (*t == '$') {
 		    position_argument(i);
