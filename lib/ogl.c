@@ -223,6 +223,7 @@ static void native_MultiTexCoord4ARB(oobject_t list, oint32_t ac);
 static void native_MultiTexCoord4vARB(oobject_t list, oint32_t ac);
 
 /* glext */
+static void native_FogCoord(oobject_t list, oint32_t ac);
 static void native_WindowPos2(oobject_t list, oint32_t ac);
 static void native_WindowPos2v(oobject_t list, oint32_t ac);
 static void native_WindowPos3(oobject_t list, oint32_t ac);
@@ -1024,6 +1025,8 @@ static struct {
     { "OPERAND0_ALPHA_EXT",		GL_OPERAND0_ALPHA_EXT },
     { "OPERAND1_ALPHA_EXT",		GL_OPERAND1_ALPHA_EXT },
     { "OPERAND2_ALPHA_EXT",		GL_OPERAND2_ALPHA_EXT },
+    { "FOG_COORDINATE_SOURCE",		GL_FOG_COORDINATE_SOURCE },
+    { "FOG_COORDINATE",			GL_FOG_COORDINATE },
 };
 
 /*
@@ -1291,6 +1294,7 @@ init_gl(void)
     define_builtin2(t_void,    MultiTexCoord4vARB,
 		    t_uint32, t_vector|t_float64);
 
+    define_builtin1(t_void, FogCoord, t_float64);
     define_builtin2(t_void, WindowPos2, t_float64, t_float64);
     define_builtin1(t_void, WindowPos2v, t_vector|t_float64);
     define_builtin3(t_void, WindowPos3, t_float64, t_float64, t_float64);
@@ -5109,6 +5113,20 @@ native_MultiTexCoord4vARB(oobject_t list, oint32_t ac)
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
     glMultiTexCoord4dvARB(alist->a0, alist->a1->v.f64);
+}
+
+static void
+native_FogCoord(oobject_t list, oint32_t ac)
+/* void FogCoord(float64_t coord); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_f64_t				*alist;
+
+    alist = (nat_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glFogCoordd(alist->a0);
 }
 
 static void
