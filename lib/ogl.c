@@ -4037,9 +4037,12 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
 	    length = alist->a2;		/* width */
+	    break;
+	case GL_LUMINANCE_ALPHA:
+	    check_mult(alist->a2, 2);
+	    length = alist->a2 * 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
@@ -4090,10 +4093,15 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
 	    check_mult(alist->a2, alist->a3);
 	    length = alist->a2 * alist->a3;
+	    break;
+	case GL_LUMINANCE_ALPHA:
+	    check_mult(alist->a2, alist->a3);
+	    length = alist->a2 * alist->a3;
+	    check_mult(length, 2);
+	    length *= 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
@@ -4161,7 +4169,9 @@ native_GetTexImage(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
+	    break;
 	case GL_LUMINANCE_ALPHA:
+	    mult = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
@@ -4301,8 +4311,11 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
+	    break;
+	case GL_LUMINANCE_ALPHA:
+	    check_mult(length, 2);
+	    length *= 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
@@ -4346,8 +4359,11 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
-	case GL_LUMINANCE_ALPHA:
 	case GL_DEPTH_COMPONENT:
+	    break;
+	case GL_LUMINANCE_ALPHA:
+	    check_mult(length, 2);
+	    length *= 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
