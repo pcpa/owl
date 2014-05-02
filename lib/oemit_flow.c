@@ -979,6 +979,7 @@ emit_call_next(ooperand_t *rop,
     oword_t		 mask;
     otype_t		 type;
     oast_t		*list;
+    obool_t		 mcall;
     jit_int32_t		 frame;
     jit_int32_t		 stack;
     oword_t		 offset;
@@ -1071,6 +1072,7 @@ emit_call_next(ooperand_t *rop,
 	jit_stxi_i(SIZE_OFFSET, stack, JIT_R0);
     }
 
+    mcall = false;
     if (top) {
 	emit_load(top);
 	load_w(top->u.w);
@@ -1086,6 +1088,7 @@ emit_call_next(ooperand_t *rop,
 	operand_unget(1);
     }
     else if (!builtin && function->name->method) {
+	mcall = !ecall && function->name->offset != 0;
 	if (GPR[THIS] != JIT_NOREG)
 	    jit_stxi(THIS_OFFSET, stack, GPR[THIS]);
 	else {
@@ -1211,7 +1214,7 @@ emit_call_next(ooperand_t *rop,
      * and have a proper prolog/epilog. */
     else {
 	/* Start executing function */
-	if (vcall) {
+	if (vcall || mcall) {
 	    /* All methods are virtual, this is not always cheap but
 	     * do the expected thing for a dynamically typed language */
 	    if (GPR[STACK] != JIT_NOREG)
@@ -1221,8 +1224,12 @@ emit_call_next(ooperand_t *rop,
 		jit_ldxi(stack, JIT_V0, offsetof(othread_t, sp));
 	    }
 	    /* All operand registers were saved */
-	    jit_ldxi(GPR[0], stack, THIS_OFFSET);	/* this */
-	    jit_ldxi_i(GPR[1], GPR[0], -4);		/* typeof(this) */
+	    if (mcall && GPR[THIS] != JIT_NOREG)
+		jit_ldxi_i(GPR[1], GPR[THIS], -4);	/* typeof(this) */
+	    else {
+		jit_ldxi(GPR[0], stack, THIS_OFFSET);	/* this */
+		jit_ldxi_i(GPR[1], GPR[0], -4);		/* typeof(this) */
+	    }
 #if DEBUG
 	    /* Ensure it is not a bad pointer; only if some bug and/or
 	     * memory corruption happened this would be possible */
