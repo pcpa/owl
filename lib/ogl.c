@@ -211,16 +211,16 @@ static void native_LoadName(oobject_t list, oint32_t ac);
 static void native_PushName(oobject_t list, oint32_t ac);
 static void native_PopName(oobject_t list, oint32_t ac);
 /* GL_ARB_multitexture */
-static void native_ActiveTextureARB(oobject_t list, oint32_t ac);
-static void native_ClientActiveTextureARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord1ARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord1vARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord2ARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord2vARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord3ARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord3vARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord4ARB(oobject_t list, oint32_t ac);
-static void native_MultiTexCoord4vARB(oobject_t list, oint32_t ac);
+static void native_ActiveTexture(oobject_t list, oint32_t ac);
+static void native_ClientActiveTexture(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord1(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord1v(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord2(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord2v(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord3(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord3v(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord4(oobject_t list, oint32_t ac);
+static void native_MultiTexCoord4v(oobject_t list, oint32_t ac);
 
 /* glext */
 static void native_FogCoord(oobject_t list, oint32_t ac);
@@ -967,42 +967,6 @@ static struct {
     { "DOT3_RGBA",			GL_DOT3_RGBA },
     /* texture_border_clamp */
     { "CLAMP_TO_BORDER",		GL_CLAMP_TO_BORDER },
-    /* GL_ARB_multitexture */
-    { "TEXTURE0_ARB",			GL_TEXTURE0_ARB },
-    { "TEXTURE1_ARB",			GL_TEXTURE1_ARB },
-    { "TEXTURE2_ARB",			GL_TEXTURE2_ARB },
-    { "TEXTURE3_ARB",			GL_TEXTURE3_ARB },
-    { "TEXTURE4_ARB",			GL_TEXTURE4_ARB },
-    { "TEXTURE5_ARB",			GL_TEXTURE5_ARB },
-    { "TEXTURE6_ARB",			GL_TEXTURE6_ARB },
-    { "TEXTURE7_ARB",			GL_TEXTURE7_ARB },
-    { "TEXTURE8_ARB",			GL_TEXTURE8_ARB },
-    { "TEXTURE9_ARB",			GL_TEXTURE9_ARB },
-    { "TEXTURE10_ARB",			GL_TEXTURE10_ARB },
-    { "TEXTURE11_ARB",			GL_TEXTURE11_ARB },
-    { "TEXTURE12_ARB",			GL_TEXTURE12_ARB },
-    { "TEXTURE13_ARB",			GL_TEXTURE13_ARB },
-    { "TEXTURE14_ARB",			GL_TEXTURE14_ARB },
-    { "TEXTURE15_ARB",			GL_TEXTURE15_ARB },
-    { "TEXTURE16_ARB",			GL_TEXTURE16_ARB },
-    { "TEXTURE17_ARB",			GL_TEXTURE17_ARB },
-    { "TEXTURE18_ARB",			GL_TEXTURE18_ARB },
-    { "TEXTURE19_ARB",			GL_TEXTURE19_ARB },
-    { "TEXTURE20_ARB",			GL_TEXTURE20_ARB },
-    { "TEXTURE21_ARB",			GL_TEXTURE21_ARB },
-    { "TEXTURE22_ARB",			GL_TEXTURE22_ARB },
-    { "TEXTURE23_ARB",			GL_TEXTURE23_ARB },
-    { "TEXTURE24_ARB",			GL_TEXTURE24_ARB },
-    { "TEXTURE25_ARB",			GL_TEXTURE25_ARB },
-    { "TEXTURE26_ARB",			GL_TEXTURE26_ARB },
-    { "TEXTURE27_ARB",			GL_TEXTURE27_ARB },
-    { "TEXTURE28_ARB",			GL_TEXTURE28_ARB },
-    { "TEXTURE29_ARB",			GL_TEXTURE29_ARB },
-    { "TEXTURE30_ARB",			GL_TEXTURE30_ARB },
-    { "TEXTURE31_ARB",			GL_TEXTURE31_ARB },
-    { "ACTIVE_TEXTURE_ARB",		GL_ACTIVE_TEXTURE_ARB },
-    { "CLIENT_ACTIVE_TEXTURE_ARB",	GL_CLIENT_ACTIVE_TEXTURE_ARB },
-    { "MAX_TEXTURE_UNITS_ARB",		GL_MAX_TEXTURE_UNITS_ARB },
     /* GL_EXEXT_texture_env_combine */
     { "COMBINE_EXT",			GL_COMBINE_EXT },
     { "COMBINE_RGB_EXT",		GL_COMBINE_RGB_EXT },
@@ -1276,22 +1240,22 @@ init_gl(void)
     define_builtin1(t_void,    PushName, t_uint32);
     define_builtin0(t_void,    PopName);
 
-    define_builtin1(t_void,    ActiveTextureARB, t_uint32);
-    define_builtin1(t_void,    ClientActiveTextureARB, t_uint32);
-    define_builtin2(t_void,    MultiTexCoord1ARB, t_uint32, t_float64);
-    define_builtin2(t_void,    MultiTexCoord1vARB,
+    define_builtin1(t_void,    ActiveTexture, t_uint32);
+    define_builtin1(t_void,    ClientActiveTexture, t_uint32);
+    define_builtin2(t_void,    MultiTexCoord1, t_uint32, t_float64);
+    define_builtin2(t_void,    MultiTexCoord1v,
 		    t_uint32, t_vector|t_float64);
-    define_builtin3(t_void,    MultiTexCoord2ARB,
+    define_builtin3(t_void,    MultiTexCoord2,
 		    t_uint32, t_float64, t_float64);
-    define_builtin2(t_void,    MultiTexCoord2vARB,
+    define_builtin2(t_void,    MultiTexCoord2v,
 		    t_uint32, t_vector|t_float64);
-    define_builtin4(t_void,    MultiTexCoord3ARB,
+    define_builtin4(t_void,    MultiTexCoord3,
 		    t_uint32, t_float64, t_float64, t_float64);
-    define_builtin2(t_void,    MultiTexCoord3vARB,
+    define_builtin2(t_void,    MultiTexCoord3v,
 		    t_uint32, t_vector|t_float64);
-    define_builtin5(t_void,    MultiTexCoord4ARB,
+    define_builtin5(t_void,    MultiTexCoord4,
 		    t_uint32, t_float64, t_float64, t_float64, t_float64);
-    define_builtin2(t_void,    MultiTexCoord4vARB,
+    define_builtin2(t_void,    MultiTexCoord4v,
 		    t_uint32, t_vector|t_float64);
 
     define_builtin1(t_void, FogCoord, t_float64);
@@ -2079,7 +2043,7 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 	case GL_VERTEX_ARRAY_STRIDE:	/* XXX should not be used */
 	case GL_VERTEX_ARRAY_TYPE:	/* XXX should not be used */
 
-	case GL_MAX_TEXTURE_UNITS_ARB:
+	case GL_MAX_TEXTURE_UNITS:
 
 	    length = 1;
 	    break;
@@ -4982,8 +4946,8 @@ native_PopName(oobject_t list, oint32_t ac)
 }
 
 static void
-native_ActiveTextureARB(oobject_t list, oint32_t ac)
-/* void ActiveTextureARB(uint32_t texture); */
+native_ActiveTexture(oobject_t list, oint32_t ac)
+/* void ActiveTexture(uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4992,12 +4956,12 @@ native_ActiveTextureARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glActiveTextureARB(alist->a0);
+    glActiveTexture(alist->a0);
 }
 
 static void
-native_ClientActiveTextureARB(oobject_t list, oint32_t ac)
-/* void ClientActiveTextureARB(uint32_t texture); */
+native_ClientActiveTexture(oobject_t list, oint32_t ac)
+/* void ClientActiveTexture(uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5006,12 +4970,12 @@ native_ClientActiveTextureARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glClientActiveTextureARB(alist->a0);
+    glClientActiveTexture(alist->a0);
 }
 
 static void
-native_MultiTexCoord1ARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord1ARB(uint32_t target, float64_t s); */
+native_MultiTexCoord1(oobject_t list, oint32_t ac)
+/* void MultiTexCoord1(uint32_t target, float64_t s); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5020,12 +4984,12 @@ native_MultiTexCoord1ARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_f64_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glMultiTexCoord1dARB(alist->a0, alist->a1);
+    glMultiTexCoord1d(alist->a0, alist->a1);
 }
 
 static void
-native_MultiTexCoord1vARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord1vARB(uint32_t target, float64_t v[1]); */
+native_MultiTexCoord1v(oobject_t list, oint32_t ac)
+/* void MultiTexCoord1v(uint32_t target, float64_t v[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5036,12 +5000,12 @@ native_MultiTexCoord1vARB(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a1, t_vector|t_float64, 1))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
-    glMultiTexCoord1dvARB(alist->a0, alist->a1->v.f64);
+    glMultiTexCoord1dv(alist->a0, alist->a1->v.f64);
 }
 
 static void
-native_MultiTexCoord2ARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord2ARB(uint32_t target, float64_t s, float64_t t); */
+native_MultiTexCoord2(oobject_t list, oint32_t ac)
+/* void MultiTexCoord2(uint32_t target, float64_t s, float64_t t); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5050,12 +5014,12 @@ native_MultiTexCoord2ARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_f64_f64_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glMultiTexCoord2dARB(alist->a0, alist->a1, alist->a2);
+    glMultiTexCoord2d(alist->a0, alist->a1, alist->a2);
 }
 
 static void
-native_MultiTexCoord2vARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord2vARB(uint32_t target, float64_t v[2]); */
+native_MultiTexCoord2v(oobject_t list, oint32_t ac)
+/* void MultiTexCoord2v(uint32_t target, float64_t v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5066,13 +5030,13 @@ native_MultiTexCoord2vARB(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a1, t_vector|t_float64, 2))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
-    glMultiTexCoord2dvARB(alist->a0, alist->a1->v.f64);
+    glMultiTexCoord2dv(alist->a0, alist->a1->v.f64);
 }
 
 static void
-native_MultiTexCoord3ARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord3ARB(uint32_t target, float64_t s,
-			  float64_t t, float64_t r); */
+native_MultiTexCoord3(oobject_t list, oint32_t ac)
+/* void MultiTexCoord3(uint32_t target, float64_t s,
+		       float64_t t, float64_t r); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5081,12 +5045,12 @@ native_MultiTexCoord3ARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_f64_f64_f64_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glMultiTexCoord3dARB(alist->a0, alist->a1, alist->a2, alist->a3);
+    glMultiTexCoord3d(alist->a0, alist->a1, alist->a2, alist->a3);
 }
 
 static void
-native_MultiTexCoord3vARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord3vARB(uint32_t target, float64_t v[3]); */
+native_MultiTexCoord3v(oobject_t list, oint32_t ac)
+/* void MultiTexCoord3v(uint32_t target, float64_t v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5097,13 +5061,13 @@ native_MultiTexCoord3vARB(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a1, t_vector|t_float64, 3))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
-    glMultiTexCoord3dvARB(alist->a0, alist->a1->v.f64);
+    glMultiTexCoord3dv(alist->a0, alist->a1->v.f64);
 }
 
 static void
-native_MultiTexCoord4ARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord4ARB(uint32_t target, float64_t s,
-			  float64_t t, float64_t r, float64_t q); */
+native_MultiTexCoord4(oobject_t list, oint32_t ac)
+/* void MultiTexCoord4(uint32_t target, float64_t s,
+		       float64_t t, float64_t r, float64_t q); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5112,12 +5076,12 @@ native_MultiTexCoord4ARB(oobject_t list, oint32_t ac)
     alist = (nat_u32_f64_f64_f64_f64_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glMultiTexCoord4dARB(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4);
+    glMultiTexCoord4d(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4);
 }
 
 static void
-native_MultiTexCoord4vARB(oobject_t list, oint32_t ac)
-/* void MultiTexCoord4vARB(uint32_t target, float64_t v[4]); */
+native_MultiTexCoord4v(oobject_t list, oint32_t ac)
+/* void MultiTexCoord4v(uint32_t target, float64_t v[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5128,7 +5092,7 @@ native_MultiTexCoord4vARB(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a1, t_vector|t_float64, 4))
 	ovm_raise(except_invalid_argument);
     r0->t = t_void;
-    glMultiTexCoord4dvARB(alist->a0, alist->a1->v.f64);
+    glMultiTexCoord4dv(alist->a0, alist->a1->v.f64);
 }
 
 static void
