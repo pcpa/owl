@@ -275,8 +275,12 @@ TYPE3(ouint32_t,ouint32_t,ofloat32_t,
       u32_u32_f32);
 TYPE3(ouint32_t,ouint32_t,ofloat64_t,
       u32_u32_f64);
+TYPE3(ouint32_t,oword_t,ovector_t*,
+      u32_w_vec);
 TYPE3(ouint32_t,ofloat64_t,ofloat64_t,
       u32_f64_f64);
+TYPE3(ouint32_t,ovector_t*,ouint32_t,
+      u32_vec_u32);
 TYPE3(ofloat32_t,ofloat32_t,ofloat32_t,
       f32_f32_f32);
 TYPE3(ofloat64_t,ofloat64_t,ofloat64_t,

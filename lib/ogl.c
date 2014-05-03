@@ -244,6 +244,28 @@ static void native_WindowPos2(oobject_t list, oint32_t ac);
 static void native_WindowPos2v(oobject_t list, oint32_t ac);
 static void native_WindowPos3(oobject_t list, oint32_t ac);
 static void native_WindowPos3v(oobject_t list, oint32_t ac);
+static void native_GenQueries(oobject_t list, oint32_t ac);
+static void native_DeleteQueries(oobject_t list, oint32_t ac);
+static void native_IsQuery(oobject_t list, oint32_t ac);
+static void native_BeginQuery(oobject_t list, oint32_t ac);
+static void native_EndQuery(oobject_t list, oint32_t ac);
+static void native_GetQueryv(oobject_t list, oint32_t ac);
+static void native_GetQueryObjectv(oobject_t list, oint32_t ac);
+static void native_BindBuffer(oobject_t list, oint32_t ac);
+static void native_GenBuffers(oobject_t list, oint32_t ac);
+static void native_DeleteBuffers(oobject_t list, oint32_t ac);
+static void native_IsBuffer(oobject_t list, oint32_t ac);
+static void native_BufferData(oobject_t list, oint32_t ac);
+static void native_BufferSubData(oobject_t list, oint32_t ac);
+static void native_GetBufferSubData(oobject_t list, oint32_t ac);
+#if 0
+static void native_MapBuffer(oobject_t list, oint32_t ac);
+static void native_UnmapBuffer(oobject_t list, oint32_t ac);
+#endif
+static void native_GetBufferParameterv(oobject_t list, oint32_t ac);
+#if 0
+static void native_GetBufferPointerv(oobject_t list, oint32_t ac);
+#endif
 
 /*
  * Initialization
@@ -265,6 +287,47 @@ static struct {
     { "QUADS",				GL_QUADS },
     { "QUAD_STRIP",			GL_QUAD_STRIP },
     { "POLYGON",			GL_POLYGON },
+    /* Vertex Arrays */
+    { "VERTEX_ARRAY",			GL_VERTEX_ARRAY },
+    { "NORMAL_ARRAY",			GL_NORMAL_ARRAY },
+    { "COLOR_ARRAY",			GL_COLOR_ARRAY },
+    { "INDEX_ARRAY",			GL_INDEX_ARRAY },
+    { "TEXTURE_COORD_ARRAY",		GL_TEXTURE_COORD_ARRAY },
+    { "EDGE_FLAG_ARRAY",		GL_EDGE_FLAG_ARRAY },
+    { "VERTEX_ARRAY_SIZE",		GL_VERTEX_ARRAY_SIZE },
+    { "VERTEX_ARRAY_TYPE",		GL_VERTEX_ARRAY_TYPE },
+    { "VERTEX_ARRAY_STRIDE",		GL_VERTEX_ARRAY_STRIDE },
+    { "NORMAL_ARRAY_TYPE",		GL_NORMAL_ARRAY_TYPE },
+    { "NORMAL_ARRAY_STRIDE",		GL_NORMAL_ARRAY_STRIDE },
+    { "COLOR_ARRAY_SIZE",		GL_COLOR_ARRAY_SIZE },
+    { "COLOR_ARRAY_TYPE",		GL_COLOR_ARRAY_TYPE },
+    { "COLOR_ARRAY_STRIDE",		GL_COLOR_ARRAY_STRIDE },
+    { "INDEX_ARRAY_TYPE",		GL_INDEX_ARRAY_TYPE },
+    { "INDEX_ARRAY_STRIDE",		GL_INDEX_ARRAY_STRIDE },
+    { "TEXTURE_COORD_ARRAY_SIZE",	GL_TEXTURE_COORD_ARRAY_SIZE },
+    { "TEXTURE_COORD_ARRAY_TYPE",	GL_TEXTURE_COORD_ARRAY_TYPE },
+    { "TEXTURE_COORD_ARRAY_STRIDE",	GL_TEXTURE_COORD_ARRAY_STRIDE },
+    { "EDGE_FLAG_ARRAY_STRIDE",		GL_EDGE_FLAG_ARRAY_STRIDE },
+    { "VERTEX_ARRAY_POINTER",		GL_VERTEX_ARRAY_POINTER },
+    { "NORMAL_ARRAY_POINTER",		GL_NORMAL_ARRAY_POINTER },
+    { "COLOR_ARRAY_POINTER",		GL_COLOR_ARRAY_POINTER },
+    { "INDEX_ARRAY_POINTER",		GL_INDEX_ARRAY_POINTER },
+    { "TEXTURE_COORD_ARRAY_POINTER",	GL_TEXTURE_COORD_ARRAY_POINTER },
+    { "EDGE_FLAG_ARRAY_POINTER",	GL_EDGE_FLAG_ARRAY_POINTER },
+    { "V2F",				GL_V2F },
+    { "V3F",				GL_V3F },
+    { "C4UB_V2F",			GL_C4UB_V2F },
+    { "C4UB_V3F",			GL_C4UB_V3F },
+    { "C3F_V3F",			GL_C3F_V3F },
+    { "N3F_V3F",			GL_N3F_V3F },
+    { "C4F_N3F_V3F",			GL_C4F_N3F_V3F },
+    { "T2F_V3F",			GL_T2F_V3F },
+    { "T4F_V4F",			GL_T4F_V4F },
+    { "T2F_C4UB_V3F",			GL_T2F_C4UB_V3F },
+    { "T2F_C3F_V3F",			GL_T2F_C3F_V3F },
+    { "T2F_N3F_V3F",			GL_T2F_N3F_V3F },
+    { "T2F_C4F_N3F_V3F",		GL_T2F_C4F_N3F_V3F },
+    { "T4F_C4F_N3F_V4F",		GL_T4F_C4F_N3F_V4F },
     /* Matrix Mode */
     { "MATRIX_MODE",			GL_MATRIX_MODE },
     { "MODELVIEW",			GL_MODELVIEW },
@@ -1007,7 +1070,69 @@ static struct {
     { "OPERAND2_ALPHA_EXT",		GL_OPERAND2_ALPHA_EXT },
     { "FOG_COORDINATE_SOURCE",		GL_FOG_COORDINATE_SOURCE },
     { "FOG_COORDINATE",			GL_FOG_COORDINATE },
+
+    { "BUFFER_SIZE",			GL_BUFFER_SIZE },
+    { "BUFFER_USAGE",			GL_BUFFER_USAGE },
+    { "QUERY_COUNTER_BITS",		GL_QUERY_COUNTER_BITS },
+    { "CURRENT_QUERY",			GL_CURRENT_QUERY },
+    { "QUERY_RESULT",			GL_QUERY_RESULT },
+    { "QUERY_RESULT_AVAILABLE",		GL_QUERY_RESULT_AVAILABLE },
+    { "ARRAY_BUFFER",			GL_ARRAY_BUFFER },
+    { "ELEMENT_ARRAY_BUFFER",		GL_ELEMENT_ARRAY_BUFFER },
+    { "ARRAY_BUFFER_BINDING",		GL_ARRAY_BUFFER_BINDING },
+    { "ELEMENT_ARRAY_BUFFER_BINDING",	GL_ELEMENT_ARRAY_BUFFER_BINDING },
+    { "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING",GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING },
+    { "READ_ONLY",			GL_READ_ONLY },
+    { "WRITE_ONLY",			GL_WRITE_ONLY },
+    { "READ_WRITE",			GL_READ_WRITE },
+    { "BUFFER_ACCESS",			GL_BUFFER_ACCESS },
+    { "BUFFER_MAPPED",			GL_BUFFER_MAPPED },
+    { "BUFFER_MAP_POINTER",		GL_BUFFER_MAP_POINTER },
+    { "STREAM_DRAW",			GL_STREAM_DRAW },
+    { "STREAM_READ",			GL_STREAM_READ },
+    { "STREAM_COPY",			GL_STREAM_COPY },
+    { "STATIC_DRAW",			GL_STATIC_DRAW },
+    { "STATIC_READ",			GL_STATIC_READ },
+    { "STATIC_COPY",			GL_STATIC_COPY },
+    { "DYNAMIC_DRAW",			GL_DYNAMIC_DRAW },
+    { "DYNAMIC_READ",			GL_DYNAMIC_READ },
+    { "DYNAMIC_COPY",			GL_DYNAMIC_COPY },
+    { "SAMPLES_PASSED",			GL_SAMPLES_PASSED },
+    { "SRC1_ALPHA",			GL_SRC1_ALPHA },
+    { "VERTEX_ARRAY_BUFFER_BINDING",	GL_VERTEX_ARRAY_BUFFER_BINDING },
+    { "NORMAL_ARRAY_BUFFER_BINDING",	GL_NORMAL_ARRAY_BUFFER_BINDING },
+    { "COLOR_ARRAY_BUFFER_BINDING",	GL_COLOR_ARRAY_BUFFER_BINDING },
+    { "INDEX_ARRAY_BUFFER_BINDING",	GL_INDEX_ARRAY_BUFFER_BINDING },
+    { "TEXTURE_COORD_ARRAY_BUFFER_BINDING",GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING },
+    { "EDGE_FLAG_ARRAY_BUFFER_BINDING",	GL_EDGE_FLAG_ARRAY_BUFFER_BINDING },
+    { "SECONDARY_COLOR_ARRAY_BUFFER_BINDING",GL_SECONDARY_COLOR_ARRAY_BUFFER_BINDING },
+    { "FOG_COORDINATE_ARRAY_BUFFER_BINDING",GL_FOG_COORDINATE_ARRAY_BUFFER_BINDING },
+    { "WEIGHT_ARRAY_BUFFER_BINDING",	GL_WEIGHT_ARRAY_BUFFER_BINDING },
+    { "FOG_COORD_SRC",			GL_FOG_COORD_SRC },
+    { "FOG_COORD",			GL_FOG_COORD },
+    { "CURRENT_FOG_COORD",		GL_CURRENT_FOG_COORD },
+    { "FOG_COORD_ARRAY_TYPE",		GL_FOG_COORD_ARRAY_TYPE },
+    { "FOG_COORD_ARRAY_STRIDE",		GL_FOG_COORD_ARRAY_STRIDE },
+    { "FOG_COORD_ARRAY_POINTER",	GL_FOG_COORD_ARRAY_POINTER },
+    { "FOG_COORD_ARRAY",		GL_FOG_COORD_ARRAY },
+    { "FOG_COORD_ARRAY_BUFFER_BINDING",	GL_FOG_COORD_ARRAY_BUFFER_BINDING },
+    { "SRC0_RGB",			GL_SRC0_RGB },
+    { "SRC1_RGB",			GL_SRC1_RGB },
+    { "SRC2_RGB",			GL_SRC2_RGB },
+    { "SRC0_ALPHA",			GL_SRC0_ALPHA },
+    { "SRC2_ALPHA",			GL_SRC2_ALPHA },
 };
+
+#define ARRAY_BUFFER_OFFSET			0
+#define ARRAY_BUFFER_LENGTH			1
+#define ELEMENT_ARRAY_BUFFER_OFFSET		2
+#define ELEMENT_ARRAY_BUFFER_LENGTH		3
+#define PIXEL_PACK_BUFFER_OFFSET		4
+#define PIXEL_PACK_BUFFER_LENGTH		5
+#define PIXEL_UNPACK_BUFFER_OFFSET		6
+#define PIXEL_UNPACK_BUFFER_LENGTH		7
+#define BUFFER_VECTOR_SIZE			(sizeof(oword_t) * 8)
+static ohashtable_t		*buffer_table;
 
 /*
  * Implementation
@@ -1019,6 +1144,9 @@ init_gl(void)
     oword_t			 offset;
     orecord_t			*record;
     obuiltin_t			*builtin;
+
+    oadd_root((oobject_t *)&buffer_table);
+    onew_hashtable(&buffer_table, 4);
 
     for (offset = 0; offset < osize(gl); ++offset) {
 	string = gl[offset].name;
@@ -1264,7 +1392,6 @@ init_gl(void)
     define_builtin1(t_void,    LoadName, t_uint32);
     define_builtin1(t_void,    PushName, t_uint32);
     define_builtin0(t_void,    PopName);
-
     define_builtin1(t_void,    ActiveTexture, t_uint32);
     define_builtin1(t_void,    ClientActiveTexture, t_uint32);
     define_builtin2(t_void,    MultiTexCoord1, t_uint32, t_float64);
@@ -1282,12 +1409,28 @@ init_gl(void)
 		    t_uint32, t_float64, t_float64, t_float64, t_float64);
     define_builtin2(t_void,    MultiTexCoord4v,
 		    t_uint32, t_vector|t_float64);
-
-    define_builtin1(t_void, FogCoord, t_float64);
-    define_builtin2(t_void, WindowPos2, t_float64, t_float64);
-    define_builtin1(t_void, WindowPos2v, t_vector|t_float64);
-    define_builtin3(t_void, WindowPos3, t_float64, t_float64, t_float64);
-    define_builtin1(t_void, WindowPos3v, t_vector|t_float64);
+    define_builtin1(t_void,  FogCoord, t_float64);
+    define_builtin2(t_void,  WindowPos2, t_float64, t_float64);
+    define_builtin1(t_void,  WindowPos2v, t_vector|t_float64);
+    define_builtin3(t_void,  WindowPos3, t_float64, t_float64, t_float64);
+    define_builtin1(t_void,  WindowPos3v, t_vector|t_float64);
+    define_builtin1(t_void,  GenQueries, t_uint32|t_vector);
+    define_builtin1(t_void,  DeleteQueries, t_vector|t_uint32);
+    define_builtin1(t_uint8, IsQuery, t_uint32);
+    define_builtin2(t_void,  BeginQuery, t_uint32, t_uint32);
+    define_builtin1(t_void,  EndQuery, t_uint32);
+    define_builtin3(t_void,  GetQueryv, t_uint32, t_uint32, t_vector|t_uint32);
+    define_builtin3(t_void,  GetQueryObjectv,
+		    t_uint32, t_uint32, t_vector|t_uint32);
+    define_builtin2(t_void,  BindBuffer, t_uint32, t_uint32);
+    define_builtin1(t_void,  GenBuffers, t_vector|t_uint32);
+    define_builtin1(t_void,  DeleteBuffers, t_vector|t_uint32);
+    define_builtin1(t_uint8, IsBuffer, t_uint32);
+    define_builtin3(t_void,  BufferData, t_uint32, t_vector, t_uint32);
+    define_builtin3(t_void,  BufferSubData, t_uint32, t_word, t_vector);
+    define_builtin3(t_void,  GetBufferSubData, t_uint32, t_word, t_vector);
+    define_builtin3(t_void,  GetBufferParameterv,
+		    t_uint32, t_word, t_vector|t_int32);
 
     current_record = record;
 }
@@ -1295,6 +1438,7 @@ init_gl(void)
 void
 finish_gl(void)
 {
+    orem_root((oobject_t *)&buffer_table);
 }
 
 static void
@@ -3050,42 +3194,63 @@ native_VertexPointer(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     oint32_t				 type;
     nat_i32_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_i32_vec_t *)list;
-    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
-	alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
-    switch (otype(alist->a2)) {
-	case t_vector|t_int16:
-	    type = GL_SHORT;
-	    if (alist->a1 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_int32:
-	    type = GL_INT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float32:
-	    type = GL_FLOAT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float64:
-	    type = GL_DOUBLE;
-	    if (alist->a1 & 3)	/* stride & 7*/
-		goto fail;
-	    break;
-	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
-    }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glVertexPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+
+    if (alist->a2 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	type = vector[ARRAY_BUFFER_OFFSET];
+	glVertexPointer(alist->a0, type, alist->a1, null);
+    }
+    else {
+	if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
+	    !(otype(alist->a2) & t_vector))
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		if (alist->a1 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		if (alist->a1 & 7)  /* stride & 7 */
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		ovm_raise(except_invalid_argument);
+	}
+	glVertexPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+    }
 }
 
 static void
@@ -3097,44 +3262,65 @@ native_NormalPointer(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     oint32_t				 type;
     nat_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_vec_t *)list;
-    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
-	ovm_raise(except_invalid_argument);
-    switch (otype(alist->a1)) {
-	case t_vector|t_int8:
-	    type = GL_BYTE;
-	    break;
-	case t_vector|t_int16:
-	    type = GL_SHORT;
-	    if (alist->a0 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_int32:
-	    type = GL_INT;
-	    if (alist->a0 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float32:
-	    type = GL_FLOAT;
-	    if (alist->a0 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float64:
-	    type = GL_DOUBLE;
-	    if (alist->a0 & 3)	/* stride & 7*/
-		goto fail;
-	    break;
-	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
-    }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glNormalPointer(type, alist->a0, alist->a1->v.obj);
+
+    if (alist->a1 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	type = vector[ARRAY_BUFFER_OFFSET];
+	glNormalPointer(type, alist->a0, null);
+    }
+    else {
+	if (!(otype(alist->a1) & t_vector))
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a1)) {
+	    case t_vector|t_int8:
+		type = GL_BYTE;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		if (alist->a0 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		if (alist->a0 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		if (alist->a0 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		if (alist->a0 & 7)  /* stride & 7 */
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		ovm_raise(except_invalid_argument);
+	}
+	glNormalPointer(type, alist->a0, alist->a1->v.obj);
+    }
 }
 
 static void
@@ -3147,58 +3333,78 @@ native_ColorPointer(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     oint32_t				 type;
     nat_i32_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_i32_vec_t *)list;
-    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
-	alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
-    switch (otype(alist->a2)) {
-	case t_vector|t_int8:
-	    type = GL_BYTE;
-	    break;
-	case t_vector|t_uint8:
-	    type = GL_UNSIGNED_BYTE;
-	    break;
-	case t_vector|t_int16:
-	    type = GL_SHORT;
-	    if (alist->a1 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_uint16:
-	    type = GL_UNSIGNED_SHORT;
-	    if (alist->a1 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_int32:
-	    type = GL_INT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_uint32:
-	    type = GL_UNSIGNED_INT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float32:
-	    type = GL_FLOAT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float64:
-	    type = GL_DOUBLE;
-	    if (alist->a1 & 3)	/* stride & 7*/
-		goto fail;
-	    break;
-	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
-    }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glColorPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+    if (alist->a2 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	type = vector[ARRAY_BUFFER_OFFSET];
+	glColorPointer(alist->a0, type, alist->a1, null);
+    }
+    else {
+	if (alist->a0 < 3 || alist->a0 > 4 ||	    /* size */
+	    !(otype(alist->a2) & t_vector))
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int8:
+		type = GL_BYTE;
+		break;
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		if (alist->a1 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_uint16:
+		type = GL_UNSIGNED_SHORT;
+		if (alist->a1 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_uint32:
+		type = GL_UNSIGNED_INT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		if (alist->a1 & 7)  /* stride & 7 */
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		ovm_raise(except_invalid_argument);
+	}
+	glColorPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+    }
 }
 
 static void
@@ -3210,44 +3416,64 @@ native_IndexPointer(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     oint32_t				 type;
     nat_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_vec_t *)list;
-    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
-	ovm_raise(except_invalid_argument);
-    switch (otype(alist->a1)) {
-	case t_vector|t_uint8:
-	    type = GL_UNSIGNED_BYTE;
-	    break;
-	case t_vector|t_int16:
-	    type = GL_SHORT;
-	    if (alist->a0 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_int32:
-	    type = GL_INT;
-	    if (alist->a0 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float32:
-	    type = GL_FLOAT;
-	    if (alist->a0 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float64:
-	    type = GL_DOUBLE;
-	    if (alist->a0 & 3)	/* stride & 7*/
-		goto fail;
-	    break;
-	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
-    }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glIndexPointer(type, alist->a0, alist->a1->v.obj);
+    if (alist->a1 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	type = vector[ARRAY_BUFFER_OFFSET];
+	glIndexPointer(type, alist->a0, null);
+    }
+    else {
+	if (!(otype(alist->a1) & t_vector))
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a1)) {
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		if (alist->a0 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		if (alist->a0 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		if (alist->a0 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		if (alist->a0 & 7)  /* stride & 7 */
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		ovm_raise(except_invalid_argument);
+	}
+	glIndexPointer(type, alist->a0, alist->a1->v.obj);
+    }
 }
 
 static void
@@ -3259,42 +3485,63 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
     oregister_t				*r0;
     oint32_t				 type;
     nat_i32_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_i32_vec_t *)list;
-    if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
-	alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
-    switch (otype(alist->a2)) {
-	case t_vector|t_int16:
-	    type = GL_SHORT;
-	    if (alist->a1 & 1)	/* stride & 1*/
-		goto fail;
-	    break;
-	case t_vector|t_int32:
-	    type = GL_INT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float32:
-	    type = GL_FLOAT;
-	    if (alist->a1 & 3)	/* stride & 3*/
-		goto fail;
-	    break;
-	case t_vector|t_float64:
-	    type = GL_DOUBLE;
-	    if (alist->a1 & 3)	/* stride & 7*/
-		goto fail;
-	    break;
-	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
-    }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glTexCoordPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+
+    if (alist->a2 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	type = vector[ARRAY_BUFFER_OFFSET];
+	glTexCoordPointer(alist->a0, type, alist->a1, null);
+    }
+    else {
+	if (alist->a0 < 2 || alist->a0 > 4 ||	    /* size */
+	    !(otype(alist->a2) & t_vector))
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		if (alist->a1 & 1)  /* stride & 1 */
+		    goto fail;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		if (alist->a1 & 3)  /* stride & 3 */
+		    goto fail;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		if (alist->a1 & 7)  /* stride & 7 */
+		    goto fail;
+		break;
+	    default:
+	    fail:
+		ovm_raise(except_invalid_argument);
+	}
+	glTexCoordPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+    }
 }
 
 static void
@@ -3304,16 +3551,33 @@ native_EdgeFlagPointer(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_vec_t *)list;
-    if (bad_arg_type(a1, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glEdgeFlagPointer(alist->a0, alist->a1->v.obj);
+    if (alist->a1 == null) {
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	glEdgeFlagPointer(alist->a0, null);
+    }
+    else {
+	if (bad_arg_type(a1, t_vector|t_uint8))
+	    ovm_raise(except_invalid_argument);
+	glEdgeFlagPointer(alist->a0, alist->a1->v.obj);
+    }
 }
 
 static void
@@ -5526,4 +5790,400 @@ native_WindowPos3v(oobject_t list, oint32_t ac)
     if (bad_arg_type_length(a0, t_vector|t_float64, 3))
 	ovm_raise(except_invalid_argument);
     glWindowPos3dv(alist->a0->v.f64);
+}
+
+static void
+native_GenQueries(oobject_t list, oint32_t ac)
+/* void GenQueries(uint32_t ids[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_vec_t				*alist;
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type(a0, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glGenQueries(alist->a0->length, alist->a0->v.u32);
+}
+
+static void
+native_DeleteQueries(oobject_t list, oint32_t ac)
+/* void DeleteQueries(uint32_t ids[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_vec_t				*alist;
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type(a0, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glDeleteQueries(alist->a0->length, alist->a0->v.u32);
+}
+
+static void
+native_IsQuery(oobject_t list, oint32_t ac)
+/* uint8_t IsQuery(uint32_t id); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glIsQuery(alist->a0);
+}
+
+static void
+native_BeginQuery(oobject_t list, oint32_t ac)
+/* void BeginQuery(uint32_t target, uint32_t id); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+
+    alist = (nat_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glBeginQuery(alist->a0, alist->a1);
+}
+
+static void
+native_EndQuery(oobject_t list, oint32_t ac)
+/* void EndQuery(uint32_t target); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glEndQuery(alist->a0);
+}
+
+static void
+native_GetQueryv(oobject_t list, oint32_t ac)
+/* void GetQueryv(uint32_t target, uint32_t pname, int32_t params[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type_length(a2, t_vector|t_uint32, 1))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glGetQueryiv(alist->a0, alist->a1, alist->a2->v.i32);
+}
+
+static void
+native_GetQueryObjectv(oobject_t list, oint32_t ac)
+/* void GetQueryObjectv(uint32_t target, uint32_t pname, int32_t params[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a2 == null || !(otype(alist->a2) & t_vector) ||
+	alist->a2->length != 1)
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int32:
+	    glGetQueryObjectiv(alist->a0, alist->a1, alist->a2->v.i32);
+	    break;
+	case t_vector|t_uint32:
+	    glGetQueryObjectuiv(alist->a0, alist->a1, alist->a2->v.u32);
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+}
+
+static void
+native_BindBuffer(oobject_t list, oint32_t ac)
+/* void BindBuffer(uint32_t target, uint32_t buffer); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+
+    alist = (nat_u32_u32_t *)list;
+    check.nt = t_word;
+    check.nv.w = alist->a1;
+    okey_hashentry(&check);
+    if ((entry = oget_hashentry(buffer_table, &check)) == null) {
+	onew_object((oobject_t *)&thread_self->obj,
+		    t_hashentry, sizeof(ohashentry_t));
+	entry = thread_self->obj;
+	entry->key = check.key;
+	entry->nt = t_word;
+	entry->nv.w = alist->a1;
+	oput_hashentry(buffer_table, entry);
+	entry->vt = t_void;
+	onew_object(&entry->vv.o, t_word, BUFFER_VECTOR_SIZE);
+    }
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glBindBuffer(alist->a0, alist->a1);
+}
+
+static void
+native_GenBuffers(oobject_t list, oint32_t ac)
+/* void GenBuffers(uint32_t ids[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_vec_t				*alist;
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type(a0, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glGenBuffers(alist->a0->length, alist->a0->v.u32);
+}
+
+static void
+native_DeleteBuffers(oobject_t list, oint32_t ac)
+/* void DeleteBuffers(uint32_t ids[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_vec_t				*alist;
+    oword_t				 offset;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type(a0, t_vector|t_uint32))
+	ovm_raise(except_invalid_argument);
+
+    check.nt = t_word;
+    for (offset = 0; offset < alist->a0->length; offset++) {
+	check.nv.w = alist->a0->v.u32[offset];
+	okey_hashentry(&check);
+	if ((entry = oget_hashentry(buffer_table, &check)))
+	    orem_hashentry(buffer_table, entry);
+    }
+
+    r0->t = t_void;
+    glDeleteBuffers(alist->a0->length, alist->a0->v.u32);
+}
+
+static void
+native_IsBuffer(oobject_t list, oint32_t ac)
+/* uint8_t IsBuffer(uint32_t id); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glIsBuffer(alist->a0);
+}
+
+static void
+native_BufferData(oobject_t list, oint32_t ac)
+/* void BufferData(uint32_t target, data[], uint32_t usage); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oword_t				 size;
+    oword_t				 type;
+    nat_u32_vec_u32_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oint32_t				 buffer;
+    oword_t				*vector;
+
+    alist = (nat_u32_vec_u32_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int8:
+	    type = GL_BYTE;
+	    size = alist->a1->length;
+	    break;
+	case t_vector|t_uint8:
+	    type = GL_UNSIGNED_BYTE;
+	    size = alist->a1->length;
+	    break;
+	case t_vector|t_int16:
+	    type = GL_SHORT;
+	    size = alist->a1->length << 1;
+	    break;
+	case t_vector|t_uint16:
+	    type = GL_UNSIGNED_SHORT;
+	    size = alist->a1->length << 1;
+	    break;
+	case t_vector|t_int32:
+	    type = GL_INT;
+	    size = alist->a1->length << 2;
+	    break;
+	case t_vector|t_uint32:
+	    type = GL_UNSIGNED_INT;
+	    size = alist->a1->length << 2;
+	    break;
+	case t_vector|t_float32:
+	    type = GL_FLOAT;
+	    size = alist->a1->length << 2;
+	    break;
+	case t_vector|t_float64:
+	    type = GL_DOUBLE;
+	    size = alist->a1->length << 3;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+
+    buffer = -1;
+    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    /* No buffer bound */
+    if (!glIsBuffer(buffer))
+	ovm_raise(except_invalid_argument);
+    check.nt = t_word;
+    check.nv.w = buffer;
+    okey_hashentry(&check);
+    /* Should never fail, unless buffer was bound not using the
+     * gl interface what is not supported */
+    if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	ovm_raise(except_invalid_argument);
+    vector = entry->vv.o;
+    switch (alist->a0) {
+	case GL_ARRAY_BUFFER:
+	    vector[ARRAY_BUFFER_OFFSET] = type;
+	    vector[ARRAY_BUFFER_LENGTH] = size;
+	    break;
+	case GL_ELEMENT_ARRAY_BUFFER:
+	    vector[ELEMENT_ARRAY_BUFFER_OFFSET] = type;
+	    vector[ELEMENT_ARRAY_BUFFER_LENGTH] = size;
+	    break;
+	case GL_PIXEL_PACK_BUFFER:
+	    vector[PIXEL_PACK_BUFFER_OFFSET] = type;
+	    vector[PIXEL_PACK_BUFFER_LENGTH] = size;
+	    break;
+	case GL_PIXEL_UNPACK_BUFFER:
+	    vector[PIXEL_UNPACK_BUFFER_OFFSET] = type;
+	    vector[PIXEL_UNPACK_BUFFER_LENGTH] = size;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+
+    r0->t = t_void;
+    glBufferData(alist->a0, size, alist->a1->v.obj, alist->a2);
+}
+
+static void
+native_BufferSubData(oobject_t list, oint32_t ac)
+/* void BufferSubData(uint32_t target, word_t offset, data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oword_t				 size;
+    nat_u32_w_vec_t			*alist;
+
+    alist = (nat_u32_w_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int8:	case t_vector|t_uint8:
+	    size = alist->a2->length;
+	    break;
+	case t_vector|t_int16:	case t_vector|t_uint16:
+	    size = alist->a2->length << 1;
+	    if (alist->a1 & 1)		/* offset & 1 */
+		goto fail;
+	    break;
+	case t_vector|t_int32:	case t_vector|t_uint32:
+	case t_vector|t_float32:
+	    size = alist->a2->length << 2;
+	    if (alist->a1 & 1)		/* offset & 3 */
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    size = alist->a2->length << 3;
+	    if (alist->a1 & 1)		/* offset & 7 */
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+    glBufferSubData(alist->a0, alist->a1, size, alist->a2->v.obj);
+}
+
+static void
+native_GetBufferSubData(oobject_t list, oint32_t ac)
+/* void GetBufferSubData(uint32_t target, word_t offset, data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oword_t				 size;
+    nat_u32_w_vec_t			*alist;
+
+    alist = (nat_u32_w_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a2)) {
+	case t_vector|t_int8:	case t_vector|t_uint8:
+	    size = alist->a2->length;
+	    break;
+	case t_vector|t_int16:	case t_vector|t_uint16:
+	    size = alist->a2->length << 1;
+	    if (alist->a1 & 1)		/* offset & 1 */
+		goto fail;
+	    break;
+	case t_vector|t_int32:	case t_vector|t_uint32:
+	case t_vector|t_float32:
+	    size = alist->a2->length << 2;
+	    if (alist->a1 & 1)		/* offset & 3 */
+		goto fail;
+	    break;
+	case t_vector|t_float64:
+	    size = alist->a2->length << 3;
+	    if (alist->a1 & 1)		/* offset & 7 */
+		goto fail;
+	    break;
+	default:
+	fail:
+	    ovm_raise(except_invalid_argument);
+    }
+    r0->t = t_void;
+    glGetBufferSubData(alist->a0, alist->a1, size, alist->a2->v.obj);
+}
+
+static void
+native_GetBufferParameterv(oobject_t list, oint32_t ac)
+/* void GetBufferParameterv(uint32_t target, uint32_t value, int32_t data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    if (bad_arg_type_length(a2, t_vector|t_uint32, 1))
+	ovm_raise(except_invalid_argument);
+    r0->t = t_void;
+    glGetBufferParameteriv(alist->a0, alist->a1, alist->a2->v.i32);
 }
