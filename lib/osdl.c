@@ -620,7 +620,7 @@ static struct {
     { "KmodGui",			KMOD_GUI },
     /* Pixel format */
     { "PixelformatBitmap",		SDL_PIXELFORMAT_INDEX1LSB },
-    { "PixelformatRgb",			SDL_PIXELFORMAT_RGB888 },
+    { "PixelformatRgb",			SDL_PIXELFORMAT_RGB24 },
     { "PixelformatRgba",		SDL_PIXELFORMAT_RGBA8888 },
 };
 static struct {
