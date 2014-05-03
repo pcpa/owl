@@ -172,8 +172,8 @@ emit_cmp(oast_t *ast)
 	else				function = ovm_w_ne;
     }
     else if (lty == t_single) {
-	assert(rty == t_single);
 	if (rreg == -1) {
+	    assert(rty == t_float);
 	    if (token == tok_lt)
 		jit_lti_f(GPR[lreg], FPR[lreg], rop->u.d);
 	    else if (token == tok_le)
@@ -188,6 +188,7 @@ emit_cmp(oast_t *ast)
 		jit_nei_f(GPR[lreg], FPR[lreg], rop->u.d);
 	}
 	else {
+	    assert(rty == t_single);
 	    if (token == tok_lt)
 		jit_ltr_f(GPR[lreg], FPR[lreg], FPR[rreg]);
 	    else if (token == tok_le)
