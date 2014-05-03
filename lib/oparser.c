@@ -1164,11 +1164,26 @@ prototype(otag_t *base, oast_t *proto)
     otag_t		*tag;
     otype_t		 type;
     ovector_t		*name;
+    oword_t		 length;
     orecord_t		*record;
     osymbol_t		*symbol;
     ofunction_t		*function;
 
-    assert(proto->token == tok_call);
+    if (proto->token == tok_vector) {
+	ast = proto->r.ast;
+	if (ast == null)
+	    length = 0;
+	else if (ast->token != tok_number || otype(ast->l.value) != t_word) {
+	    oparse_error(ast, "not an integer");
+	    length = *(oword_t *)ast->l.value;
+	    if (length < 0)
+		oparse_error(ast, "negative length");
+	}
+	base = otag_vector(base, length);
+	omove_ast_up_full(proto, proto->l.ast);
+    }
+    else if (proto->token != tok_call)
+	oparse_error(proto, "expecting prototype %A", proto);
     proto->token = tok_proto;
     tag = otag_proto(base, proto);
     ast = proto->l.ast;

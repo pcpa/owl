@@ -49,6 +49,7 @@
 #define print_rec(record,value)	write_record(record, value, format)
 #define print_tag(tag, name, fields)					\
     write_tag(tag, name, fields, indent, format)
+#define print_vec(tag)		write_vec(tag, indent, format)
 #define print_fields(value)	write_fields(value, indent, format)
 #define print_ast_list(value)	write_ast_list(value, indent, format)
 #define print_ast_call(value)	write_ast_call(value, indent, format)
@@ -128,6 +129,9 @@ write_fields(orecord_t *record, oint32_t indent, oformat_t *format);
 static oword_t
 write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 	  oint32_t indent, oformat_t *format);
+
+static oword_t
+write_vec(otag_t *tag, oint32_t indent, oformat_t *format);
 
 static oword_t
 write_ast_newline(oint32_t indent);
@@ -673,6 +677,7 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
     orecord_t		*record;
     osymbol_t		*symbol;
     ovector_t		*vector;
+    ofunction_t		*function;
 
     /* do not crash if called from gdb with incomplete data */
     if (ast == null)
@@ -1334,6 +1339,15 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 		    bytes += print_ast(ast->r.ast->r.ast);
 		else
 		    bytes += print_ast(ast->r.ast);
+		if ((function = ast->t.value)) {
+		    assert(otype(function) == t_function);
+		    tag = function->name->tag;
+		    assert(tag->type == tag_function);
+		    vector = tag->name;
+		    tag = vector->v.ptr[0];
+		    if (tag->type == tag_vector)
+			bytes += print_vec(tag);
+		}
 	    }
 	    dputc(' ');		++bytes;
 	    bytes += print_ast(ast->c.ast);
@@ -1522,9 +1536,7 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 	  oint32_t indent, oformat_t *format)
 {
     otag_t		*base;
-    otag_t		*temp;
     oword_t		 bytes;
-    oword_t		 length;
     orecord_t		*record;
 
     bytes = 0;
@@ -1547,10 +1559,22 @@ write_tag(otag_t *tag, osymbol_t *name, obool_t fields,
 	dputc(' ');		++bytes;
 	bytes += print_sym(name);
     }
-    for (temp = tag; temp != base; temp = temp->base) {
-	if (temp->type == tag_vector) {
+    bytes += print_vec(tag);
+
+    return (bytes);
+}
+
+static oword_t
+write_vec(otag_t *tag, oint32_t indent, oformat_t *format)
+{
+    oword_t		bytes;
+    oword_t		length;
+
+    bytes = 0;
+    for (; tag; tag = tag->base) {
+	if (tag->type == tag_vector) {
 	    dputc('[');		++bytes;
-	    if ((length = *((ovector_t *)temp->name)->v.w))
+	    if ((length = *((ovector_t *)tag->name)->v.w))
 		bytes += print_int(length);
 	    dputc(']');		++bytes;
 	}
