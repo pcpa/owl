@@ -1,0 +1,257 @@
+float32_t	fogColor[4] = { 0.6, 0.3, 0.0, 1.0 };	// Fog Colour 
+float64_t	camz;					// Camera Z Depth
+float64_t	camx;					// Camera Z Depth
+uint32_t	texture[1] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+void BuildTexture(string_t filename) {
+    sdl.surface_t	surface;
+    if ((surface = sdl.load_surface(filename))) {
+	gl.GenTextures(texture);
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+	sdl.gl.TexImage2D(surface);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.free_surface(surface);
+    }
+}
+
+void InitGL() {
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);		// Black Background
+    gl.ClearDepth(1.0);				// Depth Buffer Setup
+    gl.DepthFunc(gl.LEQUAL);			// The Type Of Depth Testing
+    gl.Enable(gl.DEPTH_TEST);			// Enable Depth Testing
+    gl.ShadeModel(gl.SMOOTH);			// Select Smooth Shading
+    // Set Perspective Calculations To Most Accurate
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    BuildTexture("nehe/lesson41/wall.bmp");
+
+    gl.Enable(gl.TEXTURE_2D);			// Enable Texture Mapping
+
+    // Set Up Fog 
+    gl.Enable(gl.FOG);				// Enable Fog
+    gl.Fog(gl.FOG_MODE, gl.LINEAR);		// Fog Fade Is Linear
+    gl.Fogv(gl.FOG_COLOR, fogColor);		// Set The Fog Color
+    gl.Fog(gl.FOG_START, 1.0);			// Set The Fog Start
+    gl.Fog(gl.FOG_END,   0.0);			// Set The Fog End
+    gl.Hint(gl.FOG_HINT, gl.NICEST);		// Per-Pixel Fog Calculation
+    // Set Fog Based On Vertice Coordinates
+    gl.Fog(gl.FOG_COORDINATE_SOURCE, gl.FOG_COORDINATE);
+
+    camz = -19.0;				// Set Camera Z Position To -19.0
+    camx =   0.0;				// Set Camera X Position To 0.0
+}
+
+void ReshapeGL() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.LoadIdentity();			// Reset The Projection Matrix
+
+    // Calculate The Aspect Ratio Of The Window
+    glu.Perspective(45.0, win.w / win.h, 1.0, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+}
+
+void Draw() {
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();		 	// Reset The Modelview Matrix
+
+    gl.Translate(camx, 0.0, camz);	// Move To Our Camera Z/X Position
+
+    // glFogCoordEXT is very similar to glVertex3f. If you understand
+    // the way vertexs are applied in OpenGL, you will not have any dificulty
+    // understanding glFogCoordEXT.
+
+    // In this tutorial we are applyng the fog in a corridor, so the fog
+    // goes from the less density (the minor z) to a bigger density (the
+    // biggest z).
+    // If you check the fog_start and fog_eng, it's 0 and 1.
+
+    // So, we will pass to the function glFogCoordEXT, the fog value
+    // corresponding with the glVertex3f value.If we are drawing a quad from
+    // z minus to z major, we do exactly the same with glFogCoord.
+
+    // For example, in the first quad, is vertex coordinates in the Z field
+    // are all -15.0. So we want the fog to completely fill this quad, so
+    // we assign 0 to all the glFogCoordExt.
+
+    gl.Begin(gl.QUADS);	// Back Wall
+    {
+	gl.FogCoord(0.0); gl.TexCoord2(0.0, 0.0); gl.Vertex3(-2.5, -2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 0.0); gl.Vertex3( 2.5, -2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 1.0); gl.Vertex3( 2.5,  2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(0.0, 1.0); gl.Vertex3(-2.5,  2.5, -15.0);
+    }
+    gl.End();
+    gl.Begin(gl.QUADS);	// Floor
+    {
+	gl.FogCoord(0.0); gl.TexCoord2(0.0, 0.0); gl.Vertex3(-2.5, -2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 0.0); gl.Vertex3( 2.5, -2.5, -15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(1.0, 1.0); gl.Vertex3( 2.5, -2.5,  15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 1.0); gl.Vertex3(-2.5, -2.5,  15.0);
+    }
+    gl.End();
+
+    gl.Begin(gl.QUADS);	// Roof
+    {
+	gl.FogCoord(0.0); gl.TexCoord2(0.0, 0.0); gl.Vertex3(-2.5,  2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 0.0); gl.Vertex3( 2.5,  2.5, -15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(1.0, 1.0); gl.Vertex3( 2.5,  2.5,  15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 1.0); gl.Vertex3(-2.5,  2.5,  15.0);
+    }
+    gl.End();
+
+    gl.Begin(gl.QUADS);	// Right Wall
+    {
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 0.0); gl.Vertex3( 2.5, -2.5,  15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 1.0); gl.Vertex3( 2.5,  2.5,  15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 1.0); gl.Vertex3( 2.5,  2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 0.0); gl.Vertex3( 2.5, -2.5, -15.0);
+    }
+    gl.End();
+
+    gl.Begin(gl.QUADS);	// Left Wall
+    {
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 0.0); gl.Vertex3(-2.5, -2.5,  15.0);
+	gl.FogCoord(1.0); gl.TexCoord2(0.0, 1.0); gl.Vertex3(-2.5,  2.5,  15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 1.0); gl.Vertex3(-2.5,  2.5, -15.0);
+	gl.FogCoord(0.0); gl.TexCoord2(1.0, 0.0); gl.Vertex3(-2.5, -2.5, -15.0);
+    }
+    gl.End();
+    gl.Flush();					// Flush The GL Rendering Pipeline
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    uint32_t		Keys;
+    uint32_t		TickCount;
+    uint32_t		LastCount;
+    uint32_t		Milliseconds;
+#define UP		1
+#define DOWN		2
+#define LEFT		4
+#define RIGHT		8
+
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson41",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+print("\
+Esc: 		Exit\n\
+Up:		Move camera in\n\
+Down:		Move camera out\n\
+Left:		Move camera left\n\
+Right:		Move camera right\n");
+    InitGL();
+    ReshapeGL();
+
+    LastCount = sdl.get_ticks();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReshapeGL();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Up:
+			    Keys |= UP;
+			    break;
+			case sdl.Key_Down:
+			    Keys |= DOWN;
+			    break;
+			case sdl.Key_Left:
+			    Keys |= LEFT;
+			    break;
+			case sdl.Key_Right:
+			    Keys |= RIGHT;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyUp:
+		    switch (ev.keysym) {
+			case sdl.Key_Up:
+			    Keys &= ~UP;
+			    break;
+			case sdl.Key_Down:
+			    Keys &= ~DOWN;
+			    break;
+			case sdl.Key_Left:
+			    Keys &= ~LEFT;
+			    break;
+			case sdl.Key_Right:
+			    Keys &= ~RIGHT;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	else {
+	    TickCount = sdl.get_ticks();
+	    Milliseconds = TickCount - LastCount;
+	    if (Keys & UP)
+		camz += Milliseconds / 100.0;
+	    if (Keys & DOWN)
+		camz -= Milliseconds / 100.0;
+	    if (Keys & LEFT)
+		camx += Milliseconds / 100.0;
+	    if (Keys & RIGHT)
+		camx -= Milliseconds / 100.0;
+	    LastCount = TickCount;
+	    Draw();
+	}
+    }
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

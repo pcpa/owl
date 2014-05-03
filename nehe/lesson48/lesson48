@@ -1,0 +1,628 @@
+#define InvalidArgumentException	7
+
+#define Epsilon				1.0e-5
+
+#define v_X(v)			v[0]
+#define v_Y(v)			v[1]
+#define v_Z(v)			v[2]
+#define v_W(v)			v[3]
+
+#define m3_M00(m)		m[0]
+#define m3_XX(m)		m[0]
+#define m3_SX(m)		m[0]
+#define m3_M10(m)		m[1]
+#define m3_XY(m)		m[1]
+#define m3_M20(m)		m[2]
+#define m3_XZ(m)		m[2]
+#define m3_M01(m)		m[3]
+#define m3_YX(m)		m[3]
+#define m3_M11(m)		m[4]
+#define m3_YY(m)		m[4]
+#define m3_SY(m)		m[4]
+#define m3_M21(m)		m[5]
+#define m3_YZ(m)		m[5]
+#define m3_M02(m)		m[6]
+#define m3_ZX(m)		m[6]
+#define m3_M12(m)		m[7]
+#define m3_ZY(m)		m[7]
+#define m3_M22(m)		m[8]
+#define m3_ZZ(m)		m[8]
+#define m3_SZ(m)		m[8]
+
+#define m4_M00(m)		m[0]
+#define m4_XX(m)		m[0]
+#define m4_SX(m)		m[0]
+#define m4_M10(m)		m[1]
+#define m4_XY(m)		m[1]
+#define m4_M20(m)		m[2]
+#define m4_XZ(m)		m[2]
+#define m4_M30(m)		m[3]
+#define m4_XW(m)		m[3]
+#define m4_M01(m)		m[4]
+#define m4_YX(m)		m[4]
+#define m4_M11(m)		m[5]
+#define m4_YY(m)		m[5]
+#define m4_M21(m)		m[6]
+#define m4_YZ(m)		m[6]
+#define m4_M31(m)		m[7]
+#define m4_YW(m)		m[7]
+#define m4_M02(m)		m[8]
+#define m4_ZX(m)		m[8]
+#define m4_M12(m)		m[9]
+#define m4_ZY(m)		m[9]
+#define m4_M22(m)		m[10]
+#define m4_ZZ(m)		m[10]
+#define m4_SZ(m)		m[10]
+#define m4_M32(m)		m[11]
+#define m4_ZW(m)		m[11]
+#define m4_M03(m)		m[12]
+#define m4_TX(m)		m[12]
+#define m4_M13(m)		m[13]
+#define m4_TY(m)		m[13]
+#define m4_M23(m)		m[14]
+#define m4_TZ(m)		m[14]
+#define m4_M33(m)		m[15]
+#define m4_TW(m)		m[15]
+#define m4_SW(m)		m[15]
+
+/**
+ * Sets the value of this tuple to the vector sum of itself and tuple t1.
+ * @param t1  the other tuple
+ */
+void Point2fAdd(float32_t NewObj[2], float32_t t1[2]) {
+    v_X(NewObj) += v_X(t1);
+    v_Y(NewObj) += v_Y(t1);
+}
+
+/**
+  * Sets the value of this tuple to the vector difference of itself and tuple t1 (this = this - t1).
+  * @param t1 the other tuple
+  */
+void Point2fSub(float32_t u[2], float32_t v[2]) {
+    v_X(u) -= v_X(v);
+    v_Y(u) -= v_Y(v);
+}
+
+/**
+  * Sets this vector to be the vector cross product of vectors v1 and v2.
+  * @param v1 the first vector
+  * @param v2 the second vector
+  */
+void Vector3fCross(float32_t NewObj[3], float32_t v1[3], float32_t v2[3]) {
+    float32_t	X, Y, Z;
+    X = (v_Y(v1) * v_Z(v2)) - (v_Z(v1) * v_Y(v2));
+    Y = (v_Z(v1) * v_X(v2)) - (v_X(v1) * v_Z(v2));
+    Z = (v_X(v1) * v_Y(v2)) - (v_Y(v1) * v_X(v2));
+    v_X(NewObj) = X;
+    v_Y(NewObj) = Y;
+    v_Z(NewObj) = Z;
+}
+
+/**
+  * Computes the dot product of the this vector and vector v1.
+  * @param  v1 the other vector
+  */
+float32_t Vector3fDot(float32_t NewObj[3], float32_t v1[3]) {
+    return  (v_X(NewObj) * v_X(v1)) +
+	    (v_Y(NewObj) * v_Y(v1)) +
+	    (v_Z(NewObj) * v_Z(v1));
+}
+
+/**
+  * Returns the length of this vector.
+  * @return the length of this vector
+  */
+float32_t Vector3fLength(float32_t NewObj[3]) {
+    return sqrt(v_X(NewObj) * v_X(NewObj) +
+		v_Y(NewObj) * v_Y(NewObj) +
+		v_Z(NewObj) * v_Z(NewObj));
+}
+
+void Matrix3Set(float32_t NewObj[9], float32_t m1[9]) {
+    m3_M00(NewObj) = m3_M00(m1); m3_M01(NewObj) = m3_M01(m1); m3_M02(NewObj) = m3_M02(m1);
+    m3_M10(NewObj) = m3_M10(m1); m3_M11(NewObj) = m3_M11(m1); m3_M12(NewObj) = m3_M12(m1);
+    m3_M20(NewObj) = m3_M20(m1); m3_M21(NewObj) = m3_M21(m1); m3_M22(NewObj) = m3_M22(m1);
+}
+
+void Matrix3fSetZero(float32_t NewObj[9]) {
+    m3_M00(NewObj) = m3_M01(NewObj) = m3_M02(NewObj) =
+    m3_M10(NewObj) = m3_M11(NewObj) = m3_M12(NewObj) =
+    m3_M20(NewObj) = m3_M21(NewObj) = m3_M22(NewObj) = 0;
+}
+
+/**
+ * Sets this Matrix3 to identity.
+ */
+void Matrix3fSetIdentity(float32_t NewObj[9]) {
+		     m3_M01(NewObj) = m3_M02(NewObj) =
+    m3_M10(NewObj) =		      m3_M12(NewObj) =
+    m3_M20(NewObj) = m3_M21(NewObj) =		       0;
+    m3_M00(NewObj) =
+		     m3_M11(NewObj) =
+				      m3_M22(NewObj) = 1;
+}
+
+/**
+  * Sets the value of this matrix to the matrix conversion of the
+  * quaternion argument. 
+  * @param q1 the quaternion to be converted 
+  */
+// $hack this can be optimized some(if s == 0)
+void Matrix3fSetRotationFromQuat4f(float32_t NewObj[9], float32_t q1[4]) {
+    float32_t	n, s;
+    float32_t	xs, ys, zs;
+    float32_t	wx, wy, wz;
+    float32_t	xx, xy, xz;
+    float32_t	yy, yz, zz;
+
+    n = (v_X(q1) * v_X(q1)) + (v_Y(q1) * v_Y(q1)) +
+	(v_Z(q1) * v_Z(q1)) + (v_W(q1) * v_W(q1));
+    s = (n > 0.0) ? (2.0 / n) : 0.0;
+
+    xs = v_X(q1) * s;  ys = v_Y(q1) * s;  zs = v_Z(q1) * s;
+    wx = v_W(q1) * xs; wy = v_W(q1) * ys; wz = v_W(q1) * zs;
+    xx = v_X(q1) * xs; xy = v_X(q1) * ys; xz = v_X(q1) * zs;
+    yy = v_Y(q1) * ys; yz = v_Y(q1) * zs; zz = v_Z(q1) * zs;
+
+    m3_XX(NewObj) = 1.0 - (yy + zz); m3_YX(NewObj) =        xy - wz;  m3_ZX(NewObj) =        xz + wy;
+    m3_XY(NewObj) =        xy + wz;  m3_YY(NewObj) = 1.0 - (xx + zz); m3_ZY(NewObj) =        yz - wx;
+    m3_XZ(NewObj) =        xz - wy;  m3_YZ(NewObj) =        yz + wx;  m3_ZZ(NewObj) = 1.0 - (xx + yy);
+}
+
+/**
+ * Sets the value of this matrix to the result of multiplying itself
+ * with matrix m1. 
+ * @param m1 the other matrix 
+ */
+void Matrix3fMulMatrix3f(float32_t NewObj[9], float32_t m1[9]) {
+    float32_t M00, M01, M02, M10, M11, M12, M20, M21, M22;
+
+    M00 = (m3_M00(NewObj) * m3_M00(m1)) + (m3_M01(NewObj) * m3_M10(m1)) + (m3_M02(NewObj) * m3_M20(m1));
+    M01 = (m3_M00(NewObj) * m3_M01(m1)) + (m3_M01(NewObj) * m3_M11(m1)) + (m3_M02(NewObj) * m3_M21(m1));
+    M02 = (m3_M00(NewObj) * m3_M02(m1)) + (m3_M01(NewObj) * m3_M12(m1)) + (m3_M02(NewObj) * m3_M22(m1));
+
+    M10 = (m3_M10(NewObj) * m3_M00(m1)) + (m3_M11(NewObj) * m3_M10(m1)) + (m3_M12(NewObj) * m3_M20(m1));
+    M11 = (m3_M10(NewObj) * m3_M01(m1)) + (m3_M11(NewObj) * m3_M11(m1)) + (m3_M12(NewObj) * m3_M21(m1));
+    M12 = (m3_M10(NewObj) * m3_M02(m1)) + (m3_M11(NewObj) * m3_M12(m1)) + (m3_M12(NewObj) * m3_M22(m1));
+
+    M20 = (m3_M20(NewObj) * m3_M00(m1)) + (m3_M21(NewObj) * m3_M10(m1)) + (m3_M22(NewObj) * m3_M20(m1));
+    M21 = (m3_M20(NewObj) * m3_M01(m1)) + (m3_M21(NewObj) * m3_M11(m1)) + (m3_M22(NewObj) * m3_M21(m1));
+    M22 = (m3_M20(NewObj) * m3_M02(m1)) + (m3_M21(NewObj) * m3_M12(m1)) + (m3_M22(NewObj) * m3_M22(m1));
+
+    m3_M00(NewObj) = M00;	m3_M01(NewObj) = M01;	m3_M02(NewObj) = M02;
+    m3_M10(NewObj) = M10;	m3_M11(NewObj) = M11;	m3_M12(NewObj) = M12;
+    m3_M20(NewObj) = M20;	m3_M21(NewObj) = M21;	m3_M22(NewObj) = M22;
+}
+
+void Matrix4fSetRotationScaleFromMatrix4f(float32_t NewObj[16], float32_t m1[16]) {
+    m4_XX(NewObj) = m4_XX(m1); m4_YX(NewObj) = m4_YX(m1); m4_ZX(NewObj) = m4_ZX(m1);
+    m4_XY(NewObj) = m4_XY(m1); m4_YY(NewObj) = m4_YY(m1); m4_ZY(NewObj) = m4_ZY(m1);
+    m4_XZ(NewObj) = m4_XZ(m1); m4_YZ(NewObj) = m4_YZ(m1); m4_ZZ(NewObj) = m4_ZZ(m1);
+}
+
+/**
+  * Performs SVD on this matrix and gets scale and rotation.
+  * Rotation is placed into rot3, and rot4.
+  * @param rot3 the rotation factor(Matrix3d). if null, ignored
+  * @param rot4 the rotation factor(Matrix4) only upper 3x3 elements are changed. if null, ignored
+  * @return scale factor
+  */
+float32_t Matrix4fSVD(float32_t NewObj[16], float32_t rot3[9], float32_t rot4[16]) {
+    float32_t	s, n;
+
+    // this is a simple svd.
+    // Not complete but fast and reasonable.
+    // See comment in Matrix3d.
+    s = sqrt(((m4_XX(NewObj) * m4_XX(NewObj)) + (m4_XY(NewObj) * m4_XY(NewObj)) + (m4_XZ(NewObj) * m4_XZ(NewObj)) +
+	      (m4_YX(NewObj) * m4_YX(NewObj)) + (m4_YY(NewObj) * m4_YY(NewObj)) + (m4_YZ(NewObj) * m4_YZ(NewObj)) +
+	      (m4_ZX(NewObj) * m4_ZX(NewObj)) + (m4_ZY(NewObj) * m4_ZY(NewObj)) + (m4_ZZ(NewObj) * m4_ZZ(NewObj))) / 3.0);
+
+    if (rot3) {
+	m3_XX(rot3) = m4_XX(NewObj); m3_XY(rot3) = m4_XY(NewObj); m3_XZ(rot3) = m4_XZ(NewObj);
+	m3_YX(rot3) = m4_YX(NewObj); m3_YY(rot3) = m4_YY(NewObj); m3_YZ(rot3) = m4_YZ(NewObj);
+	m3_ZX(rot3) = m4_ZX(NewObj); m3_ZY(rot3) = m4_ZY(NewObj); m3_ZZ(rot3) = m4_ZZ(NewObj);
+
+	n = 1.0 / sqrt((m4_XX(NewObj) * m4_XX(NewObj)) +
+		       (m4_XY(NewObj) * m4_XY(NewObj)) +
+		       (m4_XZ(NewObj) * m4_XZ(NewObj)));
+	m3_XX(rot3) *= n;
+	m3_XY(rot3) *= n;
+	m3_XZ(rot3) *= n;
+
+	n = 1.0 / sqrt((m4_YX(NewObj) * m4_YX(NewObj)) +
+		       (m4_YY(NewObj) * m4_YY(NewObj)) +
+		       (m4_YZ(NewObj) * m4_YZ(NewObj)));
+	m3_YX(rot3) *= n;
+	m3_YY(rot3) *= n;
+	m3_YZ(rot3) *= n;
+
+	n = 1.0 / sqrt((m4_ZX(NewObj) * m4_ZX(NewObj)) +
+		       (m4_ZY(NewObj) * m4_ZY(NewObj)) +
+		       (m4_ZZ(NewObj) * m4_ZZ(NewObj)));
+	m3_ZX(rot3) *= n;
+	m3_ZY(rot3) *= n;
+	m3_ZZ(rot3) *= n;
+    }
+
+    if (rot4) {
+	if (rot4 != NewObj)
+	    Matrix4fSetRotationScaleFromMatrix4f(rot4, NewObj);
+
+	n = 1.0 / sqrt((m4_XX(NewObj) * m4_XX(NewObj)) +
+		       (m4_XY(NewObj) * m4_XY(NewObj)) +
+		       (m4_XZ(NewObj) * m4_XZ(NewObj)));
+	m4_XX(rot4) *= n;
+	m4_XY(rot4) *= n;
+	m4_XZ(rot4) *= n;
+
+	n = 1.0 / sqrt((m4_YX(NewObj) * m4_YX(NewObj)) +
+		       (m4_YY(NewObj) * m4_YY(NewObj)) +
+		       (m4_YZ(NewObj) * m4_YZ(NewObj)));
+	m4_YX(rot4) *= n;
+	m4_YY(rot4) *= n;
+	m4_YZ(rot4) *= n;
+
+	n = 1.0 / sqrt((m4_ZX(NewObj) * m4_ZX(NewObj)) +
+		       (m4_ZY(NewObj) * m4_ZY(NewObj)) +
+		       (m4_ZZ(NewObj) * m4_ZZ(NewObj)));
+	m4_ZX(rot4) *= n;
+	m4_ZY(rot4) *= n;
+	m4_ZZ(rot4) *= n;
+    }
+
+    return s;
+}
+
+void Matrix4fSetRotationScaleFromMatrix3f(float32_t NewObj[16], float32_t m1[9]) {
+    m4_XX(NewObj) = m3_XX(m1); m4_YX(NewObj) = m3_YX(m1); m4_ZX(NewObj) = m3_ZX(m1);
+    m4_XY(NewObj) = m3_XY(m1); m4_YY(NewObj) = m3_YY(m1); m4_ZY(NewObj) = m3_ZY(m1);
+    m4_XZ(NewObj) = m3_XZ(m1); m4_YZ(NewObj) = m3_YZ(m1); m4_ZZ(NewObj) = m3_ZZ(m1);
+}
+
+void Matrix4fMulRotationScale(float32_t NewObj[16], float32_t scale) {
+    m4_XX(NewObj) *= scale; m4_YX(NewObj) *= scale; m4_ZX(NewObj) *= scale;
+    m4_XY(NewObj) *= scale; m4_YY(NewObj) *= scale; m4_ZY(NewObj) *= scale;
+    m4_XZ(NewObj) *= scale; m4_YZ(NewObj) *= scale; m4_ZZ(NewObj) *= scale;
+}
+
+/**
+ * Sets the rotational component (upper 3x3) of this matrix to the matrix
+ * values in the T precision Matrix3d argument; the other elements of
+  * this matrix are unchanged; a singular value decomposition is performed
+  * on this object's upper 3x3 matrix to factor out the scale, then this
+  * object's upper 3x3 matrix components are replaced by the passed rotation
+  * components, and then the scale is reapplied to the rotational
+  * components.
+  * @param m1 T precision 3x3 matrix
+  */
+void Matrix4fSetRotationFromMatrix3f(float32_t NewObj[16], float32_t m1[9]) {
+    float32_t	scale;
+
+    scale = Matrix4fSVD(NewObj, null, null);
+
+    Matrix4fSetRotationScaleFromMatrix3f(NewObj, m1);
+    Matrix4fMulRotationScale(NewObj, scale);
+}
+
+class ArcBall_t {
+    float32_t	StVec[3];	// Saved click vector
+    float32_t	EnVec[3];	// Saved drag vector
+    float32_t	Perp[3];	// avoid gc
+    float32_t	TempPt[2];	// avoid gc
+    float32_t	AdjustWidth;	//Mouse bounds width
+    float32_t	AdjustHeight;	//Mouse bounds height
+
+    ArcBall_t() {
+	StVec = new float32_t[3];
+	EnVec = new float32_t[3];
+	Perp = new float32_t[3];
+	TempPt = new float32_t[2];
+    }
+    void _mapToSphere(float32_t NewPt[2], float32_t NewVec[3]) {
+	float32_t	length;
+
+	// Adjust point coords and scale down to range of [-1 ... 1]
+	v_X(TempPt)  =       (v_X(NewPt) * AdjustWidth)  - 1.0;
+	v_Y(TempPt)  = 1.0 - (v_Y(NewPt) * AdjustHeight);
+
+	//Compute the square of the length of the vector to the point from the center
+	length      = (v_X(TempPt) * v_X(TempPt)) + (v_Y(TempPt) * v_Y(TempPt));
+
+	//If the point is mapped outside of the sphere... (length > radius squared)
+	if (length > 1.0) {
+	    float32_t norm;
+
+	    // Compute a normalizing factor (radius / sqrt(length))
+	    norm    = 1.0 / sqrt(length);
+
+	    // Return the "normalized" vector, a point on the sphere
+	    v_X(NewVec) = v_X(TempPt) * norm;
+	    v_Y(NewVec) = v_Y(TempPt) * norm;
+	    v_Z(NewVec) = 0.0;
+	}
+	// Else it's on the inside
+	else {
+	    // Return a vector to a point mapped inside the sphere sqrt(radius squared - length)
+	    v_X(NewVec) = v_X(TempPt);
+	    v_Y(NewVec) = v_Y(TempPt);
+	    v_Z(NewVec) = sqrt(1.0 - length);
+	}
+    }
+    void setBounds(float32_t NewWidth, float32_t NewHeight) {
+	if (NewWidth <= 1.0 || NewHeight <= 1.0)
+	    throw InvalidArgumentException;
+
+	// Set adjustment factor for width/height
+	AdjustWidth  = 1.0 / ((NewWidth  - 1.0) * 0.5);
+	AdjustHeight = 1.0 / ((NewHeight - 1.0) * 0.5);
+    }
+
+    // Mouse down
+    void click(float32_t NewPt[2]) {
+	_mapToSphere(NewPt, StVec);
+    }
+    // Mouse drag, calculate rotation
+    void drag(float32_t NewPt[2], float32_t NewRot[4]) {
+	// Map the point to the sphere
+	_mapToSphere(NewPt, EnVec);
+
+	// Return the quaternion equivalent to the rotation
+	if (NewRot) {
+	    // Compute the vector perpendicular to the begin and end vectors
+	    Vector3fCross(Perp, StVec, EnVec);
+
+	    // Compute the length of the perpendicular vector
+	    if (Vector3fLength(Perp) > Epsilon) {	// if its non-zero
+		// We're ok, so return the perpendicular vector as the transform after all
+		v_X(NewRot) = v_X(Perp);
+		v_Y(NewRot) = v_Y(Perp);
+		v_Z(NewRot) = v_Z(Perp);
+		// In the quaternion values, w is cosine (theta / 2), where theta is rotation angle
+		v_W(NewRot) = Vector3fDot(StVec, EnVec);
+	    }
+	    else {					 // if its zero
+		// The begin and end vectors coincide, so return an identity transform
+		v_X(NewRot) = v_Y(NewRot) = v_Z(NewRot) = v_W(NewRot) = 0;
+	    }
+	}
+    }
+};
+
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+glu.quadric_t		quadratic;	// Used For Our Quadric
+#define PI2		2.0 * 3.1415926535	// PI Squared
+float32_t Transform[16] = {
+    1.0,  0.0,  0.0,  0.0,		// Final Transform
+    0.0,  1.0,  0.0,  0.0,
+    0.0,  0.0,  1.0,  0.0,
+    0.0,  0.0,  0.0,  1.0
+};
+float32_t LastRot[9] = {
+    1.0,  0.0,  0.0,			// Last Rotation
+    0.0,  1.0,  0.0,
+    0.0,  0.0,  1.0
+};
+float32_t ThisRot[9] = {
+    1.0,  0.0,  0.0,			// This Rotation
+    0.0,  1.0,  0.0,
+    0.0,  0.0,  1.0
+};
+
+ArcBall_t	ArcBall;		// ArcBall Instance
+float32_t	MousePt[2] = {};	// Current Mouse Point
+float32_t	ThisQuat[4] = {};	// temp
+uint8_t		isClicked  = false;	// Clicking The Mouse?
+uint8_t		isRClicked = false;	// Clicking The Right Mouse Button?
+uint8_t		isDragging = false;	// Dragging The Mouse?
+
+// Perform Motion Updates Here
+void Update() {
+    if (isRClicked) {		// If Right Mouse Clicked, Reset All Rotations
+	// Reset Rotation
+	Matrix3fSetIdentity(LastRot);
+	Matrix3fSetIdentity(ThisRot);
+	Matrix4fSetRotationFromMatrix3f(Transform, ThisRot);
+    }
+
+    // Not Dragging
+    if (!isDragging) {
+	// First Click
+	if (isClicked) {
+	    isDragging = true;			// Prepare For Dragging
+	    // Set Last Static Rotation To Last Dynamic One
+	    Matrix3Set(LastRot, ThisRot);
+	    // Update Start Vector And Prepare For Dragging
+	    ArcBall.click(MousePt);
+        }
+    }
+    else {
+	if (isClicked) {		// Still Clicked, So Still Dragging
+	    // Update End Vector And Get Rotation As Quaternion
+	    ArcBall.drag(MousePt, ThisQuat);
+	    // Convert Quaternion Into Matrix3fT
+            Matrix3fSetRotationFromQuat4f(ThisRot, ThisQuat);
+	    // Accumulate Last Rotation Into This One
+            Matrix3fMulMatrix3f(ThisRot, LastRot);
+	    // Set Our Final Transform's Rotation From This One
+            Matrix4fSetRotationFromMatrix3f(Transform, ThisRot);
+	}
+	else					// No Longer Dragging
+	    isDragging = false;
+    }
+}
+
+void initGL() {
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);		// Black Background
+    gl.ClearDepth(1.0);				// Depth Buffer Setup
+    // The Type Of Depth Testing (Less Or Equal)
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Enable(gl.DEPTH_TEST);			// Enable Depth Testing
+    gl.ShadeModel(gl.FLAT);			// Select Flat Shading (Nice Definition Of Objects)
+    // Set Perspective Calculations To Most Accurate
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    // Create A Pointer To The Quadric Object
+    quadratic = glu.NewQuadric();
+    glu.QuadricNormals(quadratic, glu.SMOOTH);	// Create Smooth Normals
+    glu.QuadricTexture(quadratic, true);	// Create Texture Coords
+
+    gl.Enable(gl.LIGHT0);			// Enable Default Light
+    gl.Enable(gl.LIGHTING);			// Enable Lighting
+
+    gl.Enable(gl.COLOR_MATERIAL);		// Enable Color Material
+}
+
+void ReshapeGL() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+    ArcBall.setBounds(win.w, win.h);
+}
+
+// Draw A Torus With Normals
+void Torus(float32_t MinorRadius, float32_t MajorRadius) {
+    int32_t i, j;
+    // Start A Triangle Strip
+    gl.Begin(gl.TRIANGLE_STRIP);
+    for (i = 0; i < 20; ++i) {			// Stacks
+	for (j =- 1; j < 20; ++j) {		// Slices
+	    float32_t	wrapFrac = (j % 20) / 20.0;
+	    float32_t	phi = PI2 * wrapFrac;
+	    float32_t	sinphi = sin(phi);
+	    float32_t	cosphi = cos(phi);
+
+	    float32_t	r = MajorRadius + MinorRadius*cosphi;
+
+	    gl.Normal3(sin(PI2 * (i % 20 + wrapFrac) / 20.0) * cosphi,
+		       sinphi,
+		       cos(PI2 * (i % 20 + wrapFrac) / 20.0) * cosphi);
+	    gl.Vertex3(sin(PI2 * (i % 20 + wrapFrac) / 20.0) * r,
+		       MinorRadius * sinphi,
+		       cos(PI2 * (i % 20 + wrapFrac) / 20.0) * r);
+	    gl.Normal3(sin(PI2 * ((i + 1) % 20 + wrapFrac) / 20.0) * cosphi,
+		       sinphi,
+		       cos(PI2 * ((i + 1) % 20 + wrapFrac) / 20.0) * cosphi);
+	    gl.Vertex3(sin(PI2 * ((i + 1) % 20 + wrapFrac) / 20.0) * r,
+		       MinorRadius * sinphi,
+		       cos(PI2 * ((i + 1) % 20 + wrapFrac) / 20.0) * r);
+	}
+    }
+    // Done Torus
+    gl.End();
+}
+
+void Draw() {
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();		// Reset The Current Modelview Matrix
+    // Move Left 1.5 Units And Into The Screen 6.0
+    gl.Translate(-1.5, 0.0, -6.0);
+
+    gl.PushMatrix();			// Prepare Dynamic Transform
+    gl.MultMatrix(Transform);		// Apply Dynamic Transform
+    gl.Color3(0.75, 0.75, 1.0);
+    Torus(0.30, 1.00);
+    gl.PopMatrix();			// Unapply Dynamic Transform
+
+    gl.LoadIdentity();			// Reset The Current Modelview Matrix
+    // Move Right 1.5 Units And Into The Screen 7.0
+    gl.Translate(1.5, 0.0, -6.0);
+
+    gl.PushMatrix();			// Prepare Dynamic Transform
+    gl.MultMatrix(Transform);		// Apply Dynamic Transform
+    gl.Color3(1.0, 0.75, 0.75);
+    glu.Sphere(quadratic, 1.3, 20, 20);
+    gl.PopMatrix();			// Unapply Dynamic Transform
+
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson48",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    ArcBall = new ArcBall_t;
+
+print("\
+Esc: 			Exit\n\
+Left mouse button down	Start rotation\n\
+Mouse move		Rotate if left mouse button down\n\
+Right mouse button down	Reset scene\n");
+    initGL();
+    ReshapeGL();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReshapeGL();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventMouseButtonDown:
+		    if (ev.button == sdl.ButtonLeft)
+			isClicked = true;
+		    else if (ev.button == sdl.ButtonRight)
+			isRClicked = true;
+		    break;
+		case sdl.EventMouseButtonUp:
+		    if (ev.button == sdl.ButtonLeft)
+			isClicked = false;
+		    else if (ev.button == sdl.ButtonRight)
+			isRClicked = false;
+		    break;
+		case sdl.EventMouseMotion:
+		    v_X(MousePt) = ev.x;
+		    v_Y(MousePt) = ev.y;
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	Update();
+	Draw();
+    }
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

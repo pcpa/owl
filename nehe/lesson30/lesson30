@@ -1,0 +1,1029 @@
+#define EPSILON	1.0e-8
+#define ZERO	EPSILON
+#define M_PI	3.1415926535
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+sdl.chunk_t chu;
+int32_t cha;
+
+enum {
+    DEFAULT, UNIT
+};
+
+class TVector {
+    float64_t x, y, z;
+    uint32_t status;
+    float64_t mag() {
+	if (status == UNIT)
+	    return 1.0;
+	return sqrt(x * x + y * y + z * z);
+    }
+    float64_t dot(TVector v) {
+	return x * v.x + y * v.y + z * v.z;
+    }
+    float64_t dist(TVector v) {
+	return copy().sub(v).mag();
+    }
+    TVector unit() {
+	if (status == DEFAULT) {
+	    float64_t rep = mag();
+	    if (rep < EPSILON)
+		x = y = z = 0;
+	    else {
+		rep = 1.0 / rep;
+		x *= rep;
+		y *= rep;
+		z *= rep;
+	    }
+	    status = UNIT;
+	}
+	return this;
+    }
+    TVector invert() {
+	x = -x;
+	y = -y;
+	z = -z;
+	/* status not modified */
+	return this;
+    }
+    TVector add(TVector v) {
+	x += v.x;
+	y += v.y;
+	z += v.z;
+	status = DEFAULT;
+	return this;
+    }
+    TVector sub(TVector v) {
+	x -= v.x;
+	y -= v.y;
+	z -= v.z;
+	status = DEFAULT;
+	return this;
+    }
+    TVector mul(float64_t s) {
+	x *= s;
+	y *= s;
+	z *= s;
+	status = DEFAULT;
+	return this;
+    }
+    TVector cross(TVector v) {
+	float64_t _x = y * v.z - z * v.y;
+	float64_t _y = z * v.x - x * v.z;
+	float64_t _z = x * v.y - y * v.x;
+	x = _x;
+	y = _y;
+	z = _z;
+	status = DEFAULT;
+	return this;
+    }
+    TVector move(TVector v) {
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	status = v.status;
+	return this;
+    }
+    TVector copy() {
+	TVector r = { x, y, z, DEFAULT };
+	return r;
+    }
+};
+namespace vec {
+    float64_t mag(TVector a) {
+	return a.mag();
+    }
+    float64_t dot(TVector a, TVector b) {
+	return a.dot(b);
+    }
+    float64_t dist(TVector a, TVector b) {
+	return a.dist(b);
+    }
+    TVector unit(TVector a) {
+	return a.copy().unit();
+    }
+    TVector invert(TVector a) {
+	return a.copy().invert();
+    }
+    TVector add(TVector a, TVector b) {
+	return a.copy().add(b);
+    }
+    TVector sub(TVector a, TVector b) {
+	return a.copy().sub(b);
+    }
+    TVector mul(TVector a, float64_t s) {
+	return a.copy().mul(s);
+    }
+    TVector cross(TVector a, TVector b) {
+	return a.copy().cross(b);
+    }
+    TVector move(TVector a, TVector b) {
+	return a.move(b);
+    }
+    TVector copy(TVector a) {
+	return a.copy();
+    }
+}
+
+class TRay {
+    TVector P;
+    TVector V;
+    TRay() {
+	if (P == null)
+	    P = new TVector;
+	if (V == null)
+	    V = new TVector;
+	else {
+	    if (V.status == DEFAULT)
+		V.sub(P).unit();
+	}
+    }
+    float64_t dist(TRay r) {
+	TVector p1 = {}, p2 = {};
+	if (adjacentPoints(r, p1, p2))
+	    return p1.dist(p2);
+	return 0.0;
+    }
+    float64_t vdist(TVector p) {
+	float64_t lambda = vec.dot(V, vec.sub(p, P));
+	TVector p2 = vec.add(P, vec.mul(V, lambda));
+	return p.dist(p2);
+    }
+    void adjacentPoints(TRay r, TVector p1, TVector p2) {
+	float64_t mu;
+	float64_t temp = vec.dot(V, r.V);
+	float64_t temp2 = 1.0 - temp * temp;
+	// Check for parallel rays
+	if (abs(temp2) < EPSILON) {
+	    mu = vec.dot(V, vec.sub(P, r.P)) / temp;
+	    p1.move(P);
+	    p2.move(vec.add(P, vec.mul(r.V, mu)));
+	}
+	else {
+	    float64_t a = vec.dot(V, vec.sub(r.P, P));
+	    float64_t b = vec.dot(r.V, vec.sub(P, r.P));
+	    mu = (b + temp * a) / temp2;
+	    float64_t lambda = (a + temp * b) / temp2;
+	    p1.move(vec.add(P, vec.mul(V, lambda)));
+	    p2.move(vec.add(r.P, vec.mul(r.V, mu)));
+	}
+    }
+};
+
+// sets specular highlight of balls
+float32_t spec[] = { 1.0, 1.0, 1.0, 1.0 };
+// position of ligth source
+float32_t posl[] = { 0, 400, 0, 1 };
+// global ambient
+float32_t amb[] =  { 0.2, 0.2, 0.2, 1.0 };
+// ambient of lightsource
+float32_t amb2[] = { 0.3, 0.3, 0.3, 1.0 };
+
+// initial direction of camera
+TVector dir = { 0, 0, -10 };
+// initial position of camera
+TVector pos = { 0, -50, 1000 };
+// holds rotation around the Y axis
+float64_t camera_rotation = 0;
+
+// initial velocity of balls
+TVector veloc = { 0.5, -0.1, 0.5 };
+// acceleration ie. gravity of balls
+TVector accel = { 0, -0.05, 0 };
+
+// holds velocity of balls
+TVector ArrayVel[10] = {};
+// position of balls
+TVector ArrayPos[10] = {};
+// old position of balls
+TVector OldPos[10] = {};
+// sets the number of balls
+int32_t NrOfBalls;
+// timestep of simulation
+float64_t TimeStep = 0.6;
+// hook camera on ball, and sound on/off
+int32_t hook_toball1 = 0;
+
+float64_t BallTime, rt;
+int32_t BallColNr1, BallColNr2;
+
+class Plane {
+    TVector	Position;
+    TVector	Normal;
+};
+
+class Cylinder {                          
+    TVector	Position;
+    TVector	Axis;
+    float64_t	Radius;
+};
+
+class Explosion {
+    TVector	Position;
+    float64_t	Alpha;
+    float64_t	Scale;
+};
+
+//the 5 planes of the room
+Plane pl1, pl2, pl3, pl4, pl5;
+
+//the 2 cylinders of the room
+Cylinder cyl1, cyl2, cyl3;
+//Quadratic object to render the cylinders
+glu.quadric_t cylinder_obj;
+//stores texture objects and display list
+uint32_t texture[4] = {}, dlist;
+//holds max 20 explosions at once
+Explosion ExplosionArray[20] = {};
+
+void ReSizeGLScene() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(50.0, win.w / win.h, 10.0, 1700.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+}
+
+void InitGL() {
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+    gl.Enable(gl.DEPTH_TEST);		// Enables Depth Testing
+    gl.DepthFunc(gl.LEQUAL);		// The Type Of Depth Testing To Do
+    // Really Nice Perspective Calculations
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    gl.ClearColor(0, 0, 0, 0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+
+    gl.ShadeModel(gl.SMOOTH);
+    gl.Enable(gl.CULL_FACE);
+    gl.Enable(gl.DEPTH_TEST);
+
+    gl.Materialv(gl.FRONT, gl.SPECULAR, spec);
+    gl.Material(gl.FRONT, gl.SHININESS, 100.0);
+
+    gl.Enable(gl.LIGHTING);
+    gl.Lightv(gl.LIGHT0, gl.POSITION, posl);
+    gl.Lightv(gl.LIGHT0, gl.AMBIENT, amb2);
+    gl.Enable(gl.LIGHT0);
+
+    gl.LightModelv(gl.LIGHT_MODEL_AMBIENT, amb);
+    gl.Enable(gl.COLOR_MATERIAL);
+    gl.ColorMaterial(gl.FRONT, gl.AMBIENT_AND_DIFFUSE);
+
+    gl.Enable(gl.BLEND);
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    gl.Enable(gl.TEXTURE_2D);
+    LoadGLTextures();
+
+    // Construct billboarded explosion primitive as display list
+    // 4 quads at right angles to each other
+    gl.NewList(dlist = gl.GenLists(1), gl.COMPILE);
+    gl.Begin(gl.QUADS);
+    {
+	gl.Rotate(-45, 0, 1, 0);
+	gl.Normal3( 0, 0, 1);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(-50, -40,0);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3( 50, -40,0);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3( 50,  40,0);
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(-50,  40,0);
+	gl.Normal3( 0, 0, -1);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(-50, 40,0);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3( 50, 40,0);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3( 50,-40,0);
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(-50,-40,0);
+	gl.Normal3( 1, 0,  0);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(0,-40, 50);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3(0,-40,-50);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3(0, 40,-50);
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(0, 40, 50);
+	gl.Normal3(-1, 0,  0);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(0, 40, 50);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3(0, 40,-50);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3(0,-40,-50);
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(0,-40, 50);
+    }
+    gl.End();
+    gl.EndList();
+
+    ReSizeGLScene();
+    gl.Flush();
+}
+
+void DrawGLScene() {
+    int32_t i;
+
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+
+    // set camera in hookmode
+    if (hook_toball1)
+	glu.LookAt(ArrayPos[0].x + 250,
+		   ArrayPos[0].y + 250,
+		   ArrayPos[0].z,
+		   ArrayPos[0].x + ArrayVel[0].x,
+		   ArrayPos[0].y + ArrayVel[0].y,
+		   ArrayPos[0].z + ArrayVel[0].z, 0, 1, 0);  
+    else
+	glu.LookAt(pos.x, pos.y, pos.z,
+		   pos.x + dir.x, pos.y + dir.y, pos.z + dir.z, 0, 1.0, 0.0);
+
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.Rotate(camera_rotation, 0, 1, 0);
+
+    // render balls
+    for (i = 0; i < NrOfBalls; ++i) {
+	switch (i) {
+	    case 1:
+		gl.Color3(1.0, 1.0, 1.0);
+		break;
+	    case 2:
+		gl.Color3(1.0, 1.0, 0.0);
+		break;
+	    case 3:
+		gl.Color3(0.0, 1.0, 1.0);
+		break;
+	    case 4:
+		gl.Color3(0.0, 1.0, 0.0);
+		break;
+	    case 5:
+		gl.Color3(0.0, 0.0, 1.0);
+		break;
+	    case 6:
+		gl.Color3(0.65, 0.2, 0.3);
+		break;
+	    case 7:
+		gl.Color3(1.0, 0.0, 1.0);
+		break;
+	    case 8:
+		gl.Color3(0.0, 0.7, 0.4);
+		break;
+	    default:
+		gl.Color3(1.0, 0, 0);
+	}
+	gl.PushMatrix();
+	gl.Translate(ArrayPos[i].x, ArrayPos[i].y, ArrayPos[i].z);
+	glu.Sphere(cylinder_obj, 20, 20, 20);
+	gl.PopMatrix();
+    }
+
+    gl.Enable(gl.TEXTURE_2D);
+
+    // render walls(planes) with texture
+    gl.BindTexture(gl.TEXTURE_2D, texture[3]);
+    gl.Color3(1, 1, 1);
+    gl.Begin(gl.QUADS);
+    {
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3( 320,  320,  320);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3( 320, -320,  320);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3(-320, -320,  320);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(-320,  320,  320);
+
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(-320,  320, -320);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3(-320, -320, -320);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3( 320, -320, -320);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3( 320,  320, -320);
+
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3( 320,  320, -320);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3( 320, -320, -320);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3( 320, -320,  320);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3( 320,  320,  320);
+
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(-320,  320,  320);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3(-320, -320,  320);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3(-320, -320, -320);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(-320,  320, -320);
+    }
+    gl.End();
+
+    // render floor (plane) with colours
+    gl.BindTexture(gl.TEXTURE_2D, texture[2]); 
+    gl.Begin(gl.QUADS);
+    {
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3(-320, -320,  320);
+	gl.TexCoord2(1.0, 1.0); gl.Vertex3( 320, -320,  320);
+	gl.TexCoord2(0.0, 1.0); gl.Vertex3( 320, -320, -320);
+	gl.TexCoord2(0.0, 0.0); gl.Vertex3(-320, -320, -320);
+    }
+    gl.End();
+
+    // render columns(cylinders)
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);	/* choose the texture to use.*/
+    gl.Color3(0.5, 0.5, 0.5);
+    gl.PushMatrix();
+    gl.Rotate(90, 1, 0, 0);
+    gl.Translate(0, 0, -500);
+    glu.Cylinder(cylinder_obj, 60, 60, 1000, 20, 2);
+    gl.PopMatrix();
+
+    gl.PushMatrix();
+    gl.Translate(200, -300, -500);
+    glu.Cylinder(cylinder_obj, 60, 60, 1000, 20, 2);
+    gl.PopMatrix();
+
+    gl.PushMatrix();
+    gl.Translate(-200,0,0);
+    gl.Rotate(135, 1,0,0);
+    gl.Translate(0,0,-500);
+    glu.Cylinder(cylinder_obj, 30, 30, 1000, 20, 2);
+    gl.PopMatrix();
+
+    // render/blend explosions
+    gl.Enable(gl.BLEND);
+    gl.DepthMask(false);
+    gl.BindTexture(gl.TEXTURE_2D, texture[1]);   
+    for (i = 0; i < 20; ++i) {
+	if (ExplosionArray[i].Alpha >= 0) {
+	    gl.PushMatrix();
+	    ExplosionArray[i].Alpha -= 0.01;
+	    ExplosionArray[i].Scale += 0.03;
+	    gl.Color4(1, 1, 0, ExplosionArray[i].Alpha);
+	    gl.Scale(ExplosionArray[i].Scale,
+		     ExplosionArray[i].Scale,
+		     ExplosionArray[i].Scale);
+	    gl.Translate(ExplosionArray[i].Position.x /
+			 ExplosionArray[i].Scale,
+			 ExplosionArray[i].Position.y /
+			 ExplosionArray[i].Scale,
+			 ExplosionArray[i].Position.z /
+			 ExplosionArray[i].Scale);
+	    gl.CallList(dlist);
+	    gl.PopMatrix();
+	}
+    }
+    gl.DepthMask(true);
+    gl.Disable(gl.BLEND);
+    gl.Disable(gl.TEXTURE_2D);
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+int32_t FindBallCol(float64_t Time2) {
+    TVector RelativeV;
+    TRay rays;
+    float64_t MyTime, Add = Time2 / 150.0, Timedummy = 10000, Timedummy2 = -1;
+    TVector posi;
+    int32_t i, j;
+
+    //Test all balls against eachother in 150 small steps
+    for (i = 0; i < NrOfBalls - 1; ++i) {
+	for (j = i + 1; j < NrOfBalls; ++j) {
+	    RelativeV = vec.sub(ArrayVel[i], ArrayVel[j]);
+	    rays = { OldPos[i].copy(), vec.unit(RelativeV) };
+	    MyTime = 0.0;
+
+	    if (rays.vdist(OldPos[j]) > 40)
+		continue; 
+
+	    while (MyTime < Time2) {
+		MyTime += Add;
+		posi = vec.add(OldPos[i], vec.mul(RelativeV, MyTime));
+		if (posi.dist(OldPos[j]) <= 40) {
+		    if (Timedummy > MyTime - Add)
+			Timedummy = MyTime - Add;
+		    BallColNr1 = i;
+		    BallColNr2 = j;
+		    break;
+		}
+	    }
+	}
+    }
+
+    if (Timedummy != 10000) {
+	BallTime = Timedummy;
+	return 1;
+    }
+
+    return 0;
+}
+
+void Idle() {
+    float64_t rt2, rt4, lamda;
+    TVector norm, uveloc, tmp;
+    TVector normal, point, time;
+    float64_t RestTime;
+    int32_t BallNr;
+    TVector Nc;
+    int32_t i, j;
+    if (!hook_toball1) {
+	camera_rotation += 0.1;
+	if (camera_rotation > 360)
+	    camera_rotation = 0;
+    }
+
+    RestTime = TimeStep;
+
+    // Compute velocity for next timestep using Euler equations
+    tmp = vec.mul(accel, RestTime);
+    for (j = 0; j < NrOfBalls; ++j)
+	ArrayVel[j].add(tmp);
+
+    norm = new TVector;
+    Nc = new TVector;
+    normal = new TVector;
+    point = new TVector;
+
+    // While timestep not over
+    while (RestTime > ZERO) {
+	lamda = 10000;	// initialize to very large value
+
+	// For all the balls find closest intersection between
+	// balls and planes/cylinders
+	for (i = 0; i < NrOfBalls; ++i) {
+	    // compute new position and distance
+	    OldPos[i] = ArrayPos[i].copy();
+	    uveloc = vec.unit(ArrayVel[i]);
+	    ArrayPos[i].add(vec.mul(ArrayVel[i], RestTime));
+	    rt2 = OldPos[i].dist(ArrayPos[i]);
+
+	    // Test if collision occured between ball and all 5 planes
+	    if (TestIntersionPlane(pl1, OldPos[i], uveloc, norm)) {
+		// Find intersection time
+		rt4 = rt * RestTime / rt2;
+		// if smaller than the one already stored replace and in timestep
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(OldPos[i]).add(vec.mul(uveloc, rt));
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionPlane(pl2, OldPos[i], uveloc, norm)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(OldPos[i]).add(vec.mul(uveloc, rt));
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionPlane(pl3, OldPos[i], uveloc, norm)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(OldPos[i]).add(vec.mul(uveloc, rt));
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionPlane(pl4, OldPos[i], uveloc, norm)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(OldPos[i]).add(vec.mul(uveloc, rt));
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionPlane(pl5, OldPos[i], uveloc, norm)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(OldPos[i]).add(vec.mul(uveloc, rt));
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    // Now test intersection with the 3 cylinders
+	    if (TestIntersionCylinder(cyl1, OldPos[i], uveloc, norm, Nc)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(Nc);
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionCylinder(cyl2, OldPos[i], uveloc, norm, Nc)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(Nc);
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	    if (TestIntersionCylinder(cyl3, OldPos[i], uveloc, norm, Nc)) {
+		rt4 = rt * RestTime / rt2;
+		if (rt4 <= lamda) {
+		    if (rt4 <= RestTime + ZERO)
+			if (!(rt <= ZERO && uveloc.dot(norm) > ZERO)) {
+			    normal.move(norm);
+			    point.move(Nc);
+			    lamda = rt4;
+			    BallNr = i;
+			}
+		}
+	    }
+	}
+
+	// After all balls were teste with planes/cylinders test for collision
+	// between them and replace if collision time smaller
+	if (FindBallCol(RestTime)) {
+	    cha = sdl.play_channel(-1, chu, 0);
+
+	    if (lamda == 10000 || lamda > BallTime) {
+		RestTime -= BallTime;
+
+		TVector pb1, pb2, xaxis, U1x, U1y, U2x, U2y, V1x, V1y, V2x, V2y;
+		float64_t a, b;
+
+		pb1 = vec.add(OldPos[BallColNr1],
+			      vec.mul(ArrayVel[BallColNr1], BallTime));
+		pb2 = vec.add(OldPos[BallColNr2],
+			      vec.mul(ArrayVel[BallColNr2], BallTime));
+		xaxis = vec.sub(pb2, pb1).unit();
+
+		a = xaxis.dot(ArrayVel[BallColNr1]);
+		U1x = vec.mul(xaxis, a);
+		U1y = vec.sub(ArrayVel[BallColNr1], U1x);
+
+		xaxis = vec.sub(pb1, pb2).unit();
+		b = xaxis.dot(ArrayVel[BallColNr2]);
+		U2x = vec.mul(xaxis, b);
+		U2y = vec.sub(ArrayVel[BallColNr2], U2x);
+
+		V1x = vec.mul(vec.add(U1x,
+				      vec.sub(U2x,
+					      vec.sub(U1x, U2x))),
+			      0.5);
+		V2x = vec.mul(vec.add(U1x,
+				      vec.sub(U2x,
+					      vec.sub(U2x, U1x))),
+			      0.5);
+		V1y = U1y;
+		V2y = U2y;
+
+		for (j = 0; j < NrOfBalls; ++j)
+		    ArrayPos[j].move(vec.add(OldPos[j],
+					     vec.mul(ArrayVel[j], BallTime)));
+
+		ArrayVel[BallColNr1].move(V1x.add(V1y));
+		ArrayVel[BallColNr2].move(V2x.add(V2y));
+
+		// Update explosion array
+		for (j = 0; j < 20; ++j) {
+		    if (ExplosionArray[j].Alpha <= 0) {
+			ExplosionArray[j].Alpha = 1;
+			ExplosionArray[j].Position.move(ArrayPos[BallColNr1]);
+			ExplosionArray[j].Scale = 1;
+			break;
+		    }
+		}
+		continue;
+	    }
+	}
+
+	// End of tests 
+	// If test occured move simulation for the correct timestep
+	// and compute response for the colliding ball
+	if (lamda != 10000) {
+	    RestTime -= lamda;
+	    for (j = 0; j < NrOfBalls; ++j)
+		ArrayPos[j].move(vec.add(OldPos[j], vec.mul(ArrayVel[j], lamda)));
+
+	    rt2 = ArrayVel[BallNr].mag();
+	    ArrayVel[BallNr].unit();
+	    ArrayVel[BallNr] = vec.unit(vec.add(vec.mul(normal,
+							2 * normal.dot(vec.invert(ArrayVel[BallNr]))),
+						ArrayVel[BallNr]));
+	    ArrayVel[BallNr].mul(rt2);
+
+	    // Update explosion array
+	    for (j = 0; j < 20; ++j) {
+		if (ExplosionArray[j].Alpha <= 0) {
+		    ExplosionArray[j].Alpha = 1;
+		    ExplosionArray[j].Position.move(point);
+		    ExplosionArray[j].Scale = 1;
+		    break;
+		}
+	    }
+	}
+	else
+	    RestTime = 0;
+    }
+}
+
+void InitVars() {
+    int32_t i;
+
+    //create planes
+    pl1 = new Plane;
+    pl1.Position = {    0, -300,    0 };
+    pl1.Normal =   {    0,    1,    0 };
+    pl2 = new Plane;
+    pl2.Position = {  300,    0,    0 };
+    pl2.Normal =   {   -1,    0,    0 };
+    pl3 = new Plane;
+    pl3.Position = { -300,    0,    0 };
+    pl3.Normal =   {    1,    0,    0 };
+    pl4 = new Plane;
+    pl4.Position = {    0,    0,  300 };
+    pl4.Normal =   {    0,    0,   -1 };
+    pl5 = new Plane;
+    pl5.Position = {    0,    0, -300 };
+    pl5.Normal =   {    0,    0,    1 };
+
+    //create cylinders
+    cyl1 = new Cylinder;
+    cyl1.Position = {    0,    0, 0 };
+    cyl1.Axis =     {    0,    1, 0 };
+    cyl1.Radius = 60 + 20;
+    cyl2 = new Cylinder;
+    cyl2.Position = {  200, -300, 0 };
+    cyl2.Axis =     {    0,    0, 1 };
+    cyl2.Radius = 60 + 20;
+    cyl3 = new Cylinder;
+    cyl3.Position = { -200,    0, 0 };
+    cyl3.Axis =     {    0,    1, 1 };
+    cyl3.Axis.unit();
+    cyl3.Radius = 30 + 20;
+    //create quadratic object to render cylinders
+    cylinder_obj= glu.NewQuadric();
+    glu.QuadricTexture(cylinder_obj, true);
+
+    // Set initial positions and velocities of balls
+    // also initialize array which holds explosions
+    NrOfBalls = 10;
+    ArrayVel[0] = veloc.copy();
+    ArrayPos[0] = {  199, 180,   10 };
+    ExplosionArray[0] = new Explosion;
+    ExplosionArray[0].Position = new TVector;
+    ExplosionArray[0].Alpha = 0;
+    ExplosionArray[0].Scale = 1;
+    ArrayVel[1] = veloc.copy();
+    ArrayPos[1] = {    0, 150,  100 };
+    ExplosionArray[1] = new Explosion;
+    ExplosionArray[1].Position = new TVector;
+    ExplosionArray[1].Alpha = 0;
+    ExplosionArray[1].Scale = 1;
+    ArrayVel[2] = veloc.copy();
+    ArrayPos[2] = { -100, 180, -100 };
+    ExplosionArray[2] = new Explosion;
+    ExplosionArray[2].Position = new TVector;
+    ExplosionArray[2].Alpha = 0;
+    ExplosionArray[2].Scale = 1;
+    for (i = 3; i < 10; ++i) {
+	ArrayVel[i] = veloc.copy();
+	ArrayPos[i] = { -500 + i * 75, 300, -500 + i * 50 };
+	ExplosionArray[i] = new Explosion;
+	ExplosionArray[i].Position = new TVector;
+	ExplosionArray[i].Alpha = 0;
+	ExplosionArray[i].Scale = 1;
+    }
+    for (i = 10; i < 20; ++i) {
+	ExplosionArray[i] = new Explosion;
+	ExplosionArray[i].Position = new TVector;
+	ExplosionArray[i].Alpha = 0;
+	ExplosionArray[i].Scale = 1;
+    }
+}
+
+int32_t TestIntersionPlane(Plane plane, TVector position,
+			   TVector direction, TVector normal) {
+
+    float64_t DotProduct = direction.dot(plane.Normal);
+    float64_t l2;
+
+    // determine if ray paralle to plane
+    if (DotProduct < ZERO && DotProduct > -ZERO)
+	return 0;
+
+    l2 = plane.Normal.dot(vec.sub(plane.Position, position)) / DotProduct;
+
+    if (l2 < -ZERO)
+	return 0;
+
+    normal.move(plane.Normal);
+    rt = l2;
+    return 1;
+}
+
+int32_t TestIntersionCylinder(Cylinder cylinder, TVector position,
+			      TVector direction, TVector normal,
+			      TVector newposition) {
+    TVector RC;
+    float64_t d;
+    float64_t t, s;
+    TVector n, D, O;
+    float64_t ln;
+    float64_t in, out;
+
+    RC = vec.sub(position, cylinder.Position);
+    n = vec.cross(direction, cylinder.Axis);
+
+    ln = n.mag();
+
+    if (ln < ZERO && ln > -ZERO)
+	return 0;
+
+    n.unit();
+
+    d = abs(RC.dot(n));
+
+    if (d <= cylinder.Radius) {
+	O = vec.cross(RC, cylinder.Axis);
+	t = -O.dot(n) / ln;
+
+	O = vec.cross(n, cylinder.Axis);
+	O.unit();
+	s = abs(sqrt(cylinder.Radius * cylinder.Radius - d * d) /
+		direction.dot(O));
+
+	in = t - s;
+	out = t + s;
+
+	if (in < -ZERO) {
+	    if (out < -ZERO)
+		return 0;
+	    else
+		rt = out;
+	}
+	else if (out < -ZERO)
+	    rt = in;
+	else if (in < out)
+	    rt = in;
+	else
+	    rt = out;
+
+	newposition.move(vec.add(position, vec.mul(direction, rt)));
+	TVector HB = vec.sub(newposition, cylinder.Position);
+	normal.move(vec.sub(HB, vec.mul(cylinder.Axis, HB.dot(cylinder.Axis))));
+	normal.unit();
+
+	return 1;
+    }
+
+    return 0;
+}
+
+void LoadGLTextures() {
+    int32_t i;
+    sdl.surface_t srf;
+    string_t paths[] = {
+	"nehe/lesson30/marble.bmp",
+	"nehe/lesson30/spark.bmp",
+	"nehe/lesson30/boden.bmp",
+	"nehe/lesson30/wand.bmp"
+    };
+
+    gl.GenTextures(texture);
+
+    for (i = 0; i < sizeof(paths); ++i) {
+    /* Create Texture	*****************************************/
+	if (!(srf = sdl.load_surface(paths[i])))
+	    exit(1);
+
+	/* 2d texture (x and y size)*/
+	gl.BindTexture(gl.TEXTURE_2D, texture[i]);
+
+	/* scale linearly when image bigger than texture*/
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	/* scale linearly when image smalled than texture*/
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+	/* 2d texture, level of detail 0 (normal), 3 components (red, green, blue), x size from image, y size from image, */
+	/* border 0 (normal), rgb color data, unsigned byte data, and finally the data itself.*/
+	sdl.gl.TexImage2D(srf);
+	sdl.free_surface(srf);
+    }
+};
+
+void MainLoop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReSizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Up:
+			    pos.z -= 10;
+			    break;
+			case sdl.Key_Down:
+			    pos.z += 10;
+			    break;
+			case sdl.Key_Left:
+			    camera_rotation += 10;
+			    break;
+			case sdl.Key_Right:
+			    camera_rotation -= 10;
+			    break;
+			case sdl.Key_PageUp:
+			    TimeStep += 0.1;
+			    break;
+			case sdl.Key_PageDown:
+			    TimeStep -= 0.1;
+			    break;
+			case sdl.Key_F3:
+			    hook_toball1 ^= 1;
+			    camera_rotation = 0;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	Idle();
+	DrawGLScene();
+    }
+}
+    
+void main(void) {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson30",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+    sdl.open_audio(sdl.MixerDefaultFrequency, sdl.MixerDefaultFormat,
+		   sdl.MixerDefaultChannels, 1024);
+    chu = sdl.load_chunk("nehe/lesson30/Explode.wav");
+
+print("\
+Esc:		Exit\n\
+Up:		Zoom in\n\
+Down:		Zoom out\n\
+Left:		Rotate camera left\n\
+Right:		Rotate camera right\n\
+PageUp:		Increase time steps\n\
+PageDown:	Decrease time steps\n\
+F3:		Hook camera to ball 1\n");
+
+    InitGL();
+    InitVars();
+    MainLoop();
+
+    sdl.halt_channel(cha);
+    sdl.free_chunk(chu);
+    sdl.close_audio();
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+
+}
+
+main();

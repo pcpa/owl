@@ -1,0 +1,328 @@
+float32_t LightAmb[] = { 0.7, 0.7, 0.7, 1.0 };
+float32_t LightDif[] = { 1.0, 1.0, 1.0, 1.0 };
+float32_t LightPos[] = { 4.0, 4.0, 6.0, 1.0 };
+glu.quadric_t q;
+float64_t xrot		=  0.0;
+float64_t yrot		=  0.0;
+float64_t xrotspeed	=  0.0;
+float64_t yrotspeed	=  0.0;
+float64_t zoom		= -7.0;
+float64_t height	=  2.0;
+uint32_t		texture[3] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson26",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    int32_t loop;
+    sdl.surface_t srf[3] = {};
+
+    if ((srf[0] = sdl.load_surface("nehe/lesson26/Envwall.png")) &&
+	(srf[1] = sdl.load_surface("nehe/lesson26/Ball.png")) &&
+	(srf[2] = sdl.load_surface("nehe/lesson26/Envroll.png"))) {
+
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	for (loop = 0; loop < 3; ++loop) {
+	    /* Typical Texture Generation Using Data From The Bitmap */
+	    gl.BindTexture(gl.TEXTURE_2D, texture[loop]);
+
+	    /* Generate The Texture */
+	    sdl.gl.TexImage2D(srf[loop]);
+
+	    /* Linear Filtering */
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	    sdl.free_surface(srf[loop]);
+	}
+    }
+}
+
+void init() {
+    init_texture();
+
+    gl.ShadeModel(gl.SMOOTH);
+    gl.ClearColor(0.2, 0.5, 1.0, 1.0);
+    gl.ClearDepth(1.0);				// Depth Buffer Setup
+    gl.ClearStencil(0);
+    gl.Enable(gl.DEPTH_TEST);
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+    gl.Enable(gl.TEXTURE_2D);
+
+    gl.Lightv(gl.LIGHT0, gl.AMBIENT, LightAmb);
+    gl.Lightv(gl.LIGHT0, gl.DIFFUSE, LightDif);
+    gl.Lightv(gl.LIGHT0, gl.POSITION, LightPos);
+
+    gl.Enable(gl.LIGHT0);
+    gl.Enable(gl.LIGHTING);
+
+    q = glu.NewQuadric();			// Create A New Quadratic
+    glu.QuadricNormals(q, gl.SMOOTH);
+    glu.QuadricTexture(q, true);
+
+    gl.TexGen(gl.S, gl.TEXTURE_GEN_MODE, gl.SPHERE_MAP);
+    gl.TexGen(gl.T, gl.TEXTURE_GEN_MODE, gl.SPHERE_MAP);
+}
+
+void resize() {
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void draw_object() {
+    gl.Color3(1.0, 1.0, 1.0);
+    gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+    glu.Sphere(q, 0.35, 32, 16);
+
+    gl.BindTexture(gl.TEXTURE_2D, texture[2]);
+    gl.Color4(1.0, 1.0, 1.0, 0.4);
+    gl.Enable(gl.BLEND);
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.Enable(gl.TEXTURE_GEN_S);
+    gl.Enable(gl.TEXTURE_GEN_T);
+
+    glu.Sphere(q, 0.35, 32, 16);
+    /* Textures Will Mix Creating A MultiTexture Effect (Reflection) */
+    gl.Disable(gl.TEXTURE_GEN_S);
+    gl.Disable(gl.TEXTURE_GEN_T);
+    gl.Disable(gl.BLEND);
+}
+
+void draw_floor() {
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+    gl.Begin(gl.QUADS);
+    {
+	gl.Normal3(0.0, 1.0, 0.0);
+	/* Bottom Left */
+	gl.TexCoord2(0.0, 1.0);
+	gl.Vertex3(-2.0, 0.0, 2.0);
+	/* Top Left */
+	gl.TexCoord2(0.0, 0.0);
+	gl.Vertex3(-2.0, 0.0,-2.0);
+	/* Top Right */
+	gl.TexCoord2(1.0, 0.0);
+	gl.Vertex3(2.0, 0.0, -2.0);
+	/* Bottom Right */
+	gl.TexCoord2(1.0, 1.0);
+	gl.Vertex3(2.0, 0.0, 2.0);
+    }
+    gl.End();
+}
+
+void draw() {
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+    /* Clip Plane Equations */
+
+    /* Plane Equation To Use For The Reflected Objects */
+    float64_t eqr[] = {0.0, -1.0, 0.0, 0.0 };
+
+    /* Reset The Modelview Matrix */
+    gl.LoadIdentity();
+    /* Zoom And Raise Camera Above The Floor (Up 0.6 Units) */
+    gl.Translate(0.0, -0.6, zoom);
+    /* Set Color Mask */
+    gl.ColorMask(0, 0, 0, 0);
+    /* Enable Stencil Buffer For "marking" The Floor */
+    gl.Enable(gl.STENCIL_TEST);
+    /* Always Passes, 1 Bit Plane, 1 As Mask */
+    gl.StencilFunc(gl.ALWAYS, 1, 1);
+    /* We Set The Stencil Buffer To 1 Where We Draw Any Polygon */
+    gl.StencilOp(gl.KEEP, gl.KEEP, gl.REPLACE);
+    /* Keep If Test Fails, Keep If Test Passes But Buffer Test Fails
+     * Replace If Test Passes */
+    /* Disable Depth Testing */
+    gl.Disable(gl.DEPTH_TEST);
+    /* Draw The Floor (Draws To The Stencil Buffer) */
+    draw_floor();
+    /* We Only Want To Mark It In The Stencil Buffer */
+    /* Enable Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+    /* Set Color Mask to true, true, true, true */
+    gl.ColorMask(1, 1, 1, 1);
+    /* We Draw Only Where The Stencil Is 1 */
+    gl.StencilFunc(gl.EQUAL, 1, 1);
+    /* (I.E. Where The Floor Was Drawn) */
+    /* Don't Change The Stencil Buffer */
+    gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+    /* Enable Clip Plane For Removing Artifacts */
+    gl.Enable(gl.CLIP_PLANE0);
+    /* (When The Object Crosses The Floor) */
+    /* Equation For Reflected Objects */
+    gl.ClipPlane(gl.CLIP_PLANE0, eqr);
+    /* Push The Matrix Onto The Stack */
+    gl.PushMatrix();
+    {
+	/* Mirror Y Axis */
+	gl.Scale(1.0, -1.0, 1.0);
+	/* Set Up Light0 */
+	gl.Lightv(gl.LIGHT0, gl.POSITION, LightPos);
+	/* Position The Object */
+	gl.Translate(0.0, height, 0.0);
+	/* Rotate Local Coordinate System On X Axis */
+	gl.Rotate(xrot, 1.0, 0.0, 0.0);
+	/* Rotate Local Coordinate System On Y Axis */
+	gl.Rotate(yrot, 0.0, 1.0, 0.0);
+	/* Draw The Sphere (Reflection) */
+	draw_object();
+    }
+    /* Pop The Matrix Off The Stack */
+    gl.PopMatrix();
+
+    /* Disable Clip Plane For Drawing The Floor */
+    gl.Disable(gl.CLIP_PLANE0);
+    /* We Don't Need The Stencil Buffer Any More (Disable) */
+    gl.Disable(gl.STENCIL_TEST);
+    /* Set Up Light0 Position */
+    gl.Lightv(gl.LIGHT0, gl.POSITION, LightPos);
+    /* Enable Blending (Otherwise The Reflected Object Wont Show) */
+    gl.Enable(gl.BLEND);
+    /* Since We Use Blending, We Disable Lighting */
+    gl.Disable(gl.LIGHTING);
+    /* Set Color To White With 80% Alpha */
+    gl.Color4(1.0, 1.0, 1.0, 0.8);
+    /* Blending Based On Source Alpha And 1 Minus Dest Alpha */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    /* Draw The Floor To The Screen */
+    draw_floor();
+    /* Enable Lighting */
+    gl.Enable(gl.LIGHTING);
+    /* Disable Blending */
+    gl.Disable(gl.BLEND);
+    /* Position The Ball At Proper Height */
+    gl.Translate(0.0, height, 0.0);
+    /* Rotate On The X Axis */
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    /* Rotate On The Y Axis */
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+    /* Draw The Ball */
+    draw_object();
+    /* Update X Rotation Angle By xrotspeed */
+    xrot += xrotspeed;
+    /* Update Y Rotation Angle By yrotspeed */
+    yrot += yrotspeed;
+    /* Flush The GL Pipeline */
+    gl.Flush();
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void events() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_a:
+			    zoom += 0.05;
+			    break;
+			case sdl.Key_z:
+			    zoom -= 0.05;
+			    break;
+			case sdl.Key_Up:
+			    xrotspeed += 0.08;
+			    break;
+			case sdl.Key_Down:
+			    xrotspeed -= 0.08;
+			    break;
+			case sdl.Key_Right:
+			    yrotspeed += 0.08;
+			    break;
+			case sdl.Key_Left:
+			    yrotspeed -= 0.08;
+			    break;
+			case sdl.Key_PageUp:
+			    height += 0.03;
+			    break;
+			case sdl.Key_PageDown:
+			    height -= 0.03;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+a:		Zoom in\n\
+z:		Zoom out\n\
+Up:		Rotate up\n\
+Down:		Rotate down\n\
+Right:		Rotate right\n\
+Left:		Rotate left\n\
+PageUp:		Move sphere up\n\
+PageDown:	Move sphere down\n");
+init_all();
+init();
+resize();
+events();
+finish_all();

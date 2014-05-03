@@ -1,0 +1,373 @@
+/* Number of textures to load */
+#define NUM_TEXTURES	2
+
+uint32_t base;			/* Base Display List For The Font */
+uint32_t texture[NUM_TEXTURES] = {};
+
+float64_t cnt1;			/* Counter Used To Move Text & For Coloring */
+float64_t cnt2;			/* Counter Used To Move Text & For Coloring */
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson17",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t fnt, bmp;
+    if ((fnt = sdl.load_surface("nehe/lesson17/font.bmp")))
+	bmp = sdl.load_surface("nehe/lesson17/bumps.bmp");
+    if (fnt == null || bmp == null) {
+	print("load_surface error: %s\n", sdl.get_error());
+	exit(1);
+    }
+
+    /* Create The Texture */
+    gl.GenTextures(texture);
+
+    /* Load in texture 1 */
+    /* Typical Texture Generation Using Data From The Bitmap */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Generate The Texture */
+    sdl.gl.TexImage2D(fnt);
+
+    /* Nearest Filtering */
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+		    gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+		    gl.LINEAR);
+
+    /* Load in texture 2 */
+    /* Typical Texture Generation Using Data From The Bitmap */
+    gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+
+    /* Linear Filtering */
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+		    gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+		    gl.LINEAR);
+
+    /* Generate The Texture */
+    sdl.gl.TexImage2D(bmp);
+
+    sdl.free_surface(fnt);
+    sdl.free_surface(bmp);
+}
+
+void build_font() {
+    uint32_t		loop;
+    float64_t		cx, cy;
+
+    /* Creating 256 Display List */
+    base  = gl.GenLists(256);
+    /* Select Our Font Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Loop Through All 256 Lists */
+    for (loop = 0; loop < 256; ++loop) {
+	/* NOTE:
+	 *  BMPs are stored with the top-leftmost pixel being the
+	 * last byte and the bottom-rightmost pixel being the first
+	 * byte. So an image that is displayed as
+	 *    1 0
+	 *    0 0
+	 * is represented data-wise like
+	 *    0 0
+	 *    0 1
+	 * And because SDL_LoadBMP loads the raw data without
+	 * translating to how it is thought of when viewed we need
+	 * to start at the bottom-right corner of the data and work
+	 * backwards to get everything properly. So the below code has
+	 * been modified to reflect this. Examine how this is done and
+	 * how the original tutorial is done to grasp the differences.
+	 *
+	 * As a side note BMPs are also stored as BGR instead of RGB
+	 * and that is why we load the texture using GL_BGR. It's
+	 * bass-ackwards I know but whattaya gonna do?
+	 */
+
+	/* X Position Of Current Character */
+	cx = 1 - (loop % 16) / 16.0;
+	/* Y Position Of Current Character */
+	cy = 1 - (loop \ 16) / 16.0;
+
+	/* Start Building A List */
+	gl.NewList(base + ( 255 - loop), gl.COMPILE);
+	/* Use A Quad For Each Character */
+	gl.Begin(gl.QUADS);
+	{
+	    /* Texture Coord (Bottom Left) */
+	    gl.TexCoord2(cx - 0.0625, cy);
+	    /* Vertex Coord (Bottom Left) */
+	    gl.Vertex2(0, 0);
+
+	    /* Texture Coord (Bottom Right) */
+	    gl.TexCoord2(cx, cy);
+	    /* Vertex Coord (Bottom Right) */
+	    gl.Vertex2(16, 0);
+
+	    /* Texture Coord (Top Right) */
+	    gl.TexCoord2(cx, cy - 0.0625);
+	    /* Vertex Coord (Top Right) */
+	    gl.Vertex2(16, 16);
+
+	    /* Texture Coord (Top Left) */
+	    gl.TexCoord2(cx - 0.0625, cy - 0.0625);
+	    /* Vertex Coord (Top Left) */
+	    gl.Vertex2(0, 16);
+	}
+	gl.End();
+
+	/* Move To The Left Of The Character */
+	gl.Translate(10, 0, 0);
+	gl.EndList();
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    init_texture();
+
+    build_font();
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0, 0, 0, 0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+   /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Select The Type Of Blending */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    /* Enable 2D Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+}
+
+/* Function to print the string */
+void paint(int32_t x, int32_t y, string_t string, int32_t set)
+{
+    int32_t		i;
+    uint32_t		list[] = new uint32_t[sizeof(string)];
+    if (set > 1)
+	set = 1;
+
+    /* Select our texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Disable depth testing */
+    gl.Disable(gl.DEPTH_TEST);
+
+    /* Select The Projection Matrix */
+    gl.MatrixMode(gl.PROJECTION);
+    /* Store The Projection Matrix */
+    gl.PushMatrix();
+
+    /* Reset The Projection Matrix */
+    gl.LoadIdentity();
+    /* Set Up An Ortho Screen */
+    gl.Ortho(0, 640, 0, 480, -1, 1);
+
+    /* Select The Modelview Matrix */
+    gl.MatrixMode(gl.MODELVIEW);
+    /* Stor the Modelview Matrix */
+    gl.PushMatrix();
+    /* Reset The Modelview Matrix */
+    gl.LoadIdentity();
+
+    /* Position The Text (0,0 - Bottom Left) */
+    gl.Translate(x, y, 0);
+
+    /* Choose The Font Set (0 or 1) */
+    gl.ListBase(base - 32 + (128 * set));
+
+    /* Write The Text To The Screen */
+    for (i = sizeof(list) - 1; i >= 0; --i) {
+	list[i] = string[i];
+    }
+    gl.CallLists(list);
+
+    /* Select The Projection Matrix */
+    gl.MatrixMode(gl.PROJECTION);
+    /* Restore The Old Projection Matrix */
+    gl.PopMatrix();
+
+    /* Select the Modelview Matrix */
+    gl.MatrixMode(gl.MODELVIEW);
+    /* Restore the Old Projection Matrix */
+    gl.PopMatrix();
+
+    /* Re-enable Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+}
+
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.LoadIdentity();
+
+    /* Select Our Second Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+    /* Move Into The Screen 5 Units */
+    gl.Translate(0.0, 0.0, -5.0);
+    /* Rotate On The Z Axis 45 Degrees (Clockwise) */
+    gl.Rotate(45.0, 0.0, 0.0, 1.0);
+    /* Rotate On The X & Y Axis By cnt1 (Left To Right) */
+    gl.Rotate(cnt1 * 30.0, 1.0, 1.0, 0.0);
+
+    /* Disable Blending Before We Draw In 3D */
+    gl.Disable(gl.BLEND);
+    gl.Color3(1.0, 1.0, 1.0);		/* Bright White */
+    gl.Begin(gl.QUADS);			/* Draw Our First Texture Mapped Quad */
+    {
+	gl.TexCoord2( 0.0,  0.0);	/* First Texture Coord */
+	gl.Vertex2  (-1.0,  1.0);	/* First Vertex */
+	gl.TexCoord2( 1.0,  0.0);	/* Second Texture Coord */
+	gl.Vertex2  ( 1.0,  1.0);	/* Second Vertex */
+	gl.TexCoord2( 1.0,  1.0);	/* Third Texture Coord */
+	gl.Vertex2  ( 1.0, -1.0);	/* Third Vertex */
+	gl.TexCoord2( 0.0,  1.0);	/* Fourth Texture Coord */
+	gl.Vertex2  (-1.0, -1.0);	/* Fourth Vertex */
+    }
+    gl.End();
+
+    /* Rotate On The X & Y Axis By 90 Degrees (Left To Right) */
+    gl.Rotate(90.0, 1.0, 1.0, 0.0);
+    gl.Begin(gl.QUADS);			/* Draw Our Second Texture Mapped Quad */
+    {
+	gl.TexCoord2( 0.0,  0.0);	/* First Texture Coord */
+	gl.Vertex2  (-1.0,  1.0);	/* First Vertex */
+	gl.TexCoord2( 1.0,  0.0);	/* Second Texture Coord */
+	gl.Vertex2  ( 1.0,  1.0);	/* Second Vertex */
+	gl.TexCoord2( 1.0,  1.0);	/* Third Texture Coord */
+	gl.Vertex2  ( 1.0, -1.0);	/* Third Vertex */
+	gl.TexCoord2( 0.0,  1.0);	/* Fourth Texture Coord */
+	gl.Vertex2  (-1.0, -1.0);	/* Fourth Vertex */
+    }
+    gl.End();
+
+    /* Re-enable Blending */
+    gl.Enable(gl.BLEND);
+    /* Reset the view */
+    gl.LoadIdentity();
+
+
+    /* Pulsing Colors Based On Text Position */
+    /* Print GL Text To The Screen */
+    gl.Color3(cos(cnt1), sin(cnt2), 1.0 - 0.5 * cos(cnt1 + cnt2));
+    paint(280 + 250 * cos(cnt1), 235 + 200 * sin(cnt2), "NeHe", 0);
+    gl.Color3(sin(cnt2), 1.0 - 0.5 * cos(cnt1 + cnt2), cos(cnt1));
+    paint(280 + 230 * cos(cnt2), 235 + 200 * sin(cnt1), "OpenGL", 1);
+
+    /* Set Color to Red */
+    gl.Color3(0.0, 0.0, 1.0);
+    /* Draw Text To The Screen */
+    paint(240 + 200 * cos((cnt2 + cnt1) / 5), 2, "Giuseppe D'Agata", 0);
+
+    /* Set Color To White */
+    gl.Color3(1.0, 1.0, 1.0);
+    /* Draw Offset Text To The Screen */
+    paint(242 + 200 * cos((cnt2 + cnt1) / 5), 2, "Giuseppe D'Agata", 0);
+
+    cnt1 += 0.01;	/* Increase The First Counter  */
+    cnt2 += 0.0081;	/* Increase The Second Counter */
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    gl.DeleteTextures(texture);
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n");
+init_all();
+init();
+resize();
+loop();
+finish_all();

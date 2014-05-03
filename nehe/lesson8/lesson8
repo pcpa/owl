@@ -1,0 +1,382 @@
+uint8_t light = false;	/* Whether or not lighting is on */
+uint8_t blend = false;	/* Whether or not blending is on */
+
+float64_t xrot;		/* X Rotation */
+float64_t yrot;		/* Y Rotation */
+float64_t xspeed;	/* X Rotation Speed */
+float64_t yspeed;	/* Y Rotation Speed */
+float64_t z = -5.0;	 /* Depth Into The Screen */
+
+/* Ambient Light Values */
+float32_t LightAmbient[]  = { 0.5, 0.5, 0.5, 1.0 };
+/* Diffuse Light Values */
+float32_t LightDiffuse[]  = { 1.0, 1.0, 1.0, 1.0 };
+/* Light Position */
+float32_t LightPosition[] = { 0.0, 0.0, 2.0, 1.0 };
+
+uint32_t filter;
+uint32_t texture[3] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson8",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t srf;
+    srf = sdl.load_surface("nehe/lesson8/glass.bmp");
+    if (srf != null) {
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Load in texture 1 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Nearest Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.NEAREST);
+
+	/* Load in texture 2 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+
+	/* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Load in texture 3 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[2]);
+
+	/* Mipmapped Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_NEAREST );
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	/* Generate The MipMapped Texture */
+	sdl.pull_surface(srf);
+	glu.Build2DMipmaps(gl.TEXTURE_2D, srf.w, srf.h,
+			   gl.RGB, srf.pixels);
+
+	sdl.free_surface(srf);
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    init_texture();
+
+    /* Enable Texture Mapping ( NEW ) */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    /* Setup The Ambient Light */
+    gl.Lightv(gl.LIGHT1, gl.AMBIENT, LightAmbient);
+
+    /* Setup The Diffuse Light */
+    gl.Lightv(gl.LIGHT1, gl.DIFFUSE, LightDiffuse);
+
+    /* Position The Light */
+    gl.Lightv(gl.LIGHT1, gl.POSITION, LightPosition);
+
+    /* Enable Light One */
+    gl.Enable(gl.LIGHT1);
+
+    /* Full Brightness, 50% Alpha ( NEW ) */
+    gl.Color4(1.0, 1.0, 1.0, 0.5);
+
+    /* Blending Function For Translucency Based On Source Alpha Value  */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+}
+
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Reset the view */
+    gl.LoadIdentity();
+
+    /* Translate Into/Out Of The Screen By z */
+    gl.Translate(0.0, 0.0, z);
+
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);	/* Rotate On The X Axis By xrot */
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);	/* Rotate On The Y Axis By yrot */
+
+    /* Select A Texture Based On filter */
+    gl.BindTexture(gl.TEXTURE_2D, texture[filter]);
+
+    gl.Begin(gl.QUADS);
+    {
+      /* Front Face */
+      /* Normal Pointing Towards Viewer */
+      gl.Normal3(0.0, 0.0, 1.0);
+      /* Point 1 (Front) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+      /* Point 2 (Front) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+      /* Point 3 (Front) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3( 1.0,  1.0,  1.0);
+      /* Point 4 (Front) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3(-1.0,  1.0,  1.0);
+
+      /* Back Face */
+      /* Normal Pointing Away From Viewer */
+      gl.Normal3(0.0, 0.0, -1.0);
+      /* Point 1 (Back) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3(-1.0, -1.0, -1.0);
+      /* Point 2 (Back) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+      /* Point 3 (Back) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3( 1.0,  1.0, -1.0);
+      /* Point 4 (Back) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3( 1.0, -1.0, -1.0);
+
+      /* Top Face */
+      /* Normal Pointing Up */
+      gl.Normal3( 0.0, 1.0, 0.0);
+      /* Point 1 (Top) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+      /* Point 2 (Top) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3(-1.0,  1.0,  1.0);
+      /* Point 3 (Top) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3( 1.0,  1.0,  1.0);
+      /* Point 4 (Top) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3( 1.0,  1.0, -1.0);
+
+      /* Bottom Face */
+      /* Normal Pointing Down */
+      gl.Normal3(0.0, -1.0, 0.0);
+      /* Point 1 (Bottom) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3(-1.0, -1.0, -1.0);
+      /* Point 2 (Bottom) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3( 1.0, -1.0, -1.0);
+      /* Point 3 (Bottom) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+      /* Point 4 (Bottom) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+
+      /* Right face */
+      /* Normal Pointing Right */
+      gl.Normal3(1.0, 0.0, 0.0);
+      /* Point 1 (Right) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3(1.0, -1.0, -1.0);
+      /* Point 2 (Right) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3(1.0,  1.0, -1.0);
+      /* Point 3 (Right) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3(1.0,  1.0,  1.0);
+      /* Point 4 (Right) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3(1.0, -1.0,  1.0);
+
+      /* Left Face*/
+      /* Normal Pointing Left */
+      gl.Normal3(-1.0, 0.0, 0.0);
+      /* Point 1 (Left) */
+      gl.TexCoord2(1.0, 0.0); gl.Vertex3(-1.0, -1.0, -1.0);
+      /* Point 2 (Left) */
+      gl.TexCoord2(0.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+      /* Point 3 (Left) */
+      gl.TexCoord2(0.0, 1.0); gl.Vertex3(-1.0,  1.0,  1.0);
+      /* Point 4 (Left) */
+      gl.TexCoord2(1.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+    }
+    gl.End();
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+
+    xrot += xspeed;	/* Add xspeed To xrot */
+    yrot += yspeed;	/* Add yspeed To yrot */
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_b:
+			    /* 'b' key was pressed
+			     * this toggles blending
+			     */
+			    blend = !blend;
+			    if (blend) {
+				gl.Enable(gl.BLEND);
+				gl.Disable(gl.DEPTH_TEST);
+			    }
+			    else {
+				gl.Disable(gl.BLEND);
+				gl.Enable(gl.DEPTH_TEST);
+			    }
+			    break;
+			case sdl.Key_f:
+			    /* 'f' key was pressed
+			     * this pages through the different filters
+			     */
+			    filter = (++filter) % 3;
+			    break;
+			case sdl.Key_l:
+			    /* 'l' key was pressed
+			     * this toggles the light
+			     */
+			    light = !light;
+			    if (!light)
+				gl.Disable(gl.LIGHTING);
+			    else
+				gl.Enable(gl.LIGHTING);
+			    break;
+			case sdl.Key_PageUp:
+			    /* PageUp key was pressed
+			     * this zooms into the scene
+			     */
+			    z -= 0.02;
+			    break;
+			case sdl.Key_PageDown:
+			    /* PageDown key was pressed
+			     * this zooms out of the scene
+			     */
+			    z += 0.02;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this affects the x rotation
+			     */
+			    xspeed -= 0.01;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this affects the x rotation
+			     */
+			    xspeed += 0.01;
+			    break;
+			case sdl.Key_Right:
+			    /* Right arrow key was pressed
+			     * this affects the y rotation
+			     */
+			    yspeed += 0.01;
+			    break;
+			case sdl.Key_Left:
+			    /* Left arrow key was pressed
+			     * this affects the y rotation
+			     */
+			    yspeed -= 0.01;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+b:		Toggle blend\n\
+f:		Change filter\n\
+l:		Toggle light\n\
+PageUp:		Zoom out\n\
+PageDown:	Zoom in\n\
+Up:		Rotate up\n\
+Down:		Rotate down\n\
+Left:		Rotate left\n\
+Right:		Rotate right\n");
+init_all();
+init();
+resize();
+loop();
+finish_all();

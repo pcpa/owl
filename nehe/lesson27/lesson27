@@ -1,0 +1,773 @@
+#define O_READ		1
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+// vertex in 3d-coordinate system
+class sPoint {
+    float64_t x, y, z;
+};
+
+// plane equation
+class sPlaneEq {
+    float64_t a, b, c, d;
+};
+
+// structure describing an object's face
+class sPlane{
+    uint32_t p[3];
+    sPoint normals[3];
+    uint32_t neigh[3];
+    sPlaneEq PlaneEq;
+    uint8_t visible;
+};
+
+class glObject {
+    sPoint points[];
+    sPlane planes[];
+};
+
+glObject	obj;
+float64_t	xrot, xspeed;
+float64_t	yrot, yspeed;
+
+// Light Position
+float32_t LightPos[] = {  0.0,  5.0, -4.0, 1.0 };
+// Ambient Light Values
+float32_t LightAmb[] = {  0.2,  0.2,  0.2, 1.0 };
+// Diffuse Light Values
+float32_t LightDif[] = {  0.6,  0.6,  0.6, 1.0 };
+// Specular Light Values
+float32_t LightSpc[] = {- 0.2, -0.2, -0.2, 1.0 };
+
+// Material - Ambient Values
+float32_t MatAmb[] = { 0.4, 0.4, 0.4, 1.0 };
+// Material - Diffuse Values
+float32_t MatDif[] = { 0.2, 0.6, 0.9, 1.0 };
+// Material - Specular Values
+float32_t MatSpc[] = { 0.0, 0.0, 0.0, 1.0 };
+// Material - Shininess
+float32_t MatShn[] = { 0.0};
+
+// Object Position
+float64_t ObjPos[] = { -2.0, -2.0, -5.0 };
+
+// Quadratic For Drawing A Sphere
+glu.quadric_t	q;
+float64_t SpherePos[] = { -4.0, -5.0, -6.0 };
+
+// load object
+glObject ReadObject(string_t st) {
+    auto file;
+    uint32_t i, n, v[1] = {};
+    float64_t points[3] = {};
+    glObject o;
+
+    if ((file = open(st, O_READ)) == null)
+	return null;
+
+    //points
+    scanf(file, "%d", v);
+    n = v[0];
+    o = new glObject;
+    o.points = new sPoint[n + 1];
+    o.points[0] = {};
+    for (i = 1; i <= n; ++i) {
+	scanf(file, "%f %f %f", points);
+	o.points[i] = { points[0], points[1], points[2] };
+    }
+
+    //planes
+    scanf(file, "%d", v);
+    n = v[0];
+    o.planes = new sPlane[n];
+    for (i = 0; i < n; ++i) {
+	o.planes[i] = new sPlane;
+	o.planes[i].p = new uint32_t[3];
+	scanf(file, "%d %d %d", o.planes[i].p);
+	o.planes[i].normals = new sPoint[3];
+	scanf(file, "%f %f %f", points);
+	o.planes[i].normals[0] = { points[0], points[1], points[2] };
+	scanf(file, "%f %f %f", points);
+	o.planes[i].normals[1] = { points[0], points[1], points[2] };
+	scanf(file, "%f %f %f", points);
+	o.planes[i].normals[2] = { points[0], points[1], points[2] };
+
+	o.planes[i].neigh = new uint32_t[3];
+	o.planes[i].PlaneEq = new sPlaneEq;
+    }
+    close(file);
+    return o;
+}
+
+// connectivity procedure - based on Gamasutra's article
+// hard to explain here
+void SetConnectivity(glObject o) {
+    uint32_t p1i, p2i, p1j, p2j;
+    uint32_t P1i, P2i, P1j, P2j;
+    uint32_t i, j, ki, kj;
+
+    for (i = 0; i < sizeof(o.planes) - 1; ++i)
+	for (j = i + 1; j < sizeof(o.planes); ++j)
+	    for (ki = 0; ki < 3; ++ki)
+		if(!o.planes[i].neigh[ki]) {
+		    for(kj = 0;kj < 3; ++kj) {
+			p1i = ki;
+			p1j = kj;
+			p2i = (ki + 1) % 3;
+			p2j = (kj + 1) % 3;
+
+			p1i = o.planes[i].p[p1i];
+			p2i = o.planes[i].p[p2i];
+			p1j = o.planes[j].p[p1j];
+			p2j = o.planes[j].p[p2j];
+
+			P1i = ((p1i + p2i) - abs(p1i - p2i)) \ 2;
+			P2i = ((p1i + p2i) + abs(p1i - p2i)) \ 2;
+			P1j = ((p1j + p2j) - abs(p1j - p2j)) \ 2;
+			P2j = ((p1j + p2j) + abs(p1j - p2j)) \ 2;
+
+			//they are neighbours
+			if (P1i == P1j && P2i == P2j) {
+			    o.planes[i].neigh[ki] = j + 1;
+			    o.planes[j].neigh[kj] = i + 1;
+			}
+		    }
+		}
+}
+
+// function for computing a plane equation given 3 points
+void CalcPlane(glObject o, sPlane plane) {
+    sPoint v[3] = {};
+    int32_t i;
+    for (i = 0; i < 3; ++i) {
+	v[i] = {
+	    o.points[plane.p[i]].x,
+	    o.points[plane.p[i]].y,
+	    o.points[plane.p[i]].z
+	};
+    }
+    plane.PlaneEq.a =   v[0].y * (v[1].z  - v[2].z) + v[1].y *
+		       (v[2].z -  v[0].z) + v[2].y * (v[0].z - v[1].z);
+    plane.PlaneEq.b =   v[0].z * (v[1].x  - v[2].x) + v[1].z *
+		       (v[2].x -  v[0].x) + v[2].z * (v[0].x - v[1].x);
+    plane.PlaneEq.c =   v[0].x * (v[1].y  - v[2].y) + v[1].x *
+		       (v[2].y -  v[0].y) + v[2].x * (v[0].y - v[1].y);
+    plane.PlaneEq.d = -(v[0].x * (v[1].y  * v[2].z -  v[2].y * v[1].z) +
+			v[1].x * (v[2].y  * v[0].z -  v[0].y * v[2].z) +
+			v[2].x * (v[0].y  * v[1].z -  v[1].y * v[0].z));
+}
+// procedure for drawing the object - very simple
+void DrawGLObject(glObject o) {
+    uint32_t i, j;
+
+    gl.Begin(gl.TRIANGLES);
+    for (i = 0; i < sizeof(o.planes); ++i){
+	for (j = 0; j < 3; ++j) {
+	    gl.Normal3(o.planes[i].normals[j].x,
+		       o.planes[i].normals[j].y,
+		       o.planes[i].normals[j].z);
+	    gl.Vertex3(o.points[o.planes[i].p[j]].x,
+		       o.points[o.planes[i].p[j]].y,
+		       o.points[o.planes[i].p[j]].z);
+	}
+    }
+    gl.End();
+}
+
+void CastShadow(glObject o, float64_t lp[4]) {
+    uint32_t i, j, k, jj;
+    uint32_t p1, p2;
+    sPoint v1 = {}, v2 = {};
+    float64_t side;
+
+    //set visual parameter
+    for (i = 0; i< sizeof(o.planes); ++i) {
+	// check to see if light is in front or behind the plane (face plane)
+	side =	(o.planes[i].PlaneEq.a * lp[0] +
+		 o.planes[i].PlaneEq.b * lp[1] +
+		 o.planes[i].PlaneEq.c * lp[2] +
+		 o.planes[i].PlaneEq.d * lp[3]);
+	if (side > 0)
+	    o.planes[i].visible = true;
+	else
+	    o.planes[i].visible = false;
+    }
+
+    gl.Disable(gl.LIGHTING);
+    gl.DepthMask(false);
+    gl.DepthFunc(gl.LEQUAL);
+
+    gl.Enable(gl.STENCIL_TEST);
+    gl.ColorMask(0, 0, 0, 0);
+    gl.StencilFunc(gl.ALWAYS, 1, 0xffffffff);
+
+    // first pass, stencil operation decreases stencil value
+    gl.FrontFace(gl.CCW);
+    gl.StencilOp(gl.KEEP, gl.KEEP, gl.INCR);
+    for (i = 0; i < sizeof(o.planes); ++i) {
+	if (o.planes[i].visible)
+	    for (j = 0; j < 3; ++j){
+		k = o.planes[i].neigh[j];
+		if (!k || !o.planes[k - 1].visible) {
+		    // here we have an edge, we must draw a polygon
+		    p1 = o.planes[i].p[j];
+		    jj = (j + 1) % 3;
+		    p2 = o.planes[i].p[jj];
+
+		    //calculate the length of the vector
+		    v1.x = (o.points[p1].x - lp[0]) * 100;
+		    v1.y = (o.points[p1].y - lp[1]) * 100;
+		    v1.z = (o.points[p1].z - lp[2]) * 100;
+
+		    v2.x = (o.points[p2].x - lp[0]) * 100;
+		    v2.y = (o.points[p2].y - lp[1]) * 100;
+		    v2.z = (o.points[p2].z - lp[2]) * 100;
+
+		    //draw the polygon
+		    gl.Begin(gl.TRIANGLE_STRIP);
+		    {
+			gl.Vertex3(o.points[p1].x,
+				   o.points[p1].y,
+				   o.points[p1].z);
+			gl.Vertex3(o.points[p1].x + v1.x,
+				   o.points[p1].y + v1.y,
+				   o.points[p1].z + v1.z);
+
+			gl.Vertex3(o.points[p2].x,
+				   o.points[p2].y,
+				   o.points[p2].z);
+			gl.Vertex3(o.points[p2].x + v2.x,
+				   o.points[p2].y + v2.y,
+				   o.points[p2].z + v2.z);
+		    }
+		    gl.End();
+		}
+	    }
+    }
+
+    // second pass, stencil operation increases stencil value
+    gl.FrontFace(gl.CW);
+    gl.StencilOp(gl.KEEP, gl.KEEP, gl.DECR);
+    for (i = 0; i < sizeof(o.planes); ++i) {
+	if (o.planes[i].visible)
+	    for (j = 0; j < 3; ++j){
+		k = o.planes[i].neigh[j];
+		if (!k || !o.planes[k-1].visible){
+		    // here we have an edge, we must draw a polygon
+		    p1 = o.planes[i].p[j];
+		    jj = (j + 1) % 3;
+		    p2 = o.planes[i].p[jj];
+
+		    //calculate the length of the vector
+		    v1.x = (o.points[p1].x - lp[0]) * 100;
+		    v1.y = (o.points[p1].y - lp[1]) * 100;
+		    v1.z = (o.points[p1].z - lp[2]) * 100;
+
+		    v2.x = (o.points[p2].x - lp[0]) * 100;
+		    v2.y = (o.points[p2].y - lp[1]) * 100;
+		    v2.z = (o.points[p2].z - lp[2]) * 100;
+
+		    //draw the polygon
+		    gl.Begin(gl.TRIANGLE_STRIP);
+		    {
+			gl.Vertex3(o.points[p1].x,
+				   o.points[p1].y,
+				    o.points[p1].z);
+			gl.Vertex3(o.points[p1].x + v1.x,
+				   o.points[p1].y + v1.y,
+				   o.points[p1].z + v1.z);
+
+			gl.Vertex3(o.points[p2].x,
+				   o.points[p2].y,
+				   o.points[p2].z);
+			gl.Vertex3(o.points[p2].x + v2.x,
+				   o.points[p2].y + v2.y,
+				   o.points[p2].z + v2.z);
+		    }
+		    gl.End();
+		}
+	    }
+    }
+
+    gl.FrontFace(gl.CCW);
+    gl.ColorMask(1, 1, 1, 1);
+
+    //draw a shadowing rectangle covering the entire screen
+    gl.Color4(0.0, 0.0, 0.0, 0.4);
+    gl.Enable(gl.BLEND);
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.StencilFunc(gl.NOTEQUAL, 0, 0xffffffff);
+    gl.StencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+    gl.PushMatrix();
+    gl.LoadIdentity();
+    gl.Begin(gl.TRIANGLE_STRIP);
+    {
+	gl.Vertex3(-0.1,  0.1, -0.10);
+	gl.Vertex3(-0.1, -0.1, -0.10);
+	gl.Vertex3( 0.1,  0.1, -0.10);
+	gl.Vertex3( 0.1, -0.1, -0.10);
+    }
+    gl.End();
+    gl.PopMatrix();
+    gl.Disable(gl.BLEND);
+
+    gl.DepthFunc(gl.LEQUAL);
+    gl.DepthMask(true);
+    gl.Enable(gl.LIGHTING);
+    gl.Disable(gl.STENCIL_TEST);
+    gl.ShadeModel(gl.SMOOTH);
+}
+
+void VMatMult(float64_t M[16], float64_t v[4]) {
+    // Hold Calculated Results
+    float64_t res[4] = {};
+    res[0] = M[0] * v[0] + M[4] * v[1] + M[ 8] * v[2] + M[12] * v[3];
+    res[1] = M[1] * v[0] + M[5] * v[1] + M[ 9] * v[2] + M[13] * v[3];
+    res[2] = M[2] * v[0] + M[6] * v[1] + M[10] * v[2] + M[14] * v[3];
+    res[3] = M[3] * v[0] + M[7] * v[1] + M[11] * v[2] + M[15] * v[3];
+    // Results Are Stored Back In v[]
+    v[0] = res[0];
+    v[1] = res[1];
+    v[2] = res[2];
+    // Homogenous Coordinate
+    v[3] = res[3];
+}
+
+void ResizeGLScene() {
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+int32_t InitGLObjects() {
+    // Read Object2 Into obj
+    if ((obj = ReadObject("nehe/lesson27/Object2.txt")) == null)
+	return false;
+
+    // Set Face To Face Connectivity
+    SetConnectivity(obj);
+
+    // Loop Through All Object Planes
+    uint32_t i;
+    for (i = 0; i< sizeof(obj.planes); i++)
+	// Compute Plane Equations For All Faces
+	CalcPlane(obj, obj.planes[i]);
+
+    return true;
+}
+
+int32_t InitGL() {
+    if (!InitGLObjects())
+	return false;
+    // Enable Smooth Shading
+    gl.ShadeModel(gl.SMOOTH);
+    // Black Background
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+    // Depth Buffer Setup
+    gl.ClearDepth(1.0);
+    // Stencil Buffer Setup
+    gl.ClearStencil(0);
+    // Enables Depth Testing
+    gl.Enable(gl.DEPTH_TEST);
+    // The Type Of Depth Testing To Do
+    gl.DepthFunc(gl.LEQUAL);
+    // Really Nice Perspective Calculations
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    // Set Light1 Position
+    gl.Lightv(gl.LIGHT1, gl.POSITION, LightPos);
+    // Set Light1 Ambience
+    gl.Lightv(gl.LIGHT1, gl.AMBIENT, LightAmb);
+    // Set Light1 Diffuse
+    gl.Lightv(gl.LIGHT1, gl.DIFFUSE, LightDif);
+    // Set Light1 Specular
+    gl.Lightv(gl.LIGHT1, gl.SPECULAR, LightSpc);
+    // Enable Light1
+    gl.Enable(gl.LIGHT1);
+    // Enable Lighting
+    gl.Enable(gl.LIGHTING);
+
+    // Set Material Ambience
+    gl.Materialv(gl.FRONT, gl.AMBIENT, MatAmb);
+    // Set Material Diffuse
+    gl.Materialv(gl.FRONT, gl.DIFFUSE, MatDif);
+    // Set Material Specular
+    gl.Materialv(gl.FRONT, gl.SPECULAR, MatSpc);
+    // Set Material Shininess
+    gl.Materialv(gl.FRONT, gl.SHININESS, MatShn);
+
+    // Set Culling Face To Back Face
+    gl.CullFace(gl.BACK);
+    // Enable Culling
+    gl.Enable(gl.CULL_FACE);
+    // Set Clear Color (Greenish Color)
+    gl.ClearColor(0.1, 1.0, 0.5, 1.0);
+
+    // Initialize Quadratic
+    q = glu.NewQuadric();
+    // Enable Smooth Normal Generation
+    glu.QuadricNormals(q, gl.SMOOTH);
+    // Disable Auto Texture Coords
+    glu.QuadricTexture(q, false);
+
+    return true;
+}
+
+// Draw The Room (Box)
+void DrawGLRoom() {
+    // Begin Drawing Quads
+    gl.Begin(gl.QUADS);
+    {
+	// Floor
+	// Normal Pointing Up
+	gl.Normal3(  0.0,  1.0,    0.0);
+	// Back Left
+	gl.Vertex3(-10.0, -10.0, -20.0);
+	// Front Left
+	gl.Vertex3(-10.0, -10.0,  20.0);
+	// Front Right
+	gl.Vertex3( 10.0, -10.0,  20.0);
+	// Back Right
+	gl.Vertex3( 10.0, -10.0, -20.0);
+	// Ceiling
+	// Normal Point Down
+	gl.Normal3(  0.0,  -1.0,   0.0);
+	// Front Left
+	gl.Vertex3(-10.0,  10.0,  20.0);
+	// Back Left
+	gl.Vertex3(-10.0,  10.0, -20.0);
+	// Back Right
+	gl.Vertex3( 10.0,  10.0, -20.0);
+	// Front Right
+	gl.Vertex3( 10.0,  10.0,  20.0);
+	// Front Wall
+	// Normal Pointing Away From Viewer
+	gl.Normal3(  0.0,   0.0,   1.0);
+	// Top Left
+	gl.Vertex3(-10.0,  10.0, -20.0);
+	// Bottom Left
+	gl.Vertex3(-10.0, -10.0, -20.0);
+	// Bottom Right
+	gl.Vertex3( 10.0, -10.0, -20.0);
+	// Top Right
+	gl.Vertex3( 10.0,  10.0, -20.0);
+	// Back Wall
+	// Normal Pointing Towards Viewer
+	gl.Normal3(  0.0,   0.0,  -1.0);
+	// Top Right
+	gl.Vertex3( 10.0,  10.0,  20.0);
+	// Bottom Right
+	gl.Vertex3( 10.0, -10.0,  20.0);
+	// Bottom Left
+	gl.Vertex3(-10.0, -10.0,  20.0);
+	// Top Left
+	gl.Vertex3(-10.0,  10.0,  20.0);
+	// Left Wall
+	// Normal Pointing Right
+	gl.Normal3(  1.0,   0.0,   0.0);
+	// Top Front
+	gl.Vertex3(-10.0,  10.0,  20.0);
+	// Bottom Front
+	gl.Vertex3(-10.0, -10.0,  20.0);
+	// Bottom Back
+	gl.Vertex3(-10.0, -10.0, -20.0);
+	// Top Back
+	gl.Vertex3(-10.0,  10.0, -20.0);
+	// Right Wall
+	// Normal Pointing Left
+	gl.Normal3( -1.0,   0.0,   0.0);
+	// Top Back
+	gl.Vertex3( 10.0,  10.0, -20.0);
+	// Bottom Back
+	gl.Vertex3( 10.0, -10.0, -20.0);
+	// Bottom Front
+	gl.Vertex3( 10.0, -10.0,  20.0);
+	// Top Front
+	gl.Vertex3( 10.0,  10.0,  20.0);
+    }
+    gl.End();
+}
+
+// Main Drawing Routine
+void DrawGLScene() {
+    float64_t Minv[16] = {};
+    float64_t wlp[4] = {}, lp[4] = {};
+
+    // Clear Color Buffer, Depth Buffer, Stencil Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT | gl.STENCIL_BUFFER_BIT);
+
+    // Reset Modelview Matrix
+    gl.LoadIdentity();
+    // Zoom Into Screen 20 Units
+    gl.Translate(0.0, 0.0, -20.0);
+    // Position Light1
+    gl.Lightv(gl.LIGHT1, gl.POSITION, LightPos);
+    // Position The Sphere
+    gl.Translate(SpherePos[0], SpherePos[1], SpherePos[2]);
+    // Draw A Sphere
+    glu.Sphere(q, 1.5, 32, 16);
+
+    // calculate light's position relative to local coordinate system
+    // dunno if this is the best way to do it, but it actually works
+    // if u find another aproach, let me know ;)
+
+    // we build the inversed matrix by doing all the actions in reverse order
+    // and with reverse parameters (notice -xrot, -yrot, -ObjPos[], etc.)
+    // Reset Matrix
+    gl.LoadIdentity();
+    gl.Rotate(-yrot, 0.0, 1.0, 0.0);	// Rotate By -yrot On Y Axis
+    gl.Rotate(-xrot, 1.0, 0.0, 0.0);	// Rotate By -xrot On X Axis
+    // Retrieve ModelView Matrix (Stores In Minv)
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, Minv);
+    lp[0] = LightPos[0];		// Store Light Position X In lp[0]
+    lp[1] = LightPos[1];		// Store Light Position Y In lp[1]
+    lp[2] = LightPos[2];		// Store Light Position Z In lp[2]
+    lp[3] = LightPos[3];		// Store Light Direction In lp[3]
+    // We Store Rotated Light Vector In 'lp' Array
+    VMatMult(Minv, lp);
+    // Move Negative On All Axis Based On ObjPos[] Values (X, Y, Z)
+    gl.Translate(-ObjPos[0], -ObjPos[1], -ObjPos[2]);
+    // Retrieve ModelView Matrix From Minv
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, Minv);
+    wlp[0] = 0.0;			// World Local Coord X To 0
+    wlp[1] = 0.0;			// World Local Coord Y To 0
+    wlp[2] = 0.0;			// World Local Coord Z To 0
+    wlp[3] = 1.0;
+    // We Store The Position Of The World Origin Relative To The
+    VMatMult(Minv, wlp);
+    // Local Coord. System In 'wlp' Array
+    lp[0] += wlp[0];			// Adding These Two Gives Us The
+    lp[1] += wlp[1];			// Position Of The Light Relative To
+    lp[2] += wlp[2];			// The Local Coordinate System
+
+    // Set Color To An Orange
+    gl.Color4(0.7, 0.4, 0.0, 1.0);
+    // Reset Modelview Matrix
+    gl.LoadIdentity();
+    // Zoom Into The Screen 20 Units
+    gl.Translate(0.0, 0.0, -20.0);
+    // Draw The Room
+    DrawGLRoom();
+    // Position The Object
+    gl.Translate(ObjPos[0], ObjPos[1], ObjPos[2]);
+    // Spin It On The X Axis By xrot
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    // Spin It On The Y Axis By yrot
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+    // Procedure For Drawing The Loaded Object
+    DrawGLObject(obj);
+    // Procedure For Casting The Shadow Based On The Silhouette
+    CastShadow(obj, lp);
+
+    // Set Color To Purplish Blue
+    gl.Color4(0.7, 0.4, 0.0, 1.0);
+    // Disable Lighting
+    gl.Disable(gl.LIGHTING);
+    // Disable Depth Mask
+    gl.DepthMask(false);
+    // Translate To Light's Position
+    gl.Translate(lp[0], lp[1], lp[2]);
+    // Notice We're Still In Local Coordinate System
+    // Draw A Little Yellow Sphere (Represents Light)
+    glu.Sphere(q, 0.2, 16, 8);
+    // Enable Lighting
+    gl.Enable(gl.LIGHTING);
+    // Enable Depth Mask
+    gl.DepthMask(true);
+
+    xrot += xspeed;	
+    yrot += yspeed;	
+
+    gl.Flush();
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    sdl.gl.set_attribute(sdl.gl.StencilSize, 8);
+    win = sdl.create_window("lesson27",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    800, 600,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    if (!InitGL()) {
+	print("Failed to initialize GL\n");
+	exit(1);
+    }
+
+    print("\
+Esc:		Exit\n\
+Up:		Rotate up\n\
+Down:		Rotate down\n\
+Left:		Rotate left\n\
+Right:		Rotate right\n\
+j:		Move light left\n\
+l:		Move light right\n\
+i:		Move light up\n\
+k:		Move light down\n\
+o:		Move light toward viewer\n\
+u:		Move light away from viewer\n\
+4:		move object left\n\
+6:		move object right\n\
+8:		move object up\n\
+5:		move object down\n\
+9:		Move light toward viewer\n\
+7:		Move light away from viewer\n\
+a:		Move ball left\n\
+d:		Move ball right\n\
+w:		Move ball up\n\
+s:		Move ball down\n\
+e:		Move ball toward viewer\n\
+q:		Move ball away from viewer\n");
+
+    ResizeGLScene();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ResizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Left:
+			    // 'Arrow Left' Decrease yspeed
+			    yspeed -= 0.1;
+			    break;
+			case sdl.Key_Right:
+			    // 'Arrow Right' Increase yspeed
+			    yspeed += 0.1;
+			    break;
+			case sdl.Key_Up:
+			    // 'Arrow Up' Decrease xspeed
+			    xspeed -= 0.1;
+			    break;
+			case sdl.Key_Down:
+			    // 'Arrow Down' Increase xspeed
+			    xspeed += 0.1;
+			    break;
+
+			    // Adjust Light's Position
+			case sdl.Key_l: 
+			    LightPos[0] += 0.05;	// 'L' Moves Light Right
+			    break;
+			case sdl.Key_j: 
+			    LightPos[0] -= 0.05;	// 'J' Moves Light Left
+			    break;
+
+			case sdl.Key_i: 
+			    LightPos[1] += 0.05;	// 'I' Moves Light Up
+			    break;
+			case sdl.Key_k: 
+			    LightPos[1] -= 0.05;	// 'K' Moves Light Down
+			    break;
+
+			case sdl.Key_o: 
+			    LightPos[2] += 0.05;	// 'O' Moves Light Toward Viewer
+			    break;
+			case sdl.Key_u: 
+			    LightPos[2] -= 0.05;	// 'U' Moves Light Away From Viewer
+			    break;
+
+			    // Adjust Object's Position
+			case sdl.Key_6: 
+			    ObjPos[0] += 0.05;	// 'Numpad6' Move Object Right
+			    break;
+			case sdl.Key_4: 
+			    ObjPos[0] -= 0.05;	// 'Numpad4' Move Object Left
+			    break;
+
+			case sdl.Key_8:
+			    ObjPos[1] += 0.05;	// 'Numpad8' Move Object U
+			    break;
+			case sdl.Key_5:
+			    ObjPos[1] -= 0.05;	// 'Numpad5' Move Object Down
+			    break;
+
+			case sdl.Key_9:
+			    ObjPos[2] += 0.05;	// 'Numpad9' Move Object Toward Viewer
+			    break;
+			case sdl.Key_7:
+			    ObjPos[2] -= 0.05;	// 'Numpad7' Move Object Away From Viewer
+			    break;
+
+			    // Adjust Ball's Position
+			case sdl.Key_d:
+			    SpherePos[0] += 0.05;	// 'D' Move Ball Right
+			    break;
+			case sdl.Key_a:
+			    SpherePos[0] -= 0.05;	// 'A' Move Ball Left
+			    break;
+
+			case sdl.Key_w:
+			    SpherePos[1] += 0.05;	// 'W' Move Ball Up
+			    break;
+			case sdl.Key_s:
+			    SpherePos[1] -= 0.05;	// 'S' Move Ball Down
+			    break;
+
+			case sdl.Key_e:
+			    SpherePos[2] += 0.05;	// 'E' Move Ball Toward Viewer
+			    break;
+			case sdl.Key_q:
+			    SpherePos[2] -= 0.05;	// 'Q' Move Ball Away From Viewer
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	DrawGLScene();
+    }
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

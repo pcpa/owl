@@ -1,0 +1,512 @@
+#define O_READ           1
+
+uint32_t LoadGLTexture(string_t);
+
+class Mesh {
+    int32_t	materialIndex;
+    int32_t	TriangleIndices[];
+};
+
+class Material {
+    float32_t	ambient[4], diffuse[4], specular[4], emissive[4];
+    float32_t	shininess;
+    uint32_t	texture;
+    string_t	TextureFilename;
+};
+
+class Triangle {
+    float64_t	vertexNormals[3][3];
+    float64_t	s[3], t[3];
+    int32_t	vertexIndices[3];
+};
+
+class Vertex {
+    uint8_t	boneID;
+    float64_t	location[3];
+};
+
+class Model {
+    Mesh	Meshes[];
+    Material	Materials[];
+    Triangle	Triangles[];
+    Vertex	Vertices[];
+    void draw() {
+	int32_t	i, j, k;
+	uint8_t	texEnabled = gl.IsEnabled(gl.TEXTURE_2D);
+
+	// Draw by group
+	for (i = 0; i < sizeof(Meshes); ++i) {
+	    int32_t materialIndex = Meshes[i].materialIndex;
+	    if (materialIndex >= 0) {
+		gl.Materialv(gl.FRONT, gl.AMBIENT,
+			     Materials[materialIndex].ambient);
+		gl.Materialv(gl.FRONT, gl.DIFFUSE,
+			     Materials[materialIndex].diffuse);
+		gl.Materialv(gl.FRONT, gl.SPECULAR,
+			     Materials[materialIndex].specular);
+		gl.Materialv(gl.FRONT, gl.EMISSION,
+			     Materials[materialIndex].emissive);
+		gl.Material(gl.FRONT, gl.SHININESS,
+			    Materials[materialIndex].shininess);
+
+		if (Materials[materialIndex].texture > 0) {
+		    gl.BindTexture(gl.TEXTURE_2D,
+				   Materials[materialIndex].texture);
+		    gl.Enable(gl.TEXTURE_2D);
+		}
+		else
+		    gl.Disable(gl.TEXTURE_2D);
+	    }
+	    else {
+		// Material properties?
+		gl.Disable(gl.TEXTURE_2D);
+	    }
+
+	    gl.Begin(gl.TRIANGLES);
+	    {
+		for (j = 0; j < sizeof(Meshes[i].TriangleIndices); ++j) {
+		    int32_t triangleIndex = Meshes[i].TriangleIndices[j];
+		    Triangle Tri = Triangles[triangleIndex];
+
+		    for (k = 0; k < 3; ++k) {
+			int32_t index = Tri.vertexIndices[k];
+
+			gl.Normal3v(Tri.vertexNormals[k]);
+			gl.TexCoord2(Tri.s[k], Tri.t[k]);
+			gl.Vertex3v(Vertices[index].location);
+		    }
+		}
+	    }
+	    gl.End();
+	}
+
+	if (texEnabled)
+	    gl.Enable(gl.TEXTURE_2D);
+	else
+	    gl.Disable(gl.TEXTURE_2D);
+    }
+
+    void reloadTextures() {
+	int32_t	i;
+	for (i = 0; i < sizeof(Materials); ++i)
+	    if (Materials[i].TextureFilename)
+		Materials[i].texture =
+		    LoadGLTexture(Materials[i].TextureFilename);
+	    else
+		Materials[i].texture = 0;
+    }
+};
+
+// File header
+class MS3DHeader {
+    uint8_t	ID[10];
+    int32_t	version[1];
+};
+
+// Vertex information
+class MS3DVertex {
+    uint8_t	flags[1];
+    float32_t	vertex[3];
+    uint8_t	boneID[1];
+    uint8_t	refCount[1];
+};
+
+// Triangle information
+class MS3DTriangle
+{
+    uint16_t	flags[1];
+    uint16_t	vertexIndices[3];
+    float32_t	vertexNormals[3][3];
+    float32_t	s[3], t[3];
+    uint8_t	smoothingGroup[1];
+    uint8_t	groupIndex[1];
+};
+
+// Material information
+class MS3DMaterial {
+    uint8_t	name[32];
+    float32_t	ambient[4];
+    float32_t	diffuse[4];
+    float32_t	specular[4];
+    float32_t	emissive[4];
+    float32_t	shininess[1];		// 0.0f - 128.0f
+    float32_t	transparency[1];	// 0.0f - 1.0f
+    uint8_t	mode[1];		// 0, 1, 2 is unused now
+    uint8_t	texture[128];
+    uint8_t	alphamap[128];
+};
+
+// Joint information
+class  MS3DJoint {
+    uint8_t	flags[1];
+    uint8_t	name[32];
+    uint8_t	parentName[32];
+    float32_t	rotation[3];
+    float32_t	translation[3];
+    uint16_t	numRotationKeyframes[1];
+    uint16_t	numTranslationKeyframes[1];
+};
+
+// Keyframe data
+class MS3DKeyframe {
+    float32_t	time[1];
+    float32_t	parameter[3];
+};
+
+string_t cstring(string_t vector) {
+    int32_t	i;
+    string_t	string;
+    for (i = 0; i < sizeof(vector); ++i)
+	if (vector[i] == '\0')
+	    break;
+    if (i == 0)
+	return null;
+    string = new uint8_t[i];
+    for (--i; i >= 0; --i)
+	string[i] = vector[i];
+    return string;
+}
+
+class MilkshapeModel : Model {
+    uint8_t loadModelData(string_t filename) {
+	int32_t		i, j;
+	uint8_t		vu8[1] = {};
+	uint16_t	vu16[1] = {};
+	auto file = open(filename, O_READ);
+	if (file == null)
+	    return false;
+
+	MS3DHeader H = {
+	    ID: {},
+	    version: {}
+	};
+	if (read(file, H.ID, 10) != 10 || H.ID != "MS3D000000") {
+	    print("Not a valid Milkshape3D model file.\n");
+	    goto fail;
+	}
+	if (read(file, H.version, 1) != 1 ||
+	    H.version[0] < 3 || H.version[0] > 4 ) {
+	    print("Unhandled file version. "
+		  "Only Milkshape3D Version 1.3 and 1.4 is supported.\n");
+	    goto fail;
+	}
+	if (read(file, vu16, 1) != 1)
+	    goto fail;
+	Vertices = new Vertex[vu16[0]];
+	MS3DVertex V = {
+	    flags: {},
+	    vertex: {},
+	    boneID: {},
+	    refCount: {}
+	};
+	for (i = 0; i < sizeof(Vertices); ++i) {
+	    if (read(file, V.flags, 1) != 1 ||
+		read(file, V.vertex, 3) != 3 ||
+		read(file, V.boneID, 1) != 1 ||
+		read(file, V.refCount, 1) != 1)
+		goto fail;
+	    Vertices[i] = {
+		boneID: V.boneID[0],
+		location: {
+		    V.vertex[0],
+		    V.vertex[1],
+		    V.vertex[2]
+		}
+	    };
+	};
+
+	if (read(file, vu16, 1) != 1)
+	    goto fail;
+	Triangles = new Triangle[vu16[0]];
+	MS3DTriangle T = {
+	    flags: {},
+	    vertexIndices: {},
+	    vertexNormals: { {}, {}, {} },
+	    s: {},
+	    t: {},
+	    smoothingGroup: {},
+	    groupIndex: {}
+	};
+	for (i = 0; i < sizeof(Triangles); ++i) {
+	    if (read(file, T.flags, 1) != 1 ||
+		read(file, T.vertexIndices, 3) != 3 ||
+		read(file, T.vertexNormals[0], 3) != 3 ||
+		read(file, T.vertexNormals[1], 3) != 3 ||
+		read(file, T.vertexNormals[2], 3) != 3 ||
+		read(file, T.s, 3) != 3 ||
+		read(file, T.t, 3) != 3 ||
+		read(file, T.smoothingGroup, 1) != 1 ||
+		read(file, T.groupIndex, 1) != 1)
+		goto fail;
+	    Triangles[i] = {
+		vertexNormals: {
+		    {
+			T.vertexNormals[0][0],
+			T.vertexNormals[0][1],
+			T.vertexNormals[0][2]
+		    },
+		    {
+			T.vertexNormals[1][0],
+			T.vertexNormals[1][1],
+			T.vertexNormals[1][2]
+		    },
+		    {
+			T.vertexNormals[2][0],
+			T.vertexNormals[2][1],
+			T.vertexNormals[2][2]
+		    }
+		},
+		s: {
+		    T.s[0],
+		    T.s[1],
+		    T.s[2]
+		},
+		t: {
+		    1.0 - T.t[0],
+		    1.0 - T.t[1],
+		    1.0 - T.t[2]
+		},
+		vertexIndices: {
+		    T.vertexIndices[0],
+		    T.vertexIndices[1],
+		    T.vertexIndices[2],
+		}
+	    };
+	}
+
+	if (read(file, vu16, 1) != 1)
+	    goto fail;
+	Meshes = new Mesh[vu16[0]];
+	MS3DJoint J = {
+	    flags: {},
+	    name: {}
+	};
+	for (i = 0; i < sizeof(Meshes); ++i) {
+	    /* just skip */
+	    if (read(file, J.flags, 1) != 1)
+		goto fail;
+	    if (read(file, J.name, 32) != 32)
+		goto fail;
+	    /* num triangles */
+	    if (read(file, vu16, 1) != 1)
+		goto fail;
+	    int32_t TriangleIndices[] = new int32_t[vu16[0]];
+	    for (j = 0; j < sizeof(TriangleIndices); ++j) {
+		if (read(file, vu16, 1) != 1)
+		    goto fail;
+		TriangleIndices[j] = vu16[0];
+	    }
+	    if (read(file, vu8, 1) != 1)
+		goto fail;
+	    Meshes[i] = {
+		materialIndex: vu8[0],
+		TriangleIndices: TriangleIndices
+	    };
+	}
+
+	if (read(file, vu16, 1) != 1)
+	    goto fail;
+	Materials = new Material[vu16[0]];
+	MS3DMaterial M = {
+	    name: {},
+	    ambient: {},
+	    diffuse: {},
+	    specular: {},
+	    emissive: {},
+	    shininess: {},
+	    transparency: {},
+	    mode: {},
+	    texture: {},
+	    alphamap: {}
+	};
+	for (i = 0; i < sizeof(Materials); ++i)	{
+	    if (read(file, M.name, 32) != 32 ||
+		read(file, M.ambient, 4) != 4 ||
+		read(file, M.diffuse, 4) != 4 ||
+		read(file, M.specular, 4) != 4 ||
+		read(file, M.emissive, 4) != 4 ||
+		read(file, M.shininess, 1) != 1 ||
+		read(file, M.transparency, 1) != 1 ||
+		read(file, M.mode, 1) != 1 ||
+		read(file, M.texture, 128) != 128 ||
+		read(file, M.alphamap, 128) != 128)
+		goto fail;
+	    Materials[i] = {
+		ambient: {
+		    M.ambient[0],
+		    M.ambient[1],
+		    M.ambient[2],
+		    M.ambient[3],
+		},
+		diffuse: {
+		    M.diffuse[0],
+		    M.diffuse[1],
+		    M.diffuse[2],
+		    M.diffuse[3],
+		},
+		specular: {
+		    M.specular[0],
+		    M.specular[1],
+		    M.specular[2],
+		    M.specular[3],
+		},
+		emissive: {
+		    M.emissive[0],
+		    M.emissive[1],
+		    M.emissive[2],
+		    M.emissive[3],
+		},
+		shininess: M.shininess[0],
+		TextureFilename: cstring(M.texture)
+	    };
+	}
+
+	reloadTextures();
+
+	close(file);
+	return true;
+    fail:
+	close(file);
+	return false;
+    }
+};
+
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+MilkshapeModel		model;
+float64_t		yrot;		// Y Rotation
+
+uint32_t LoadGLTexture(string_t name) {
+    sdl.surface_t	surface;
+
+    if ((surface = sdl.load_surface(name))) {
+	uint32_t	texture[1] = {};
+
+	/* create the texture */
+	gl.GenTextures(texture);
+        gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+	/* actually generate the texture */
+        sdl.gl.TexImage2D(surface);
+        /* enable linear filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.free_surface(surface);
+
+	return texture[0];
+    }
+    print("failed to load texture %#s\n", name);
+
+    return 0;
+}
+
+void ReSizeGLScene() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(45.0, win.w / win.h, 0.1, 1000.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+}
+
+void InitGL() {
+    model.reloadTextures();	// Loads Model Textures
+
+    gl.Enable(gl.TEXTURE_2D);	// Enable Texture Mapping ( NEW )
+    gl.ShadeModel(gl.SMOOTH);	// Enable Smooth Shading
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);// Black Background
+    gl.ClearDepth(1.0);		// Depth Buffer Setup
+    gl.Enable(gl.DEPTH_TEST);	// Enables Depth Testing
+    gl.DepthFunc(gl.LEQUAL);		// The Type Of Depth Testing To Do
+    // Really Nice Perspective Calculations
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    ReSizeGLScene();
+    gl.Flush();
+}
+
+void DrawGLScene() {
+    // Clear The Screen And The Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();	// Reset The Modelview Matrix
+    // (3) Eye Postion (3) Center Point (3) Y-Axis Up Vector
+    glu.LookAt(75, 75, 75, 0, 0, 0, 0, 1, 0);
+
+    // Rotate On The Y-Axis By yrot
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+
+    model.draw();		// Draw The Model
+
+    yrot += 0.3;		// Increase yrot By One
+
+    sdl.gl.swap_window(win);
+}
+
+void EventLoop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReSizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventMouseButtonDown:
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	DrawGLScene();
+    }
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson31",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("\
+Esc:		Exit\n");
+
+    model = new MilkshapeModel;
+    model.loadModelData("nehe/lesson31/model.ms3d");
+    InitGL();
+    EventLoop();
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

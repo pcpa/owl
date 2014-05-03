@@ -1,0 +1,328 @@
+#define O_READ		1
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+float64_t xrot, yrot, zrot;
+float64_t xspeed, yspeed, zspeed;
+float64_t cx, cy, cz = -15;
+int32_t key = 1;
+int32_t step = 0,steps = 200;
+uint8_t morph = false;
+/* Build Our Triangle Structure */
+class object_t {
+    float64_t points[][3];
+};
+int32_t maxver;
+object_t morph1, morph2, morph3, morph4, helper, sour, dest;
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson25",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+string_t readstr(auto f, string_t string) {
+    while (fgets(f, string)) {
+	if (sizeof(string) && string[0] != '/' && string[0] != '\n')
+	    return string;
+    }
+    exit(1);
+    return null;
+}
+
+object_t objload(string_t name) {
+    object_t k = new object_t;
+    int32_t i, ver, vec[1] = {};
+    auto filein;
+    string_t oneline = {};
+
+    if ((filein = open(name, O_READ)) == null) {
+	print("failed to open file: %s\n", name);
+	exit(1);
+    }
+
+    readstr(filein, oneline);
+    scanf(oneline, "Vertices: %d\n", vec);
+    ver = vec[0];
+    k.points = new auto[ver];
+    for (i = 0; i < ver; ++i) {
+	readstr(filein, oneline);
+	k.points[i] = new float64_t[3];
+	scanf(oneline, "%f %f %f", k.points[i]);
+    }
+    close(filein);
+    if (ver > maxver)
+	maxver = ver;
+    return k;
+}
+
+void resize() {
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+/* Calculates Movement Of Points During Morphing */
+void calculate(int32_t i, float64_t a[3]) {
+    /* a Value Equals Source value - Destination x Divided By Steps */
+    a[0]= (sour.points[i][0] - dest.points[i][0]) / steps;
+    a[1]= (sour.points[i][1] - dest.points[i][1]) / steps;
+    a[2]= (sour.points[i][2] - dest.points[i][2]) / steps;
+}
+
+void init() {
+    int32_t i;
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+    gl.ClearDepth(1.0);
+    gl.DepthFunc(gl.LESS);
+    gl.Enable(gl.DEPTH_TEST);
+    gl.ShadeModel(gl.SMOOTH);
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    maxver = 0;
+    morph1 = objload("nehe/lesson25/Sphere.txt");
+    morph2 = objload("nehe/lesson25/Torus.txt");
+    morph3 = objload("nehe/lesson25/Tube.txt");
+
+    morph4 = new object_t;
+    morph4.points = new auto[486];
+    for(i = 0; i < 486; ++i) {
+	morph4.points[i] =  {
+	    (rand() % 14000) / 1000.0 - 7,
+	    (rand() % 14000) / 1000.0 - 7,
+	    (rand() % 14000) / 1000.0 - 7
+	};
+    }
+
+    helper = objload("nehe/lesson25/Sphere.txt");
+    sour = dest= morph1;
+}
+
+void draw() {
+    int32_t i;
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();
+    gl.Translate(cx, cy, cz);
+    gl.Rotate(xrot, 1, 0, 0);
+    gl.Rotate(yrot, 0, 1, 0);
+    gl.Rotate(zrot, 0, 0, 1);
+
+    xrot += xspeed; yrot += yspeed; zrot += zspeed;
+
+    float64_t tx, ty, tz;
+    float64_t q[3] = {};
+    gl.Begin(gl.POINTS);
+    for(i = 0; i < sizeof(morph1.points); ++i) {
+	/* If morph Is True Calculate Movement Otherwise Movement=0 */
+	if (morph)
+	    calculate(i, q);
+	else
+	    q[0] = q[1] = q[2] = 0;
+	/* Subtract q Units From helper.points[i] (Move On X/Y/Z Axis) */
+	helper.points[i][0] -= q[0];
+	helper.points[i][1] -= q[1];
+	helper.points[i][2] -= q[2];
+
+	tx = helper.points[i][0];
+	ty = helper.points[i][1];
+	tz = helper.points[i][2];
+
+	gl.Color3(0, 1, 1);
+	gl.Vertex3(tx, ty, tz);
+	gl.Color3(0, 0.5, 1);
+	/* Calculate Two Positions Ahead */
+	tx -= 2 * q[0];
+	ty -= 2 * q[1];
+	tz -= 2 * q[2];
+	/* Draw A Second Point At The Newly Calculate Position */
+	gl.Vertex3(tx, ty, tz);
+	gl.Color3(0, 0, 1);
+	/* Calculate Two More Positions Ahead */
+	tx -= 2 * q[0];
+	ty -= 2 * q[1];
+	tz -= 2 * q[2];
+	gl.Vertex3(tx, ty, tz);
+    }
+    gl.End();
+
+    /* If We're Morphing And We Haven't Gone Through All 200 Steps Increase Our Step Counter
+     * Otherwise Set Morphing To False, Make Source=Destination And Set The Step Counter Back To Zero.
+     */
+    if (morph && step <= steps)
+	++step;
+    else {
+	morph = false;
+	sour = dest;
+	step = 0;
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void events() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_PageUp:
+			    zspeed += 0.01;
+			    break;
+			case sdl.Key_PageDown:
+			    zspeed -= 0.01;
+			    break;
+			case sdl.Key_Down:
+			    xspeed += 0.01;
+			    break;
+			case sdl.Key_Up:
+			    xspeed -= 0.01;
+			    break;
+			case sdl.Key_Right:
+			    yspeed += 0.01;
+			    break;
+			case sdl.Key_Left:
+			    yspeed -= 0.01;
+			    break;
+			case sdl.Key_q:
+			    cz -= 0.01;
+			    break;
+			case sdl.Key_z:
+			    cz += 0.01;
+			    break;
+			case sdl.Key_w:
+			    cy += 0.01;
+			    break;
+			case sdl.Key_s:
+			    cy -= 0.01;
+			    break;
+			case sdl.Key_d:
+			    cx += 0.01;
+			    break;
+			case sdl.Key_a:
+			    cx -= 0.01;
+			    break;
+			case sdl.Key_1:
+			    if (key != 1 && !morph) {
+				key = 1;
+				morph = true;
+				dest = morph1;
+			    }
+			    break;
+			case sdl.Key_2:
+			    if(key != 2 && !morph) {
+				key = 2;
+				morph = true;
+				dest = morph2;
+			    }
+			    break;
+			case sdl.Key_3:
+			    if(key != 3 && !morph) {
+				key = 3;
+				morph = true;
+				dest = morph3;
+			    }
+			    break;
+			case sdl.Key_4:
+			    if(key != 4 && !morph) {
+				key = 4;
+				morph = true;
+				dest = morph4;
+			    }
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+Up:		Decrease X speed\n\
+Down:		Increase X speed\n\
+Left:		Increase Y speed\n\
+Right:		Decrease Y speed\n\
+PageUp:		Increase Z speed\n\
+PageDown:	Decrease Z speed\n\
+z:		Zoom in\n\
+q:		Zoom out\n\
+w:		Move object up\n\
+s:		Move object down\n\
+d:		Move object right\n\
+a:		Move object left\n\
+1:		Morph into sphere\n\
+2:		Morph into torus\n\
+3:		Morph into tube\n\
+4:		Morph into random vertices\n");
+init_all();
+init();
+resize();
+events();
+finish_all();

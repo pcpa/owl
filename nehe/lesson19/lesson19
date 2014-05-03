@@ -1,0 +1,486 @@
+/* Max number of particles */
+#define MAX_PARTICLES	1000
+
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+/* Toggle rainbow effect */
+uint8_t rainbow = true;
+
+/* Slow Down Particles */
+float64_t slowdown = 2.0;
+/* Base X Speed (To Allow Keyboard Direction Of Tail) */
+float64_t xspeed;		
+/* Base Y Speed (To Allow Keyboard Direction Of Tail) */
+float64_t yspeed;
+/* Used To Zoom Out */
+float64_t zoom = -40.0;
+
+/* Misc Loop Variable */
+uint32_t loop;
+/* Current Color Selection */
+uint32_t col;
+/* Rainbow Effect Delay */
+uint32_t delay;
+/* Storage For Our Particle Texture */
+uint32_t texture[1] = {};
+
+/* Create our particle structure */
+class particle {
+    uint8_t	active;	/* Active (Yes/No)	*/
+    float64_t	life;	/* Particle Life	*/
+    float64_t	fade;	/* Fade Speed		*/
+
+    float32_t r;	/* Red Value		*/
+    float32_t g;	/* Green Value		*/
+    float32_t b;	/* Blue Value		*/
+
+    float64_t x;	/* X Position		*/
+    float64_t y;	/* Y Position		*/
+    float64_t z;	/* Z Position		*/
+
+    float64_t xi;	/* X Direction		*/
+    float64_t yi;	/* Y Direction		*/
+    float64_t zi;	/* Z Direction		*/
+
+    float64_t xg;	/* X Gravity		*/
+    float64_t yg;	/* Y Gravity		*/
+    float64_t zg;	/* Z Gravity		*/
+};
+
+/* Rainbow of colors */
+float32_t colors[12][3] = {
+    { 1.0,  0.5,  0.5 },
+    { 1.0,  0.75, 0.5 },
+    { 1.0,  1.0,  0.5 },
+    { 0.75, 1.0,  0.5 },
+    { 0.5,  1.0,  0.5 },
+    { 0.5,  1.0,  0.75 },
+    { 0.5,  1.0,  1.0 },
+    { 0.5,  0.75, 1.0 },
+    { 0.5,  0.5,  1.0 },
+    { 0.75, 0.5,  1.0 },
+    { 1.0,  0.5,  1.0 },
+    { 1.0,  0.5,  0.75 }
+};
+
+/* Our beloved array of particles */
+particle particles[MAX_PARTICLES] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson19",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t srf;
+    if ((srf = sdl.load_surface("nehe/lesson19/particle.bmp")) == null) {
+	print("load_surface error: %s\n", sdl.get_error());
+	exit(1);
+    }
+
+    /* Create The Texture */
+    gl.GenTextures(texture);
+
+    /* Load in texture 1 */
+    /* Typical Texture Generation Using Data From The Bitmap */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Generate The Texture */
+    sdl.gl.TexImage2D(srf);
+
+    /* Linear Filtering */
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    sdl.free_surface(srf);
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 200.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+/* function to reset one particle to initial state */
+/* NOTE: I added this function to replace doing the same thing in several
+ * places and to also make it easy to move the pressing of numpad keys
+ * 2, 4, 6, and 8 into handleKeyPress function.
+ */
+void ResetParticle(int32_t n, int32_t color,
+		   float64_t xDir, float64_t yDir, float64_t zDir) {
+    /* Make the particels active */
+    particles[n].active = true;
+    /* Give the particles life */
+    particles[n].life = 1.0;
+    /* Random Fade Speed */
+    particles[n].fade = (rand() % 100) / 1000.0 + 0.003;
+    /* Select Red Rainbow Color */
+    particles[n].r = colors[color][0];
+    /* Select Green Rainbow Color */
+    particles[n].g = colors[color][1];
+    /* Select Blue Rainbow Color */
+    particles[n].b = colors[color][2];
+    /* Set the position on the X axis */
+    particles[n].x = 0.0;
+    /* Set the position on the Y axis */
+    particles[n].y = 0.0;
+    /* Set the position on the Z axis */
+    particles[n].z = 0.0;
+    /* Random Speed On X Axis */
+    particles[n].xi = xDir;
+    /* Random Speed On Y Axi */
+    particles[n].yi = yDir;
+    /* Random Speed On Z Axis */
+    particles[n].zi = zDir;
+    /* Set Horizontal Pull To Zero */
+    particles[n].xg = 0.0;
+    /* Set Vertical Pull Downward */
+    particles[n].yg = -0.8;
+    /* Set Pull On Z Axis To Zero */
+    particles[n].zg = 0.0;
+}
+
+void init() {
+    init_texture();
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Disable(gl.DEPTH_TEST);
+
+    /* Enable Blending */
+    gl.Enable(gl.BLEND);
+    /* Type Of Blending To Perform */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+    /* Really Nice Point Smoothing */
+    gl.Hint(gl.POINT_SMOOTH_HINT, gl.NICEST);
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+    /* Select Our Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Reset all the particles */
+    for (loop = 0; loop < MAX_PARTICLES; ++loop) {
+	int32_t color = (loop + 1) \ MAX_PARTICLES % 12;
+	float64_t xi, yi, zi;
+	xi =  ((rand() % 50) - 26.0) * 10.0;
+	yi = zi = ((rand() % 50) - 25.0) * 10.0;
+	particles[loop] = new particle;
+	ResetParticle(loop, color, xi, yi, zi);
+    }
+}
+
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.LoadIdentity();
+
+    /* Modify each of the particles */
+    for (loop = 0; loop < MAX_PARTICLES; ++loop) {
+	if (particles[loop].active) {
+	    /* Grab Our Particle X Position */
+	    float64_t x = particles[loop].x;
+	    /* Grab Our Particle Y Position */
+	    float64_t y = particles[loop].y;
+	    /* Particle Z Position + Zoom */
+	    float64_t z = particles[loop].z + zoom;
+
+	    /* Draw The Particle Using Our RGB Values,
+	     * Fade The Particle Based On It's Life
+	     */
+	    gl.Color4(particles[loop].r,
+		      particles[loop].g,
+		      particles[loop].b,
+		      particles[loop].life);
+
+	    /* Build Quad From A Triangle Strip */
+	    gl.Begin(gl.TRIANGLE_STRIP); {
+		/* Top Right */
+		gl.TexCoord2(1, 1);
+		gl.Vertex3(x + 0.5, y + 0.5, z);
+		/* Top Left */
+		gl.TexCoord2(0, 1);
+		gl.Vertex3(x - 0.5, y + 0.5, z);
+		/* Bottom Right */
+		gl.TexCoord2(1, 0);
+		gl.Vertex3(x + 0.5, y - 0.5, z);
+		/* Bottom Left */
+		gl.TexCoord2(0, 0);
+		gl.Vertex3(x - 0.5, y - 0.5, z);
+	    }
+	    gl.End();
+
+	    /* Move On The X Axis By X Speed */
+	    particles[loop].x += particles[loop].xi / (slowdown * 1000);
+	    /* Move On The Y Axis By Y Speed */
+	    particles[loop].y += particles[loop].yi / (slowdown * 1000);
+	    /* Move On The Z Axis By Z Speed */
+	    particles[loop].z += particles[loop].zi / (slowdown * 1000);
+
+	    /* Take Pull On X Axis Into Account */
+	    particles[loop].xi += particles[loop].xg;
+	    /* Take Pull On Y Axis Into Account */
+	    particles[loop].yi += particles[loop].yg;
+	    /* Take Pull On Z Axis Into Account */
+	    particles[loop].zi += particles[loop].zg;
+
+	    /* Reduce Particles Life By 'Fade' */
+	    particles[loop].life -= particles[loop].fade;
+
+	    /* If the particle dies, revive it */
+	    if (particles[loop].life < 0.0) {
+		float64_t xi, yi, zi;
+		xi = xspeed + ((rand() % 60) - 32.0);
+		yi = yspeed + ((rand() % 60) - 30.0);
+		zi = (rand() % 60) - 30.0;
+		ResetParticle(loop, col, xi, yi, zi);
+	    }
+	}
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void event_loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Plus:
+			case sdl.Key_KP_Plus:
+			    /* '+' key was pressed
+			     * this speeds up the particles
+			     */
+			    if (slowdown > 1.0)
+				slowdown -= 0.01;
+			    break;
+			case sdl.Key_Minus:
+			case sdl.Key_KP_Minus:
+			    /* '-' key was pressed
+			     * this slows down the particles
+			     */
+			    if ( slowdown < 4.0)
+				slowdown += 0.01;
+			case sdl.Key_PageUp:
+			    /* PageUp key was pressed
+			     * this zooms into the scene
+			     */
+			    zoom += 0.01;
+			    break;
+			case sdl.Key_PageDown:
+			    /* PageDown key was pressed
+			     * this zooms out of the scene
+			     */
+			    zoom -= 0.01;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this increases the particles' y movement
+			     */
+			    if (yspeed < 200.0)
+				yspeed++;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this decreases the particles' y movement
+			     */
+			    if (yspeed > -200.0)
+				yspeed--;
+			    break;
+			case sdl.Key_Right:
+			    /* Right arrow key was pressed
+			     * this increases the particles' x movement
+			     */
+			    if (xspeed < 200.0)
+				xspeed++;
+			    break;
+			case sdl.Key_Left:
+			    /* Left arrow key was pressed
+			     * this decreases the particles' x movement
+			     */
+			    if (xspeed > -200.0)
+				xspeed--;
+			    break;
+			case sdl.Key_8:
+			case sdl.Key_KP_8:
+			    /* NumPad 8 key was pressed
+			     * increase particles' y gravity
+			     */
+			    for (loop = 0; loop < MAX_PARTICLES; ++loop)
+				if (particles[loop].yg < 1.5)
+				    particles[loop].yg += 0.01;
+			    break;
+			case sdl.Key_2:
+			case sdl.Key_KP_2:
+			    /* NumPad 2 key was pressed
+			     * decrease particles' y gravity
+			     */
+			    for (loop = 0; loop < MAX_PARTICLES; ++loop)
+				if (particles[loop].yg > -1.5)
+				    particles[loop].yg -= 0.01;
+			    break;
+			case sdl.Key_6:
+			case sdl.Key_KP_6:
+			    /* NumPad 6 key was pressed
+			     * this increases the particles' x gravity
+			     */
+			    for (loop = 0; loop < MAX_PARTICLES; ++loop)
+				if (particles[loop].xg < 1.5)
+				    particles[loop].xg += 0.01;
+			    break;
+			case sdl.Key_4:
+			case sdl.Key_KP_4:
+			    /* NumPad 4 key was pressed
+			     * this decreases the particles' y gravity
+			     */
+			    for (loop = 0; loop < MAX_PARTICLES; ++loop)
+				if (particles[loop].xg > -1.5)
+				    particles[loop].xg -= 0.01;
+			    break;
+			case sdl.Key_Tab:
+			    /* Tab key was pressed
+			     * this resets the particles and makes them re-explode
+			     */
+			    for (loop = 0; loop < MAX_PARTICLES; ++loop) {
+				int32_t color = (loop + 1) \ MAX_PARTICLES % 12;
+				float64_t xi, yi, zi;
+				xi = ((rand() % 50) - 26.0) * 10.0;
+				yi = zi = ((rand() % 50) - 25.0) * 10.0;
+
+				ResetParticle(loop, color, xi, yi, zi);
+			    }
+			    break;
+			case sdl.Key_Return:
+			    /* Return key was pressed
+			     * this toggles the rainbow color effect
+			     */
+			    rainbow = !rainbow;
+			    delay = 25;
+			    break;
+			case sdl.Key_Space:
+			    /* Spacebar was pressed
+			     * this turns off rainbow-ing and manually cycles through colors
+			     */
+			    rainbow = false;
+			    delay = 0;
+			    ++col;
+			    col %= 12;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	if (rainbow && (delay > 25)) {
+	    ++col;
+	    col %= 12;
+	}
+	draw();
+	++delay;
+    }
+}
+    
+void finish_all() {
+    gl.DeleteTextures(texture);
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
++:		Speed up particles\n\
+-:		Slow down particles\n\
+PageUp:		Zoom in\n\
+PageDown:	Zoom out\n\
+Up:		Increase particles Y movement\n\
+Down:		Decrease particles Y movement\n\
+Left:		Increase particles X movement\n\
+Right:		Decrease particles X movement\n\
+8:		Increase particles Y gravity\n\
+9:		Decrease particles Y gravity\n\
+6:		Increase particles X gravity\n\
+4:		Decrease particles X gravity\n\
+Tab:		Reset and re-explode particles\n\
+Return:		Toggle rainbow\n\
+Space:		Turn off rainbow and cycle through colors\n");
+init_all();
+init();
+resize();
+event_loop();
+finish_all();

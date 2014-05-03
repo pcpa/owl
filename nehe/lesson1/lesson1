@@ -1,0 +1,131 @@
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson1",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init() {
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+/* These are to calculate our fps */
+int32_t T0, Frames;
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.LoadIdentity();
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+
+    /* Gather our frames per second */
+    ++Frames;
+    int32_t t = sdl.get_ticks();
+    if (t - T0 >= 5000) {
+	float64_t seconds = (t - T0) / 1000.0;
+	float64_t fps = Frames / seconds;
+	print("%d frames in %.7f seconds = %.7f FPS\n", Frames, seconds, fps);
+	T0 = t;
+	Frames = 0;
+    }
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("Esc: 		Exit\n");
+init_all();
+init();
+resize();
+loop();
+finish_all();

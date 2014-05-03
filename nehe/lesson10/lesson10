@@ -1,0 +1,417 @@
+#define O_READ		1
+
+/* Build Our Vertex Structure */
+class vertex_t {
+    float64_t x, y, z;	/* 3D Coordinates */
+    float64_t u, v;	/* Texture Coordinates */
+};
+
+/* Build Our Triangle Structure */
+class triangle_t {
+    vertex_t vertex[3];	/* Array Of Three Vertices */
+};
+
+/* Build Our Sector Structure */
+class sector_t {
+    triangle_t triangle[];	/* Pointer To Array Of Triangles */
+};
+
+sector_t sector1 = {};	/* Our sector */
+
+float64_t yrot;		/* Camera rotation variable */
+float64_t xpos, zpos;	/* Camera pos variable */
+
+float64_t walkbias, walkbiasangle;	/* Head-bobbing variables */
+float64_t lookupdown;
+
+/* Ambient Light Values */
+float32_t LightAmbient[]  = { 0.5, 0.5, 0.5, 1.0 };
+/* Diffuse Light Values */
+float32_t LightDiffuse[]  = { 1.0, 1.0, 1.0, 1.0 };
+/* Light Position */
+float32_t LightPosition[] = { 0.0, 0.0, 2.0, 1.0 };
+
+/* constant used for converting to radians */
+#define piover180	0.0174532925
+
+uint32_t filter;		/* Which Filter To Use */
+uint32_t texture[3] = {};	/* Storage for 3 textures */
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson10",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t srf;
+    srf = sdl.load_surface("nehe/lesson10/mud.bmp");
+    if (srf != null) {
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Load in texture 1 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Nearest Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.NEAREST);
+
+	/* Load in texture 2 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+
+	/* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Load in texture 3 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[2]);
+
+	/* Mipmapped Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_NEAREST );
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	/* Generate The MipMapped Texture */
+	sdl.pull_surface(srf);
+	glu.Build2DMipmaps(gl.TEXTURE_2D, srf.w, srf.h,
+			   gl.RGB, srf.pixels);
+
+	sdl.free_surface(srf);
+    }
+}
+
+string_t readstr(auto f, string_t string) {
+    while (fgets(f, string)) {
+	if (sizeof(string) && string[0] != '/' && string[0] != '\n')
+	    return string;
+    }
+    exit(1);
+    return null;
+}
+
+void setup(string_t file) {
+    auto filein;
+    int32_t numTriangles;
+    string_t oneLine = {};
+
+    int32_t triLoop;	/* Triangle loop variable */
+    int32_t verLoop;	/* Vertex loop variable */
+
+    if ((filein = open(file, O_READ))) {
+	int32_t ntrec[1] = {};
+	float64_t rec[5] = {};
+
+	if ((oneLine = readstr(filein, oneLine))) {
+	    if (scanf(oneLine, "NUMPOLLIES %d\n", ntrec)) {
+		numTriangles = ntrec[0];
+		sector1.triangle = new triangle_t[numTriangles];
+
+		for (triLoop = 0; triLoop < numTriangles; ++triLoop) {
+		    sector1.triangle[triLoop] = new triangle_t;
+		    sector1.triangle[triLoop].vertex = new vertex_t[3];
+		    for (verLoop = 0; verLoop < 3; ++verLoop) {
+			if ((oneLine = readstr(filein, oneLine)) &&
+			    scanf(oneLine, "%f %f %f %f %f\n", rec) == 5) {
+			    sector1.triangle[triLoop].vertex[verLoop] = {
+				x: rec[0],
+				y: rec[1],
+				z: rec[2],
+				u: rec[3],
+				v: rec[4],
+			    };
+			}
+		    }
+		}
+	    }
+	}
+
+	close(filein);
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    init_texture();
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Setup The Ambient Light */
+    gl.Lightv(gl.LIGHT1, gl.AMBIENT, LightAmbient);
+
+    /* Setup The Diffuse Light */
+    gl.Lightv(gl.LIGHT1, gl.DIFFUSE, LightDiffuse);
+
+    /* Position The Light */
+    gl.Lightv(gl.LIGHT1, gl.POSITION, LightPosition);
+
+    /* Enable Light One */
+    gl.Enable(gl.LIGHT1);
+
+    lookupdown    = 0.0;
+    walkbias      = 0.0;
+    walkbiasangle = 0.0;
+    
+    /* Full Brightness, 50% Alpha */
+    gl.Color4(1.0, 1.0, 1.0, 0.5);
+
+    /* Blending Function For Translucency Based On Source Alpha Value */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+}
+
+void draw() {
+    /* Floating Point For Temp X, Y, Z, U And V Vertices */
+    float64_t x_m, y_m, z_m, u_m, v_m;
+    /* Used For Player Translation On The X Axis */
+    float64_t xtrans = -xpos;
+    /* Used For Player Translation On The Z Axis */
+    float64_t ztrans = -zpos;
+    /* Used For Bouncing Motion Up And Down */
+    float64_t ytrans = -walkbias - 0.25;
+    /* 360 Degree Angle For Player Direction */
+    float64_t sceneroty = 360.0 - yrot;
+
+    /* Loop variable */
+    int32_t loop_m;
+
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.LoadIdentity();
+
+    /* Rotate Up And Down To Look Up And Down */
+    gl.Rotate(lookupdown, 1.0, 0.0, 0.0);
+    /* Rotate Depending On Direction Player Is Facing */
+    gl.Rotate(sceneroty, 0.0, 1.0, 0.0);
+
+    /* Translate The Scene Based On Player Position */
+    gl.Translate(xtrans, ytrans, ztrans);
+    /* Select A Texture Based On filter */
+    gl.BindTexture(gl.TEXTURE_2D, texture[filter]);
+
+    /* Process Each Triangle */
+    for (loop_m = 0; loop_m < sizeof(sector1.triangle); ++loop_m) {
+	/* Start Drawing Triangles */
+	gl.Begin(gl.TRIANGLES);
+	{
+	    /* Normal Pointing Forward */
+	    gl.Normal3(0.0, 0.0, 1.0);
+	    /* X Vertex Of 1st Point */
+	    x_m = sector1.triangle[loop_m].vertex[0].x;
+	    /* Y Vertex Of 1st Point */
+	    y_m = sector1.triangle[loop_m].vertex[0].y;
+	    /* Z Vertex Of 1st Point */
+	    z_m = sector1.triangle[loop_m].vertex[0].z;
+	    /* U Texture Coord Of 1st Point */
+	    u_m = sector1.triangle[loop_m].vertex[0].u;
+	    /* V Texture Coord Of 1st Point */
+	    v_m = sector1.triangle[loop_m].vertex[0].v;
+
+	    /* Set The TexCoord And Vertice */
+	    gl.TexCoord2(u_m, v_m);
+	    gl.Vertex3(x_m, y_m, z_m);
+
+	    /* X Vertex Of 2nd Point */
+	    x_m = sector1.triangle[loop_m].vertex[1].x;
+	    /* Y Vertex Of 2nd Point */
+	    y_m = sector1.triangle[loop_m].vertex[1].y;
+	    /* Z Vertex Of 2nd Point */
+	    z_m = sector1.triangle[loop_m].vertex[1].z;
+	    /* U Texture Coord Of 2nd Point */
+	    u_m = sector1.triangle[loop_m].vertex[1].u;
+	    /* V Texture Coord Of 2nd Point */
+	    v_m = sector1.triangle[loop_m].vertex[1].v;
+
+	    /* Set The TexCoord And Vertice */
+	    gl.TexCoord2(u_m, v_m);
+	    gl.Vertex3(x_m, y_m, z_m);
+
+	    /* X Vertex Of 3rd Point */
+	    x_m = sector1.triangle[loop_m].vertex[2].x;
+	    /* Y Vertex Of 3rd Point */
+	    y_m = sector1.triangle[loop_m].vertex[2].y;
+	    /* Z Vertex Of 3rd Point */
+	    z_m = sector1.triangle[loop_m].vertex[2].z;
+	    /*  Texture Coord Of 3rd Point */
+	    u_m = sector1.triangle[loop_m].vertex[2].u;
+	    /* V Texture Coord Of 3rd Point */
+	    v_m = sector1.triangle[loop_m].vertex[2].v;
+
+	    /* Set The TexCoord And Vertice */
+	    gl.TexCoord2(u_m, v_m);
+	    gl.Vertex3(x_m, y_m, z_m);
+	}
+	gl.End();
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void events() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Right:
+			    /* Right arrow key was pressed
+			     * this effectively turns the camera right, but does it by
+			     * rotating the scene left
+			     */
+			    yrot -= 1.5;
+			    break;
+			case sdl.Key_Left:
+			    /* Left arrow key was pressed
+			     * this effectively turns the camera left, but does it by
+			     * rotating the scene right
+			     */
+			    yrot += 1.5;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this moves the player forward
+			     */
+			    /* Move On The X-Plane Based On Player Direction */
+			    xpos -= sin(yrot * piover180) * 0.05;
+			    /* Move On The Z-Plane Based On Player Direction */
+			    zpos -= cos(yrot * piover180) * 0.05;
+			    if (walkbiasangle >= 359.0)
+				walkbiasangle = 0.0;
+			    else
+				walkbiasangle += 10;
+
+			    /* Causes the player to bounce */
+			    walkbias = sin(walkbiasangle * piover180) / 20.0;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this causes the player to move backwards
+			     */
+			    /* Move On The X-Plane Based On Player Direction */
+			    xpos += sin(yrot * piover180) * 0.05;
+			    /* Move On The Z-Plane Based On Player Direction */
+			    zpos += cos(yrot * piover180) * 0.05;
+			    if (walkbiasangle <= 1.0)
+		                walkbiasangle = 359.0;
+			    else
+		                walkbiasangle -= 10;
+
+			    walkbias = sin(walkbiasangle * piover180) / 20.0;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+Left:		Turn left\n\
+Right:		Turn right\n\
+Up:		Move forward\n\
+Down:		Move backward\n");
+init_all();
+init();
+setup("nehe/lesson10/world.txt");
+resize();
+events();
+finish_all();

@@ -1,0 +1,1140 @@
+/* Maximum Emboss-Translate. Increase To Get Higher Immersion */
+#define MAX_EMBOSS	0.01
+
+float64_t xrot;			/* X Rotation */
+float64_t yrot;			/* Y Rotation */
+float64_t zrot;			/* Z Rotation */
+float64_t xspeed;		/* X Rotation Speed */
+float64_t yspeed;		/* Y Rotation Speed */
+float64_t z = -5.0;		/* Depth into the screen */
+
+uint32_t filter = 1;		/* Which Filter To Use */
+uint32_t texture[3] = {};	/* Storage For Textures */
+uint32_t bump[3] = {};		/* Our Bumpmappings */
+uint32_t invbump[3] = {};	/* Inverted Bumpmaps */
+uint32_t glLogo[1] = {};	/* Handle For OpenGL-Logo */
+uint32_t multiLogo[1] = {};	/* Handle For Multitexture-Enabled-Logo */
+
+uint8_t emboss = false;
+uint8_t bumps = true;
+
+/* Our Lights */
+/* Ambient Light Is 20% White */
+float32_t LightAmbient[]  = { 0.2, 0.2, 0.2, 0.0 };
+/* Diffuse Light Is White */
+float32_t LightDiffuse[]  = { 1.0, 1.0, 1.0, 0.0 };
+/* Position Is Somewhat In Front Of Screen */
+float32_t LightPosition[] = { 0.0, 0.0, 2.0, 0.0 };
+float32_t Gray[]          = { 0.5, 0.5, 0.5, 1.0 };
+
+/* Data we'll use to generate our cube */
+float64_t data[]= {
+    /* Front Face */
+    0.0, 0.0,		-1.0, -1.0, +1.0,
+    1.0, 0.0,		+1.0, -1.0, +1.0,
+    1.0, 1.0,		+1.0, +1.0, +1.0,
+    0.0, 1.0,		-1.0, +1.0, +1.0,
+    /* Back Face */
+    1.0, 0.0,		-1.0, -1.0, -1.0,
+    1.0, 1.0,		-1.0, +1.0, -1.0,
+    0.0, 1.0,		+1.0, +1.0, -1.0,
+    0.0, 0.0,		+1.0, -1.0, -1.0,
+    /* Top Face */
+    0.0, 1.0,		-1.0, +1.0, -1.0,
+    0.0, 0.0,		-1.0, +1.0, +1.0,
+    1.0, 0.0,		+1.0, +1.0, +1.0,
+    1.0, 1.0,		+1.0, +1.0, -1.0,
+    /* Bottom Face */
+    1.0, 1.0,		-1.0, -1.0, -1.0,
+    0.0, 1.0,		+1.0, -1.0, -1.0,
+    0.0, 0.0,		+1.0, -1.0, +1.0,
+    1.0, 0.0,		-1.0, -1.0, +1.0,
+    /* Right Face */
+    1.0, 0.0,		+1.0, -1.0, -1.0,
+    1.0, 1.0,		+1.0, +1.0, -1.0,
+    0.0, 1.0,		+1.0, +1.0, +1.0,
+    0.0, 0.0,		+1.0, -1.0, +1.0,
+    /* Left Face */
+    0.0, 0.0,		-1.0, -1.0, -1.0,
+    1.0, 0.0,		-1.0, -1.0, +1.0,
+    1.0, 1.0,		-1.0, +1.0, +1.0,
+    0.0, 1.0,		-1.0, +1.0, -1.0
+};
+
+/* Prepare for GL_ARB_multitexture */
+/* Used To Disable ARB Extensions Entirely */
+#define __ARB_ENABLE	true
+
+/* Uncomment To See Your Extensions At Start-Up? */
+#define EXT_INFO
+
+/* Characters For Extension-Strings */
+#define MAX_EXTENSION_SPACE	10240
+/* Maximum Characters In One Extension-String */
+#define MAX_EXTENSION_LENGTH	256
+
+/* Flag Indicating Whether Multitexturing Is Supported */
+uint8_t multitextureSupported = false;
+/* Use It If It Is Supported? */
+uint8_t useMultitexture = true;
+
+/* Number Of Texel-Pipelines. This Is At Least 1. */
+int32_t maxTexelUnits = 1;
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson22",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+/* function to match the sub-string 'string' in 'search' */
+uint8_t isInString(string_t string, string_t search ) {
+    int32_t pos    = 0;
+    int32_t maxpos = sizeof(search) - 1;
+    int32_t len    = sizeof(string);
+    int32_t i;
+
+    for (i = 0; i < len; ++i) {
+	/* New Extension Begins Here! */
+	if (i == 0 || (i > 1 && string[i - 1] == ' ')) {
+		/* Begin New Search */
+		pos   = 0;
+
+		/* Search Whole Extension-String */
+		while (string[i] != ' ' && i < len) {
+		    if (string[i] == search[pos])
+			++pos; /* Next Position */
+		    if (pos > maxpos && string[i + 1] == ' ')
+			return true; /* We Have A Winner! */
+			++i;
+		}
+	    }
+    }
+
+    return false; /* Sorry, Not Found! */
+}
+
+/* function to determine if ARB_multitexture is available */
+uint8_t initMultitexture() {
+    string_t extensions;
+    int32_t vec[1] = {};
+
+    /* Fetch Extension String */
+    extensions = gl.GetString(gl.EXTENSIONS);    
+
+#ifdef EXT_INFO
+    print("Supported GL extensions:\n%s\n", extensions);
+#endif
+
+    /* Is Multitexturing Supported? */
+    if (isInString(extensions, "GL_ARB_multitexture") && __ARB_ENABLE &&
+	isInString(extensions, "GL_EXT_texture_env_combine")) {
+	gl.GetIntegerv(gl.MAX_TEXTURE_UNITS, vec);
+	maxTexelUnits = vec[0];
+               
+#ifdef EXT_INFO
+	print("The GL_ARB_multitexture extension will be used.\n");
+#endif
+
+	return true;
+    }
+
+    /* We Can't Use It If It Isn't Supported! */
+    useMultitexture = false;
+
+    return false;
+}
+
+void init_texture() {
+    int32_t i, s, w, h;
+    uint8_t alpha[], pixels[];
+    sdl.surface_t srf;
+    if ((srf = sdl.load_surface("nehe/lesson22/base.bmp"))) {
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	    /* Nearest Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Create Linear Filtered Texture */
+	gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+
+	/* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Create MipMapped Texture */
+	gl.BindTexture(gl.TEXTURE_2D, texture[2]);
+
+	/* Mipmap Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_NEAREST);
+	/* Generate The Texture */
+	sdl.pull_surface(srf);
+	glu.Build2DMipmaps(gl.TEXTURE_2D, srf.w, srf.h, gl.BGR, srf.pixels);
+
+	sdl.free_surface(srf);
+    }
+
+    /* Load The Bumpmaps */
+    if ((srf = sdl.load_surface( "nehe/lesson22/bump.bmp"))) {
+	/* Scale RGB By 50%, So That We Have Only */
+	gl.PixelTransfer(gl.RED_SCALE, 0.5);
+	gl.PixelTransfer(gl.GREEN_SCALE, 0.5);
+	gl.PixelTransfer(gl.BLUE_SCALE, 0.5 );
+	/* Specify not to wrap the texture */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP);
+
+	/* Create Three Textures */
+	gl.GenTextures(bump);
+
+	/* Create Nearest Filtered Texture */
+	gl.BindTexture(gl.TEXTURE_2D, bump[0]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	sdl.gl.TexImage2D(srf);
+
+	/* Create Linear Filtered Texture */
+	gl.BindTexture(gl.TEXTURE_2D, bump[1]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	sdl.gl.TexImage2D(srf);
+
+	/* Create MipMapped Texture */
+	gl.BindTexture(gl.TEXTURE_2D, bump[2]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_NEAREST);
+	sdl.pull_surface(srf);
+	glu.Build2DMipmaps(gl.TEXTURE_2D, srf.w, srf.h, gl.BGR, srf.pixels);
+
+	    /* Invert The Bumpmap */
+	pixels = srf.pixels;
+	for (i = 3 * srf.w * srf.h - 1; i >= 0; --i)
+	    pixels[i] = 255 - pixels[i];
+	sdl.push_surface(srf);
+
+	/* Create Three Textures */
+	gl.GenTextures(invbump);
+
+	/* Create Nearest Filtered Texture */
+	gl.BindTexture(gl.TEXTURE_2D, invbump[0]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	sdl.gl.TexImage2D(srf);
+
+	/* Create Linear Filtered Texture */
+	gl.BindTexture(gl.TEXTURE_2D, invbump[1]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	sdl.gl.TexImage2D(srf);
+
+	/* Create MipMapped Texture */
+	gl.BindTexture(gl.TEXTURE_2D, invbump[2]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR_MIPMAP_NEAREST );
+	glu.Build2DMipmaps(gl.TEXTURE_2D, srf.w, srf.h, gl.BGR, srf.pixels);
+
+	sdl.free_surface(srf);
+    }
+
+    /* Load The Logo-Bitmaps */
+    if ((srf = sdl.load_surface( "nehe/lesson22/opengl_alpha.bmp"))) {
+	w = srf.w;
+	h = srf.h;
+	s = w * h;
+	alpha = new uint8_t[4 * s];
+	sdl.pull_surface(srf);
+	pixels = srf.pixels;
+
+	/* Create Memory For RGBA8-Texture */
+	for (i = 0; i < s; ++i)
+	    /* Pick Only Red Value As Alpha! */
+	    alpha[4 * i + 3] = pixels[i * 3];
+
+	sdl.free_surface(srf);
+
+	if ((srf = sdl.load_surface( "nehe/lesson22/opengl.bmp"))) {
+	    sdl.pull_surface(srf);
+	    pixels = srf.pixels;
+	    s = srf.w * srf.h;
+	    for (i = 0; i < s; ++i) {
+		/* Red channel */
+		alpha[4 * i] = pixels[i * 3];
+		/* Green channel */
+		alpha[4 * i + 1] = pixels[i * 3 + 1];
+		/* Blue channel */
+		alpha[4 * i + 2] = pixels[i * 3 + 2];
+	    }
+
+	    /* Create one texture */
+	    gl.GenTextures(glLogo);
+
+	    /* Create Linear Filtered RGBA8-Texture */
+	    gl.BindTexture(gl.TEXTURE_2D, glLogo[0]);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	    gl.TexImage2D(gl.TEXTURE_2D, 0, w, h, 0, gl.RGBA, alpha);
+	    sdl.free_surface(srf);
+	}
+    }
+
+    /* Load The "Extension Enabled"-Logo */
+    if ((srf = sdl.load_surface("nehe/lesson22/multi_on_alpha.bmp"))) {
+	w = srf.w;
+	h = srf.h;
+	s = w * h;
+	alpha = new uint8_t[4 * s];
+	sdl.pull_surface(srf);
+	pixels = srf.pixels;
+
+	/* Create Memory For RGBA8-Texture */
+	for (i = 0; i < s; ++i)
+	    /* Pick Only Red Value As Alpha! */
+	    alpha[4 * i + 3] = pixels[i * 3];
+
+	sdl.free_surface(srf);
+
+	if ((srf = sdl.load_surface( "nehe/lesson22/multi_on.bmp"))) {
+	    sdl.pull_surface(srf);
+	    pixels = srf.pixels;
+	    s = srf.w * srf.h;
+	    for (i = 0; i < s; ++i) {
+		/* Red channel */
+		alpha[4 * i] = pixels[i * 3];
+		/* Green channel */
+		alpha[4 * i + 1] = pixels[i * 3 + 1];
+		/* Blue channel */
+		alpha[4 * i + 2] = pixels[i * 3 + 2];
+	    }
+
+	    /* Create one texture */
+	    gl.GenTextures(multiLogo);
+
+	    /* Create Linear Filtered RGBA8-Texture */
+	    gl.BindTexture(gl.TEXTURE_2D, multiLogo[0]);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	    gl.TexImage2D(gl.TEXTURE_2D, 0, w, h, 0, gl.RGBA, alpha);
+	    sdl.free_surface(srf);
+	}
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+/* function to draw a cube */
+void doCube() {
+    int32_t i;
+    gl.Begin(gl.QUADS);
+    /* Front Face */
+    gl.Normal3(0.0, 0.0, +1.0);
+    for (i = 0; i < 4; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    /* Back Face */
+    gl.Normal3(0.0, 0.0, -1.0);
+    for (i = 4; i < 8; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    /* Top Face */
+    gl.Normal3(0.0, 1.0, 0.0);
+    for (i = 8; i < 12; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    /* Bottom Face */
+    gl.Normal3(0.0, -1.0, 0.0);
+    for (i = 12; i < 16; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    /* Right Face */
+    gl.Normal3(1.0, 0.0, 0.0);
+    for (i = 16; i < 20; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    /* Left Face */
+    gl.Normal3(-1.0, 0.0, 0.0);
+    for (i = 20; i < 24; ++i) {
+	gl.TexCoord2(data[5 * i], data[5 * i + 1]);
+	gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+    }
+    gl.End();
+}
+
+/* function to initialize lights */
+void initLights() {
+    /* Load Light-Parameters into GL_LIGHT1 */
+    gl.Lightv(gl.LIGHT1, gl.AMBIENT, LightAmbient);
+    gl.Lightv(gl.LIGHT1, gl.DIFFUSE, LightDiffuse);
+    gl.Lightv(gl.LIGHT1, gl.POSITION, LightPosition);
+    gl.Enable(gl.LIGHT1);
+}
+
+void init() {
+    multitextureSupported = initMultitexture( );
+
+    /* Load in the texture */
+    init_texture();
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    initLights();
+}
+
+/* Calculates v=vM, M Is 4x4 In Column-Major,
+ * v Is 4dim. Row (i.e. "Transposed")
+ */
+void VMatMult(float64_t M[], float64_t v[]) {
+    float64_t res[3] = {};
+
+    res[0] = M[0] * v[0] + M[1] * v[1] + M[2] * v[2] + M[3] * v[3];
+    res[1] = M[4] * v[0] + M[5] * v[1] + M[6] * v[2] + M[7] * v[3];
+    res[2] = M[8] * v[0] + M[9] * v[1] + M[0] * v[2] + M[11] * v[3];
+
+    v[0] = res[0];
+    v[1] = res[1];
+    v[2] = res[2];
+    v[3] = M[15]; /* Homogenous Coordinate */
+}
+
+/* Sets Up The Texture-Offsets
+ * n : Normal On Surface. Must Be Of Length 1
+ * c : Current Vertex On Surface
+ * l : Lightposition
+ * s : Direction Of s-Texture-Coordinate In Object Space (Must Be Normalized!)
+ * t : Direction Of t-Texture-Coordinate In Object Space (Must Be Normalized!)
+ */
+void SetUpBumps(float64_t n[], float64_t c[], float64_t l[],
+		float64_t s[], float64_t t[])
+{
+    float64_t v[3] = {};	/* Vertex From Current Position To Light */
+    float64_t lenQ;		/* Used To Normalize */
+
+    /* Calculate v From Current Vertex c To Lightposition And Normalize v */
+    v[0]  = l[0] - c[0];
+    v[1]  = l[1] - c[1];
+    v[2]  = l[2] - c[2];
+    lenQ  = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+    v[0] /= lenQ;
+    v[1] /= lenQ;
+    v[2] /= lenQ;
+
+    /* Project v Such That We Get Two Values Along Each
+     * Texture-Coordinate Axis
+     */
+    c[0] = (s[0] * v[0] + s[1] * v[1] + s[2] * v[2]) * MAX_EMBOSS;
+    c[1] = (t[0] * v[0] + t[1] * v[1] + t[2] * v[2]) * MAX_EMBOSS;
+}
+
+/* function to billboard two logos */
+/* MUST CALL THIS LAST!!!, Billboards The Two Logos */
+void doLogo() {
+    gl.DepthFunc(gl.ALWAYS);
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.Enable(gl.BLEND);
+    gl.Disable(gl.LIGHTING);
+    gl.LoadIdentity();
+    gl.BindTexture(gl.TEXTURE_2D, glLogo[0]);
+    gl.Begin(gl.QUADS);
+    {
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(0.23, -0.4,  -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(0.53, -0.4,  -1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(0.53, -0.25, -1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(0.23, -0.25, -1.0);
+    }
+    gl.End();
+
+    if (useMultitexture) {
+	gl.BindTexture(gl.TEXTURE_2D, multiLogo[0]);
+	gl.Begin(gl.QUADS);
+	{
+	    gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-0.53, -0.25, -1.0);
+	    gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-0.33, -0.25, -1.0);
+	    gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-0.33, -0.15, -1.0);
+	    gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-0.53, -0.15, -1.0);
+	}
+	gl.End();
+    }
+}
+
+/* function to do bump-mapping without multitexturing */
+void doMesh1TexelUnits() {
+    /* Holds Current Vertex */
+    float64_t c[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* Normalized Normal Of Current Surface */
+    float64_t n[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* s-Texture Coordinate Direction, Normalized */
+    float64_t s[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* t-Texture Coordinate Direction, Normalized */
+    float64_t t[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* Holds Our Lightposition To Be Transformed Into Object Space */
+    float64_t l[4] = {};
+    /* Holds The Inverted Modelview Matrix To Do So */
+    float64_t Minv[16] = {};
+    int32_t i;
+
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Build Inverse Modelview Matrix First. 
+     * This Substitutes One Push/Pop With One glLoadIdentity();
+     * Simply Build It By Doing All Transformations Negated And
+     * In Reverse Order
+     */
+    gl.LoadIdentity();
+    gl.Rotate(-yrot, 0.0, 1.0, 0.0);
+    gl.Rotate(-xrot, 1.0, 0.0, 0.0);
+    gl.Translate(0.0, 0.0, -z);
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, Minv);
+    gl.LoadIdentity();
+    gl.Translate(0.0, 0.0, z);
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+
+    /* Transform The Lightposition Into Object Coordinates: */
+    l[0] = LightPosition[0];
+    l[1] = LightPosition[1];
+    l[2] = LightPosition[2];
+    l[3] = 1.0; /* Homogenous Coordinate */
+    VMatMult(Minv, l);
+
+    /* First pass rendering a cube only out of bump map */
+    gl.BindTexture(gl.TEXTURE_2D, bump[filter]);
+    gl.Disable(gl.BLEND);
+    gl.Disable(gl.LIGHTING);
+    doCube();
+
+    /* Second pass redndering a cube with correct emboss bump mapping,
+     * but with no colors
+     */
+    gl.BindTexture(gl.TEXTURE_2D, invbump[filter]);
+    gl.BlendFunc(gl.ONE, gl.ONE);
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Enable(gl.BLEND);
+
+    gl.Begin(gl.QUADS);
+    {
+	/* Front Face */
+	n[0] = 0.0;
+	n[1] = 0.0;
+	n[2] = 1.0;
+	s[0] = 1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 0; i < 4; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Back Face */
+	n[0] = 0.0;
+	n[1] = 0.0;
+	n[2] = -1.0;
+	s[0] = -1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 4; i < 8; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Top Face */
+	n[0] = 0.0;
+	n[1] = 1.0;
+	n[2] = 0.0;
+	s[0] = 1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 0.0;
+	t[2] = -1.0;
+	for (i = 8; i < 12; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Bottom Face */
+	n[0] = 0.0;
+	n[1] = -1.0;
+	n[2] = 0.0;
+	s[0] = -1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 0.0;
+	t[2] = -1.0;
+	for (i = 12; i < 16; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Right Face */
+	n[0] = 1.0;
+	n[1] = 0.0;
+	n[2] = 0.0;
+	s[0] = 0.0;
+	s[1] = 0.0;
+	s[2] = -1.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 16; i < 20; ++i) {
+	    c[0] = data[5 * i +2];
+	    c[1] = data[5 * i +3];
+	    c[2] = data[5 * i +4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Left Face */
+	n[0] = -1.0;
+	n[1] = 0.0;
+	n[2] = 0.0;
+	s[0] = 0.0;
+	s[1] = 0.0;
+	s[2] = 1.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 20; i < 24; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.TexCoord2(data[5*i]+c[0], data[5*i+1]+c[1]);
+	    gl.Vertex3(data[5*i+2], data[5*i+3], data[5*i+4]);
+	}
+    }
+    gl.End();
+
+    /* Third pass finishes rendering cube complete with lighting */
+    if (!emboss) {
+	gl.TexEnv(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.MODULATE);
+	gl.BindTexture(gl.TEXTURE_2D, texture[filter]);
+	gl.BlendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+	gl.Enable(gl.LIGHTING);
+	doCube();
+    }
+
+    xrot += xspeed;
+    yrot += yspeed;
+    if (xrot > 360.0)
+	xrot -= 360.0;
+    if (xrot < 0.0)
+	xrot += 360.0;
+    if (yrot > 360.0)
+	yrot -= 360.0;
+    if ( yrot < 0.0)
+	yrot += 360.0;
+
+    /* LAST PASS: Do The Logos! */
+    doLogo();
+}
+
+/* same as doMesh1TexelUnits except in 2 passes using 2 texel units */
+void doMesh2TexelUnits() {
+    /* Holds Current Vertex */
+    float64_t c[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* Normalized Normal Of Current Surface */
+    float64_t n[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* s-Texture Coordinate Direction, Normalized */
+    float64_t s[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* t-Texture Coordinate Direction, Normalized */
+    float64_t t[4] = { 0.0, 0.0, 0.0, 1.0 };
+    /* Holds Our Lightposition To Be Transformed Into Object Space */
+    float64_t l[4] = {};
+    /* Holds The Inverted Modelview Matrix To Do So */
+    float64_t Minv[16] = {};
+    int32_t i;
+
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Build Inverse Modelview Matrix First. This Substitutes
+     * One Push/Pop With One glLoadIdentity();
+     * Simply Build It By Doing All Transformations Negated And
+     * In Reverse Order
+     */
+    gl.LoadIdentity();
+    gl.Rotate(-yrot, 0.0, 1.0, 0.0);
+    gl.Rotate(-xrot, 1.0, 0.0, 0.0);
+    gl.Translate(0.0, 0.0, -z);
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, Minv);
+    gl.LoadIdentity();
+    gl.Translate(0.0, 0.0, z);
+
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+
+    /* Transform The Lightposition Into Object Coordinates: */
+    l[0] = LightPosition[0];
+    l[1] = LightPosition[1];
+    l[2] = LightPosition[2];
+    l[3] = 1.0; /* Homogenous Coordinate */
+    VMatMult(Minv, l);
+
+    /* First Pass: 
+     *
+     * No Blending 
+     * No Lighting 
+     *
+     *   Set up the texture-combiner 0 to 
+     *
+     * Use bump-texture 
+     * Use not-offset texture-coordinates 
+     * Texture-Operation GL_REPLACE, resulting in texture just being drawn 
+     *
+     *   Set up the texture-combiner 1 to 
+     *
+     * Offset texture-coordinates 
+     * Texture-Operation GL_ADD, which is the multitexture-equivalent
+     * to ONE, ONE- blending. 
+     *
+     *   This will render a cube consisting out of the grey-scale erode map. 
+     */
+
+    /* TEXTURE-UNIT #0 */
+    gl.ActiveTexture(gl.TEXTURE0);
+    gl.Enable(gl.TEXTURE_2D);
+    gl.BindTexture(gl.TEXTURE_2D, bump[filter]);
+    gl.TexEnv(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.COMBINE_EXT);
+    gl.TexEnv(gl.TEXTURE_ENV, gl.COMBINE_RGB_EXT, gl.REPLACE);
+
+    /* TEXTURE-UNIT #1 */
+    gl.ActiveTexture(gl.TEXTURE1);
+    gl.Enable(gl.TEXTURE_2D);
+    gl.BindTexture(gl.TEXTURE_2D, invbump[filter]);
+    gl.TexEnv(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.COMBINE_EXT);
+    gl.TexEnv(gl.TEXTURE_ENV, gl.COMBINE_RGB_EXT, gl.ADD);
+
+    /* General Switches */
+    gl.Disable(gl.BLEND);
+    gl.Disable(gl.LIGHTING);    
+
+    gl.Begin(gl.QUADS);
+    {
+	/* Front Face */
+	n[0] = 0.0;
+	n[1] = 0.0;
+	n[2] = 1.0;
+	s[0] = 1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 0; i < 4; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Back Face */
+	n[0] = 0.0;
+	n[1] = 0.0;
+	n[2] = -1.0;
+	s[0] = -1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 4; i < 8; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Top Face */
+	n[0] = 0.0;
+	n[1] = 1.0;
+	n[2] = 0.0;
+	s[0] = 1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 0.0;
+	t[2] = -1.0;
+	for (i = 8; i < 12; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i +4]);
+	}
+	/* Bottom Face */
+	n[0] = 0.0;
+	n[1] = -1.0;
+	n[2] = 0.0;
+	s[0] = -1.0;
+	s[1] = 0.0;
+	s[2] = 0.0;
+	t[0] = 0.0;
+	t[1] = 0.0;
+	t[2] = -1.0;
+	for (i = 12; i < 16; ++i) {
+	    c[0] = data[5 * i +2];
+	    c[1] = data[5 * i +3];
+	    c[2] = data[5 * i +4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Right Face */
+	n[0] = 1.0;
+	n[1] = 0.0;
+	n[2] = 0.0;
+	s[0] = 0.0;
+	s[1] = 0.0;
+	s[2] = -1.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 16; i < 20; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+	/* Left Face */
+	n[0] = -1.0;
+	n[1] = 0.0;
+	n[2] = 0.0;
+	s[0] = 0.0;
+	s[1] = 0.0;
+	s[2] = 1.0;
+	t[0] = 0.0;
+	t[1] = 1.0;
+	t[2] = 0.0;
+	for (i = 20; i < 24; ++i) {
+	    c[0] = data[5 * i + 2];
+	    c[1] = data[5 * i + 3];
+	    c[2] = data[5 * i + 4];
+	    SetUpBumps(n, c, l, s, t);
+	    gl.MultiTexCoord2(gl.TEXTURE0, data[5 * i], data[5 * i + 1]);
+	    gl.MultiTexCoord2(gl.TEXTURE1, data[5 * i] + c[0], data[5 * i + 1] + c[1]);
+	    gl.Vertex3(data[5 * i + 2], data[5 * i + 3], data[5 * i + 4]);
+	}
+    }
+    gl.End();
+
+    /* Second Pass 
+     *
+     * Use the base-texture 
+     * Enable Lighting 
+     * No offset texturre-coordinates => reset GL_TEXTURE-matrix 
+     * Reset texture environment to GL_MODULATE in order to do
+     * OpenGLLighting (doesn?t work otherwise!) 
+     *
+     *   This will render our complete bump-mapped cube. 
+     */ 
+    gl.ActiveTexture(gl.TEXTURE1);
+    gl.Disable(gl.TEXTURE_2D);
+    gl.ActiveTexture(gl.TEXTURE0);
+    if (!emboss) {
+	gl.TexEnv(gl.TEXTURE_ENV, gl.TEXTURE_ENV_MODE, gl.MODULATE);
+	gl.BindTexture(gl.TEXTURE_2D, texture[filter]);
+	gl.BlendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+	gl.Enable(gl.BLEND);
+	gl.Enable(gl.LIGHTING);
+	doCube( );
+    }
+
+    /* Last Pass 
+     *
+     * Update Geometry (esp. rotations) 
+     * Do The Logos 
+     */
+    xrot += xspeed;
+    yrot += yspeed;
+    if (xrot > 360.0)
+	xrot -= 360.0;
+    if (xrot < 0.0)
+	xrot += 360.0;
+    if (yrot > 360.0)
+	yrot -= 360.0;
+    if (yrot < 0.0)
+	yrot += 360.0;
+
+    /* LAST PASS: Do The Logos! */
+    doLogo();
+}
+
+/* function to draw cube without bump mapping */
+void doMeshNoBumps() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    /* Reset The View */
+    gl.LoadIdentity();
+    gl.Translate(0.0, 0.0, z);
+
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+
+    if (useMultitexture) {
+	gl.ActiveTexture(gl.TEXTURE1);
+	gl.Disable(gl.TEXTURE_2D);
+	gl.ActiveTexture(gl.TEXTURE0);
+    }
+
+    gl.Disable(gl.BLEND);
+    gl.BindTexture(gl.TEXTURE_2D, texture[filter]);
+    gl.BlendFunc(gl.DST_COLOR, gl.SRC_COLOR);
+    gl.Enable(gl.LIGHTING);
+    doCube();
+
+    xrot += xspeed;
+    yrot += yspeed;
+    if (xrot > 360.0)
+	xrot -= 360.0;
+    if (xrot < 0.0)
+	xrot += 360.0;
+    if (yrot > 360.0)
+	yrot -= 360.0;
+    if (yrot < 0.0)
+	yrot += 360.0;
+
+    /* LAST PASS: Do The Logos! */
+    doLogo();
+}
+
+void draw() {
+    if (bumps) {
+	if (useMultitexture && maxTexelUnits > 1)
+	    doMesh2TexelUnits();
+	else
+	    doMesh1TexelUnits();
+    }
+    else
+	doMeshNoBumps();
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+
+    xrot += 0.3;	/* X Axis Rotation */
+    yrot += 0.2;	/* Y Axis Rotation */
+    zrot += 0.4;	/* Z Axis Rotation */
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_e:
+			    /* 'e' key was pressed
+			     * this toggles embossing
+			     */
+			    emboss = !emboss;
+			    break;
+			case sdl.Key_m:
+			    /* 'm' key was pressed
+			     * this toggles multitextured support
+			     */
+			    useMultitexture = ((!useMultitexture) && multitextureSupported);
+			    break;
+			case sdl.Key_b:
+			    /* 'b' key was pressed
+			     * this toggles bumps
+			     */
+			    bumps = !bumps;
+			    break;
+			case sdl.Key_f:
+			    /* 'f' key was pressed
+			     * this pages through the different filters
+			     */
+			    filter = (++filter) % 3;
+			    break;
+			case sdl.Key_PageUp:
+			    /* PageUp key was pressed
+			     * this zooms into the screen
+			     */
+			    z -= 0.02;
+			    break;
+			case sdl.Key_PageDown:
+			    /* PageDown key was pressed
+			     * this zooms out of the screen
+			     */
+			    z += 0.02;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this increases the x rotation speed
+			     */
+			    xspeed -= 0.01;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this decreases the x rotation speed
+			     */
+			    xspeed += 0.01;
+			    break;
+			case sdl.Key_Right:
+			    /* Right arrow key was pressed
+			     * this increases the y rotation speed
+			     */
+			    yspeed += 0.01;
+			    break;
+			case sdl.Key_Left:
+			    /* Left arrow key was pressed
+			     * this decreases the y rotation speed
+			     */
+			    yspeed -= 0.01;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+init_all();
+init();
+resize();
+print("\
+Esc:		Exit\n\
+e:		Toggle emboss\n\
+m:		Toggle multitexture\n\
+b:		Toggle bumps\n\
+f:		Change filter\n\
+PageUp:		Zoom out\n\
+PageDown:	Zoom in\n\
+Up:		Rotate up\n\
+Down:		Rotate down\n\
+Left:		Rotate left\n\
+Right:		Rotate right\n");
+loop();
+finish_all();

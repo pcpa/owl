@@ -1,0 +1,305 @@
+#define PLAIN			0
+#define VARRAY			1
+#define VBO			2
+uint8_t			mode = VBO;
+
+// Mesh Generation Paramaters
+#define MESH_RESOLUTION		4.0		// Pixels Per Vertex
+#define MESH_HEIGHTSCALE	1.0		// Mesh Height Scale
+
+class Mesh {
+    float32_t		Vertices[];
+    float32_t		TexCoords[];
+    int32_t		VertexCount;
+    sdl.surface_t	surface;
+    uint32_t		buffers[2];
+    uint32_t		textures[1];
+    Mesh() {
+	textures = new uint32_t[1];
+    }
+    float32_t PtHeight(int32_t X, int32_t Y) {
+	uint32_t	offset;
+	uint8_t		r, g, b;
+
+	/* do not access out of bounds data */
+	if (X >= surface.w)	X = surface.w - 1;
+	if (Y >= surface.h)	Y = surface.h - 1;
+	offset = surface.pitch * Y + X;
+	if (surface.r_mask == 0x000000ff) {
+	    r = surface.pixels[  offset];
+	    g = surface.pixels[++offset];
+	    b = surface.pixels[++offset];
+	}
+	else {
+	    b = surface.pixels[  offset];
+	    g = surface.pixels[++offset];
+	    r = surface.pixels[++offset];
+	}
+	// Calculate The Height Using The Luminance Algorithm
+	return 0.299 * r + 0.587 * g + 0.114 * b;
+    }
+    void LoadHeightmap(string_t name,
+		       float32_t HeightScale, float32_t Resolution) {
+	surface = sdl.load_surface(name);
+	sdl.pull_surface(surface);
+
+	// Generate Vertex Field
+	VertexCount = surface.w * surface.h * 6 / (Resolution * Resolution);
+	// Allocate Vertex Data
+	Vertices = new float32_t[VertexCount * 3];
+	// Allocate Tex Coord Data
+	TexCoords = new float32_t[VertexCount * 2];
+
+	int32_t		X, Z, Tri, Index = 0;									// Create Variables
+	float32_t	fX, fZ;
+	for (Z = 0; Z < surface.h; Z += Resolution) {
+	    for (X = 0; X < surface.w; X += Resolution) {
+		for (Tri = 0; Tri < 6; ++Tri) {
+		    // Using This Quick Hack, Figure The X,Z Position
+		    // Of The Point
+		    fX = X + ((Tri == 1 || Tri == 2 || Tri == 5) ?
+			      Resolution : 0.0);
+		    fZ = Z + ((Tri == 2 || Tri == 4 || Tri == 5) ?
+			      Resolution : 0.0);
+
+		    // Set The Data, Using PtHeight To Obtain The Y Value
+		    Vertices[Index * 3 + 0] = fX - surface.w \ 2;
+		    Vertices[Index * 3 + 1] = PtHeight(fX, fZ) * HeightScale;
+		    Vertices[Index * 3 + 2] = fZ - surface.h \ 2;
+
+		    // Stretch The Texture Across The Entire Mesh
+		    TexCoords[Index * 2 + 0] = fX / surface.w;
+		    TexCoords[Index * 2 + 1] = fZ / surface.h;
+
+		    // Increment Our Index
+		    ++Index;
+		}
+	    }
+	}
+
+	// Load The Texture Into OpenGL
+	gl.GenTextures(textures);							// Get An Open ID
+	gl.BindTexture(gl.TEXTURE_2D, textures[0]);	// Bind The Texture
+	sdl.gl.TexImage2D(surface);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	// No longer required
+	sdl.free_surface(surface);
+	surface = null;
+    }
+    void BuildVBOs() {
+	// Generate buffers
+	buffers = new uint32_t[2];
+	gl.GenBuffers(buffers);
+
+	// Bind vertices buffer
+	gl.BindBuffer(gl.ARRAY_BUFFER, buffers[0]);
+	// Load The Data
+	gl.BufferData(gl.ARRAY_BUFFER, Vertices, gl.STATIC_DRAW);
+
+	// Bind tex coords buffer
+	gl.BindBuffer(gl.ARRAY_BUFFER, buffers[1]);
+	// Load The Data
+	gl.BufferData(gl.ARRAY_BUFFER, TexCoords, gl.STATIC_DRAW);
+
+	// Our Copy Of The Data Is No Longer Necessary,
+	// It Is Safe In The Graphics Card
+	Vertices = null;
+	TexCoords = null;
+    }
+    void finish() {
+	if (buffers)
+	    gl.DeleteBuffers(buffers);
+	gl.DeleteTextures(textures);
+    }
+};
+
+float64_t		YRot;		// Rotation
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+Mesh			mesh;
+
+uint8_t IsExtensionSupported(string_t string) {
+    if (sizeof(string)) {
+	int32_t     i, j;
+	string_t    extensions = gl.GetString(gl.EXTENSIONS);
+	for (i = 0; i < sizeof(extensions); ++i) {
+	    if (extensions[i] == string[0]) {
+		for (j = 1; j < sizeof(string); ++j)
+		    if (extensions[i + j] != string[j])
+			break;
+		if (j == sizeof(string))
+		    return true;
+	    }
+	}
+    }
+    return false;
+}
+
+void InitGL() {
+    gl.Enable(gl.TEXTURE_2D);		//Enable Texture Mapping
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);	// Black Background
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+    gl.DepthFunc(gl.LEQUAL);		// The Type Of Depth Testing
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+    gl.ShadeModel(gl.SMOOTH);		// Select Smooth Shading
+    // Set Perspective Calculations To Most Accurate
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void ReshapeGL() {	
+    gl.Viewport(0, 0, win.w, win.h);	// Reset The Current Viewport
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.LoadIdentity();			// Reset The Projection Matrix
+
+    // Calculate The Aspect Ratio Of The Window
+    glu.Perspective(45.0, win.w / win.h, 1.0, 1000.0);
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+}
+
+void Draw() {
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // Reset The Modelview Matrix
+    gl.LoadIdentity();
+
+    // Move The Camera
+    gl.Translate(0.0, -220.0, 0.0);		// Move Above The Terrain
+    gl.Rotate(10.0, 1.0, 0.0, 0.0);		// Look Down Slightly
+    gl.Rotate(YRot, 0.0, 1.0, 0.0);		// Rotate The Camera
+
+    if (mode == PLAIN) {
+	int32_t	i;
+	gl.Begin(gl.TRIANGLES);
+	for (i = 0; i < mesh.VertexCount; ++i) {
+	    gl.Vertex3(mesh.Vertices[i * 3 + 0],
+		       mesh.Vertices[i * 3 + 1],
+		       mesh.Vertices[i * 3 + 2]);
+	    gl.TexCoord2(mesh.TexCoords[i * 2 + 0],
+			 mesh.TexCoords[i * 2 + 1]);
+	}
+	gl.End();
+    }
+    else {
+	// Enable Pointers
+	// Enable Vertex Arrays
+	gl.EnableClientState(gl.VERTEX_ARRAY);
+	// Enable Texture Coord Arrays
+	gl.EnableClientState(gl.TEXTURE_COORD_ARRAY);
+
+	// Set Pointers To Our Data
+	if (mode == VBO) {
+	    gl.BindBuffer(gl.ARRAY_BUFFER, mesh.buffers[0]);
+	    // Set The Vertex Pointer To The Vertex Buffer
+	    gl.VertexPointer(3, 0, null);
+	    gl.BindBuffer(gl.ARRAY_BUFFER, mesh.buffers[1]);
+	    // Set The TexCoord Pointer To The TexCoord Buffer
+	    gl.TexCoordPointer(2, 0, null);
+	}
+	else {
+	    // Set The Vertex Pointer To Our Vertex Data
+	    gl.VertexPointer(3, 0, mesh.Vertices);
+	    // Set The Vertex Pointer To Our TexCoord Data
+	    gl.TexCoordPointer(2, 0, mesh.TexCoords);
+	}
+
+	// Render
+	// Draw All Of The Triangles At Once
+	gl.DrawArrays(gl.TRIANGLES, 0, mesh.VertexCount);
+
+	// Disable Pointers
+	// Disable Vertex Arrays
+	gl.DisableClientState(gl.VERTEX_ARRAY);
+	// Disable Texture Coord Arrays
+	gl.DisableClientState(gl.TEXTURE_COORD_ARRAY);
+    }
+
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    uint32_t		TickCount;
+    uint32_t		LastCount;
+
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson45",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("Esc: 		Exit\n");
+    InitGL();
+    ReshapeGL();
+
+    LastCount = sdl.get_ticks();
+
+    mesh = new Mesh;
+    mesh.LoadHeightmap("nehe/lesson45/terrain.bmp",
+		       MESH_HEIGHTSCALE, MESH_RESOLUTION);
+    if (mode == VBO) {
+	if (!IsExtensionSupported("GL_ARB_vertex_buffer_object")) {
+	    print("VBOs not supported!\n");
+	    mode = VARRAY;
+	}
+	else
+	    mesh.BuildVBOs();		// Build The VBOs
+    }
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReshapeGL();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	else {
+	    TickCount = sdl.get_ticks();
+	    YRot += (TickCount - LastCount) / 1000.0 * 25.0;
+	    LastCount = TickCount;
+	    Draw();
+	}
+    }
+    
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

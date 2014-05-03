@@ -1,0 +1,311 @@
+/* Number of stars */
+#define NUM	50
+
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+uint8_t twinkle = false;	/* Twinkling stars */
+
+class star {
+    float32_t	rgb[3];		/* Stars Color */
+    float64_t	dist;		/* Stars Distance From Center */
+    float64_t	angle;		/* Stars Current Angle */
+};
+
+star stars[NUM] = {};		/* Make an array of size 'NUM' of stars */
+
+float64_t zoom = -15.0;		/* Viewing Distance Away From Stars */
+float64_t tilt = 90.0;		/* Tilt The View */
+
+uint32_t loop;
+uint32_t texture[1] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson9",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t srf;
+    srf = sdl.load_surface("nehe/lesson9/star.bmp");
+    if (srf != null) {
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Load in texture1 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	sdl.free_surface(srf);
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    init_texture();
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    /* Set The Blending Function For Translucency */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+
+    /* Enable Blending */
+    gl.Enable(gl.BLEND);
+
+    /* Create A Loop That Goes Through All The Stars */
+    for (loop = 0; loop < NUM; ++loop)
+	stars[loop] = {
+	/* Start All The Stars At Angle Zero */
+	    angle: 0.0,
+
+	    /* Calculate Distance From The Center */
+	    dist: (loop / NUM) * 5.0,
+	    rgb: {
+	    /* Give star[loop] A Random Red Intensity */
+		rand() % 256 / 256.0,
+	    /* Give star[loop] A Random Green Intensity */
+		rand() % 256 / 256.0,
+	    /* Give star[loop] A Random Blue Intensity */
+		rand() % 256 / 256.0
+	    },
+	};
+}
+
+int32_t spin;
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Select Our Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+    gl.LoadIdentity();
+
+    /* Loop Through All The Stars */
+    for (loop = 0; loop < NUM; ++loop) {
+	/* Reset The View Before We Draw Each Star */
+	gl.LoadIdentity();
+	/* Zoom Into The Screen (Using The Value In 'zoom') */
+	gl.Translate(0.0, 0.0, zoom);
+
+	/* Tilt The View (Using The Value In 'tilt') */
+	gl.Rotate(tilt, 1.0, 0.0, 0.0);
+	/* Rotate To The Current Stars Angle */
+	gl.Rotate(stars[loop].angle, 0.0, 1.0, 0.0);
+
+	/* Move Forward On The X Plane */
+	gl.Translate(stars[loop].dist, 0.0, 0.0);
+
+	/* Cancel The Current Stars Angle */
+	gl.Rotate(-stars[loop].angle, 0.0, 1.0, 0.0);
+	/* Cancel The Screen Tilt */
+	gl.Rotate(-tilt, 1.0, 0.0, 0.0);
+
+	/* Twinkling Stars Enabled */
+	if (twinkle) {
+	    /* Assign A Color Using Bytes */
+	    gl.Color3v(stars[(NUM - loop ) - 1].rgb);
+	    /* Begin Drawing The Textured Quad */
+	    gl.Begin(gl.QUADS);
+	    {
+		gl.TexCoord2(0.0, 0.0);
+		gl.Vertex3( -1.0, -1.0, 0.0);
+		gl.TexCoord2(1.0, 0.0);
+		gl.Vertex3(1.0, -1.0, 0.0);
+		gl.TexCoord2(1.0, 1.0);
+		gl.Vertex3(1.0, 1.0, 0.0);
+		gl.TexCoord2(0.0, 1.0);
+		gl.Vertex3(-1.0, 1.0, 0.0);
+	    }
+	    gl.End();
+	}
+
+	/* Rotate The Star On The Z Axis */
+	gl.Rotate(spin, 0.0, 0.0, 1.0);
+
+	/* Assign A Color Using Bytes */
+	gl.Color3v(stars[loop].rgb);
+
+	/* Begin Drawing The Textured Quad */
+	gl.Begin(gl.QUADS);
+	{
+	    gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0, 0.0);
+	    gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0, 0.0);
+	    gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, 0.0);
+	    gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, 0.0);
+	}
+	gl.End();
+
+	/* Used To Spin The Stars */
+	spin += 0.01;
+	/* Changes The Angle Of A Star */
+	stars[loop].angle += loop / NUM;
+	/* Changes The Distance Of A Star */
+	stars[loop].dist -= 0.01;
+
+	/* Is The Star In The Middle Yet */
+	if (stars[loop].dist < 0.0) {
+	    /* Move The Star 5 Units From The Center */
+	    stars[loop].dist += 5.0;
+	    /* Give It A New Red Value */
+	    stars[loop].rgb[0] = rand() % 256 / 256.0;
+	    /* Give It A New Green Value */
+	    stars[loop].rgb[1] = rand() % 256 / 256.0;
+	    /* Give It A New Blue Value */
+	    stars[loop].rgb[2] = rand() % 256 / 256.0;
+	}
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void events() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_t:
+			    /* 't' key was pressed
+			     * this toggles the twinkling of the stars
+			     */
+			    twinkle = !twinkle;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this affects the tilt of the starts
+			     */
+			    tilt -= 0.5;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this affects the tilt of the starts
+			     */
+			    tilt += 0.5;
+			    break;
+			case sdl.Key_PageUp:
+			    /* PageUp key was pressed
+			     * zoom into the scene
+			     */
+			    zoom -= 0.2;
+			    break;
+			case sdl.Key_PageDown:
+			    /* PageDown key was pressed
+			     * zoom out of the scene
+			     */
+			    zoom += 0.2;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+t:		Toggle twinkling of the stars\n\
+Up:		Decrease tilt of starts\n\
+Down:		Increase tilt of starts\n\
+PageUp:		Zoom out\n\
+PageDown:	Zoom in\n");
+init_all();
+init();
+resize();
+events();
+finish_all();

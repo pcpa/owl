@@ -1,0 +1,662 @@
+/***********************************************************************
+ * Types
+ ***********************************************************************/
+class Vector3D {
+    float64_t		x;
+    float64_t		y;
+    float64_t		z;
+
+    Vector3D set(Vector3D v) {
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	return this;
+    }
+    Vector3D init() {
+	x = y = z = 0.0;
+	return this;
+    }
+    Vector3D neg() {
+	return { -x, -y, -z };
+    }
+    Vector3D add(Vector3D v) {
+	return { x + v.x, y + v.y, z + v.z };
+    }
+    Vector3D sub(Vector3D v) {
+	return { x - v.x, y - v.y, z - v.z };
+    }
+    Vector3D mul(float64_t s) {
+	return { x * s, y * s, z * s };
+    }
+    Vector3D div(float64_t s) {
+	return { x / s, y / s, z / s };
+    }
+    Vector3D negeq() {
+	x = -x;		y = -y;		z = -z;
+	return this;
+    }
+    Vector3D addeq(Vector3D v) {
+	x += v.x;	y += v.y;	z += v.z;
+	return this;
+    }
+    Vector3D subeq(Vector3D v) {
+	x -= v.x;	y -= v.y;	z -= v.z;
+	return this;
+    }
+    Vector3D muleq(float64_t s) {
+	x *= s;		y *= s;		z *= s;
+	return this;
+    }
+    Vector3D diveq(float64_t s) {
+	x /= s;		y /= s;		z /= s;
+	return this;
+    }
+    float64_t length() {
+	return sqrt(x * x + y * y + z * z);
+    }
+    Vector3D unit() {
+	float64_t length = this.length();
+	if (length == 0)
+	    return this;
+	return { x / length, y / length, z / length };
+    }
+    Vector3D uniteq() {
+	float64_t length = this.length();
+	if (length != 0) {
+	    x /= length;
+	    y /= length;
+	    z /= length;
+	}
+	return this;
+    }
+};
+
+class Mass {
+    float64_t		m;
+    Vector3D		pos;
+    Vector3D		vel;
+    Vector3D		force;
+    Vector3D		tmp;		// internal no gc object
+    Mass() {
+	pos	= new Vector3D;
+	vel	= new Vector3D;
+	force	= new Vector3D;
+	tmp	= new Vector3D;
+    }
+    /* Add external force to the mass. 
+    *  At an instance in time, several sources of force might affect
+    * the mass. The vector sum of these forces make up the net force
+    * applied to the mass at the instance. */
+    void applyForce(Vector3D force) {
+	// The external force is added to the force of the mass
+	this.force.addeq(force);
+    }
+    void init() {
+	force.x = force.y = force.z = 0;
+    }
+    /* Calculate the new velocity and new position of the mass according
+     * to change in time (dt). Here, a simulation method called
+     * "The Euler Method" is used. The Euler Method is not always accurate,
+     * but it is simple. It is suitable for most of physical simulations
+     * that we know in common computer and video games.	*/
+    void simulate(float64_t dt) {
+	/* vel += (force / m) * dt; */
+	vel.addeq(tmp.set(force).diveq(m).muleq(dt));
+	/* pos += vel * dt; */
+	pos.addeq(tmp.set(vel).muleq(dt));
+    }
+};
+
+class Simulation {
+    Mass		masses[];
+    Vector3D		tmp;
+    Simulation() {
+	tmp = new Vector3D;
+    }
+    void setup(int32_t numOfMasses, float64_t m) {
+	masses = new Mass[numOfMasses];
+	int32_t	count;
+	for (count = 0; count < sizeof(masses); ++count)
+	    masses[count] = { m };
+    }
+    void init() {
+	int32_t	count;
+	for (count = 0; count < sizeof(masses); ++count)
+	    masses[count].init();
+    }
+    void solve() {
+	// this method will be overrided and some forces will act on masses
+    }
+    void simulate(float64_t dt) {
+	int32_t	count;
+	for (count = 0; count < sizeof(masses); ++count)
+	    masses[count].simulate(dt);
+    }
+    // The complete procedure of simulation
+    void operate(float64_t dt) {
+	init();		// Step 1: reset forces to zero
+	solve();	// Step 2: apply forces
+	simulate(dt);	// Step 3: iterate the masses by the change in time
+    }
+};
+
+/* ConstantVelocity is derived from Simulation
+ * It creates 1 mass with mass value 1 kg and sets its velocity to
+ * (1.0, 0.0, 0.0) so that the mass moves in the x direction with
+ * 1 m/s velocity. */
+class ConstantVelocity : Simulation {
+    ConstantVelocity() {
+	setup(1, 1.0);
+	masses[0].vel.x = 1.0;
+    }
+
+};
+
+/* MotionUnderGravitation is derived from Simulation
+ * It creates 1 mass with mass value 1 kg and sets its velocity to
+ * (10.0, 15.0, 0.0) and its position to (-10.0, 0.0, 0.0). The purpose of
+ * this application is to apply a gravitational force to the mass and
+ * observe the path it follows. The above velocity and position provides
+ * a fine projectile path with a 9.81 m/s/s downward gravitational
+ * acceleration. 9.81 m/s/s is a very close value to the gravitational
+ * acceleration we experience on the earth. */
+class MotionUnderGravitation : Simulation {
+    Vector3D	gravitation;		// the gravitational acceleration
+    MotionUnderGravitation() {
+	setup(1, 1.0);
+	if (gravitation == null)
+	    gravitation = new Vector3D;
+	masses[0].pos.x = -10.0;
+	masses[0].vel.x =  10.0;
+	masses[0].vel.y =  15.0;
+    }
+    void solve() {
+	int32_t	a;
+	// we will apply force to all masses (actually we have 1 mass,
+	// but we can extend it in the future)
+	for (a = 0; a < sizeof(masses); ++a)
+	    // gravitational force is as F = m * g. (mass times the
+	    // gravitational acceleration)
+	    masses[a].applyForce(tmp.set(gravitation).muleq(masses[a].m));
+    }
+};
+
+/* MassConnectedWithSpring is derived from Simulation
+ * It creates 1 mass with mass value 1 kg and binds the mass to an
+ * arbitrary constant point with a spring.
+ * This point is refered as the connectionPos and the spring has a
+ * springConstant value to represent its stiffness. */
+class MassConnectedWithSpring : Simulation
+{
+    float64_t	springConstant;
+    Vector3D	connectionPos;
+    MassConnectedWithSpring() {
+	setup(1, 1.0);
+	connectionPos = { 0.0, -5.0, 0.0 };
+	masses[0].pos.x = 10.0;
+	masses[0].pos.y =  0;
+	masses[0].pos.z =  0;
+	masses[0].vel.addeq(connectionPos);
+    }
+    void solve() {
+	int32_t	count;
+	for (count = 0; count < sizeof(masses); ++count) {
+	    tmp.set(masses[count].pos).subeq(connectionPos);
+	    masses[count].applyForce(tmp.negeq().muleq(springConstant));
+	}
+    }
+};
+
+// An object to represent a spring with inner friction binding two masses.
+// The spring has a normal length (the length that the spring does not
+// exert any force)
+class Spring {
+    // The first mass at one tip of the spring
+    Mass	mass1;
+    // The second mass at the other tip of the spring
+    Mass	mass2;
+    // A constant to represent the stiffness of the spring
+    float64_t	springConstant;
+    //The length that the spring does not exert any force
+    float64_t	springLength;
+    //A constant to be used for the inner friction of the spring
+    float64_t	frictionConstant;
+    Vector3D	springVector;		// avoid gc'ing
+    Vector3D	force;			// avoid gc'ing
+    Spring() {
+	springVector = new Vector3D;
+	force = new Vector3D;
+    }
+    void solve() {
+	// vector between the two masses
+	/* springVector = mass1->pos - mass2->pos; */
+	springVector.set(mass1.pos).subeq(mass2.pos);
+	// distance between the two masses
+	float64_t	r = springVector.length();
+
+	if (r != 0)
+	    // the spring force is added to the force
+	    /* force += (springVector / r) * (r - springLength) * (-springConstant); */
+	    force.set(springVector.diveq(r).muleq((r - springLength) * -springConstant));
+	else
+	    force.init();
+
+	// the friction force is added to the force
+	/* force += -(mass1->vel - mass2->vel) * frictionConstant; */
+	springVector.set(mass1.vel).subeq(mass2.vel).negeq().muleq(frictionConstant);
+	force.addeq(springVector);
+
+	// force is applied to mass1
+	mass1.applyForce(force);
+	// the opposite of force is applied to mass2
+	mass2.applyForce(force.negeq());
+    }
+
+};
+
+/* RopeSimulation is derived from class Simulation. It simulates a rope with
+ * point-like particles binded with springs. The springs have inner friction
+ * and normal length. One tip of the rope is stabilized at a point in space
+ * called "Vector3D ropeConnectionPos". This point can be moved externally by
+ * a method "void setRopeConnectionVel(Vector3D ropeConnectionVel)".
+ * RopeSimulation creates air friction and a planer surface (or ground) with
+ * a normal in +y direction. RopeSimulation implements the force applied by
+ * this surface. In the code, the surface is refered as "ground".
+*/
+class RopeSimulation : Simulation {
+    // Springs binding the masses (there shall be [numOfMasses - 1] of them)
+    Spring	springs[];
+    // gravitational acceleration (gravity will be applied to all masses)
+    Vector3D	gravitation;
+    // A point in space that is used to set the position of the 
+    // first mass in the system (mass with index 0)
+    Vector3D	ropeConnectionPos;
+    //a variable to move the ropeConnectionPos (by this, we can swing the rope)
+    Vector3D	ropeConnectionVel;
+    //a constant to represent how much the ground shall repel the masses
+    float64_t	groundRepulsionConstant;
+    // a constant of friction applied to masses by the ground
+    // (used for the sliding of rope on the ground)
+    float64_t	groundFrictionConstant;
+    // a constant of absorption friction applied to masses by the ground
+    // (used for vertical collisions of the rope with the ground)
+    float64_t	groundAbsorptionConstant;
+    // a value to represent the y position value of the ground
+    // (the ground is a planer surface facing +y direction)
+    float64_t	groundHeight;
+    //a constant of air friction applied to masses
+    float64_t	airFrictionConstant;
+    RopeSimulation() {
+	ropeConnectionPos = new Vector3D;
+	ropeConnectionVel = new Vector3D;
+    }
+    void prepare(int32_t numOfMasses, float64_t m,
+	       float64_t springConstant,
+	       float64_t springLength,
+	       float64_t frictionConstant) {
+	setup(numOfMasses, m);
+	if (gravitation == null)
+	    gravitation = new Vector3D;
+	int32_t	index;
+	for (index = 0; index < sizeof(masses); ++index) {
+	    //Set x position of masses[a] with springLength distance to
+	    // its neighbor
+	    masses[index].pos.x = index * springLength;
+	}
+
+	// ([numOfMasses - 1] springs are necessary for numOfMasses)
+	springs = new Spring[numOfMasses - 1];
+	for (index = 0; index < sizeof(springs); ++index) {
+	    //Create the spring with index "a" by the mass with index "a"
+	    // and another mass with index "a + 1".
+	    springs[index] = {
+		mass1:	masses[index],
+		mass2:	masses[index + 1],
+		springConstant: springConstant,
+		springLength: springLength,
+		frictionConstant: frictionConstant
+	    };
+	}
+    }
+    void solve() {
+	int32_t	index;
+	// apply force of all springs
+	for (index = 0; index < sizeof(masses) - 1; ++index)
+	    // Spring with index "a" should apply its force
+	    springs[index].solve();
+	// apply forces which are common for all masses
+	for (index = 0; index < sizeof(masses); ++index) {
+	    // The gravitational force
+	    masses[index].applyForce(tmp.set(gravitation).muleq(masses[index].m));
+	    //The air friction
+	    masses[index].applyForce(tmp.set(masses[index].vel).negeq().muleq(airFrictionConstant));
+
+	    // Forces from the ground are applied if a mass collides
+	    // with the ground
+	    if (masses[index].pos.y < groundHeight) {
+		// get the velocity
+		tmp.x = masses[index].vel.x;
+		// omit the velocity component in y direction
+		tmp.y = 0;
+		tmp.z = masses[index].vel.z;
+
+		// The velocity in y direction is omited because we will
+		// apply a friction force to create a sliding effect.
+		// Sliding is parallel to the ground. Velocity in y
+		// direction will be used in the absorption effect.
+		//ground friction force is applied
+		masses[index].applyForce(tmp.negeq().muleq(groundFrictionConstant));
+
+		//get the velocity
+		tmp.y = masses[index].vel.y;
+		// omit the x and z components of the velocity
+		tmp.x = tmp.y = 0;
+		// we will use tmp in the absorption effect
+
+		// above, we obtained a velocity which is vertical to
+		// the ground and it will be used in the absorption force
+
+		// let's absorb energy only when a mass collides towards
+		// the ground
+		if (tmp.y < 0)
+		    // the absorption force is applied
+		    masses[index].applyForce(tmp.negeq().muleq(groundAbsorptionConstant));
+
+		// The ground shall repel a mass like a spring.
+		// By "Vector3D(0, groundRepulsionConstant, 0)" we create
+		// a vector in the plane normal direction with a magnitude
+		// of groundRepulsionConstant.
+		// By (groundHeight - masses[a]->pos.y) we repel a mass
+		// as much as it crashes into the ground.
+		tmp.x = tmp.z = 0;
+		tmp.y = groundRepulsionConstant;
+		tmp.muleq(groundHeight - masses[index].pos.y);
+
+		// The ground repulsion force is applied
+		masses[index].applyForce(tmp);
+	    }
+	}
+    }
+    void simulate(float64_t dt) {
+	// the super class shall simulate the masses
+	Simulation.simulate(dt);
+	//iterate the positon of ropeConnectionPos
+	ropeConnectionPos.addeq(tmp.set(ropeConnectionVel).muleq(dt));
+
+	// ropeConnectionPos shall not go under the ground
+	if (ropeConnectionPos.y < groundHeight) {
+	    ropeConnectionPos.y = groundHeight;
+	    ropeConnectionVel.y = 0;
+	}
+
+	// mass with index "0" shall position at ropeConnectionPos
+	masses[0].pos.set(ropeConnectionPos);
+	// the mass's velocity is set to be equal to ropeConnectionVel
+	masses[0].vel.set(ropeConnectionVel);
+    }
+};
+
+
+/***********************************************************************
+ * Globals
+ ***********************************************************************/
+RopeSimulation ropeSimulation = {
+    gravitation:	{ 0, -9.81, 0 }, // Gravitational Acceleration
+    airFrictionConstant: 0.02,		// Air Friction Constant
+    groundRepulsionConstant: 100.0,	// Ground Repel Constant
+    groundFrictionConstant: 0.2,	// Ground Slide Friction Constant
+    groundAbsorptionConstant: 2.0,	// Ground Absoption Constant
+    groundHeight:	-1.5		// Height Of Ground
+};
+ropeSimulation.prepare(80,	// 80 Particles (Masses)		       
+		       0.05,	// Each Particle Has A Weight Of 50 Grams
+		       10000.0,	// springConstant In The Rope
+		       0.05,	// Normal Length Of Springs In The Rope
+		       0.2);	// Spring Inner Friction Constant
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+/***********************************************************************
+ * Implementation
+ ***********************************************************************/
+void InitGL() {
+    ropeSimulation.masses[sizeof(ropeSimulation.masses) - 1].vel.z = 10.0;
+
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);	// Black Background
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+    gl.DepthFunc(gl.LEQUAL);		// The Type Of Depth Testing
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+    gl.ShadeModel(gl.SMOOTH);		// Select Smooth Shading
+    // Set Perspective Calculations To Most Accurate
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void ReshapeGL() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.LoadIdentity();			// Reset The Projection Matrix
+
+    // Calculate The Aspect Ratio Of The Window
+    glu.Perspective(45.0, win.w / win.h, 0, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+}
+
+void Draw(void) {
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+
+    // Position Camera 40 Meters Up In Z-Direction.
+    // Set The Up Vector In Y-Direction So That +X Directs
+    // To Right And +Y Directs To Up On The Window.
+    glu.LookAt(0, 0, 4, 0, 0, 0, 0, 1, 0);
+
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Draw A Plane To Represent The Ground (Different Colors To Create A Fade)
+    gl.Begin(gl.QUADS);
+    {
+	gl.Color3(0, 0, 1);			// Set Color To Light Blue
+	gl.Vertex3( 20, ropeSimulation.groundHeight,  20);
+	gl.Vertex3(-20, ropeSimulation.groundHeight,  20);
+	gl.Color3(0, 0, 0);			// Set Color To Black
+	gl.Vertex3(-20, ropeSimulation.groundHeight, -20);
+	gl.Vertex3( 20, ropeSimulation.groundHeight, -20);
+    }
+    gl.End();
+
+    // Start Drawing Shadow Of The Rope
+    gl.Color3(0, 0, 0);				// Set Color To Black
+    int32_t	index;
+    Mass mass1, mass2;
+    Vector3D pos1, pos2;
+    for (index = 0; index < sizeof(ropeSimulation.masses) - 1; ++index) {
+	mass1 = ropeSimulation.masses[index];
+	pos1 = mass1.pos;
+	mass2 = ropeSimulation.masses[index + 1];
+	pos2 = mass2.pos;
+
+	gl.LineWidth(2);
+	gl.Begin(gl.LINES);
+	{
+	    // Draw Shadow At groundHeight
+	    gl.Vertex3(pos1.x, ropeSimulation.groundHeight, pos1.z);
+	    gl.Vertex3(pos2.x, ropeSimulation.groundHeight, pos2.z);
+	}
+	gl.End();
+    }
+    // Drawing Shadow Ends Here.
+
+    // Start Drawing The Rope
+    gl.Color3(1, 1, 0);				// Set Color To Yellow
+    for (index = 0; index < sizeof(ropeSimulation.masses) - 1; ++index) {
+	mass1 = ropeSimulation.masses[index];
+	pos1 = mass1.pos;
+	mass2 = ropeSimulation.masses[index + 1];
+	pos2 = mass2.pos;
+
+	gl.LineWidth(4);
+	gl.Begin(gl.LINES);
+	{
+	    gl.Vertex3(pos1.x, pos1.y, pos1.z);
+	    gl.Vertex3(pos2.x, pos2.y, pos2.z);
+	}
+	gl.End();
+    }
+    // Drawing The Rope Ends Here.
+
+    gl.Flush();				// Flush The GL Rendering Pipeline
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    uint32_t		TickCount;
+    uint32_t		LastCount;
+
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson40",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("\
+Esc: 		Exit\n\
+Up:		Add -Z velocity\n\
+Down:		Add +Z velocity\n\
+Left:		Add -X velocity\n\
+Right:		Add +X velocity\n\
+Home:		Add +Y velocity\n\
+End:		Add -Y velocity\n");
+    InitGL();
+    ReshapeGL();
+
+    LastCount = sdl.get_ticks();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReshapeGL();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (!ev.repeat) {
+			switch (ev.keysym) {
+			    case sdl.Key_Escape:
+				done = true;
+				break;
+			    case sdl.Key_Up:
+				// Add Velocity In -Z Direction
+				ropeSimulation.ropeConnectionVel.z -= 3.0;
+				break;
+			    case sdl.Key_Down:
+				// Add Velocity In +Z Direction
+				ropeSimulation.ropeConnectionVel.z += 3.0;
+				break;
+			    case sdl.Key_Left:
+				// Add Velocity In -X Direction
+				ropeSimulation.ropeConnectionVel.x -= 3.0;
+				break;
+			    case sdl.Key_Right:
+				// Add Velocity In +X Direction
+				ropeSimulation.ropeConnectionVel.x += 3.0;
+				break;
+			    case sdl.Key_Home:
+				// Add Velocity In -Y Direction
+				ropeSimulation.ropeConnectionVel.y += 3.0;
+				break;
+			    case sdl.Key_End:
+				// Add Velocity In +Y Direction
+				ropeSimulation.ropeConnectionVel.y -= 3.0;
+				break;
+			    default:
+				break;
+			}
+		    }
+		    break;
+		case sdl.EventKeyUp:
+		    switch (ev.keysym) {
+			case sdl.Key_Up:
+			case sdl.Key_Down:
+			    ropeSimulation.ropeConnectionVel.z = 0.0;
+			    break;
+			case sdl.Key_Left:
+			case sdl.Key_Right:
+			    ropeSimulation.ropeConnectionVel.x = 0.0;
+			    break;
+			case sdl.Key_Home:
+			case sdl.Key_End:
+			    ropeSimulation.ropeConnectionVel.y = 0.0;
+			    break;
+			default:
+			    break;
+		    }
+
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	else {
+	    // Get Present Ticks
+	    TickCount = sdl.get_ticks();
+
+	    // Let's Convert Milliseconds To Seconds
+	    float64_t dt = (TickCount - LastCount) / 1000.0;
+
+	    // Maximum Possible dt Is 0.002 Seconds
+	    float64_t maxPossible_dt = 0.002;
+	    // This Is Needed To Prevent Pass Over Of A Non-Precise dt Value
+
+	    // Calculate Number Of Iterations To Be Made At This Update
+	    // Depending On maxPossible_dt And dt
+	    int32_t	numOfIterations = dt / maxPossible_dt + 1;
+	    if (numOfIterations)
+		// dt Should Be Updated According To numOfIterations
+		dt /= numOfIterations;
+
+	    int32_t	a;
+	    // We Need To Iterate Simulations "numOfIterations" Times
+	    for (a = 0; a < numOfIterations; ++a)
+		ropeSimulation.operate(dt);
+
+	    // Save The Present Tick Probing
+	    LastCount = TickCount;
+	    Draw();
+	}
+    }
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

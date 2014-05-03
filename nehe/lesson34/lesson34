@@ -1,0 +1,311 @@
+#define O_READ           	1
+/* Size Of Our .RAW Height Map */
+#define	MAP_SIZE		1024
+/* Width And Height Of Each Quad */
+#define	STEP_SIZE		16
+/* Ratio That The Y Is Scaled According To The X And Z */
+#define	HEIGHT_RATIO		1.5
+
+/* Polygon Flag Set To TRUE By Default */
+uint8_t		Render = true;
+/* Holds The Height Map Data */
+uint8_t		HeightMap[MAP_SIZE * MAP_SIZE] = {};
+/* Scale Value For The Terrain */
+float64_t	scaleValue = 0.15;
+
+#define WK_UP			1
+#define WK_DOWN			2
+#define WK_SPACE		4
+int32_t		keys;
+#define isKeyDown(bit)		(keys & bit)
+#define resetKey(bit)		do { keys &= ~bit; } while (0)
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+#if 0
+void gluLookAt(float64_t eyex, float64_t eyey, float64_t eyez,
+	       float64_t centerx, float64_t centery, float64_t centerz,
+	       float64_t upx, float64_t upy, float64_t upz) {
+    float64_t m[16] = {};
+    float64_t x[3] = {}, y[3] = {}, z[3] = {};
+    float64_t mag;
+    z[0] = eyex - centerx;
+    z[1] = eyey - centery;
+    z[2] = eyez - centerz;
+
+    if ((mag = sqrt(z[0] * z[0] + z[1] * z[1] + z[2] * z[2])))
+	z[0] /= mag, z[1] /= mag, z[2] /= mag;
+
+    y[0] = upx;
+    y[1] = upy;
+    y[2] = upz;
+    x[0] = y[1] * z[2] - y[2] * z[1];
+    x[1] = -y[0] *z[2] + y[2] * z[0];
+    x[2] = y[0] * z[1] - y[1] * z[0];
+
+    y[0] = z[1] * x[2] - z[2] * x[1];
+    y[1] = -z[0] * x[2] + z[2] * x[0];
+    y[2] = z[0] * x[1] - z[1] * x[0];
+
+    if ((mag = sqrt(x[0] * x[0] + x[1] * x[1] + x[2] * x[2])))
+	x[0] /= mag, x[1] /= mag, x[2] /= mag;
+
+    if ((mag = sqrt(y[0] * y[0] + y[1] * y[1] + y[2] * y[2])))
+	y[0] /= mag, y[1] /= mag, y[2] /= mag;
+
+    m[0] = x[0];	m[4] = x[1];	m[8] = x[2];	m[12] = 0.0;
+    m[1] = y[0];	m[5] = y[1];	m[9] = y[2];	m[13] = 0.0;
+    m[2] = z[0];	m[6] = z[1];	m[10] = z[2];	m[14] = 0.0;
+    m[3] = m[7] = m[11] = 0.0;
+    m[15] = 1.0;
+
+    gl.MultMatrix(m);
+    gl.Translate(-eyex,-eyey, -eyez);
+}
+#endif
+
+/* Loads The .RAW File And Stores It In pHeightMap */
+void LoadRawFile(string_t name, uint8_t map[]) {
+    /* Open The File In Read / Binary Mode. */
+    auto file = open(name, O_READ);
+    /* Check To See If We Found The File And Could Open It */
+    if (file == null)
+	print("Error can't Find The Height Map!\n");
+    else {
+	if (read(file, map, sizeof(map)) != sizeof(map))
+	    print("Error failed To Get Data!\n");
+	close(file);
+    }
+}
+
+/* This Returns The Height From A Height Map Index */
+int32_t Height(uint8_t map[], int32_t x, int32_t y) {
+    x %= MAP_SIZE;		/* Error Check Our x Value */
+    y %= MAP_SIZE;		/* Error Check Our y Value */
+
+    /* Index Into Our Height Array And Return The Height */
+    return map[x + (y * MAP_SIZE)];
+}
+
+/* Sets The Color Value For A Particular Index, Depending On The Height Index */
+void SetVertexColor(uint8_t map[], int32_t x, int32_t y)
+{
+    float32_t Color = -0.15 + (Height(map, x, y ) / 256.0);
+    /* Assign This Blue Shade To The Current Vertex */
+    gl.Color3(0, 0, Color);
+}
+
+/* This Renders The Height Map As Quads */
+void RenderHeightMap(uint8_t map[]) {
+    /* Create Some Variables To Walk The Array With. */
+    int32_t X = 0, Y = 0;
+    /* Create Some Variables For Readability */
+    int32_t x, y, z;
+
+    if (Render)					/* What We Want To Render */
+	gl.Begin(gl.QUADS);			/* Render Polygons */
+    else
+	gl.Begin(gl.LINES);			/* Render Lines Instead */
+
+    for (X = 0; X < MAP_SIZE; X += STEP_SIZE)
+	for (Y = 0; Y < MAP_SIZE; Y += STEP_SIZE) {
+	    /* Get The (X, Y, Z) Value For The Bottom Left Vertex */
+	    x = X;							
+	    y = Height(map, X, Y);
+	    z = Y;
+
+	    /* Set The Color Value Of The Current Vertex */
+	    SetVertexColor(map, x, z);
+
+	    /* Send This Vertex To OpenGL To Be Rendered
+	     * (Integer Points Are Faster) */
+	    gl.Vertex3(x, y, z);
+
+	    /* Get The (X, Y, Z) Value For The Top Left Vertex */
+	    x = X;										
+	    y = Height(map, X, Y + STEP_SIZE);
+	    z = Y + STEP_SIZE;
+
+	    /* Set The Color Value Of The Current Vertex */
+	    SetVertexColor(map, x, z);
+
+	    /* Send This Vertex To OpenGL To Be Rendered */
+	    gl.Vertex3(x, y, z);
+
+	    /* Get The (X, Y, Z) Value For The Top Right Vertex */
+	    x = X + STEP_SIZE;
+	    y = Height(map, X + STEP_SIZE, Y + STEP_SIZE);
+	    z = Y + STEP_SIZE;
+
+	    /* Set The Color Value Of The Current Vertex */
+	    SetVertexColor(map, x, z);
+
+	    /* Send This Vertex To OpenGL To Be Rendered */
+	    gl.Vertex3(x, y, z);
+
+	    /* Get The (X, Y, Z) Value For The Bottom Right Vertex */
+	    x = X + STEP_SIZE;
+	    y = Height(map, X + STEP_SIZE, Y); 
+	    z = Y;
+
+	    /* Set The Color Value Of The Current Vertex */
+	    SetVertexColor(map, x, z);
+
+	    /* Send This Vertex To OpenGL To Be Rendered */
+	    gl.Vertex3(x, y, z);
+	}
+    gl.End();
+
+    /* Reset The Color */
+    gl.Color4(1.0, 1.0, 1.0, 1.0);
+}
+
+/* Here's Where We Do All The Drawing */
+void drawGLScene() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    /* Reset The Matrix */
+    gl.LoadIdentity();
+
+    /* 			 Position	      View		Up Vector */
+    /* This Determines Where The Camera's Position And View Is */
+    glu.LookAt(212, 60, 194,  186, 55, 171,  0, 1, 0);
+
+    gl.Scale(scaleValue, scaleValue * HEIGHT_RATIO, scaleValue);
+
+    /* Render The Height Map */
+    RenderHeightMap(HeightMap);
+}
+
+void update() {
+    /* Is the UP ARROW key Being Pressed? */
+    if(isKeyDown(WK_UP)) {
+	/* Increase the scale value to zoom in */
+	scaleValue += 0.001;
+	resetKey(WK_UP);
+    }
+
+    /* Is the DOWN ARROW key Being Pressed? */
+    if (isKeyDown(WK_DOWN)) {
+	/* Decrease the scale value to zoom out */
+	scaleValue -= 0.001;
+	resetKey(WK_DOWN);
+    }
+
+    /* Is SPACE kes being pressed? */
+    if (isKeyDown(WK_SPACE)) {
+	/* toggle wireframe/fill mode*/
+	Render = !Render;
+	resetKey(WK_SPACE);
+    }
+}
+
+/* Resize,set viewport,frustum */
+void resizeGLScene() {
+    float64_t width, height;
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    width = 0.5;
+    height = 0.5 * win.h / win.w;
+    gl.Frustum(-width, width, -height, height, 1.0, 500.0);
+    gl.MatrixMode(gl.MODELVIEW);
+}
+
+/* Setup basic Opengl stuff */
+void initGL() {
+    gl.ShadeModel(gl.SMOOTH);
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+    gl.ClearDepth(1.0);
+    gl.Enable(gl.DEPTH_TEST);
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+    resizeGLScene();
+    gl.Flush();
+}
+
+void run() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Up:
+			    keys |= WK_UP;
+			    break;
+			case sdl.Key_Down:
+			    keys |= WK_DOWN;
+			    break;
+			case sdl.Key_Space:
+			    keys |= WK_SPACE;
+			    break;
+			default:
+			    break;
+		    }
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	update();
+	drawGLScene();
+	sdl.gl.swap_window(win);
+    }
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson34",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("\
+Esc: 		Exit\n\
+Up:		Zoom in\n\
+Down:		Zoom out\n\
+Space:		Toggle render\n");
+    initGL();
+    LoadRawFile("nehe/lesson34/Terrain.raw", HeightMap);
+    run();
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+main();

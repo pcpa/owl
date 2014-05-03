@@ -1,0 +1,393 @@
+#define O_READ           	1
+
+// A Structure To Hold An OpenGL Matrix
+class MATRIX {
+    float64_t Data[16];
+};
+
+// A Structure To Hold A Single Vector
+class VECTOR {
+    float64_t X, Y, Z;
+};
+
+// A Structure To Hold A Single Vertex
+class VERTEX {
+    VECTOR Nor;		// Vertex Normal
+    VECTOR Pos;		// Vertex Position
+};
+
+// A Structure To Hold A Single Polygon
+class POLYGON {
+    VERTEX Verts[3];
+};
+
+uint8_t		outlineDraw	= true;		// Flag To Draw The Outline
+uint8_t		outlineSmooth	= false;	// Flag To Anti-Alias The Lines
+float32_t	outlineColor[3]	= { 0.0, 0.0, 0.0 };	// Color Of The Lines
+float32_t	outlineWidth	= 3.0;		// Width Of The Lines
+
+VECTOR		lightAngle = {};		// The Direction Of The Light
+// Flag To See If We Rotate The Light
+uint8_t		lightRotate	= false;
+
+float64_t	modelAngle	= 0.0;		// Y-Axis Angle Of The Model
+uint8_t		modelRotate	= true;		// Flag To Rotate The Model
+
+POLYGON		polyData[];			// Polygon Data
+uint32_t	shaderTexture[1] = {};		// Storage For One Texture
+
+MATRIX		TmpMatrix = { {} };
+VECTOR		TmpVector = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+// Reads The Contents Of The "model.txt" File
+uint8_t ReadMesh() {
+    int32_t	v1i[1] = {};
+    float32_t	v3f[3] = {};
+    int32_t	i, j, polyNum;
+    POLYGON	polygon;
+    VERTEX	vertex;
+    auto In = open("nehe/lesson37/Model.txt", O_READ);
+    if (!In)
+	return false;
+    if (read(In, v1i, 1) != 1)
+	goto fail;
+    polyNum = v1i[0];
+    polyData = new POLYGON[polyNum];
+
+    for (i = 0; i < polyNum; ++i) {
+	polygon = polyData[i] = new POLYGON;
+	polygon.Verts = new VERTEX[3];
+	for (j = 0; j < 3; ++j) {
+	    vertex = polygon.Verts[j] = new VERTEX;
+	    if (read(In, v3f, 3) != 3)
+		goto fail;
+	    vertex.Nor = { v3f[0], v3f[1], v3f[2] };
+	    if (read(In, v3f, 3) != 3)
+		goto fail;
+	    vertex.Pos = { v3f[0], v3f[1], v3f[2] };
+	}
+    }
+    close(In);
+    return true;
+fail:
+    close(In);
+    return false;
+}
+
+// Calculate The Angle Between The 2 Vectors
+float64_t DotProduct(VECTOR V1, VECTOR V2) {
+    return V1.X * V2.X + V1.Y * V2.Y + V1.Z * V2.Z;
+}
+
+// Calculate The Length Of The Vector
+float64_t Magnitude(VECTOR V) {
+    return sqrt(V.X * V.X + V.Y * V.Y + V.Z * V.Z);
+}
+
+// Creates A Vector With A Unit Length Of 1
+void Normalize(VECTOR V) {
+    // Calculate The Length Of The Vector
+    float64_t M = Magnitude(V);
+
+    // Make Sure We Don't Divide By 0
+    if (M != 0.0) {
+	// Normalize The 3 Components
+	V.X /= M;
+	V.Y /= M;
+	V.Z /= M;
+    }
+}
+
+// Rotate A Vector Using The Supplied Matrix
+void RotateVector(MATRIX M, VECTOR V, VECTOR D) {
+    // Rotate Around The X Axis
+    D.X = (M.Data[0] * V.X) + (M.Data[4] * V.Y) + (M.Data[8]  * V.Z);
+    // Rotate Around The Y Axis
+    D.Y = (M.Data[1] * V.X) + (M.Data[5] * V.Y) + (M.Data[9]  * V.Z);
+    // Rotate Around The Z Axis
+    D.Z = (M.Data[2] * V.X) + (M.Data[6] * V.Y) + (M.Data[10] * V.Z);
+}
+
+/* A general OpenGL initialization function.
+ * Sets all of the initial parameters. */
+uint8_t initGL() {
+    int32_t	i;
+    float64_t	v1d[1] = {};
+    // Storate For The 96 Shader Values
+    uint8_t	shaderData[96] = {};
+
+  // Realy Nice perspective calculations
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    gl.ClearColor(0.7, 0.7, 0.7, 0.0);	// Light Grey Background
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+    gl.DepthFunc(gl.LESS);		// The Type Of Depth Test To Do
+
+    gl.ShadeModel(gl.SMOOTH);		// Enables Smooth Color Shading
+    gl.Disable(gl.LINE_SMOOTH);		// Initially Disable Line Smoothing
+
+    gl.Enable(gl.CULL_FACE);		// Enable OpenGL Face Culling
+
+    gl.Disable(gl.LIGHTING);		// Disable OpenGL Lighting
+
+    auto In = open("nehe/lesson37/Shader.txt", O_READ);
+    if (!In)
+	return false;
+    // Loop Though The 32 Greyscale Values
+    for (i = 0; i < 96; i += 3) {
+	if (scanf(In, "%f\n", v1d))
+	    shaderData[i] =
+	    shaderData[i + 1] =
+	    shaderData[i + 2] = 255 * v1d[0];
+	else
+	    break;
+    }
+    close(In);
+
+    // Get A Free Texture ID
+    gl.GenTextures(shaderTexture);
+
+    // Bind This Texture. From Now On It Will Be 1D
+    gl.BindTexture(gl.TEXTURE_1D, shaderTexture[0]);
+
+    // For Crying Out Loud Don't Let OpenGL Use Bi/Trilinear Filtering
+    gl.TexParameter(gl.TEXTURE_1D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.TexParameter(gl.TEXTURE_1D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+    gl.TexImage1D(gl.TEXTURE_1D, 0, 32, 0, gl.RGB, shaderData);	// Upload
+
+    lightAngle.X = 0.0;				// Set The X Direction
+    lightAngle.Y = 0.0;				// Set The Y Direction
+    lightAngle.Z = 1.0;				// Set The Z Direction
+
+    // Normalize The Light Direction
+    Normalize(lightAngle);
+
+    return ReadMesh();
+}
+
+void resizeWindow() {
+    gl.Viewport(0, 0, win.w, win.h);
+
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+}
+
+/* The main drawing function. */
+void drawGLScene() {
+    int32_t i, j;
+    VECTOR Pos;
+    POLYGON Poly;
+    float64_t TmpShade;
+
+    // Clear The Buffers
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();			// Reset The Matrix
+
+    // Check To See If We Want Anti-Aliased Lines
+    if (outlineSmooth) {
+	// Use The Good Calculations
+	gl.Hint(gl.LINE_SMOOTH_HINT, gl.NICEST);
+	gl.Enable(gl.LINE_SMOOTH);
+    }
+    // We Don't Want Smooth Lines
+    else
+	gl.Disable(gl.LINE_SMOOTH);
+
+    // Move 2 Units Away From The Screen
+    gl.Translate(0.0, 0.0, -2.0);
+    // Rotate The Model On It's Y-Axis
+    gl.Rotate(modelAngle, 0.0, 1.0, 0.0);
+
+    // Get The Generated Matrix
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, TmpMatrix.Data);
+
+    // Cel-Shading Code
+    // Enable 1D Texturing
+    gl.Enable(gl.TEXTURE_1D);
+    // Bind Our Texture
+    gl.BindTexture(gl.TEXTURE_1D, shaderTexture[0]);
+
+    gl.Color3(1.0, 1.0, 1.0);		// Set The Color Of The Model
+
+    // Tell OpenGL That We're Drawing Triangles
+    gl.Begin(gl.TRIANGLES);
+    // Loop Through Each Polygon
+    for (i = 0; i < sizeof(polyData); ++i) {
+	Poly = polyData[i];
+	// Loop Through Each Vertex
+	for (j = 0; j < 3; ++j) {
+	    // Rotate This By The Matrix
+	    RotateVector(TmpMatrix, Poly.Verts[j].Nor, TmpVector);
+
+	    Normalize(TmpVector);	// Normalize The New Normal
+
+	    // Calculate The Shade Value
+	    TmpShade = DotProduct(TmpVector, lightAngle);
+
+	    // Clamp The Value to 0 If Negative
+	    if (TmpShade < 0.0)
+		TmpShade = 0.0;
+
+	    // Set The Texture Co-ordinate As The Shade Value
+	    gl.TexCoord1(TmpShade);
+	    Pos = Poly.Verts[j].Pos;
+	    // Send The Vertex Position
+	    gl.Vertex3(Pos.X, Pos.Y, Pos.Z);
+	}
+    }
+    // Tell OpenGL To Finish Drawing
+    gl.End();
+
+    // Disable 1D Textures
+    gl.Disable(gl.TEXTURE_1D);
+
+    // Check To See If We Want To Draw The Outline
+    if (outlineDraw) {
+	gl.Enable(gl.BLEND);		// Enable Blending
+	// Set The Blend Mode
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+	// Draw Backfacing Polygons As Wireframes
+	gl.PolygonMode(gl.BACK, gl.LINE);
+	// Set The Line Width
+	gl.LineWidth(outlineWidth);
+
+	// Don't Draw Any Front-Facing Polygons
+	gl.CullFace(gl.FRONT);
+
+	// Change The Depth Mode
+	gl.DepthFunc(gl.LEQUAL);
+
+	// Set The Outline Color
+	gl.Color3v(outlineColor);
+
+	// Tell OpenGL What We Want To Draw
+	gl.Begin(gl.TRIANGLES);
+	    // Loop Through Each Polygon
+	for (i = 0; i < sizeof(polyData); ++i) {
+	    Poly = polyData[i];
+	    // Loop Through Each Vertex
+	    for (j = 0; j < 3; ++j) {
+		Pos = Poly.Verts[j].Pos;
+		// Send The Vertex Position
+		gl.Vertex3(Pos.X, Pos.Y, Pos.Z);
+	    }
+	}
+
+	gl.End();		// Tell OpenGL We've Finished
+
+	gl.DepthFunc(gl.LESS);	// Reset The Depth-Testing Mode
+
+	gl.CullFace(gl.BACK);	// Reset The Face To Be Culled
+
+	// Reset Back-Facing Polygon Drawing Mode
+	gl.PolygonMode(gl.BACK, gl.FILL);
+
+	gl.Disable(gl.BLEND);	// Disable Blending
+    }
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+
+    if (modelRotate)
+	modelAngle += 2.0;
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson37",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+print("\
+Esc: 		Exit\n\
+Up:		Increase outline width\n\
+Down:		Decrease outline width\n\
+Space:		Toggle rotation\n\
+1:		Toggle outline\n\
+2:		Toggle outline smooth\n");
+    initGL();
+    resizeWindow();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeWindow();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Up:	// decrease x rotation speed
+			    ++outlineWidth;
+			    break;
+			case sdl.Key_Down:	// increase x rotation speed
+			    --outlineWidth;
+			    break;
+			case sdl.Key_Space:
+			    modelRotate = !modelRotate;
+			    break;
+			case sdl.Key_1:
+			    outlineDraw = !outlineDraw;
+			    break;
+			case sdl.Key_2:
+			    outlineSmooth = !outlineSmooth;	
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	drawGLScene();
+    }
+
+    gl.DeleteTextures(shaderTexture);
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

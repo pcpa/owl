@@ -1,0 +1,1000 @@
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+/* Number of textures to load */
+#define NUM_TEXTURES	2
+
+sdl.chunk_t chunk;
+sdl.music_t music;
+
+int32_t vline[11][11] = {};	/* Keeps Track Of Verticle Lines	*/
+int32_t hline[11][11] = {};	/* Keeps Track Of Horizontal Lines	*/
+int32_t filled; 		/* Done Filling In The Grid?		*/
+int32_t gameover = true;	/* Is The Game Over?			*/
+int32_t anti	 = true;	/* Antialiasing?			*/
+
+int32_t loop1;			/* Generic Loop1			*/
+int32_t loop2;			/* Generic Loop2			*/
+int32_t delay  = 0;		/* Enemy Delay 				*/
+int32_t adjust = 3;		/* Speed Adjustment For Really Slow Video Cards */
+int32_t lives  = 5;		/* Player Lives				*/
+int32_t level  = 1;		/* Internal Game Level 			*/
+int32_t level2 = 1;		/* Displayed Game Level			*/
+int32_t stage  = 1;		/* Game Stage				*/
+
+/* Create a structure for our player */
+class object {
+    int32_t fx, fy;	/* Fine Movement Position	*/
+    int32_t x, y;	/* Current Player Position	*/
+    float32_t spin;	/* Spin Direction		*/
+};
+
+object player = {};		/* Player Information    */
+object enemies[9] = {};		/* Enemy Information     */
+object hourglass = {};		/* Hourglass Information */
+
+/* Stepping Values For Slow Video Adjustment */
+int32_t steps[6] = { 1, 2, 4, 5, 10, 20 };
+
+uint32_t texture[NUM_TEXTURES] = {};	/* Storage for textures */
+uint32_t base;				/* Base Display List For The Font */
+
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson21",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    for (loop1 = 0; loop1 < 9; ++loop1) {
+	enemies[loop1] = new object;
+	vline[loop1] = new int32_t[11];
+	hline[loop1] = new int32_t[11];
+    }
+    for (; loop1 < 11; ++loop1) {
+	vline[loop1] = new int32_t[11];
+	hline[loop1] = new int32_t[11];
+    }
+}
+
+void reset() {
+
+    player.x  = 0;	/* Reset Player X Position To Far Left Of The Screen */
+    player.y  = 0;	/* Reset Player Y Position To The Top Of The Screen */
+    player.fx = 0;	/* Set Fine X Position To Match			*/
+    player.fy = 0;	/* Set Fine Y Position To Match			*/
+
+    /* Loop Through All The Enemies */
+    for (loop1 = 0; loop1 < stage * level; ++loop1) {
+	/* A Random X Position */
+	enemies[loop1].x  = 5 + rand() % 6;
+	/* A Random Y Position */
+	enemies[loop1].y  = rand( ) % 11;
+	/* Set Fine X To Match */
+	enemies[loop1].fx = enemies[loop1].x * 60;
+	/* Set Fine Y To Match */
+	enemies[loop1].fy = enemies[loop1].y * 40;
+    }
+}
+
+void init_texture() {
+    sdl.surface_t srf[2] = {};
+
+    if ((srf[0] = sdl.load_surface("nehe/lesson21/font.bmp")) &&
+	(srf[1] = sdl.load_surface("nehe/lesson21/image.bmp"))) {
+
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	for (loop1 = 0; loop1 < NUM_TEXTURES; ++loop1) {
+	    /* Typical Texture Generation Using Data From The Bitmap */
+	    gl.BindTexture(gl.TEXTURE_2D, texture[loop1]);
+
+	    /* Generate The Texture */
+	    sdl.gl.TexImage2D(srf[loop1]);
+
+	    /* Linear Filtering */
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	}
+    }
+
+    /* Free up any memory we may have used */
+    for (loop1 = 0; loop1 < NUM_TEXTURES; ++loop1)
+	if (srf[loop1])
+	    sdl.free_surface(srf[loop1]);
+}
+
+/* function to build our font list */
+void build_font() {
+    float64_t cx;	/* Holds Our X Character Coord */
+    float64_t cy;	/* Holds Our Y Character Coord */
+
+    /* Creating 256 Display List */
+    base = gl.GenLists(256);
+    /* Select Our Font Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Loop Through All 256 Lists */
+    for (loop1 = 0; loop1 < 256; ++loop1) {
+	/* NOTE:
+	 *  BMPs are stored with the top-leftmost pixel being the
+	 * last byte and the bottom-rightmost pixel being the first
+	 * byte. So an image that is displayed as
+	 *    1 0
+	 *    0 0
+	 * is represented data-wise like
+	 *    0 0
+	 *    0 1
+	 * And because SDL_LoadBMP loads the raw data without
+	 * translating to how it is thought of when viewed we need
+	 * to start at the bottom-right corner of the data and work
+	 * backwards to get everything properly. So the below code has
+	 * been modified to reflect this. Examine how this is done and
+	 * how the original tutorial is done to grasp the differences.
+	 *
+	 * As a side note BMPs are also stored as BGR instead of RGB
+	 * and that is why we load the texture using GL_BGR. It's
+	 * bass-ackwards I know but whattaya gonna do?
+	 */
+
+	/* X Position Of Current Character */
+	cx = 1 - (loop1 % 16) / 16.0;
+	/* Y Position Of Current Character */
+	cy = 1 - (loop1 \ 16) / 16.0;
+
+	/* Start Building A List */
+	gl.NewList(base + (255 - loop1), gl.COMPILE);
+	/* Use A Quad For Each Character */
+	gl.Begin(gl.QUADS);
+	{
+	    /* Texture Coord (Bottom Left) */
+	    gl.TexCoord2(cx - 0.0625, cy);
+	    /* Vertex Coord (Bottom Left) */
+	    gl.Vertex2(0, 16);
+
+	    /* Texture Coord (Bottom Right) */
+	    gl.TexCoord2(cx, cy);
+	    /* Vertex Coord (Bottom Right) */
+	    gl.Vertex2(16, 16);
+
+	    /* Texture Coord (Top Right) */
+	    gl.TexCoord2( cx, cy - 0.0625);
+	    /* Vertex Coord (Top Right) */
+	    gl.Vertex2(16, 0);
+
+	    /* Texture Coord (Top Left) */
+	    gl.TexCoord2(cx - 0.0625, cy - 0.0625);
+	    /* Vertex Coord (Top Left) */
+	    gl.Vertex2(0, 0);
+	}
+	gl.End();
+
+	/* Move To The Left Of The Character */
+	gl.Translate(15, 0, 0);
+	gl.EndList();
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    /* Set our ortho view */
+    gl.Ortho(0.0, win.w, win.h, 0.0, -1.0, 1.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    init_texture();
+
+    build_font();
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Set Line Antialiasing */
+    gl.Hint(gl.LINE_SMOOTH_HINT, gl.NICEST);
+    /* Enable Blending */
+    gl.Enable(gl.BLEND);
+    /* Type Of Blending To Use */
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+
+/* function to print a string */
+void paint(int32_t x, int32_t y, int32_t set, string_t string)
+{
+    int32_t		i;
+    uint32_t		list[] = new uint32_t[sizeof(string)];
+
+    for (i = sizeof(list) -1; i >= 0; --i)
+	list[i] = string[i];
+
+    /* Did User Choose An Invalid Character Set? */
+    if (set > 1)
+	set = 1;
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Select our texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Disable depth testing */
+    gl.Disable(gl.DEPTH_TEST);
+
+    /* Reset The Modelview Matrix */
+    gl.LoadIdentity();
+    /* Position The Text (0,0 - Bottom Left) */
+    gl.Translate(x, y, 0);
+    /* Choose The Font Set (0 or 1) */
+    gl.ListBase(base - 32 + (128 * set));
+
+    /* If Set 0 Is Being Used Enlarge Font */
+    if (set == 0)
+	/* Enlarge Font Width And Height */
+	gl.Scale(1.5, 2.0, 1.0);
+
+    /* Write The Text To The Screen */
+    gl.CallLists(list);
+    /* Disable Texture Mapping */
+    gl.Disable(gl.TEXTURE_2D);
+
+    /* Re-enable Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+}
+
+void draw() {
+    string_t	string = {};
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.LoadIdentity();
+
+    /* Set Color To Purple */
+    gl.Color3(1.0, 0.5, 1.0);
+    /* Write GRID CRAZY On The Screen */
+    paint(207, 24, 0, "GRID CRAZY");
+    /* Set Color To Yellow */
+    gl.Color3(1.0, 1.0, 0.0);
+    /* Write Actual Level Stats */
+    printf(string, "Level:%2d", level2);
+    paint(20, 20, 1, string);
+    /* Write Stage Stats */
+    printf(string, "Stage:%2d", stage);
+    paint( 20, 40, 1, string);
+
+    /* Is The Game Over? */
+    if (gameover) {
+	/* Pick A Random Color */
+	gl.Color3(255.0 / (rand() & 0xff),
+		  255.0 / (rand() & 0xff),
+		  255.0 / (rand() & 0xff));
+	/* Write GAME OVER To The Screen */
+	paint(472, 20, 1, "GAME OVER");
+	/* Write PRESS SPACE To The Screen */
+	paint(456, 40, 1, "PRESS SPACE");
+    }
+
+    /* Loop Through Lives Minus Current Life */
+    for (loop1 = 0; loop1 < lives - 1; ++loop1) {
+	/* Reset The View */
+	gl.LoadIdentity();
+	/* Move To The Right Of Our Title Text */
+	gl.Translate(490 + (loop1 * 40.0), 40.0, 0.0);
+	/* Rotate Counter Clockwise */
+	gl.Rotate(-player.spin, 0.0, 0.0, 1.0);
+	/* Set Player Color To Light Green */
+	gl.Color3(0.0, 1.0, 0.0);
+
+	/* Start Drawing Our Player Using Lines */
+	gl.Begin(gl.LINES);
+	{
+	    gl.Vertex2(-5, -5);	/* Top Left Of Player		*/
+	    gl.Vertex2( 5,  5);	/* Bottom Right Of Player	*/
+	    gl.Vertex2( 5, -5);	/* Top Right Of Player		*/
+	    gl.Vertex2(-5,  5);	/* Bottom Left Of Player	*/
+	}
+	gl.End();
+
+	/* Rotate Counter Clockwise */
+	gl.Rotate(-player.spin * 0.5, 0.0, 0.0, 1.0);
+	/* Set Player Color To Dark Green */
+	gl.Color3(0.0, 0.75, 0.0);
+
+	/* Start Drawing Our Player Using Lines */
+	gl.Begin(gl.LINES);
+	{
+	    gl.Vertex2(-7,  0);	/* Left Center Of Player	*/
+	    gl.Vertex2( 7,  0);	/* Right Center Of Player	*/
+	    gl.Vertex2( 0, -7);	/* Top Center Of Player		*/
+	    gl.Vertex2( 0,  7);	/* Bottom Center Of Player	*/
+	}
+	gl.End();
+    }
+
+    /* Set Filled To True Before Testing */
+    filled = true;
+    /* Set Line Width For Cells To 2.0f */
+    gl.LineWidth(2.0);
+    /* Disable Antialiasing */
+    gl.Disable(gl.LINE_SMOOTH);
+    /* Reset The Current Modelview Matrix */
+    gl.LoadIdentity();
+
+    /* Loop From Left To Right */
+    for (loop1 = 0; loop1 < 11; ++loop1) {
+	/* Loop From Top To Bottom */
+	for (loop2 = 0; loop2 < 11; ++loop2) {
+	    /* Set Line Color To Blue */
+	    gl.Color3(0.0, 0.5, 1.0);
+
+	    /* Has The Horizontal Line Been Traced */
+	    if (hline[loop1][loop2])
+		gl.Color3(1.0, 1.0, 1.0);
+
+	    /* Dont Draw To Far Right */
+	    if (loop1 < 10) {
+		/* If A Horizontal Line Isn't Filled */
+		if (!hline[loop1][loop2])
+		    filled = false;
+
+		/* Start Drawing Horizontal Cell Borders */
+		gl.Begin(gl.LINES);
+		{
+		    /* Left Side Of Horizontal Line */
+		    gl.Vertex2(20 + (loop1 * 60), 70 + (loop2 * 40));
+		    /* Right Side Of Horizontal Line */
+		    gl.Vertex2(80 + (loop1 * 60), 70 + (loop2 * 40));
+		}
+		gl.End();
+	    }
+
+	    /* Set Line Color To Blue */
+	    gl.Color3(0.0, 0.5, 1.0);
+
+	    /* Has The Horizontal Line Been Traced */
+	    if (vline[loop1][loop2])
+		/* If So, Set Line Color To White */
+		gl.Color3(1.0, 1.0, 1.0);
+
+	    /* Dont Draw To Far Down */
+	    if (loop2 < 10) {
+		/* If A Verticle Line Isn't Filled */
+		if (!vline[loop1][loop2])
+		    filled = false;
+
+		/* Start Drawing Verticle Cell Borders */
+		gl.Begin(gl.LINES);
+		{
+		    /* Left Side Of Horizontal Line */
+		    gl.Vertex2(20 + (loop1 * 60), 70 + (loop2 * 40));
+		    /* Right Side Of Horizontal Line */
+		    gl.Vertex2(20 + (loop1 * 60), 110 + (loop2 * 40));
+		}
+		gl.End();
+	    }
+
+	    /* Enable Texture Mapping */
+	    gl.Enable(gl.TEXTURE_2D);
+	    /* Bright White Color */
+	    gl.Color3(1.0, 1.0, 1.0);
+	    /* Select The Tile Image */
+	    gl.BindTexture(gl.TEXTURE_2D, texture[1]);
+
+	    /* If In Bounds, Fill In Traced Boxes */
+	    if ((loop1 < 10) && (loop2 < 10)) {
+		/* Are All Sides Of The Box Traced? */
+		if (hline[loop1][loop2] && hline[loop1][loop2 + 1] &&
+		    vline[loop1][loop2] && vline[loop1+1][loop2]) {
+		    /* Draw A Textured Quad */
+		    gl.Begin(gl.QUADS);
+		    {
+			/* Top Right */
+			gl.TexCoord2(loop1 / 10.0 + 0.1, 1.0 - loop2 / 10.0);
+			gl.Vertex2(20 + loop1 * 60 + 59, 70 + loop2 * 40 + 1);
+			/* Top Left */
+			gl.TexCoord2(loop1 / 10.0, 1.0 - loop2 / 10.0);
+			gl.Vertex2(20 + loop1 * 60 + 1, 70 + loop2 * 40 + 1);
+			/* Bottom Left */
+			gl.TexCoord2(loop1 / 10.0, 1.0 - loop2 / 10.0 + 0.1);
+			gl.Vertex2(20 + loop1 * 60 + 1, 70 + loop2 * 40 + 39);
+			/* Bottom Right */
+			gl.TexCoord2(loop1 / 10.0 + 0.1, 1.0 - loop2 / 10.0 + 0.1);
+			gl.Vertex2(20 + loop1 * 60 + 59, 70 + loop2 * 40 + 39);
+		    }
+		    gl.End();
+		}
+	    }
+
+	    /* Disable Texture Mapping */
+	    gl.Disable(gl.TEXTURE_2D);
+	}
+    }
+
+    /* Set The Line Width To 1.0f */
+    gl.LineWidth(1.0);
+
+    /* Is Anti TRUE? */
+    if (anti)
+	gl.Enable(gl.LINE_SMOOTH);
+
+    /* If fx=1 Draw The Hourglass */
+    if (hourglass.fx == 1) {
+	/* Reset The Modelview Matrix */
+	gl.LoadIdentity();
+	/* Move To The Fine Hourglass Position */
+	gl.Translate(20.0 + hourglass.x * 60, 70.0 + hourglass.y * 40, 0.0);
+	/* Rotate Clockwise */
+	gl.Rotate(hourglass.spin, 0.0, 0.0, 1.0);
+	/* Set Hourglass Color To Random Color */
+	gl.Color3(255.0 / (rand( ) &0xff), 255.0 / (rand() & 0xff), 255.0 / (rand() & 0xff));
+
+	/* Start Drawing Our Hourglass Using Lines */
+	gl.Begin(gl.LINES);
+	{
+	    /* Top Left Of Hourglass */
+	    gl.Vertex2(-5, -5);
+	    /* Bottom Right Of Hourglass */
+	    gl.Vertex2( 5,  5);
+	    /* Top Right Of Hourglass */
+	    gl.Vertex2( 5, -5);
+	    /* Bottom Left Of Hourglass */
+	    gl.Vertex2(-5,  5);
+	    /* Bottom Left Of Hourglass */
+	    gl.Vertex2(-5,  5);
+	    /* Bottom Right Of Hourglass */
+	    gl.Vertex2( 5,  5);
+	    /* Top Left Of Hourglass */
+	    gl.Vertex2(-5, -5);
+	    /* Top Right Of Hourglass */
+	    gl.Vertex2( 5, -5);
+	}
+	gl.End();
+    }
+
+    /* Reset The Modelview Matrix */
+    gl.LoadIdentity();
+    /* Move To The Fine Player Position */
+    gl.Translate(player.fx + 20.0, player.fy + 70.0, 0.0);
+    /* Rotate Clockwise */
+    gl.Rotate(player.spin, 0.0, 0.0, 1.0);
+    /* Set Player Color To Light Green */
+    gl.Color3(0.0, 1.0, 0.0);
+
+    /* Start Drawing Our Player Using Lines */
+    gl.Begin(gl.LINES);
+    {
+	/* Top Left Of Player */
+	gl.Vertex2(-5, -5);
+	/* Bottom Right Of Player */
+	gl.Vertex2( 5,  5);
+	/* Top Right Of Player */
+	gl.Vertex2( 5, -5);
+	/* Bottom Left Of Player */
+	gl.Vertex2(-5,  5);
+    }
+    gl.End();
+
+    /* Rotate Clockwise */
+    gl.Rotate(player.spin * 0.5, 0.0, 0.0, 1.0);
+    /* Set Player Color To Dark Green */
+    gl.Color3(0.0, 0.75, 0.0);
+    /* Start Drawing Our Player Using Lines */
+    gl.Begin(gl.LINES);
+    {
+	/* Left Center Of Player */
+	gl.Vertex2(-7,  0);
+	/* Right Center Of Player */
+	gl.Vertex2( 7,  0);
+	/* Top Center Of Player */
+	gl.Vertex2( 0, -7);
+	/* Bottom Center Of Player */
+	gl.Vertex2( 0,  7);
+    }
+    gl.End();
+
+    /* Loop To Draw Enemies */
+    for (loop1 = 0; loop1 < stage * level; ++loop1) {
+	/* Reset The Modelview Matrix */
+	gl.LoadIdentity();
+	gl.Translate(enemies[loop1].fx + 20.0,
+		     enemies[loop1].fy + 70.0, 0.0);
+	/* Make Enemy Body Pink */
+	gl.Color3(1.0, 0.5, 0.5);
+
+	/* Start Drawing Enemy */
+	gl.Begin(gl.LINES);
+	{
+	    /* Top Point Of Body */
+	    gl.Vertex2( 0, -7);
+	    /* Left Point Of Body */
+	    gl.Vertex2(-7,  0);
+	    /* Left Point Of Body */
+	    gl.Vertex2(-7,  0);
+	    /* Bottom Point Of Body */
+	    gl.Vertex2( 0,  7);
+	    /* Bottom Point Of Body */
+	    gl.Vertex2( 0,  7);
+	    /* Right Point Of Body */
+	    gl.Vertex2( 7,  0);
+	    /* Right Point Of Body */
+	    gl.Vertex2( 7,  0);
+	    /* Top Point Of Body */
+	    gl.Vertex2( 0, -7);
+	}
+	gl.End();
+
+	/* Rotate The Enemy Blade */
+	gl.Rotate(enemies[loop1].spin, 0.0, 0.0, 1.0);
+	/* Make Enemy Blade Red */
+	gl.Color3(1.0, 0.0, 0.0);
+
+	/* Start Drawing Enemy Blade */
+	gl.Begin(gl.LINES);
+	{
+	    /* Top Left Of Enemy */
+	    gl.Vertex2(-7, -7);
+	    /* Bottom Right Of Enemy */
+	    gl.Vertex2( 7,  7);
+	    /* Bottom Left Of Enemy */
+	    gl.Vertex2(-7,  7);
+	    /* Top Right Of Enemy */
+	    gl.Vertex2( 7, -7);
+	}
+	gl.End();
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void play(string_t sound, int32_t repeat)
+{
+    if (sound == null) {
+	    sdl.halt_channel(1);
+	    sdl.free_chunk(chunk);
+	    chunk = null;
+	    return;
+    }
+
+    if (chunk) {
+	sdl.halt_channel(1);
+	sdl.free_chunk(chunk);
+    }
+
+    chunk = sdl.load_chunk(sound);
+
+    if (chunk == null)
+	print("Failed to load sound: %s\n", sound);
+
+    sdl.play_channel( -1, chunk, repeat);
+}
+
+void event_loop() {
+    uint32_t time;
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	/* Get our time */
+	time = sdl.get_ticks();
+
+	while (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_a:
+			    anti = !anti;
+			    break;
+			case sdl.Key_Right:
+			    if (player.x < 10 &&
+				player.fx == player.x * 60 &&
+				player.fy == player.y * 40) {
+				/* Mark The Current Horizontal Border As Filled */
+				hline[player.x][player.y] = true;
+				/* Move The Player Right */
+				++player.x;
+			    }
+			    break;
+			case sdl.Key_Left:
+			    if (player.x > 0 &&
+				player.fx == player.x * 60 &&
+				player.fy == player.y * 40) {
+				/* Move The Player Left */
+				--player.x;
+				/* Mark The Current Horizontal Border As Filled */
+				hline[player.x][player.y] = true;
+			    }
+			    break;
+			case sdl.Key_Up:
+			    if (player.y > 0 &&
+				player.fx == player.x * 60 &&
+				player.fy == player.y * 40) {
+				/* Move The Player Up */
+				--player.y;
+				/* Mark The Current Verticle Border As Filled */
+				vline[player.x][player.y] = true;
+			    }
+			    break;
+			case sdl.Key_Down:
+			    if (player.y < 10 &&
+				player.fx == player.x * 60 &&
+				player.fy == player.y * 40) {
+				/* Mark The Current Verticle Border As Filled */
+				vline[player.x][player.y] = true;
+				/* Move The Player Down */
+				++player.y;
+			    }
+			    break;
+			case sdl.Key_Space:
+			    if (gameover) {
+				gameover = false;
+				filled   = true;
+				level    = 1;
+				level2   = 1;
+				stage    = 1;
+				lives    = 5;
+			    }
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+
+
+	/* Waste some cycles */
+	while (sdl.get_ticks() < time + steps[adjust] * 2)
+	    ;
+
+	draw();
+
+	if (!gameover) {
+	    /* Move the enemies */
+	    for (loop1 = 0; loop1 < stage * level; ++loop1) {
+		/* Move The Enemy Right */
+		if (enemies[loop1].x < player.x &&
+		    enemies[loop1].fy == enemies[loop1].y * 40)
+		    ++enemies[loop1].x;
+
+		/* Move The Enemy Left */
+		if (enemies[loop1].x > player.x &&
+		    enemies[loop1].fy == enemies[loop1].y * 40)
+		    --enemies[loop1].x;
+
+		/* Move The Enemy Down */
+		if (enemies[loop1].y < player.y &&
+		    enemies[loop1].fx == enemies[loop1].x * 60)
+		    ++enemies[loop1].y;
+
+		/* Move The Enemy Up */
+		if (enemies[loop1].y > player.y &&
+		    enemies[loop1].fx == enemies[loop1].x * 60)
+		    --enemies[loop1].y;
+
+		/* Should the enemies move? */
+		if (delay > 3 - level && hourglass.fx != 2) {
+		    /* Reset The Delay Counter Back To Zero */
+		    delay = 0;
+
+		    /* Loop Through All The Enemies */
+		    for (loop2 = 0; loop2 < stage * level; ++loop2) {
+			/* Is Fine Position On X Axis Lower
+			 * Than Intended Position?
+		         */
+			if (enemies[loop2].fx < enemies[loop2].x * 60) {
+			    /* Increase Fine Position
+			     * On X Axis
+			     */
+			    enemies[loop2].fx += steps[adjust];
+			    /* Spin Enemy Clockwise */
+			    enemies[loop2].spin += steps[adjust];
+			}
+
+			/* Is Fine Position On X Axis
+			 * Higher Than Intended Position?
+			 */
+			if (enemies[loop2].fx > enemies[loop2].x * 60) {
+			    /* Decrease Fine Position
+			     * On X Axis
+			     */
+			    enemies[loop2].fx -= steps[adjust];
+			    /* Spin Enemy Counter
+			     * Clockwise 
+			     */
+			    enemies[loop2].spin -= steps[adjust];
+			}
+
+			/* Is Fine Position On Y Axis Lower
+			 * Than Intended Position?
+			 */
+			if (enemies[loop2].fy < enemies[loop2].y * 40) {
+			    /* Increase Fine Position
+			     * On Y Axis
+			     */
+			    enemies[loop2].fy += steps[adjust];
+			    /* Spin Enemy Clockwise */
+			    enemies[loop2].spin += steps[adjust];
+			}
+
+			/* Is Fine Position On Y Axis
+			 * Higher Than Intended Position?
+			 */
+			if (enemies[loop2].fy > enemies[loop2].y * 40) {
+			    /* Decrease Fine Position
+			     * On Y Axis
+			     */
+			    enemies[loop2].fy -= steps[adjust];
+			    /* Spin Enemy Counter
+			     * Clockwise
+			     */
+			    enemies[loop2].spin -= steps[adjust];
+			}
+		    }
+		}
+
+		/* Are Any Of The Enemies On Top Of The Player? */
+		if ((enemies[loop1].fx == player.fx) &&
+		    (enemies[loop1].fy == player.fy)) {
+		    /* Player Loses A Life */
+		    --lives;
+
+		    /* Are We Out Of Lives? */
+		    if (lives == 0)
+			gameover = true;
+
+		    /* Play The Death Sound */
+		    play("nehe/lesson21/die.wav", 0);
+
+		    reset();
+		}
+	    }
+
+	    /* Move the player */
+	    /* Is Fine Position On X Axis Lower Than
+	     * Intended Position?
+	     */
+	    if (player.fx < player.x * 60)
+		/* Increase The Fine X Position */
+		player.fx += steps[adjust];
+
+	    /* Is Fine Position On X Axis Greater Than
+	     * Intended Position?
+	     */
+	    if (player.fx > player.x * 60)
+		/* Decrease The Fine X Position */
+		player.fx -= steps[adjust];
+
+	    /* Is Fine Position On Y Axis Lower Than
+	     * Intended Position?
+	     */
+	    if (player.fy < player.y * 40)
+		/* Increase The Fine Y Position */
+		player.fy += steps[adjust];
+
+	    /* Is Fine Position On Y Axis Lower Than
+	     * Intended Position?
+	     */
+	    if  (player.fy > player.y * 40)
+		/* Decrease The Fine Y Position */
+		player.fy -= steps[adjust];
+	}
+
+	/* Is The Grid Filled In? */
+	if (filled) {
+	    /* Play The Level Complete Sound */
+	    play("nehe/lesson21/complete.wav", 0);
+
+	    /* Increase The Stage */
+	    stage++;
+
+	    /* Is The Stage Higher Than 3? */
+	    if (stage > 3) {
+		stage = 1;	/* If So, Set The Stage To One  */
+		++level;	/* Increase The Level           */
+		++level2;	/* Increase The Displayed Level */
+
+		/* Is The Level Greater Than 3? */
+		if (level > 3) {
+		    /* Set The Level To 3 */
+		    level = 3;
+		    /* Give The Player A Free Life */
+		    ++lives;
+
+		    /* Player Have More Than 5 Lives? */
+		    if (lives > 5)
+			lives = 5; /* Set Lives To Five */
+		} 
+	    }
+
+	    /* Reset Player / Enemy Positions */
+	    reset();
+
+	    /* Loop Through The Grid X Coordinates */
+	    for (loop1 = 0; loop1 < 11; ++loop1) {
+		/* Loop Through The Grid Y Coordinates */
+		for (loop2 = 0; loop2 < 11; ++loop2) {
+		    /* If X Coordinate Is Less Than 10 */
+		    if (loop1 < 10)
+			/* Set Horizontal Value To FALSE */
+			hline[loop1][loop2] = false;
+
+		    /* If Y Coordinate Is Less Than 10 */
+		    if (loop2 < 10)
+			/* Set Vertical Value To FALSE */
+			vline[loop1][loop2] = false;
+		}
+	    }
+	}
+
+	/* If The Player Hits The Hourglass While
+	 * It's Being Displayed On The Screen
+	 */
+	if (player.fx == hourglass.x * 60 &&
+	    player.fy == hourglass.y * 40 &&
+	    hourglass.fx == 1) {
+	    /* Play Freeze Enemy Sound */
+	    play( "nehe/lesson21/freeze.wav", -1);
+
+	    /* Set The hourglass fx Variable To Two */
+	    hourglass.fx = 2;
+	    /* Set The hourglass fy Variable To Zero */
+	    hourglass.fy = 0;
+	}
+
+	/* Spin The Player Clockwise */
+	player.spin += 0.5 * steps[adjust];
+
+	/* Is The spin Value Greater Than 360? */
+	if ( player.spin > 360.0)
+	    player.spin -= 360;
+
+	/* Spin The Hourglass Counter Clockwise */
+	hourglass.spin -= 0.25 * steps[adjust];
+
+	/* Is The spin Value Less Than 0? */
+	if (hourglass.spin < 0.0)
+	    hourglass.spin += 360.0;
+
+	/* Increase The hourglass fy Variable */
+	hourglass.fy +=steps[adjust];
+
+	/* Is The hourglass fx Variable Equal To 0 And
+	 * The fy Variable Greater Than 6000 Divided By The Current Level?
+	 */
+	if (hourglass.fx == 0 &&  hourglass.fy > 6000 / level) {
+	    /* Play The Hourglass Appears Sound */
+	    play( "nehe/lesson21/hourglass.wav", 0);
+
+	    /* Give The Hourglass A Random X Value */
+	    hourglass.x = rand() % 10 + 1;
+	    /* Give The Hourglass A Random Y Value */
+	    hourglass.y = rand() % 11;
+	    /* Set hourglass fx Variable To One (Hourglass Stage) */
+	    hourglass.fx = 1;
+	    /* Set hourglass fy Variable To Zero (Counter) */
+	    hourglass.fy = 0;
+	}
+
+	/* Is The hourglass fx Variable Equal To 1 And
+	 * The fy Variable Greater Than 6000 Divided By The Current Level?
+	 */
+	if (hourglass.fx == 1 && hourglass.fy > 6000 / level) {
+	    /* Set fx To Zero (Hourglass Will Vanish) */
+	    hourglass.fx = 0;
+	    /* Set fy to Zero (Counter Is Reset) */
+	    hourglass.fy = 0;
+	}
+
+	/* Is The hourglass fx Variable Equal To 2 And The fy Variable
+	 * Greater Than 500 Plus 500 Times The Current Level?
+	 */
+	if (hourglass.fx == 2 && hourglass.fy > 500 + 500 * level) {
+	    /* Kill The Freeze Sound */
+	    play(null, 0);
+
+	    /* Set hourglass fx Variable To Zero */
+	    hourglass.fx = 0;
+	    /* Set hourglass fy Variable To Zero */
+	    hourglass.fy = 0;
+	}
+
+	++delay;
+    }
+}
+    
+void finish_all() {
+    gl.DeleteLists(base, 256);
+    gl.DeleteTextures(texture);
+    sdl.halt_music();
+    if (music)
+	sdl.free_music(music);
+    if (chunk)
+	sdl.free_chunk(chunk);
+    sdl.close_audio();
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+a:		Toggle antialias\n\
+Left:		Move left\n\
+Right:		Move right\n\
+Up:		Move up\n\
+Down:		Move down\n\
+Space:		Start game\n");
+init_all();
+init();
+/* Open the sound device */
+if (!sdl.open_audio(22060, sdl.AudioS16Sys, 2, 512)) {
+    print("Unable to open audio: %s\n", sdl.get_error());
+    exit(1);
+}
+/* Load in the music */
+music = sdl.load_music("nehe/lesson21/lktheme.mod");
+resize();
+reset();
+sdl.play_music(music, -1);
+event_loop();
+finish_all();

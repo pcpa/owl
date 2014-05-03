@@ -1,0 +1,269 @@
+int32_t cnt;
+int32_t scroll;
+int32_t maxtokens;
+uint32_t base;
+uint32_t texture[1] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson24",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void font() {
+    int32_t loop1;
+    sdl.surface_t srf = sdl.load_surface("nehe/lesson24/Font.tga");
+    if (srf) {
+	gl.GenTextures(texture);
+
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.gl.TexImage2D(srf);
+	sdl.free_surface(srf);
+
+	base = gl.GenLists(256);
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+	for (loop1 = 0; loop1 < 256; ++loop1) {
+	    float64_t cx = 1 - (loop1 % 16) / 16.0;
+	    float64_t cy = 1 - (loop1 \ 16) / 16.0;
+	    gl.NewList(base + 255 - loop1, gl.COMPILE);
+	    gl.Begin(gl.QUADS);
+	    {
+		gl.TexCoord2(cx - 0.0625, cy - 0.0625);
+		gl.Vertex2(0, 0);
+		gl.TexCoord2(cx, cy - 0.0625);
+		gl.Vertex2(16, 0);
+		gl.TexCoord2(cx, cy - 0.001);
+		gl.Vertex2(16, 16);
+		gl.TexCoord2(cx - 0.0625, cy - 0.001);
+		gl.Vertex2(0, 16);
+	    }
+	    gl.End();
+	    gl.Translate(14, 0, 0);
+	    gl.EndList();
+	}
+    }
+}
+
+void init() {
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+    gl.ClearDepth(1.0);
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    gl.Ortho(0.0, 640, 480, 0.0, -1.0, 1.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void paint(int32_t x, int32_t y, int32_t set, string_t text) {
+    int32_t i;
+    uint32_t list[] = new uint32_t[sizeof(text)];
+
+    if (set > 1)
+	set = 1;
+
+    for (i = sizeof(list) - 1; i >= 0; --i)
+	list[i] = text[i];
+
+    gl.Enable(gl.TEXTURE_2D);
+    gl.LoadIdentity();
+    gl.Translate(x, y, 0);
+    gl.ListBase(base - 32 + (128 * set));
+
+    gl.Scale(1.0, 2.0, 1.0);
+
+    gl.CallLists(list);
+    gl.Disable(gl.TEXTURE_2D);
+}
+
+void draw() {
+    string_t	text, numb = {}, exts;
+    int32_t	i, j, b, cnt;
+
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.Color3(1.0, 0.5, 0.5);
+    paint(50, 16, 1, "Renderer");
+    paint(80, 48, 1, "Vendor");
+    paint(66, 80, 1, "Version");
+
+    gl.Color3(1.0, 0.7, 0.4);
+    paint(200, 16, 1, gl.GetString(gl.RENDERER));
+    paint(200, 48, 1, gl.GetString(gl.VENDOR));
+    paint(200, 80, 1, gl.GetString(gl.VERSION));
+
+    gl.Color3(0.5, 0.5, 1.0);
+    paint(192, 432, 1, "NeHe Productions");
+
+    gl.LoadIdentity();
+    gl.Color3(1.0, 1.0, 1.0);
+    gl.Begin(gl.LINE_STRIP);
+    {
+	gl.Vertex2(639, 417);
+	gl.Vertex2(  0, 417);
+	gl.Vertex2(  0, 480);
+	gl.Vertex2(639, 480);
+	gl.Vertex2(639, 128);
+    }
+    gl.End();
+    gl.Begin(gl.LINE_STRIP);
+    {
+	gl.Vertex2(  0, 128);
+	gl.Vertex2(639, 128);
+	gl.Vertex2(639,   1);
+	gl.Vertex2(  0,   1);
+	gl.Vertex2(  0, 417);
+    }
+    gl.End();
+
+    gl.Scissor(4, 0.135416 * win.h, win.w - 8, 0.597916 * win.h);
+    gl.Enable(gl.SCISSOR_TEST);
+
+    exts = gl.GetString(gl.EXTENSIONS);
+    for (i = b = 0; i < sizeof(exts); ++i) {
+	if (exts[i] == ' ') {
+	    if (++cnt > maxtokens)
+		maxtokens = cnt;
+	    gl.Color3(0.5, 1.0, 0.5);
+	    printf(numb, "%d", cnt);
+	    paint(0, 96 + (cnt * 32) - scroll, 0, numb);
+	    gl.Color3(1.0, 1.0, 0.5);
+	    text = new uint8_t[i - b];
+	    for (j = 0; b < i;)
+		text[j++] = exts[b++];
+	    paint(50, 96 + (cnt * 32) - scroll, 0, text);
+	    ++b;
+	}
+    }
+
+    gl.Disable(gl.SCISSOR_TEST);
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Up:
+			    if (scroll > 2)
+				scroll -= 2;
+			    else
+				scroll = 0;
+			    break;
+			case sdl.Key_Down:
+			    if (scroll < 32 * (maxtokens - 9) - 2)
+				scroll += 2;
+			    else 
+				scroll =  32 * (maxtokens - 9);
+			    break;
+			case sdl.Key_PageUp:
+			    if (scroll > 288)
+				scroll -= 288;
+			    else
+				scroll = 0;
+			    break;
+			case sdl.Key_PageDown:
+			    if (scroll < 32 * (maxtokens - 9) - 288)
+				scroll += 288;
+			    else 
+				scroll =  32 * (maxtokens - 9);
+			    break;
+			case sdl.Key_Home:
+			    scroll = 0;
+			    break;
+			case sdl.Key_End:
+			    scroll =  32 * (maxtokens - 9);
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    gl.DeleteLists(base, 256);
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+Up:		Scroll up\n\
+Down:		Scroll down\n\
+PageUp:		Page up\n\
+PageDown:	Page down\n\
+Home:		Goto first page\n\
+End:		Goto last page\n");
+init_all();
+font();
+init();
+resize();
+loop();
+finish_all();

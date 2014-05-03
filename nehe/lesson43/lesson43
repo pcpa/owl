@@ -1,0 +1,311 @@
+/* Note that the font_data.make_dlist function is significantly different
+ * than the actuall NeHe lesson 43 example because in this example the
+ * bitmap is generated with TTF_RenderText_Solid, what generates a
+ * texture with 1 pixel per byte, instead of using freetype routines
+ * to create an in memory bitmap.
+ * Also, note that the code to translate was removed because the SDL
+ * generated bitmap already accounts for ascent, min_x, min_y, etc;
+ * but a good share of this information is already available from the
+ * owl interface in the wrapper for TTF_GlyphMetrics, that returns a
+ * sdl.glyph_t object.
+ */
+
+sdl.color_t color = { 0xff, 0xff, 0xff, 0xff };
+class font_data {
+    float64_t		h;
+    uint32_t		textures[];
+    uint32_t		base;
+    sdl.font_t		font;
+    uint8_t init(string_t fname, uint32_t h) {
+	int32_t		i;
+	base = gl.GenLists(128);
+	textures = new uint32_t[128];
+	gl.GenTextures(textures);
+	this.h = h;
+	if ((font = sdl.open_font(fname, h)) == null)
+	    return false;
+	for (i = 0; i < 128; ++i)
+	    make_dlist(i);
+	return true;
+    }
+    void make_dlist(uint8_t ch) {
+	int32_t i, j, width, height;
+	uint8_t pixels[];
+	uint8_t string[1] = { ch };
+	sdl.surface_t surface;
+	if (surface = sdl.render_text_solid(font, string, color)) {
+	    for (width = 1; width < surface.w; width <<= 1)
+		;
+	    for (height = 1; height < surface.h; height <<= 1)
+		;
+	    pixels = new uint8_t[2 * width * height];
+	    sdl.pull_surface(surface);
+
+	    // Here we fill in the data for the expanded bitmap.
+	    // Notice that we are using two channel bitmap (one for
+	    // luminocity and one for alpha), but we assign
+	    // both luminocity and alpha to the value that we
+	    // find in the FreeType bitmap. 
+	    // We use the ?: operator so that value which we use
+	    // will be 0 if we are in the padding zone, and whatever
+	    // is the the Freetype bitmap otherwise.
+	    int32_t	sw = surface.w + surface.pitch;
+	    for (j = 0; j < surface.h; ++j) {
+		for (i = 0; i < surface.w; ++i)
+		    pixels[2 * (i + j * width)] =
+			pixels[2 * (i + j * width) + 1] =
+			surface.pixels[i + surface.pitch * j] ? 0xff : 0;
+	    }
+
+	    // Now we just setup some texture paramaters.
+	    gl.BindTexture(gl.TEXTURE_2D, textures[ch]);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+	    // Here we actually create the texture itself, notice
+	    // that we are using GL_LUMINANCE_ALPHA to indicate that
+	    // we are using 2 channel data.
+	    gl.TexImage2D(gl.TEXTURE_2D, 0, width, height,
+			  0, gl.LUMINANCE_ALPHA, pixels);
+
+	    // So now we can create the display list
+	    gl.NewList(base + ch, gl.COMPILE);
+
+	    gl.BindTexture(gl.TEXTURE_2D, textures[ch]);
+
+	    // Now we need to account for the fact that many of
+	    // our textures are filled with empty padding space.
+	    // We figure what portion of the texture is used by 
+	    // the actual character and store that information in 
+	    // the x and y variables, then when we draw the
+	    // quad, we will only reference the parts of the texture
+	    // that we contain the character itself.
+	    float64_t	x = surface.w / width;
+	    float64_t	y = surface.h / height;
+
+	    // Here we draw the texturemaped quads.
+	    // The bitmap that we got from FreeType was not 
+	    // oriented quite like we would like it to be,
+	    // so we need to link the texture to the quad
+	    // so that the result will be properly aligned.
+	    gl.Begin(gl.QUADS);
+	    gl.TexCoord2(0, 0);	gl.Vertex2(0, surface.h);
+	    gl.TexCoord2(0, y);	gl.Vertex2(0, 0);
+	    gl.TexCoord2(x, y);	gl.Vertex2(surface.w, 0);
+	    gl.TexCoord2(x, 0);	gl.Vertex2(surface.w, surface.h);
+	    gl.End();
+	    gl.Translate(surface.w, 0, 0);
+
+	    // Finnish the display list
+	    gl.EndList();
+
+	    sdl.free_surface(surface);
+	}
+    }
+    void pushScreenCoordinateMatrix() {
+	gl.PushAttrib(gl.TRANSFORM_BIT);
+	int32_t	viewport[4] = {};
+	gl.GetIntegerv(gl.VIEWPORT, viewport);
+	gl.MatrixMode(gl.PROJECTION);
+	gl.PushMatrix();
+	gl.LoadIdentity();
+	glu.Ortho2D(viewport[0], viewport[2], viewport[1], viewport[3]);
+	gl.PopAttrib();
+    }
+    void popProjectionMatrix() {
+	gl.PushAttrib(gl.TRANSFORM_BIT);
+	gl.MatrixMode(gl.PROJECTION);
+	gl.PopMatrix();
+	gl.PopAttrib();
+    }
+    void print(float64_t x, float64_t y, string_t text) {
+	int32_t		i;
+	uint32_t	list[] = new uint32_t[sizeof(text)];
+
+	for (i = sizeof(text) - 1; i >= 0; --i)
+	    list[i] = text[i];
+
+	// We want a coordinate system where things coresponding to
+	// window pixels.
+	pushScreenCoordinateMatrix();					
+
+	gl.PushAttrib(gl.LIST_BIT | gl.CURRENT_BIT |
+		      gl.ENABLE_BIT | gl.TRANSFORM_BIT);
+	gl.MatrixMode(gl.MODELVIEW);
+	gl.Disable(gl.LIGHTING);
+	gl.Enable(gl.TEXTURE_2D);
+	gl.Disable(gl.DEPTH_TEST);
+	gl.Enable(gl.BLEND);
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);	
+
+	gl.ListBase(base);
+	float64_t modelview_matrix[16] = {};	
+	gl.GetDoublev(gl.MODELVIEW_MATRIX, modelview_matrix);
+
+	gl.PushMatrix();
+	gl.LoadIdentity();
+	gl.Translate(x, y - h, 0);
+	gl.MultMatrix(modelview_matrix);
+	gl.CallLists(list);
+	gl.PopMatrix();
+
+	gl.PopAttrib();		
+
+	popProjectionMatrix();
+    }
+    void finish() {
+	sdl.close_font(font);
+	if (textures) {
+	    gl.DeleteLists(base, 128);
+	    gl.DeleteTextures(textures);
+	}
+    }
+};
+
+float64_t		cnt;
+font_data		our_font;
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+
+void initGL() {
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void resizeWindow() {
+    float64_t	ratio;
+
+    ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    /* Set our perspective */
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void drawGLScene() {
+    string_t	text = {};
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();			// Reset The Current Modelview Matrix
+    gl.Translate(0.0, 0.0, -1.0);	// Move One Unit Into The Screen
+
+    // Blue Text
+    gl.Color3(0, 0, 1);
+
+    // Position The WGL Text On The Screen
+    gl.RasterPos2(-0.40, 0.35);
+
+    // Here We Print Some Text Using Our FreeType Font
+    // The only really important command is the actual print() call,
+    // but for the sake of making the results a bit more interesting
+    // I have put in some code to rotate and scale the text.
+
+    // Red text
+    gl.Color3(1, 0, 0);
+
+    gl.PushMatrix();
+    gl.LoadIdentity();
+    gl.Rotate(cnt, 0, 0, 1);
+    gl.Scale(1, 0.8 + 0.3 * cos(cnt / 5), 1);
+    gl.Translate(-180, 0, 0);
+    printf(text, "Active FreeType Text - %.5f", cnt);
+    our_font.print(320, 240, text);
+    gl.PopMatrix();
+
+    cnt += 0.051;
+
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson43",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("Esc: 		Exit\n");
+    initGL();
+    resizeWindow();
+    our_font = new font_data;
+    our_font.init("nehe/lesson43/Test.ttf", 20);
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeWindow();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	drawGLScene();
+    }
+
+    our_font.finish();
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

@@ -1,0 +1,343 @@
+/*  Structure for a 3-dimensional point */
+class POINT_3D {
+    float64_t x, y, z;
+};
+
+class BEZIER_PATCH {		/*  Structure for a 3rd degree bezier patch */
+    POINT_3D	anchors[4][4];	/*  4x4 grid of anchor points */
+    uint32_t	dlBPatch;	/*  Display List for Bezier Patch */
+    uint32_t	texture[1];	/*  Texture for the patch */
+};
+
+float64_t	rotz = 0.0;	/*  Rotation about the Z axis */
+/*  The bezier patch we're going to use */
+BEZIER_PATCH	mybezier = {
+    /*  set the bezier vertices */
+    anchors:
+    {
+	{
+	    { -0.75, -0.75, -0.5 },
+	    { -0.25, -0.75,  0.0 },
+	    {  0.25, -0.75,  0.0 },
+	    {  0.75, -0.75, -0.5 }
+	},
+	{
+	    { -0.75, -0.25, -0.75 },
+	    { -0.25, -0.25,  0.5  },
+	    {  0.25, -0.25,  0.5  },
+	    {  0.75, -0.25, -0.75 }
+	},
+	{
+	    { -0.75,  0.25,  0.0  },
+	    { -0.25,  0.25, -0.5  },
+	    {  0.25,  0.25, -0.5  },
+	    {  0.75,  0.25,  0.0  }
+	},
+	{
+	    { -0.75,  0.75, -0.5  },
+	    { -0.25,  0.75, -1.0  },
+	    {  0.25,  0.75, -1.0  },
+	    {  0.75,  0.75, -0.5  }
+	}
+    },
+    dlBPatch: 0,
+    texture: {}
+};
+/*  Toggles displaying the control point grid (NEW) */
+uint8_t		showCPoints = true;
+/*  Number of intrapolations (conrols poly resolution) (NEW) */
+int32_t		divs = 7;
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson28",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+/*  Adds 2 points. Don't just use '+' ;) */
+POINT_3D pointAdd(POINT_3D p, POINT_3D q) {
+    POINT_3D r = { p.x + q.x, p.y + q.y, p.z + q. z };
+    return r;
+}
+
+/*  Multiplies a point and a constant. Don't just use '*' */
+POINT_3D pointTimes(float64_t c, POINT_3D p) {
+    POINT_3D r = { p.x * c, p.y * c, p.z * c };
+    return r;
+}
+
+/*  Calculates 3rd degree polynomial based on array of 4 points */
+/*  and a single variable (u) which is generally between 0 and 1 */
+POINT_3D Bernstein(float64_t u, POINT_3D p[]) {
+    POINT_3D	a, b, c, d, r;
+
+    a = pointTimes(pow(u, 3), p[0]);
+    b = pointTimes(3 * pow(u, 2) * (1 - u), p[1]);
+    c = pointTimes(3 * u * pow((1 - u), 2), p[2]);
+    d = pointTimes(pow((1 - u), 3), p[3]);
+
+    r = pointAdd(pointAdd(a, b), pointAdd(c, d));
+
+    return r;
+}
+
+/*  Generates a display list based on the data in the patch */
+/*  and the number of divisions */
+uint32_t genBezier(BEZIER_PATCH patch, int32_t divs) {
+    int32_t		u, v;
+    float64_t		py, px, pyold; 
+    /*  make the display list */
+    uint32_t		drawlist = gl.GenLists(1);
+    POINT_3D		temp[4] = { {}, {}, {}, {} };
+    POINT_3D		last[];
+    /*  array of points to mark the first line of polys */
+
+    last = new POINT_3D[divs + 1];
+    for (u = divs; u >= 0; --u)
+	last[u] = new POINT_3D;
+
+    /*  get rid of any old display lists */
+    if (patch.dlBPatch != 0)
+	gl.DeleteLists(patch.dlBPatch, 1);
+
+    /*  the first derived curve (along x axis) */
+    temp[0] = patch.anchors[0][3];
+    temp[1] = patch.anchors[1][3];
+    temp[2] = patch.anchors[2][3];
+    temp[3] = patch.anchors[3][3];
+
+    /*  create the first line of points */
+    for (v = 0; v <= divs; ++v) {
+	/*  percent along y axis */
+	px = v;
+	px /= divs;
+	/*  use the 4 points from the derives curve to
+	 *  calculate the points along that curve */
+	last[v] = Bernstein(px, temp);
+    }
+
+    /*  Start a new display list */
+    gl.NewList(drawlist, gl.COMPILE);
+    /*  Bind the texture */
+    gl.BindTexture(gl.TEXTURE_2D, patch.texture[0]);
+
+    for (u = 1; u <= divs; ++u) {
+	/*  Percent along Y axis */
+	py  = u / divs;	
+	/*  Percent along old Y axis */
+	pyold = (u - 1.0) / divs;
+
+	/*  Calculate new bezier points */
+	temp[0] = Bernstein(py, patch.anchors[0]);
+	temp[1] = Bernstein(py, patch.anchors[1]);
+	temp[2] = Bernstein(py, patch.anchors[2]);
+	temp[3] = Bernstein(py, patch.anchors[3]);
+
+	/*  Begin a new triangle strip */
+	gl.Begin(gl.TRIANGLE_STRIP);
+	for (v = 0; v <= divs; ++v) {
+	    /*  Percent along the X axis */
+	    px = v / divs;
+
+	    /*  Apply the old texture coords */
+	    gl.TexCoord2(pyold, px);
+	    /*  Old Point */
+	    gl.Vertex3(last[v].x, last[v].y, last[v].z);
+
+	    /*  Generate new point */
+	    last[v] = Bernstein(px, temp);
+	    /*  Apply the new texture coords */
+	    gl.TexCoord2(py, px);
+	    /*  New Point */
+	    gl.Vertex3(last[v].x, last[v].y, last[v].z);
+	}
+	/*  END the triangle srip */
+	gl.End();
+    }
+
+    /*  END the list */
+    gl.EndList();
+
+    /*  Return the display list */
+    return drawlist;
+}
+
+void init_texture(uint32_t texture[1], string_t path) {
+    sdl.surface_t srf;
+    if ((srf = sdl.load_surface(path))) {
+	gl.GenTextures(texture);
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+	sdl.gl.TexImage2D(srf);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.free_surface(srf);
+    }
+}
+
+void resize() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+}
+
+void init() {
+    gl.Enable(gl.TEXTURE_2D);		/*  Enable Texture Mapping */
+    gl.ShadeModel(gl.SMOOTH);		/*  Enable Smooth Shading */
+    /*  Black Background */
+    gl.ClearColor(0.05, 0.05, 0.05, 0.5);
+    gl.ClearDepth(1.0);			/*  Depth Buffer Setup */
+    gl.Enable(gl.DEPTH_TEST);		/*  Enables Depth Testing */
+    gl.DepthFunc(gl.LEQUAL);		/*  The Type Of Depth Testing To Do */
+    /*  Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    init_texture(mybezier.texture, "nehe/lesson28/NeHe.bmp");
+    /*  Generate the patch */
+    mybezier.dlBPatch = genBezier(mybezier, divs);
+
+    resize();
+    gl.Flush();
+}
+
+void draw() {
+    int32_t i, j;
+    /*  Clear Screen And Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    /*  Reset The Current Modelview Matrix */
+    gl.LoadIdentity();
+    /*  Move Left 1.5 Units And Into The Screen 6.0 */
+    gl.Translate(0.0, 0.0 , -4.0 );
+    gl.Rotate(-75.0, 1.0, 0.0, 0.0);
+    /*  Rotate The Triangle On The Z axis ( NEW ) */
+    gl.Rotate(rotz, 0.0, 0.0, 1.0);
+
+    /*  Call the Bezier's display list */
+    gl.CallList(mybezier.dlBPatch);
+    /*  this need only be updated when the patch changes */
+
+    /*  If drawing the grid is toggled on */
+    if (showCPoints) {
+	gl.Disable(gl.TEXTURE_2D);
+	gl.Color3(1.0, 0.0, 0.0);
+	/*  draw the horizontal lines */
+	for (i = 0; i < 4; ++i) {
+	    gl.Begin(gl.LINE_STRIP);
+	    for (j = 0; j < 4; ++j)
+		gl.Vertex3(mybezier.anchors[i][j].x,
+			   mybezier.anchors[i][j].y,
+			   mybezier.anchors[i][j].z);
+	    gl.End();
+	}
+	/*  draw the vertical lines */
+	for (i = 0; i < 4; ++i) {
+	    gl.Begin(gl.LINE_STRIP);
+	    for (j = 0; j < 4; ++j)
+		gl.Vertex3(mybezier.anchors[j][i].x,
+			   mybezier.anchors[j][i].y,
+			   mybezier.anchors[j][i].z);
+	    gl.End();
+	}
+	gl.Color3(1.0, 1.0, 1.0);
+	gl.Enable(gl.TEXTURE_2D);
+    }
+
+    sdl.gl.swap_window(win);
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Left:
+			    rotz -= 0.8;	/*  rotate left */
+			    break;
+			case sdl.Key_Right:
+			    rotz += 0.8;	/*  rotate left */
+			    break;
+			case sdl.Key_Up:
+			    if (divs < 32) {
+				++divs;		/*  Update the patch */
+				mybezier.dlBPatch = genBezier(mybezier, divs);
+			    }
+			    break;
+			case sdl.Key_Down:
+			    if (divs > 1) {
+				--divs;		/*  Update the patch */
+				mybezier.dlBPatch = genBezier(mybezier, divs);
+			    }
+			    break;
+			case sdl.Key_Space:
+			    showCPoints = !showCPoints;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+Left:		Rotate left\n\
+Right:		Rotate right\n\
+Up:		Increase bezier divisions\n\
+Down:		Decrease bezier divisions\n\
+Space:		Toggle show control points\n");
+init_all();
+init();
+loop();
+finish_all();

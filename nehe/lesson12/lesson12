@@ -1,0 +1,304 @@
+uint32_t texture[1] = {	 /* Storage For One Texture */
+};
+uint32_t box;		/* Storage For The Display List */
+uint32_t top;		/* Storage For The Second Display List */
+uint32_t xloop;		/* Loop For X Axis */
+uint32_t yloop;		/* Loop For Y Axis */
+
+float64_t xrot;		/* X Rotation */
+float64_t yrot;		/* Y Rotation */
+
+/* Array For Box Colors */
+float32_t boxcol[5][3] = {
+    /* Bright: */
+    { 1.0, 0.0, 0.0 },	/* Red */
+    { 1.0, 0.5, 0.0 },	/* Orange */
+    { 1.0, 1.0, 0.0 },	/* Yellow */
+    { 0.0, 1.0, 0.0 },	/* Green */
+    { 0.0, 1.0, 1.0 }	/* Blue */
+};
+
+/* Array For Top Colors */
+float32_t topcol[5][3] = {
+    /* Dark: */
+    { 0.5, 0.00, 0.0 },	/* Red */
+    { 0.5, 0.25, 0.0 },	/* Orange */
+    { 0.5, 0.50, 0.0 },	/* Yellow */
+    { 0.0, 0.50, 0.0 },	/* Green */
+    { 0.0, 0.50, 0.5 }	/* Blue */
+};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson12",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+/* function to build up our display lists */
+void init_list() {
+    /* Build two lists */
+    box = gl.GenLists(2);
+
+    /* New compiled box display list */
+    gl.NewList(box, gl.COMPILE);
+    gl.Begin(gl.QUADS);	/* Start drawing quads */
+    {
+	/* Bottom Face */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+
+	/* Front Face */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+
+	/* Back Face */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+
+	/* Right face */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+
+	/* Left Face */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+    }
+    gl.End();
+    gl.EndList();
+
+    top = box + 1; /* Top list value is box list value plus 1 */
+
+    /* New compiled list, top */
+    gl.NewList(top, gl.COMPILE);
+    gl.Begin(gl.QUADS);	/* Start Drawing Quad */
+    {
+	/* Top Face */
+        gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+    }
+    gl.End();
+    gl.EndList();
+}
+
+/* function to load in bitmap as a GL texture */
+void init_texture() {
+    sdl.surface_t srf;
+    srf = sdl.load_surface("nehe/lesson12/cube.bmp");
+    if (srf != null) {
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Load in texture 1 */
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf);
+
+	/* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+			gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+			gl.LINEAR);
+
+	sdl.free_surface(srf);
+    }
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void init() {
+    int32_t	x, y;
+
+    init_texture();
+
+    init_list();
+
+    /* Enable Texture Mapping */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Enable lighting */
+    gl.Enable(gl.LIGHT0);		/* Quick And Dirty Lighting */
+    gl.Enable(gl.LIGHTING);		/* Enable Lighting */
+    gl.Enable(gl.COLOR_MATERIAL);	/* Enable Material Coloring */
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Select Our Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* Start loading in our display lists */
+    for (yloop = 0; yloop < 6; ++yloop)	{
+	for (xloop = 0; xloop < yloop; ++xloop) {
+	    /* Reset the view */
+	    gl.LoadIdentity();
+
+	    /* Position The Cubes On The Screen */
+	    gl.Translate(1.4 + (xloop * 2.8) - (yloop * 1.4),
+			 ((6.0 - yloop) * 2.4) - 7.0, -20.0);
+
+	    /* Tilt the cubes */
+	    /* Tilt The Cubes Up And Down */
+	    gl.Rotate(45.0 - (2.0 * yloop) + xrot, 1.0, 0.0, 0.0);
+	    /* Spin Cubes Left And Right */
+	    gl.Rotate(45.0 + yrot, 0.0, 1.0, 0.0);
+
+	    gl.Color3v(boxcol[yloop - 1]);	/* Select A Box Color */
+	    gl.CallList(box);			/* Draw the box */
+
+	    gl.Color3v(topcol[yloop - 1]);	/* Select The Top Color */
+	    gl.CallList(top);			/* Draw The Top */
+	}
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void events() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_Left:
+			    /* Left arrow key was pressed
+			     * this affects y-rotation
+			     */
+			    yrot -= 0.2;
+			    break;
+			case sdl.Key_Right:
+			    /* Right arrow key was pressed
+			     * this affects y-rotation
+			     */
+			    yrot += 0.2;
+			    break;
+			case sdl.Key_Up:
+			    /* Up arrow key was pressed
+			     * this affects x-rotation
+			     */
+			    xrot -= 0.2;
+			    break;
+			case sdl.Key_Down:
+			    /* Down arrow key was pressed
+			     * this affects x-rotation
+			     */
+			    xrot += 0.2;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n\
+Up:		Rotate up\n\
+Down:		Rotate down\n\
+Left:		Rotate left\n\
+Right:		Rotate right\n");
+init_all();
+init();
+resize();
+events();
+finish_all();

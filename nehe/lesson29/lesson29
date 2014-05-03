@@ -1,0 +1,302 @@
+#define O_READ		1
+
+float64_t	xrot;		/*  X Rotation */
+float64_t	yrot;		/*  Y Rotation */
+float64_t	zrot;		/*  Z Rotation */
+
+/*  Storage For 1 Texture */
+uint32_t	texture[1] = {};
+
+class TEXTURE_IMAGE {
+    int32_t width;		/*  Width Of Image In Pixels */
+    int32_t height;		/*  Height Of Image In Pixels */
+    int32_t format;		/*  Number Of Bytes Per Pixel */
+    uint8_t data[];		/*  Texture Data */
+};
+
+TEXTURE_IMAGE t1;		/*  Pointer To The Texture Image Data Type */
+TEXTURE_IMAGE t2;		/*  Pointer To The Texture Image Data Type */
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson29",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+/*  Allocate An Image Structure And Inside Allocate Its Memory Requirements */
+TEXTURE_IMAGE AllocateTextureBuffer(int32_t w, int32_t h, int32_t f)
+{
+    TEXTURE_IMAGE ti;
+    ti = { w, h, f };			/*  One Image Struct Please */
+    ti.data = new uint8_t[w * h * f];
+    return ti;
+}
+
+/*  Read A .RAW File In To The Allocated Image Buffer Using Data In The
+ * Image Structure Header. */
+/*  Flip The Image Top To Bottom.  Returns 0 For Failure Of Read, Or
+ * Number Of Bytes Read. */
+uint8_t ReadTextureData(string_t filename, TEXTURE_IMAGE buffer) {
+    auto f;
+    int32_t i, j, k, p;
+    /*  Size Of A Row (Width * Bytes Per Pixel) */
+    int32_t stride = buffer.width * buffer.format;
+    uint8_t c[1] = {};
+
+    if ((f = open(filename, O_READ))) {
+	/*  Loop Through Height (Bottoms Up - Flip Image) */
+	for (i = buffer.height - 1; i >= 0; --i) {
+	    p = i * stride;
+	    /*  Loop Through Width */
+	    for (j = 0; j < buffer.width; ++j) {
+		for (k = 0; k < buffer.format - 1; ++k, ++p) {
+		    read(f, c, 1);
+		    buffer.data[p] = c[0];
+		}
+		buffer.data[p] = 255;
+		++p;
+	    }
+	}
+	close(f);
+	return true;
+    }
+    return false;
+}
+
+void BuildTexture(TEXTURE_IMAGE tex) {
+    gl.GenTextures(texture);
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    glu.Build2DMipmaps(gl.TEXTURE_2D, tex.width, tex.height, gl.RGBA, tex.data);
+}
+
+void Blit(TEXTURE_IMAGE src, TEXTURE_IMAGE dst,
+	  int32_t src_xstart, int32_t src_ystart,
+	  int32_t src_width, int32_t src_height,
+	  int32_t dst_xstart, int32_t dst_ystart,
+	  int32_t blend, int32_t alpha) {
+    int32_t i, j, k;
+    uint32_t s, d;			/*  Source & Destination */
+
+    /*  Clamp Alpha If Value Is Out Of Range */
+    if (alpha > 255)
+	alpha = 255;
+    else if (alpha < 0)
+	alpha = 0;
+
+	/*  Check For Incorrect Blend Flag Values */
+    if (blend < 0)
+	blend = 0;
+    if (blend > 1)
+	blend = 1;
+
+    /*  Start Row - dst (Row * Width In Pixels * Bytes Per Pixel) */
+    d = dst_ystart * dst.width * dst.format;
+    /*  Start Row - src (Row * Width In Pixels * Bytes Per Pixel) */
+    s = src_ystart * src.width * src.format;
+
+    /*  Height Loop */
+    for (i = 0; i < src_height; ++i) {
+	/*  Move Through Src Data By Bytes Per Pixel */
+        s += src_xstart * src.format;
+	/*  Move Through Dst Data By Bytes Per Pixel */
+        d += dst_xstart * dst.format;
+	/*  Width Loop */
+        for (j = 0; j < src_width; ++j) {
+	    /*  "n" Bytes At A Time */
+            for (k = 0; k < src.format; ++k, ++d, ++s) {
+		/*  If Blending Is On */
+                if (blend)
+		    /*  Multiply Src Data*alpha Add Dst Data*(255-alpha) */
+		    dst.data[d] = ((src.data[s] * alpha) +
+				   (dst.data[d] * (255 - alpha)) ) >> 8;
+		/*  Keep in 0-255 Range With >> 8 */
+                else
+		    /*  No Blending Just Do A Straight Copy */
+		    dst.data[d] = src.data[s];
+	    }
+	}
+	/*  Add End Of Row */
+	d += (dst.width - (src_width + dst_xstart)) * dst.format;
+	/*  Add End Of Row */
+        s += (src.width - (src_width + src_xstart)) * src.format;
+    }
+}
+
+void ResizeGLScene() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+}
+
+void InitGL() {
+    /*  Get An Image Structure */
+    t1 = AllocateTextureBuffer(256, 256, 4);
+    /*  Fill The Image Structure With Data */
+    if (!ReadTextureData("nehe/lesson29/Monitor.raw", t1)) {
+	print("Could Not Read 'Monitor.raw' Image Data\n");
+	exit(1);
+    }
+
+    /*  Second Image Structure */
+    t2 = AllocateTextureBuffer(256, 256, 4);
+    if (!ReadTextureData("nehe/lesson29/GL.raw", t2)) {
+	print("Could Not Read 'GL.raw' Image Data\n");
+	exit(1);
+    }
+
+    /*  Image To Blend In, Original Image, Src Start X & Y,
+     * Src Width & Height, Dst Location X & Y, Blend Flag, Alpha Value */
+    /*  Call The Blitter Routine */
+    Blit(t2, t1, 127, 127, 128, 128, 64, 64, 1, 127);
+
+    /*  Load The Texture Map Into Texture Memory */
+    BuildTexture(t1);
+
+    t1 = null;			/*  Clean Up Image Memory Because Texture Is */
+    t2 = null;			/*  In GL Texture Memory Now */
+
+    gl.Enable(gl.TEXTURE_2D);	/*  Enable Texture Mapping */
+
+    gl.ShadeModel(gl.SMOOTH);	/*  Enables Smooth Color Shading */
+    /*  This Will Clear The Background Color To Black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+    gl.ClearDepth(1.0);		/*  Enables Clearing Of The Depth Buffer */
+    gl.Enable(gl.DEPTH_TEST);	/*  Enables Depth Testing */
+    gl.DepthFunc(gl.LESS);	/*  The Type Of Depth Test To Do */
+    ResizeGLScene();
+    gl.Flush();
+}
+
+void draw() {
+    /*  Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();				/*  Reset The View */
+    gl.Translate(0.0, 0.0, -5.0);
+
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+    gl.Rotate(zrot, 0.0, 0.0, 1.0);
+
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    gl.Begin(gl.QUADS);
+    {
+	/*  Front Face */
+	gl.Normal3(   0.0, 0.0,  1.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+	/*  Back Face */
+	gl.Normal3(   0.0, 0.0, -1.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3(-1.0, -1.0, -1.0);
+	/*  Top Face */
+	gl.Normal3(   0.0, 1.0,  0.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3( 1.0,  1.0,  1.0);
+	/*  Bottom Face */
+	gl.Normal3(   0.0,-1.0,  0.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3( 1.0, -1.0, -1.0);
+	/*  Right Face */
+	gl.Normal3(   1.0, 0.0,  0.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+	/*  Left Face */
+	gl.Normal3(  -1.0, 0.0,  0.0);
+	gl.TexCoord2( 0.0, 0.0); gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2( 1.0, 0.0); gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2( 1.0, 1.0); gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2( 0.0, 1.0); gl.Vertex3(-1.0,  1.0, -1.0);
+    }
+    gl.End();
+
+    xrot += 0.3;
+    yrot += 0.2;
+    zrot += 0.4;
+
+    sdl.gl.swap_window(win);
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ResizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("\
+Esc:		Exit\n");
+init_all();
+InitGL();
+loop();
+finish_all();

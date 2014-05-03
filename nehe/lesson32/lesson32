@@ -1,0 +1,713 @@
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+void srand(int32_t v) {
+    last = v;
+}
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+int32_t		kills;			// Level Kill Counter
+float64_t	roll;			// Rolling Clouds
+float64_t	Width;
+float64_t	Height;
+int32_t		miss;			// Missed Targets
+int32_t		level = 1;		// Current Level
+uint32_t	base;			// Font Display List
+int32_t		score;			// Current Score
+uint8_t		game;			// Game Over?
+int32_t		mouse_x, mouse_y;	// The Current Position Of The Mouse
+uint32_t	lastTickCount;
+sdl.chunk_t	shot;
+int32_t		channel;
+uint32_t	buffer[512] = {};	// Set Up A Selection Buffer
+// The Size Of The Viewport.
+// [0] Is <x>, [1] Is <y>, [2] Is <length>, [3] Is <width>
+int32_t		viewport[4] = {};
+
+class objects {
+    uint32_t	rot;		// Rotation (0-None, 1-Clockwise, 2-Counter Clockwise)
+    uint8_t	hit;		// Object Hit?
+    uint32_t	frame;		// Current Explosion Frame
+    uint32_t	dir;		// Object Direction (0-Left, 1-Right, 2-Up, 3-Down)
+    uint32_t	texid;		// Object Texture ID
+    float64_t	x;		// Object X Position
+    float64_t	y;		// Object Y Position
+    float64_t	spin;		// Object Spin
+    float64_t	distance;	// Object Distance
+};
+objects		object[30] = {};
+uint32_t	textures[10] = {};
+class dimensions {
+    float64_t	w;
+    float64_t	h;
+};
+dimensions	size[5] = {
+    { 1.0, 1.0 },	// Blueface
+    { 1.0, 1.0 },	// Bucket
+    { 1.0, 1.0 },	// Target
+    { 0.5, 1.0 },	// Coke
+    { 0.75,1.5 }	// Base
+};
+
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+
+void text(int32_t x, int32_t y, string_t string) {
+    int32_t	i;
+    uint32_t	list[] = new uint32_t[sizeof(string)];
+
+    for (i = sizeof(string) - 1; i >= 0; --i)
+	list[i] = string[i];
+
+    // Select Our Font Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[9]);
+    // Store The Modelview Matrix
+    gl.PushMatrix();
+    // Reset The Modelview Matrix
+    gl.LoadIdentity();
+    // Position The Text (0,0 - Bottom Left)
+    gl.Translate(x, y, 0);
+    // Choose The Font Set
+    gl.ListBase(base - 32);
+    // Draws The Display List Text
+    gl.CallLists(list);
+    // Restore The Old Projection Matrix
+    gl.PopMatrix();
+}
+
+// Initialize An Object
+void InitObject(objects obj) {
+    objects		tmp;
+    int32_t		i, j;
+
+    obj.rot = 1;		// Clockwise Rotation
+    obj.frame =	0;		// Reset The Explosion Frame To Zero
+    obj.hit = false;		// Reset Object Has Been Hit Status To False
+    obj.texid =	rand() % 5;	// Assign A New Texture
+    obj.distance = -((rand() % 4001) / 100.0);	// Random Distance
+    // Random Y Position
+    obj.y = -1.5 + (rand() % 451) / 100.0;
+    // Random Starting X Position Based On Distance Of
+    // Object And Random Amount For A Delay (Positive Value)
+    obj.x = ((obj.distance - 15.0) / 2.0) - 5 * level - rand() % (5 * level);
+    // Pick A Random Direction
+    obj.dir = rand() % 2;
+
+    // Is Random Direction Right
+    if (obj.dir == 0) {
+	// Counter Clockwise Rotation
+	obj.rot = 2;
+	// Start On The Left Side (Negative Value)
+	obj.x = -obj.x;
+    }
+
+    // Blue Face
+    if (obj.texid == 0)
+	// Always Rolling On The Ground
+	obj.y = -2.0;
+
+    // Bucket
+    else if (obj.texid == 1) {
+	// Falling Down
+	obj.dir = 3;
+	obj.x = (rand() % (trunc(obj.distance - 10.0) + 1)) +
+			((obj.distance - 10.0) / 2.0);
+	// Random X, Start At Top Of The Screen
+	obj.y = 4.5;
+    }
+    // Target
+    else if (obj.texid == 2) {
+	// Start Off Flying Up
+	obj.dir = 2;
+	obj.x = (rand() % (trunc(obj.distance - 10.0) + 1)) +
+			((obj.distance - 10.0) / 2.0);
+	// Random X, Start Under Ground + Random Value
+	obj.y = -3.0 - (rand() % (5 * level));
+    }
+
+    /* FIXME bubble sort for the same of implementing the example */
+    // Sort Objects By Distance
+    for (i = 0; i < 29; ++i)
+	for (j = i + 1; j < 30; ++j) {
+	    if (object[i].distance > object[j].distance) {
+		tmp = object[j];
+		object[j] = object[i];
+		object[i] = tmp;
+	    }
+	}
+}
+
+// Draws An Animated Explosion For obj
+void Explosion(objects obj) {
+    // Calculate Explosion X Frame (0.0f - 0.75f)
+    float64_t ex = ((obj.frame \ 4) % 4) / 4.0;
+    // Calculate Explosion Y Frame (0.0f - 0.75f)
+    float64_t ey = ((obj.frame \ 4) \ 4) / 4.0;
+
+    // Select The Explosion Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[5]);
+    // Begin Drawing A Quad
+    gl.Begin(gl.QUADS);
+    {
+	// Bottom Left
+	gl.TexCoord2(ex,        1.0 - ey);		gl.Vertex3(-1.0, -1.0, 0.0);
+	// Bottom Right
+	gl.TexCoord2(ex + 0.25, 1.0 - ey);		gl.Vertex3( 1.0, -1.0, 0.0);
+	// Top Right
+	gl.TexCoord2(ex + 0.25, 1.0 - (ey + 0.25));	gl.Vertex3( 1.0,  1.0, 0.0);
+	// Top Left
+	gl.TexCoord2(ex,        1.0 - (ey + 0.25));	gl.Vertex3(-1.0,  1.0, 0.0);
+    }
+    // Done Drawing Quad
+    gl.End();
+
+    // Increase Current Explosion Frame
+    obj.frame += 1;
+    // Have We Gone Through All 16 Frames?
+    if (obj.frame > 63)
+	// Init The Object (Assign New Values)
+	InitObject(obj);
+}
+
+// Draw Object Using Requested Width, Height And Texture
+void Object(float64_t width, float64_t height, uint32_t texid) {
+    // Select The Correct Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[texid]);
+    // Start Drawing A Quad
+    gl.Begin(gl.QUADS);
+    {
+	// Bottom Left
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-width, -height, 0.0);
+	// Bottom Right
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( width, -height, 0.0);
+	// Top Right
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( width,  height, 0.0);
+	// Top Left
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-width,  height, 0.0);
+    }
+    // Done Drawing Quad
+    gl.End();
+}
+
+// Draws The Targets (Needs To Be Seperate)
+void DrawTargets() {
+    objects	obj;
+    int32_t	loop;
+    // Reset The Modelview Matrix
+    gl.LoadIdentity();
+    // Move Into The Screen 20 Units
+    gl.Translate(0.0, 0.0, -10.0);
+    // Loop Through 9 Objects
+    for (loop = 0; loop < level; ++loop) {
+	obj = object[loop];
+	// Assign Object A Name (ID)
+	gl.LoadName(loop);
+	// Push The Modelview Matrix
+	gl.PushMatrix();
+	// Position The Object (x,y)
+	gl.Translate(obj.x, obj.y, obj.distance);
+	// If Object Has Been Hit
+	if (obj.hit)
+	    // Draw An Explosion
+	    Explosion(obj);
+	else {
+	    // Rotate The Object
+	    gl.Rotate(obj.spin, 0.0, 0.0, 1.0);
+	    // Draw The Object
+	    Object(size[obj.texid].w, size[obj.texid].h, obj.texid);
+	}
+	gl.PopMatrix();			// Pop The Modelview Matrix
+    }
+}
+
+// Draw Our Scene
+void Draw(void) {
+    string_t	string = {};
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();		// Reset The Modelview Matrix
+
+    gl.PushMatrix();		// Push The Modelview Matrix
+    // Select The Sky Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[7]);
+    gl.Begin(gl.QUADS);		// Begin Drawing Quads
+    {
+	// Top Right
+	gl.TexCoord2(1.0, roll / 1.5 + 1.0);	gl.Vertex3( 28.0, +7.0, -50.0);
+	// Top Left
+	gl.TexCoord2(0.0, roll / 1.5 + 1.0);	gl.Vertex3(-28.0, +7.0, -50.0);
+	// Bottom Left
+	gl.TexCoord2(0.0,roll / 1.5 + 0.0);	gl.Vertex3(-28.0, -3.0, -50.0);
+	// Bottom Right
+	gl.TexCoord2(1.0,roll / 1.5 + 0.0);	gl.Vertex3( 28.0, -3.0, -50.0);
+
+	// Top Right
+	gl.TexCoord2(1.5, roll + 1.0);		gl.Vertex3( 28.0, +7.0, -50.0);
+	// Top Left
+	gl.TexCoord2(0.5, roll + 1.0);		gl.Vertex3(-28.0, +7.0, -50.0);
+	// Bottom Left
+	gl.TexCoord2(0.5, roll + 0.0);		gl.Vertex3(-28.0, -3.0, -50.0);
+	// Bottom Right
+	gl.TexCoord2(1.5, roll + 0.0);		gl.Vertex3( 28.0, -3.0, -50.0);
+
+	// Top Right
+	gl.TexCoord2(1.0, roll / 1.5 + 1.0);	gl.Vertex3( 28.0, +7.0,   0.0);
+	// Top Left
+	gl.TexCoord2(0.0, roll / 1.5 + 1.0);	gl.Vertex3(-28.0, +7.0,   0.0);
+	// Bottom Left
+	gl.TexCoord2(0.0, roll / 1.5 + 0.0);	gl.Vertex3(-28.0, +7.0, -50.0);
+	// Bottom Right
+	gl.TexCoord2(1.0, roll / 1.5 + 0.0);	gl.Vertex3( 28.0, +7.0, -50.0);
+
+	// Top Right
+	gl.TexCoord2(1.5, roll + 1.0);		gl.Vertex3( 28.0, +7.0,   0.0);
+	// Top Left
+	gl.TexCoord2(0.5, roll + 1.0);		gl.Vertex3(-28.0, +7.0,   0.0);
+	// Bottom Left
+	gl.TexCoord2(0.5, roll + 0.0);		gl.Vertex3(-28.0, +7.0, -50.0);
+	// Bottom Right
+	gl.TexCoord2(1.5, roll + 0.0);		gl.Vertex3( 28.0, +7.0, -50.0);
+    }
+    gl.End();			// Done Drawing Quads
+
+    // Select The Ground Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[6]);
+    gl.Begin(gl.QUADS);		// Draw A Quad
+    {
+	// Top Right
+	gl.TexCoord2(7.0, 4.0 - roll);	gl.Vertex3( 27.0, -3.0, -50.0);
+	// Top Left
+	gl.TexCoord2(0.0, 4.0 - roll);	gl.Vertex3(-27.0, -3.0, -50.0);
+	// Bottom Left
+	gl.TexCoord2(0.0, 0.0 - roll);	gl.Vertex3(-27.0, -3.0,   0.0);
+	// Bottom Right
+	gl.TexCoord2(7.0, 0.0 - roll);	gl.Vertex3( 27.0, -3.0,   0.0);
+    }
+    gl.End();			// Done Drawing Quad
+
+    DrawTargets();		// Draw Our Targets
+    gl.PopMatrix();		// Pop The Modelview Matrix
+
+    // Crosshair (In Ortho View)
+    gl.MatrixMode(gl.PROJECTION);		// Select The Projection Matrix
+    gl.PushMatrix();				// Store The Projection Matrix
+    gl.LoadIdentity();				// Reset The Projection Matrix
+    gl.Ortho(0, Width, 0, Height, -1, 1);	// Set Up An Ortho Screen
+    gl.MatrixMode(gl.MODELVIEW);		// Select The Modelview Matrix
+    // Move To The Current Mouse Position
+    gl.Translate(mouse_x, Height - mouse_y, 0.0);
+    Object(16, 16, 8);				// Draw The Crosshair
+
+    // Game Stats / Title
+    text(240, 450, "NeHe Productions");		// Print Title
+    printf(string, "Level: %d", level);
+    text( 10,  10, string);			// Print Level
+    printf(string, "Score: %d", score);
+    text(250, 10, string);			// Print Score
+
+    // Have We Missed 10 Objects?
+    if (miss > 9) {
+	miss = 9;				// Limit Misses To 10
+	game = true;				// Game Over TRUE
+    }
+
+    if (game)					// Is Game Over?
+	text(490, 10,"GAME OVER");		// Game Over Message
+    else {
+	printf(string, "Morale: %d/10",10 - miss);
+	text(490, 10, string);			// Print Morale #/10
+    }
+
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.PopMatrix();			// Restore The Old Projection Matrix
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+
+    gl.Flush();				// Flush The GL Rendering Pipeline
+}
+
+// Loads A TGA File Into Memory
+uint8_t LoadTGA(uint32_t texID, string_t filename) {
+    sdl.surface_t	surface = sdl.load_surface(filename);
+    if (surface) {
+	// Bind Our Texture
+	gl.BindTexture(gl.TEXTURE_2D, texID);
+	// Linear Filtered
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	// Linear Filtered
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.gl.TexImage2D(surface);
+	sdl.free_surface(surface);
+
+	return true;
+    }
+    return false;
+}
+
+// Build Our Font Display List
+void BuildFont() {
+    int32_t		loop;
+    base = gl.GenLists(95);			// Creating 95 Display Lists
+    gl.BindTexture(gl.TEXTURE_2D, textures[9]);	// Bind Our Font Texture
+    for (loop = 0; loop < 95; ++loop) {
+	// X Position Of Current Character
+	float64_t cx = (loop % 16) / 16.0;
+	// Y Position Of Current Character
+	float64_t cy = (loop \ 16) / 8.0;
+
+	gl.NewList(base + loop, gl.COMPILE);	// Start Building A List
+	{
+	    gl.Begin(gl.QUADS);			// Use A Quad For Each Character
+	    {
+		// Texture / Vertex Coord (Bottom Left)
+		gl.TexCoord2(cx,	  cy + 0.120);	gl.Vertex2( 0,  0);
+		// Texutre / Vertex Coord (Bottom Right)
+		gl.TexCoord2(cx + 0.0625, cy + 0.120);	gl.Vertex2(16,  0);
+		// Texture / Vertex Coord (Top Right)
+		gl.TexCoord2(cx + 0.0625, cy);		gl.Vertex2(16, 16);
+		// Texture / Vertex Coord (Top Left)
+		gl.TexCoord2(cx,	  cy);		gl.Vertex2( 0, 16);
+	    }
+	    gl.End();			// Done Building Our Quad (Character)
+	    gl.Translate(10, 0, 0);	// Move To The Right Of The Character
+	}
+	gl.EndList();			// Done Building The Display List
+    }
+}
+
+// This Is Where Selection Is Done
+void Selection() {
+    int32_t	loop;
+    // The Number Of Objects That We Selected
+    int32_t	hits;
+
+    if (game)				// Is Game Over?
+	return;				// If So, Don't Bother Checking For Hits
+
+    /* Mix_PlayChannel takes, as its arguments, the channel that
+       the given sound should be played on, the sound itself, and
+       the number of times it should be looped.  If you don't care
+       what channel the sound plays on, just pass in -1.  Looping
+       works like Mix_PlayMusic. This function returns the channel
+       that the sound was assigned to. */
+    // Play Gun Shot Sound
+    channel = sdl.play_channel(-1, shot, 0);
+
+    // This Sets The Array <viewport> To The Size And Location Of
+    // The Screen Relative To The Window
+    gl.GetIntegerv(gl.VIEWPORT, viewport);
+    gl.SelectBuffer(buffer);		// Tell OpenGL To Use Our Array For Selection
+
+    // Puts OpenGL In Selection Mode. Nothing Will Be Drawn.
+    // Object ID's and Extents Are Stored In The Buffer.
+    gl.RenderMode(gl.SELECT);
+
+    gl.InitNames();		// Initializes The Name Stack
+    gl.PushName(0);		// Push 0 (At Least One Entry) Onto The Stack
+
+    gl.MatrixMode(gl.PROJECTION);	// Selects The Projection Matrix
+    gl.PushMatrix();			// Push The Projection Matrix
+    gl.LoadIdentity();			// Resets The Matrix
+
+    // This Creates A Matrix That Will Zoom Up
+    // To A Small Portion Of The Screen, Where The Mouse Is.
+    glu.PickMatrix(mouse_x, viewport[3] - mouse_y, 1.0, 1.0, viewport);
+
+    // Apply The Perspective Matrix
+    glu.Perspective(45.0, (viewport[2] - viewport[0]) /
+		    (viewport[3] - viewport[1]), 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);		// Select The Modelview Matrix
+    DrawTargets();		// Render The Targets To The Selection Buffer
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.PopMatrix();			// Pop The Projection Matrix
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+    // Switch To Render Mode, Find Out How Many
+    hits = gl.RenderMode(gl.RENDER);
+
+    // Objects Were Drawn Where The Mouse Was
+    if (hits > 0) {			// If There Were More Than 0 Hits
+	int32_t	choose = buffer[3];	// Make Our Selection The First Object
+	uint32_t depth = buffer[1];	// Store How Far Away It Is
+
+	// Loop Through All The Detected Hits
+	for (loop = 1; loop < hits; ++loop) {
+	    // If This Object Is Closer To Us Than The One We Have Selected
+	    if (buffer[loop * 4 + 1] < depth) {
+		// Select The Closer Object
+		choose = buffer[loop * 4 + 3];
+		// Store How Far Away It Is
+		depth = buffer[loop * 4 + 1];
+	    }
+	}
+
+	if (!object[choose].hit) {	// If The Object Hasn't Already Been Hit
+	    object[choose].hit = true;	// Mark The Object As Being Hit
+	    score += 1;			// Increase Score
+	    kills += 1;			// Increase Level Kills
+	    if (kills > level * 5) {	// New Level Yet?
+		miss = 0;		// Misses Reset Back To Zero
+		kills = 0;		// Reset Level Kills
+		level += 1;		// Increase Level
+		if (level > 30)		// Higher Than 30?
+		    level = 30;		// Set Level To 30 (Are You A God?)
+	    }
+	}
+    }
+}
+
+void Update(uint32_t milliseconds) {	// Perform Motion Updates Here
+    objects	obj;
+    int32_t	loop;
+    roll -= milliseconds * 0.00005;	// Roll The Clouds
+
+    for (loop = 0; loop < level; ++loop) {	// Loop Through The Objects
+	obj = object[loop];
+	if (obj.rot == 1)		// If Rotation Is Clockwise
+	    // Spin Clockwise
+	    obj.spin -= 0.2 * (loop + milliseconds);
+
+	// If Rotation Is Counter Clockwise
+	else if (obj.rot == 2)
+	    // Spin Counter Clockwise
+	    obj.spin += 0.2 * (loop + milliseconds);
+
+	if (obj.dir == 1)		// If Direction Is Right
+	    // Move Right
+	    obj.x += 0.012 * milliseconds;
+
+	else if (obj.dir == 0)		// If Direction Is Left
+	    // Move Left
+	    obj.x -= 0.012 * milliseconds;
+
+	else if (obj.dir == 2)		// If Direction Is Up
+	    // Move Up
+	    obj.y += 0.012 * milliseconds;
+
+	else if (obj.dir == 3)		// If Direction Is Down
+	    // Move Down
+	    obj.y -= 0.0025 * milliseconds;
+
+	// If We Are To Far Left, Direction Is Left And The Object Was Not Hit
+	if ((obj.x < (obj.distance - 15.0) / 2.0) &&
+	    obj.dir == 0 && !obj.hit) {
+	    miss += 1;			// Increase miss (Missed Object)
+	    // Set hit To True To Manually Blow Up The Object
+	    obj.hit = true;
+	}
+
+	// If We Are To Far Right, Direction Is Left And The Object Was Not Hit
+	else if ((obj.x > -(obj.distance - 15.0) / 2.0) &&
+		 obj.dir == 1 && !obj.hit) {
+	    miss += 1;			// Increase miss (Missed Object)
+	    // Set hit To True To Manually Blow Up The Object
+	    obj.hit = true;
+	}
+
+	// If We Are To Far Down, Direction Is Down And The Object Was Not Hit
+	else if (obj.y < -2.0 &&
+		 obj.dir == 3 && !obj.hit) {
+	    miss += 1;				// Increase miss (Missed Object)
+	    // Set hit To True To Manually Blow Up The Object
+	    obj.hit = true;
+	}
+
+	// If We Are To Far Up And The Direction Is Up
+	if (obj.y > 4.5 && obj.dir == 2)
+	    obj.dir = 3;	// Change The Direction To Down
+    }
+}
+
+void resizeWindow() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+
+    Width  = win.w;
+    Height = win.h;
+}
+
+/* general OpenGL initialization function */
+uint8_t initGL() {
+    int32_t		loop;
+    lastTickCount = sdl.get_ticks();			// Get The Tick Count
+    // Randomize Things
+    srand(lastTickCount);
+
+    gl.GenTextures(textures);
+    if ((!LoadTGA(textures[0], "nehe/lesson32/BlueFace.tga" )) ||
+	(!LoadTGA(textures[1], "nehe/lesson32/Bucket.tga"   )) ||
+	(!LoadTGA(textures[2], "nehe/lesson32/Target.tga"   )) ||
+	(!LoadTGA(textures[3], "nehe/lesson32/Coke.tga"     )) ||
+	(!LoadTGA(textures[4], "nehe/lesson32/Vase.tga"     )) ||
+	(!LoadTGA(textures[5], "nehe/lesson32/Explode.tga"  )) ||
+	(!LoadTGA(textures[6], "nehe/lesson32/Ground.tga"   )) ||
+	(!LoadTGA(textures[7], "nehe/lesson32/Sky.tga"      )) ||
+	(!LoadTGA(textures[8], "nehe/lesson32/Crosshair.tga")) ||
+	(!LoadTGA(textures[9], "nehe/lesson32/Font.tga"     )))
+	return false;
+
+    BuildFont();			// Build Our Font Display List
+
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);	// Black Background
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+    gl.DepthFunc(gl.LEQUAL);		// Type Of Depth Testing
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+    // Enable Alpha Blending (disable alpha testing)
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    // Enable Blending       (disable alpha testing)
+    gl.Enable(gl.BLEND);
+    //	gl.AlphaFunc(gl.GREATER, 0.1);	// Set Alpha Testing     (disable blending)
+    //	gl.Enable(gl.ALPHA_TEST);	// Enable Alpha Testing  (disable blending)
+    gl.Enable(gl.TEXTURE_2D);		// Enable Texture Mapping
+
+    gl.Enable(gl.CULL_FACE);		// Remove Back Face
+
+    for (loop = 0; loop < 30; ++loop)
+	object[loop] = new objects;
+    for (loop = 0; loop < 30; ++loop)	// Loop Through 30 Objects
+	InitObject(object[loop]);	// Initialize Each Object
+
+    return true;
+}
+
+/* Here goes our drawing code */
+void drawGLScene() {
+    uint32_t tickCount = sdl.get_ticks();	// Get The Tick Count
+    Update(tickCount - lastTickCount);		// Update The Counter
+    lastTickCount = tickCount;		// Set Last Count To Current Count
+    Draw();				// Draw Our Scene
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void EventLoop() {
+    int32_t		loop;
+    uint8_t		done;
+    sdl.event_t	ev	= new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeWindow();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+		    else if (ev.keysym == sdl.Key_Space) {
+			// Space Bar Being Pressed After Game Has Ended?
+			if (game) {
+			    // Loop Through 30 Objects
+			    for (loop = 0; loop < 30; ++loop)
+				// Initialize Each Object
+				InitObject(object[loop]);
+
+			    game = false;	// Set game (Game Over) To False
+			    score = 0;		// Set score To 0
+			    level = 1;		// Set level Back To 1
+			    kills = 0;		// Zero Player Kills
+			    miss = 0;		// Set miss (Missed Shots) To 0
+			}	
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+		case sdl.EventMouseButtonDown:
+		    if (ev.button == sdl.ButtonLeft) {
+			mouse_x = ev.x;
+			mouse_y = ev.y;
+			Selection();
+		    }
+		    break;
+		case sdl.EventMouseMotion:
+		    mouse_x = ev.x;
+		    mouse_y = ev.y;
+		    break;
+	    }
+	}
+	drawGLScene();
+    }
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson32",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    800, 600,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    if (!sdl.open_audio(22000, sdl.AudioS16, 2, 4096)) {
+	print("Unable to open audio: %s\n", sdl.get_error());
+	exit(1);
+    }
+    /* We're going to pre-load the sound effects that we need right here */
+    if ((shot = sdl.load_chunk("nehe/lesson32/Shot.wav")) == null) {
+	print("load_chunk: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    /* initialize OpenGL */
+    if (!initGL()) {
+	print("OpenGL initialization failed!\n");
+	exit(1);
+    }
+
+    /* resize the initial window */
+    resizeWindow();
+
+    print("Esc: 		Exit\n");
+
+    sdl.show_cursor(0);
+    EventLoop();
+
+    gl.DeleteLists(base, 95);		// Delete All 95 Font Display Lists
+
+    sdl.halt_channel(channel);
+    sdl.free_chunk(shot);
+    sdl.close_audio();
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

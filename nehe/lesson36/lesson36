@@ -1,0 +1,421 @@
+// Used To Rotate The Helix
+float64_t		angle;
+// Holds Float Info For 4 Sets Of Vertices
+float64_t		vertexes[4][3] = {
+    {}, {}, {}, {}
+};
+// An Array To Store The Normal Data
+float64_t		normal[3] = {};
+// An Unsigned Int To Store The Texture Number
+uint32_t		BlurTexture;
+uint32_t		textures[1] = {};
+// Set The Material Color
+float32_t MaterialColor[]	= { 0.4, 0.2, 0.8, 1.0 };
+// Sets Up Specular Lighting
+float32_t specular[]		= { 1.0, 1.0,  1.0, 1.0 };
+// Set Ambient Lighting To Fairly Dark Light (No Color)
+float32_t global_ambient[4]	= { 0.2, 0.2,  0.2, 1.0 };
+// Set The Light Position
+float32_t light0pos[4]		= { 0.0, 5.0, 10.0, 1.0 };
+// More Ambient Light
+float32_t light0ambient[4]	= { 0.2, 0.2,  0.2, 1.0 };
+// Set The Diffuse Light A Bit Brighter
+float32_t light0diffuse[4]	= { 0.3, 0.3,  0.3, 1.0 };
+// Fairly Bright Specular Lighting
+float32_t light0specular[4]	= { 0.8, 0.8,  0.8, 1.0 };
+// And More Ambient Light
+float32_t lmodel_ambient[]	= { 0.2, 0.2,  0.2, 1.0 };
+// temporaries
+float64_t		v1[3] = {}, v2[3] = {};
+
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+
+uint32_t EmptyTexture() {
+    uint8_t	data[];
+
+    // Create Storage Space For Texture Data (128x128x4)
+    data = new uint8_t[128 * 128 * 4];
+
+    gl.GenTextures(textures);			// Create 1 Texture
+    gl.BindTexture(gl.TEXTURE_2D, textures[0]);	// Bind The Texture
+    // Build Texture Using Information In data
+    gl.TexImage2D(gl.TEXTURE_2D, 0, 128, 128, 0, gl.RGBA, data);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+    return textures[0];
+}
+
+// Reduces A Normal Vector (3 Coordinates)
+void ReduceToUnit(float64_t vector[3]) {
+    float64_t length;
+    // Calculates The Length Of The Vector
+    length = sqrt((vector[0] * vector[0]) +
+		  (vector[1] * vector[1]) +
+		  (vector[2] * vector[2]));
+
+    // Prevents Divide By 0 Error By Providing
+    if (length == 0.0)
+	// An Acceptable Value For Vectors To Close To 0.
+	length = 1.0;
+
+    vector[0] /= length;		// Dividing Each Element By
+    vector[1] /= length;		// The Length Results In A
+    vector[2] /= length;		// Unit Normal Vector.
+}
+
+// Calculates Normal For A Quad Using 3 Points
+void calcNormal(float64_t v[3][3], float64_t out[3]) {
+    // Finds The Vector Between 2 Points By Subtracting
+    // The x,y,z Coordinates From One Point To Another.
+
+    // Calculate The Vector From Point 1 To Point 0
+    v1[0] = v[0][0] - v[1][0];		// Vector 1.x=Vertex[0].x-Vertex[1].x
+    v1[1] = v[0][1] - v[1][1];		// Vector 1.y=Vertex[0].y-Vertex[1].y
+    v1[2] = v[0][2] - v[1][2];		// Vector 1.z=Vertex[0].y-Vertex[1].z
+    // Calculate The Vector From Point 2 To Point 1
+    v2[0] = v[1][0] - v[2][0];		// Vector 2.x=Vertex[0].x-Vertex[1].x
+    v2[1] = v[1][1] - v[2][1];		// Vector 2.y=Vertex[0].y-Vertex[1].y
+    v2[2] = v[1][2] - v[2][2];		// Vector 2.z=Vertex[0].z-Vertex[1].z
+    // Compute The Cross Product To Give Us A Surface Normal
+    out[0] = v1[0]*v2[2] - v1[2]*v2[1];	// Cross Product For Y - Z
+    out[1] = v1[1]*v2[0] - v1[0]*v2[2];	// Cross Product For X - Z
+    out[2] = v1[2]*v2[1] - v1[1]*v2[0];	// Cross Product For X - Y
+
+    ReduceToUnit(out);					// Normalize The Vectors
+}
+
+// Draws A Helix
+void ProcessHelix() {
+    float64_t	x;			// Helix x Coordinate
+    float64_t	y;			// Helix y Coordinate
+    float64_t	z;			// Helix z Coordinate
+    float64_t	phi;			// Angle
+    float64_t	theta;			// Angle
+    float64_t	v, u;			// Angles
+    float64_t	r;			// Radius Of Twist
+    int32_t	twists = 5;		// 5 Twists
+
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+    // Eye Position (0,5,50) Center Of Scene (0,0,0), Up On Y Axis
+    glu.LookAt(0, 5, 50, 0, 0, 0, 0, 1, 0);
+
+    gl.PushMatrix();			// Push The Modelview Matrix
+
+    gl.Translate(0, 0, -50);		// Translate 50 Units Into The Screen
+    gl.Rotate(angle / 2.0, 1, 0, 0);	// Rotate By angle/2 On The X-Axis
+    gl.Rotate(angle / 3.0, 0, 1, 0);	// Rotate By angle/3 On The Y-Axis
+
+    gl.Materialv(gl.FRONT_AND_BACK, gl.AMBIENT_AND_DIFFUSE, MaterialColor);
+    gl.Materialv(gl.FRONT_AND_BACK, gl.SPECULAR, specular);
+
+    r = 1.5;				// Radius
+    gl.Begin(gl.QUADS);			// Begin Drawing Quads
+    // 360 Degrees In Steps Of 20
+    for (phi=0; phi <= 360; phi += 20.0) {
+	// 360 Degrees * Number Of Twists In Steps Of 20
+	for (theta = 0; theta <= 360 * twists; theta += 20.0) {
+	    // Calculate Angle Of First Point	(  0 )
+	    v = (phi /180.0 * 3.142);
+	    // Calculate Angle Of First Point	(  0 )
+	    u = (theta /180.0 * 3.142);
+
+	    // Calculate x Position (1st Point)
+	    x = (cos(u) * (2.0 + cos(v))) * r;
+	    // Calculate y Position (1st Point)
+	    y = (sin(u) * (2.0 + cos(v))) * r;
+	    // Calculate z Position (1st Point)
+	    z = (((u - (2.0 * 3.142)) + sin(v)) * r);
+
+	    vertexes[0][0] = x;		// Set x Value Of First Vertex
+	    vertexes[0][1] = y;		// Set y Value Of First Vertex
+	    vertexes[0][2] = z;		// Set z Value Of First Vertex
+
+	    v = phi / 180.0 * 3.142;		// Calculate Angle Of Second Point	(  0 )
+	    u = (theta + 20) / 180.0 * 3.142;	// Calculate Angle Of Second Point	( 20 )
+
+	    // Calculate x Position (2nd Point)
+	    x = (cos(u) * (2.0 + cos(v))) * r;
+	    // Calculate y Position (2nd Point)
+	    y = (sin(u) * (2.0 + cos(v))) * r;
+	    // Calculate z Position (2nd Point)
+	    z = ((u - (2.0 * 3.142)) + sin(v)) * r;
+
+	    vertexes[1][0] = x;		// Set x Value Of Second Vertex
+	    vertexes[1][1] = y;		// Set y Value Of Second Vertex
+	    vertexes[1][2] = z;		// Set z Value Of Second Vertex
+
+	    // Calculate Angle Of Third Point	( 20 )
+	    v = (phi + 20) / 180.0 * 3.142;
+	    // Calculate Angle Of Third Point	( 20 )
+	    u = (theta + 20) / 180.0 * 3.142;
+
+	    // Calculate x Position (3rd Point)
+	    x = (cos(u) * (2.0 + cos(v))) * r;
+	    // Calculate y Position (3rd Point)
+	    y = (sin(u) * (2.0 + cos(v))) * r;
+	    // Calculate z Position (3rd Point)
+	    z = ((u - (2.0 * 3.142)) + sin(v)) * r;
+
+	    vertexes[2][0] = x;		// Set x Value Of Third Vertex
+	    vertexes[2][1] = y;		// Set y Value Of Third Vertex
+	    vertexes[2][2] = z;		// Set z Value Of Third Vertex
+
+	    // Calculate Angle Of Fourth Point	( 20 )
+	    v = (phi + 20) / 180.0 * 3.142;
+	    // Calculate Angle Of Fourth Point	(  0 )
+	    u= theta / 180.0 * 3.142;
+
+	    // Calculate x Position (4th Point)
+	    x = (cos(u) * (2.0 + cos(v))) * r;
+	    // Calculate y Position (4th Point)
+	    y = (sin(u) * (2.0 + cos(v))) * r;
+	    // Calculate z Position (4th Point)
+	    z = ((u - (2.0 * 3.142)) + sin(v)) * r;
+
+	    vertexes[3][0] = x;		// Set x Value Of Fourth Vertex
+	    vertexes[3][1] = y;		// Set y Value Of Fourth Vertex
+	    vertexes[3][2] = z;		// Set z Value Of Fourth Vertex
+
+	    calcNormal(vertexes, normal);	// Calculate The Quad Normal
+
+	    // Set The Normal
+	    gl.Normal3(normal[0], normal[1], normal[2]);
+
+	    // Render The Quad
+	    gl.Vertex3(vertexes[0][0], vertexes[0][1], vertexes[0][2]);
+	    gl.Vertex3(vertexes[1][0], vertexes[1][1], vertexes[1][2]);
+	    gl.Vertex3(vertexes[2][0], vertexes[2][1], vertexes[2][2]);
+	    gl.Vertex3(vertexes[3][0], vertexes[3][1], vertexes[3][2]);
+	}
+    }
+    gl.End();				// Done Rendering Quads
+
+    gl.PopMatrix();			// Pop The Matrix
+}
+
+// Set Up An Ortho View
+void ViewOrtho() {
+    gl.MatrixMode(gl.PROJECTION);	// Select Projection
+    gl.PushMatrix();			// Push The Matrix
+    gl.LoadIdentity();			// Reset The Matrix
+    gl.Ortho(0, 640, 480, 0, -1, 1);	// Select Ortho Mode (640x480)
+    gl.MatrixMode(gl.MODELVIEW);	// Select Modelview Matrix
+    gl.PushMatrix();			// Push The Matrix
+    gl.LoadIdentity();			// Reset The Matrix
+}
+
+// Set Up A Perspective View
+void ViewPerspective() {
+    gl.MatrixMode(gl.PROJECTION);	// Select Projection
+    gl.PopMatrix();			// Pop The Matrix
+    gl.MatrixMode(gl.MODELVIEW);	// Select Modelview
+    gl.PopMatrix();			// Pop The Matrix
+}
+
+void RenderToTexture() {
+    gl.Viewport(0, 0, 128, 128);	// Set Our Viewport (Match Texture Size)
+
+    ProcessHelix();			// Render The Helix
+
+    // Bind To The Blur Texture
+    gl.BindTexture(gl.TEXTURE_2D, BlurTexture);
+
+    // Copy Our ViewPort To The Blur Texture (From 0,0 To 128,128... No Border)
+    gl.CopyTexImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, 0, 0, 128, 128, 0);
+
+    gl.ClearColor(0.0, 0.0, 0.5, 0.5);	// Set The Clear Color To Medium Blue
+    // Clear The Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.Viewport(0, 0, 640, 480);	// Set Viewport (0,0 to 640x480)
+}
+
+// Draw The Blurred Image
+void DrawBlur(int32_t times, float64_t inc) {
+    float64_t spost = 0.0;		// Starting Texture Coordinate Offset
+    float64_t alphainc = 0.9 / times;	// Fade Speed For Alpha Blending
+    float64_t alpha = 0.2;
+    int32_t loop;			// Starting Alpha Value
+
+    // Disable AutoTexture Coordinates
+    gl.Disable(gl.TEXTURE_GEN_S);
+    gl.Disable(gl.TEXTURE_GEN_T);
+
+    gl.Enable(gl.TEXTURE_2D);		// Enable 2D Texture Mapping
+    gl.Disable(gl.DEPTH_TEST);		// Disable Depth Testing
+    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);	// Set Blending Mode
+    gl.Enable(gl.BLEND);		// Enable Blending
+    // Bind To The Blur Texture
+    gl.BindTexture(gl.TEXTURE_2D, BlurTexture);
+    ViewOrtho();			// Switch To An Ortho View
+
+    alphainc = alpha / times;		// alphainc=0.2 / Times To Render Blur
+
+    gl.Begin(gl.QUADS);			// Begin Drawing Quads
+    // Number Of Times To Render Blur
+    for (loop = 0; loop < times; ++loop) {
+	// Set The Alpha Value (Starts At 0.2)
+	gl.Color4(1.0, 1.0, 1.0, alpha);
+	// Texture Coordinate	( 0, 1 )
+	gl.TexCoord2(0 + spost, 1 - spost);
+	// First Vertex		(   0,   0 )
+	gl.Vertex2(0, 0);
+
+	// Texture Coordinate	( 0, 0 )
+	gl.TexCoord2(0 + spost,0 + spost);
+	// Second Vertex	(   0, 480 )
+	gl.Vertex2(0, 480);
+
+	// Texture Coordinate	( 1, 0 )
+	gl.TexCoord2(1 - spost, 0 + spost);
+	// Third Vertex		( 640, 480 )
+	gl.Vertex2(640, 480);
+
+	// Texture Coordinate	( 1, 1 )
+	gl.TexCoord2(1 - spost, 1 - spost);
+	// Fourth Vertex	( 640,   0 )
+	gl.Vertex2(640, 0);
+
+	// Gradually Increase spost (Zooming Closer To Texture Center)
+	spost += inc;
+	// Gradually Decrease alpha (Gradually Fading Image Out)
+	alpha = alpha - alphainc;
+    }
+    gl.End();				// Done Drawing Quads
+
+    ViewPerspective();			// Switch To A Perspective View
+
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+    gl.Disable(gl.TEXTURE_2D);		// Disable 2D Texture Mapping
+    gl.Disable(gl.BLEND);		// Disable Blending
+    gl.BindTexture(gl.TEXTURE_2D, 0);	// Unbind The Blur Texture
+}
+
+void InitGL() {
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);	// Black Background
+    gl.ClearDepth(1.0);			// Depth Buffer Setup
+    // The Type Of Depth Testing (Less Or Equal)
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Enable(gl.DEPTH_TEST);		// Enable Depth Testing
+
+    // Set The Ambient Light Model
+    gl.LightModelv(gl.LIGHT_MODEL_AMBIENT, lmodel_ambient);
+    // Set The Global Ambient Light Model
+    gl.LightModelv(gl.LIGHT_MODEL_AMBIENT, global_ambient);
+    // Set The Lights Position
+    gl.Lightv(gl.LIGHT0, gl.POSITION, light0pos);
+    // Set The Ambient Light
+    gl.Lightv(gl.LIGHT0, gl.AMBIENT, light0ambient);
+    // Set The Diffuse Light
+    gl.Lightv(gl.LIGHT0, gl.DIFFUSE, light0diffuse);
+    // Set Up Specular Lighting
+    gl.Lightv(gl.LIGHT0, gl.SPECULAR, light0specular);
+    gl.Enable(gl.LIGHTING);		// Enable Lighting
+    gl.Enable(gl.LIGHT0);		// Enable Light0
+
+    gl.ShadeModel(gl.SMOOTH);		// Select Smooth Shading
+
+    gl.Material(gl.FRONT, gl.SHININESS, 128);
+    gl.ClearColor(0.0, 0.0, 0.0, 0.);	// Set The Clear Color To Black
+    // Set Perspective Calculations To Most Accurate
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+// Draw The Scene
+void Draw() {
+    gl.ClearColor(0.0, 0.0, 0.0, 0.);	// Set The Clear Color To Black
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();			// Reset The View	
+    RenderToTexture();			// Render To A Texture
+    ProcessHelix();			// Draw Our Helix
+    DrawBlur(25, 0.02);			// Draw The Blur Effect
+    gl.Flush();				// Flush The GL Rendering Pipeline
+}
+
+// Reshape The Window When It's Moved Or Resized
+void ReshapeGL() {
+    gl.Viewport(0, 0, win.w, win.h);	// Reset The Current Viewport
+    gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+    gl.LoadIdentity();			// Reset The Projection Matrix */
+
+    // Calculate The Aspect Ratio Of The Window
+    glu.Perspective(45.0, win.w / win.h, 1.0, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+    gl.LoadIdentity();			// Reset The Modelview Matrix
+}
+
+void main() {
+    uint32_t		TickCount;
+    uint32_t		LastCount;
+
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson36",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    LastCount = sdl.get_ticks();
+    InitGL();
+    BlurTexture = EmptyTexture();
+
+    print("Esc: 		Exit\n");
+
+    ReshapeGL();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			default:
+			    break;
+		    }
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	else {
+	    // Get Present Ticks
+	    TickCount = sdl.get_ticks();
+	    angle += (TickCount - LastCount) / 5.0;
+	    // Save The Present Tick Probing
+	    LastCount = TickCount;
+	    Draw();
+	    sdl.gl.swap_window(win);
+	}
+    }
+
+    gl.DeleteTextures(textures);
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+main();

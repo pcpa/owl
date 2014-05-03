@@ -1,0 +1,231 @@
+float64_t xrot, yrot, zrot;
+uint32_t texture[1] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+void init_all() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson6",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+}
+
+void init_texture() {
+    sdl.surface_t srf[1] = {};
+    srf[0] = sdl.load_surface("nehe/lesson6/nehe.bmp");
+    if (srf[0] != null) {
+
+	/* Create The Texture */
+	gl.GenTextures(texture);
+
+	/* Typical Texture Generation Using Data From The Bitmap */
+	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+	/* Generate The Texture */
+	sdl.gl.TexImage2D(srf[0]);
+
+	    /* Linear Filtering */
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	sdl.free_surface(srf[0]);
+    }
+}
+
+void init() {
+    init_texture();
+
+    /* Enable Texture Mapping ( NEW ) */
+    gl.Enable(gl.TEXTURE_2D);
+
+    /* Enable smooth shading */
+    gl.ShadeModel(gl.SMOOTH);
+
+    /* Set the background black */
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);
+
+    /* Depth buffer setup */
+    gl.ClearDepth(1.0);
+
+    /* Enables Depth Testing */
+    gl.Enable(gl.DEPTH_TEST);
+
+    /* The Type Of Depth Test To Do */
+    gl.DepthFunc(gl.LEQUAL);
+
+    /* Really Nice Perspective Calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+}
+
+void resize() {
+    float64_t		ratio = win.w / win.h;
+
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+
+    /* change to the projection matrix and set our viewing volume. */
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+
+    glu.Perspective(45.0, ratio, 0.1, 100.0);
+
+    /* Make sure we're chaning the model view and not the projection */
+    gl.MatrixMode(gl.MODELVIEW);
+
+    /* Reset The View */
+    gl.LoadIdentity();
+}
+
+void draw() {
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* Move Into The Screen 5 Units */
+    gl.LoadIdentity();
+    gl.Translate(0.0, 0.0, -5.0);
+
+    gl.Rotate(xrot, 1.0, 0.0, 0.0);	/* Rotate On The X Axis */
+    gl.Rotate(yrot, 0.0, 1.0, 0.0);	/* Rotate On The Y Axis */
+    gl.Rotate(zrot, 0.0, 0.0, 1.0);	/* Rotate On The Z Axis */
+
+    /* Select Our Texture */
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+
+    /* NOTE:
+     *   The x coordinates of the glTexCoord2f function need to inverted
+     * for SDL because of the way SDL_LoadBmp loads the data. So where
+     * in the tutorial it has glTexCoord2f( 1.0f, 0.0f ); it should
+     * now read glTexCoord2f( 0.0f, 0.0f );
+     */
+    gl.Begin(gl.QUADS);
+    {
+	/* Front Face */
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+
+	/* Back Face */
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+
+	/* Top Face */
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+
+	/* Bottom Face */
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0); gl.Vertex3( 1.0, -1.0,  1.0);
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+
+	/* Right face */
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+
+	/* Left Face */
+	/* Bottom Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	/* Bottom Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	/* Top Right Of The Texture and Quad */
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	/* Top Left Of The Texture and Quad */
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+    }
+    gl.End();
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+
+    xrot += 0.3;	/* X Axis Rotation */
+    yrot += 0.2;	/* Y Axis Rotation */
+    zrot += 0.4;	/* Z Axis Rotation */
+}
+
+void loop() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resize();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	draw();
+    }
+}
+    
+void finish_all() {
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+print("Esc: Exit\n");
+init_all();
+init();
+resize();
+loop();
+finish_all();

@@ -1,0 +1,434 @@
+#define O_READ           1
+
+class TGA {
+    uint8_t	header[6];	/* First 6 Useful Bytes From The Header */
+    uint32_t	bytesPerPixel;	/* Holds Number Of Bytes Per Pixel Used In The TGA File */
+    uint32_t	imageSize;	/* Used To Store The Image Size When Setting Aside Ram */
+    uint32_t	temp;		/* Temporary Variable */
+    uint32_t	type;
+    uint32_t	Height;		/* Height of Image */
+    uint32_t	Width;		/* Width ofImage */
+    uint32_t	Bpp;		/* Bits Per Pixel */
+};
+
+class Texture {
+    uint8_t	imageData[];	/* Image Data (Up To 32 Bits) */
+    uint32_t	bpp;		/* Image Color Depth In Bits Per Pixel */
+    uint32_t	width;		/* Image Width */
+    uint32_t	height;		/* Image Height */
+    uint32_t	texID;		/* Texture ID Used To Select A Texture */
+    uint32_t	type;		/* Image Type (GL_RGB, GL_RGBA) */
+};
+
+uint8_t		tgaheader[12] = {};	/* TGA header */
+TGA		tga = { {} };		/* TGA image data */
+
+/* Uncompressed TGA Header */
+uint8_t uTGAcompare[12] = { 0, 0, 2,  0, 0, 0, 0, 0, 0, 0, 0, 0 };
+/* Compressed TGA Header */
+uint8_t cTGAcompare[12] = { 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+float64_t	spin;		/* Spin Variable */
+Texture texture[2] = {
+    { {}, },
+    { {}, }
+};
+uint32_t	texID[1] = {};
+
+sdl.window_t win;
+sdl.gl.context_t ctx;
+
+uint8_t LoadTGA(Texture texture, string_t filename) {
+    auto	fTGA;
+    uint8_t	status;
+    fTGA = open(filename, O_READ);
+    if (fTGA == null) {
+	print("Error could not open texture file");
+	return false;
+    }
+    /* Attempt to read 12 byte header from file */
+    if (read(fTGA, tgaheader, sizeof(tgaheader)) != sizeof(tgaheader)) {
+	print("Error could not read file header");
+	close(fTGA);
+	return false;
+    }
+    if (uTGAcompare == tgaheader)
+	status = LoadUncompressedTGA(texture, fTGA);
+    else if (cTGAcompare == tgaheader)
+	status = LoadCompressedTGA(texture, fTGA);
+    else {
+	print("Error TGA file must be type 2 or type 10");
+	status = false;
+    }
+    close(fTGA);
+    return status;
+}
+
+uint8_t LoadUncompressedTGA(Texture texture, auto fTGA) {
+    uint32_t	cswap;		/* TGA Loading code nehe.gamedev.net) */
+    if (read(fTGA, tga.header, sizeof(tga.header)) != sizeof(tga.header)) {
+	print("Error could not read info header");
+	return false;
+    }
+
+    /* Determine The TGA Width	(highbyte*256+lowbyte) */
+    texture.width  = tga.header[1] * 256 + tga.header[0];
+    /* Determine The TGA Height	(highbyte*256+lowbyte) */
+    texture.height = tga.header[3] * 256 + tga.header[2];
+    /* Determine the bits per pixel */
+    texture.bpp	= tga.header[4];
+    /* Copy width into local structure */
+    tga.Width		= texture.width;
+    /* Copy height into local structure */
+    tga.Height		= texture.height;
+    /* Copy BPP into local structure */
+    tga.Bpp		= texture.bpp;
+
+    /* Make sure all information is valid */
+    if (texture.width <= 0 || texture.height <= 0 ||
+	(texture.bpp != 24 && texture.bpp != 32)) {
+	print("Error invalid texture information");
+	return false;
+    }
+    if (texture.bpp == 24)
+	texture.type	= gl.RGB;
+    else
+	texture.type	= gl.RGBA;
+
+    /* Compute the number of BYTES per pixel */
+    tga.bytesPerPixel	= (tga.Bpp \ 8);
+    /* Compute the total amout ofmemory needed to store data */
+    tga.imageSize	= (tga.bytesPerPixel * tga.Width * tga.Height);
+    /* Allocate that much memory */
+    texture.imageData	= new uint8_t[tga.imageSize];
+
+    if (read(fTGA, texture.imageData, tga.imageSize) != tga.imageSize) {
+	print("Error could not read image data");
+	return false;
+    }
+
+    /* The actual code in lesson33, that relies on undefined behaviour:
+TGALoader.c:113:29: warning: operation on '*(texture->imageData + (sizetype)cswap)' may be undefined [-Wsequence-point]
+   texture->imageData[cswap] ^= texture->imageData[cswap+2] ^=
+    * does not work with "owl" because it does not "properly" optimize
+    * loads of vector elements, but reads them whenver accessed, thus
+    * undefined behavior... So, just implement a proper/safe byte swap.
+    */
+    for (cswap = 0; cswap < tga.imageSize; cswap += tga.bytesPerPixel) {
+	uint8_t c = texture.imageData[cswap];
+	texture.imageData[cswap] = texture.imageData[cswap + 2];
+	texture.imageData[cswap + 2] = c;
+    }
+
+    return true;
+}
+
+uint8_t LoadCompressedTGA(Texture texture, auto fTGA) {
+    /* Nuber of pixels in the image */
+    uint32_t pixelcount;
+    /* Current pixel being read */
+    uint32_t currentpixel;
+    /* Current byte */
+    uint32_t currentbyte;
+    /* Storage for 1 pixel */
+    uint8_t colorbuffer[];
+
+    if (read(fTGA, tga.header, sizeof(tga.header)) != sizeof(tga.header)) {
+	print("Error could not read info header");
+	return false;
+    }
+
+    /* Determine The TGA Width	(highbyte*256+lowbyte) */
+    texture.width  = tga.header[1] * 256 + tga.header[0];
+    /* Determine The TGA Height	(highbyte*256+lowbyte) */
+    texture.height = tga.header[3] * 256 + tga.header[2];
+    /* Determine Bits Per Pixel */
+    texture.bpp	= tga.header[4];
+    /* Copy width to local structure */
+    tga.Width		= texture.width;
+    /* Copy width to local structure */
+    tga.Height		= texture.height;
+    /* Copy width to local structure */
+    tga.Bpp		= texture.bpp;
+
+    pixelcount	= tga.Height * tga.Width;
+
+    /* Make sure all information is valid */
+    if (texture.width <= 0 || texture.height <= 0 ||
+	(texture.bpp != 24 && texture.bpp != 32)) {
+	print("Error invalid texture information");
+	return false;
+    }
+    if (texture.bpp == 24)
+	texture.type	= gl.RGB;
+    else
+	texture.type	= gl.RGBA;
+
+    /* Compute BYTES per pixel */
+    tga.bytesPerPixel	= (tga.Bpp \ 8);
+    /* Compute amout of memory needed to store image */
+    tga.imageSize	= (tga.bytesPerPixel * tga.Width * tga.Height);
+    /* Allocate that much memory */
+    texture.imageData	= new uint8_t[tga.imageSize];
+
+    colorbuffer = new uint8_t[tga.bytesPerPixel];
+
+    uint8_t vu8[1] = {};
+    do {
+	/* Storage for "chunk" header */
+	uint8_t chunkheader;
+
+	/* Read in the 1 byte header */
+	if(read(fTGA, vu8, 1) != 1) {
+	    print("Error could not read RLE header");
+	    return false;
+	}
+	chunkheader = vu8[0];
+
+	int16_t	counter;
+	/* If the header is < 128, it means the that is
+	 * the number of RAW color packets minus 1 */
+	if (chunkheader < 128) {
+	    /* add 1 to get number of following color values */
+	    ++chunkheader;
+	    /* Read RAW color values */
+	    for (counter = 0; counter < chunkheader; ++counter) {
+		/* Try to read 1 pixel */
+		if (read(fTGA, colorbuffer, tga.bytesPerPixel) !=
+		    tga.bytesPerPixel) {
+		    print("Error could not read image data");
+		    return false;
+		}
+		/* write to memory */
+		/* Flip R and B vcolor values around in the process */
+		texture.imageData[currentbyte    ] = colorbuffer[2];
+		texture.imageData[currentbyte + 1] = colorbuffer[1];
+		texture.imageData[currentbyte + 2] = colorbuffer[0];
+
+		/* if its a 32 bpp image */
+		if(tga.bytesPerPixel == 4)
+		    texture.imageData[currentbyte + 3] = colorbuffer[3];
+
+		/* Increase the current byte by the number of bytes per pixel */
+		currentbyte += tga.bytesPerPixel;
+		/* Increase current pixel by 1 */
+		++currentpixel;
+
+		/* Make sure we havent read too many pixels */
+		if (currentpixel > pixelcount) {
+		    print("Error too many pixels read");
+		    return false;
+		}
+	    }
+	}
+	/* chunkheader > 128 RLE data, next color
+	*  repeated chunkheader - 127 times */
+	else {
+	    /* Subtract 127 to get rid of the ID bit */
+	    chunkheader -= 127;
+	    if (read(fTGA, colorbuffer, tga.bytesPerPixel) !=
+		tga.bytesPerPixel) {
+		print("Error could not read image data");
+		return false;
+	    }
+	    /* copy the color into the image data as many times as dictated */
+	    for (counter = 0; counter < chunkheader; ++counter) {
+		/* switch R and B bytes around while copying */
+		texture.imageData[currentbyte    ] = colorbuffer[2];
+		texture.imageData[currentbyte + 1] = colorbuffer[1];
+		texture.imageData[currentbyte + 2] = colorbuffer[0];
+
+		/* If TGA images is 32 bpp */
+		if(tga.bytesPerPixel == 4)
+		    /* Copy 4th byte */
+		    texture.imageData[currentbyte + 3] = colorbuffer[3];
+
+		/* Increase current byte by the number of bytes per pixel */
+		currentbyte += tga.bytesPerPixel;
+		/* Increase pixel count by 1 */
+		++currentpixel;
+
+		/* Make sure we havent read too many pixels */
+		if (currentpixel > pixelcount) {
+		    print("Error too many pixels read");
+		    return false;
+		}
+	    }
+	}
+    } while (currentpixel < pixelcount);
+
+    return true;
+}
+
+/* Load Bitmaps And Convert To Textures */
+uint8_t LoadGLTextures() {
+    /* Status Indicator */
+    uint8_t Stat = false;
+    /* Loop index */
+    int32_t loop;
+
+    /* Load The Bitmap, Check For Errors. */
+    if (LoadTGA(texture[0], "nehe/lesson33/Uncompressed.tga") &&
+	LoadTGA(texture[1], "nehe/lesson33//Compressed.tga")) {
+	Stat = true;
+
+	for (loop = 0; loop < 2; ++loop) {
+	    /* Typical Texture Generation Using Data From The TGA */
+	    /* Create The Texture */
+		gl.GenTextures(texID);
+	    texture[loop].texID = texID[0];
+	    gl.BindTexture(gl.TEXTURE_2D, texture[loop].texID);
+	    gl.TexImage2D(gl.TEXTURE_2D, 0,
+			  texture[loop].width, texture[loop].height, 0,
+			  texture[loop].type, texture[loop].imageData);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+
+	    /* no longer required */
+	    texture[loop].imageData = null;
+	}
+    }
+    return Stat;
+}
+
+/* Resize,set viewport,frustum */
+void resizeGLScene() {
+    float64_t	width, height;
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    width = 0.5;
+    height = 0.5 * (win.h / win.w);
+    gl.Frustum(-width, width, -height, height, 1.0, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+}
+
+/* Setup basic Opengl stuff */
+void initGL() {
+    if (!LoadGLTextures())
+	print("Error loading textures\n");
+
+    gl.ShadeModel(gl.SMOOTH);
+    gl.Enable(gl.TEXTURE_2D);
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);
+    gl.ClearDepth(1.0);
+    gl.Enable(gl.DEPTH_TEST);
+    gl.DepthFunc(gl.LEQUAL);
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+    resizeGLScene();
+    gl.Flush();
+}
+
+/* Here's Where We Do All The Drawing */
+void drawGLScene() {
+    int32_t loop;
+    /* Clear The Screen And The Depth Buffer */
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();			/* Reset The Modelview Matrix */
+    gl.Translate(0.0, 0.0, -10.0);	/* Translate 20 Units Into The Screen */
+
+    spin += 0.05;			/* Increase Spin */
+
+    for (loop = 0; loop < 20; ++loop) {
+	gl.PushMatrix();		/* Push The Matrix */
+	/* Rotate On The X-Axis (Up - Down) */
+	gl.Rotate(spin + loop * 18.0, 1.0,0.0, 0.0);
+	gl.Translate(-2.0, 2.0, 0.0);	/* Translate 2 Units Left And 2 Up */
+
+	gl.BindTexture(gl.TEXTURE_2D, texture[0].texID);
+	gl.Begin(gl.QUADS);		/* Draw Our Quad */
+	{
+	    gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, 0.0);
+	    gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, 0.0);
+	    gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0, 0.0);
+	    gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0, 0.0);
+	}
+	gl.End();			/* Done Drawing The Quad */
+	gl.PopMatrix();			/* Pop The Matrix */
+
+	gl.PushMatrix();		/* Push The Matrix */
+	gl.Translate(2.0, 0.0, 0.0);	/* Translate 2 Units To The Right */
+	/* Rotate On The Y-Axis (Left - Right) */
+	gl.Rotate(spin + loop * 36.0, 0.0, 1.0, 0.0);
+	gl.Translate(1.0, 0.0, 0.0);	/* Move One Unit Right */
+
+	gl.BindTexture(gl.TEXTURE_2D, texture[1].texID);
+	gl.Begin(gl.QUADS);		/* Draw Our Quad */
+	{
+	    gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0,  1.0, 0.0);
+	    gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0,  1.0, 0.0);
+	    gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0, -1.0, 0.0);
+	    gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0, -1.0, 0.0);
+	}
+	gl.End();			/* Done Drawing The Quad */
+	gl.PopMatrix();			/* Pop The Matrix */
+    }
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void run() {
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    if (ev.keysym == sdl.Key_Escape)
+			done = true;
+			break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	drawGLScene();
+    }
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson33",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("Esc: 		Exit\n");
+    initGL();
+    run();
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();

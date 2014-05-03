@@ -1,0 +1,450 @@
+#define IM 139968
+#define IA 3877
+#define IC 29573
+int32_t last = 42;
+void srand(int32_t v) {
+    last = v;
+}
+int32_t rand() {
+    return (last = (last * IA + IC) % IM);
+}
+
+#define width		128
+#define height		128
+
+/* User Defined Variables */
+int32_t			mx, my;		/* General Loops (Used For Seeking) */
+uint8_t			done;		/* Flag To Let Us Know When It's Done */
+
+/* Random Colors (4 Red, 4 Green, 4 Blue) */
+float32_t		r[4] = {}, g[4] = {}, b[4] = {};
+/* Holds Our Texture Data */
+uint8_t			tex_data[];
+
+float64_t		xrot;		/* Use For Rotation Of Objects */
+float64_t		yrot;
+float64_t		zrot;
+
+glu.quadric_t		quadric;	/* The Quadric Object */
+
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+
+void resizeWindow() {
+    /* Setup our viewport. */
+    gl.Viewport(0, 0, win.w, win.h);
+}
+
+/* Update Pixel dmx, dmy On The Texture */
+void UpdateTex(int32_t dmx, int32_t dmy) {
+    /* Set Red, Green and Blue Pixels To Full Bright */
+    tex_data[0 + ((dmx + (width * dmy)) * 3)] = 255;
+    tex_data[1 + ((dmx + (width * dmy)) * 3)] = 255;
+    tex_data[2 + ((dmx + (width * dmy)) * 3)] = 255;
+}
+
+/* Reset The Maze, Colors, Start Point, Etc */
+void Reset(void) {
+    int32_t	loop;
+
+    /* Clear Out The Texture Memory With 0's */
+    for (loop = 0; loop < width * height * 3; ++loop)
+	tex_data[loop] = 0;
+
+    /* Try To Get More Randomness */
+    srand(sdl.get_ticks());
+
+    /* Loop So We Can Assign 4 Random Colors */
+    for (loop = 0; loop < 4; ++loop) {
+	/* Pick A Random Red Color (Bright) */
+	r[loop] = 255.0 / (rand() % 128 + 128);
+	/* Pick A Random Green Color (Bright) */
+	g[loop] = 255.0 / (rand() % 128 + 128);
+	/* Pick A Random Blue Color (Bright) */
+	b[loop] = 255.0 / (rand() % 128 + 128);
+    }
+
+    mx = (rand() % (width \ 2)) * 2;	/* Pick A New Random X Position */
+    my = (rand() % (height \ 2)) * 2;	/* Pick A New Random Y Position */
+}
+
+/* Perform Motion Updates Here */
+void Update(uint32_t milliseconds) {
+    int32_t		dir;		/* Will Hold Current Direction */
+    int32_t		x, y;
+
+    xrot += milliseconds * 0.02;	/* Increase Rotation On The X-Axis */
+    yrot += milliseconds * 0.03;	/* Increase Rotation On The Y-Axis */
+    zrot += milliseconds * 0.015;	/* Increase Rotation On The Z-Axis */
+
+    done = true;
+    /* Loop Through All The Rooms */
+    for (x = 0; x < width; x += 2) {
+	/* On X And Y Axis */
+	for (y = 0; y < height; y += 2) {
+	    /* If Current Texture Pixel (Room) Is Blank */
+	    if (tex_data[((x + (width * y)) * 3)] == 0)
+		done = false;		/* Not Finished Yet */
+	}
+    }
+
+    /* If done Is True Then There Were No Unvisited Rooms */
+    if (done)
+	Reset();
+
+    /* Check To Make Sure We Are Not Trapped (Nowhere Else To Move) */
+    if ((mx > (width - 4) || (tex_data[(((mx + 2) + (width * my)) * 3)] == 255)) &&
+	(mx < 2 || (tex_data[(((mx - 2) + (width * my)) * 3)] == 255)) &&
+	(my > (height - 4) || (tex_data[((mx + (width * (my + 2))) * 3)] == 255)) &&
+	(my < 2 || (tex_data[((mx + (width * (my - 2))) * 3)] == 255))) {
+	/* If We Are Trapped */
+	/* Pick A New Random X Position */
+	mx = (rand() % (width \ 2)) * 2;
+	/* Pick A New Random Y Position */
+	my = (rand() % (height \ 2)) * 2;
+	/* FIXME just for the sake of testing, and using a really bad
+	 * random number generator, do not loop choosing newer random
+	 * mx and my (instead do a linear search). */
+    again:
+	for (; my < height; my += 2) {
+	    for (; mx < width; mx += 2) {
+		if (tex_data[((mx + (width * my)) * 3)] == 0) {
+		    goto done;
+		}
+	    }
+	    mx = 0;
+	}
+	mx = my = 0;
+	goto again;
+    done:
+	;
+    }
+    /* One That Has Already Been Tagged (Safe Starting Point) */
+
+    dir= rand() % 4;				/* Pick A Random Direction */
+
+    /* If The Direction Is 0 (Right) And We Are Not At The Far Right */
+    if (dir == 0 && mx <= width - 4) {
+	/* And If The Room To The Right Has Not Already Been Visited */
+	if (tex_data[(((mx + 2) + (width * my)) * 3)] == 0) {
+	    /* Update The Texture To Show Path Cut Out Between Rooms */
+	    UpdateTex(mx + 1, my);
+	    mx += 2;			/* Move To The Right (Room To The Right) */
+	}
+    }
+
+    /* If The Direction Is 1 (Down) And We Are Not At The Bottom */
+    if (dir == 1 && my <= height - 4) {
+	/* And If The Room Below Has Not Already Been Visited */
+	if (tex_data[((mx + (width * (my + 2))) * 3)] == 0) {
+	    /* Update The Texture To Show Path Cut Out Between Rooms */
+	    UpdateTex(mx, my + 1);
+	    my += 2;			/* Move Down (Room Below) */
+	}
+    }
+
+    /* If The Direction Is 2 (Left) And We Are Not At The Far Left */
+    if (dir == 2 && mx >= 2) {
+	/* And If The Room To The Left Has Not Already Been Visited */
+	if (tex_data[(((mx - 2) + (width * my)) * 3)] == 0) {
+	    /* Update The Texture To Show Path Cut Out Between Rooms */
+	    UpdateTex(mx - 1, my);
+	    /* Move To The Left (Room To The Left) */
+	    mx -= 2;
+	}
+    }
+
+    /* If The Direction Is 3 (Up) And We Are Not At The Top */
+    if (dir == 3 && my >= 2) {
+	/* And If The Room Above Has Not Already Been Visited */
+	if (tex_data[((mx + (width * (my - 2))) * 3)] == 0) {
+	    /* Update The Texture To Show Path Cut Out Between Rooms */
+	    UpdateTex(mx, my - 1);
+	    /* Move Up (Room Above) */
+	    my -= 2;
+	}
+    }
+
+    UpdateTex(mx, my);			/* Update Current Room */
+}
+
+void drawGLScene() {
+    int32_t loop;
+
+    int32_t window_width  = win.w;
+    int32_t window_height = win.h;
+
+    /* Update Our Texture... This Is The Key To The Programs Speed...
+     * Much Faster Than Rebuilding The Texture Each Time */
+    gl.TexSubImage2D(gl.TEXTURE_2D, 0, 0, 0, width, height, gl.RGB, tex_data);
+
+    gl.Clear(gl.COLOR_BUFFER_BIT);		/* Clear Screen */
+
+    /* Loop To Draw Our 4 Views */
+    for (loop = 0; loop < 4; ++loop) {
+	/* Assign Color To Current View */
+	gl.Color3(r[loop], g[loop], b[loop]);
+
+	/* If We Are Drawing The First Scene */
+	if (loop == 0) {
+	    /* Set The Viewport To The Top Left.
+	     * It Will Take Up Half The Screen Width And Height */
+	    gl.Viewport(0, window_height \ 2,
+			window_width \ 2, window_height \ 2);
+	    /* Select The Projection Matrix */
+	    gl.MatrixMode(gl.PROJECTION);
+	    /* Reset The Projection Matrix */
+	    gl.LoadIdentity();
+	    /* Set Up Ortho Mode To Fit 1/4 The Screen
+	     * (Size Of A Viewport) */
+	    glu.Ortho2D(0, window_width \ 2, window_height \ 2, 0);
+	}
+
+	/* If We Are Drawing The Second Scene */
+	if (loop == 1) {
+	    /* Set The Viewport To The Top Right.
+	     * It Will Take Up Half The Screen Width And Height */
+	    gl.Viewport(window_width \ 2, window_height \ 2,
+			window_width \ 2, window_height \ 2);
+	    /* Select The Projection Matrix */
+	    gl.MatrixMode(gl.PROJECTION);
+	    /* Reset The Projection Matrix */
+	    gl.LoadIdentity();
+	    /* Set Up Perspective Mode To Fit 1/4 The Screen
+	     * (Size Of A Viewport) */
+	    glu.Perspective(45.0, width / height, 0.1, 500.0); 
+	}
+
+	/* If We Are Drawing The Third Scene */
+	if (loop == 2) {
+	    /* Set The Viewport To The Bottom Right.
+	     * It Will Take Up Half The Screen Width And Height */
+	    gl.Viewport(window_width \ 2, 0,
+			window_width \ 2, window_height \ 2);
+	    /* Select The Projection Matrix */
+	    gl.MatrixMode(gl.PROJECTION);
+	    /* Reset The Projection Matrix */
+	    gl.LoadIdentity();
+	    /* Set Up Perspective Mode To Fit 1/4 The Screen
+	     * (Size Of A Viewport) */
+	    glu.Perspective(45.0, win.w / win.h, 0.1, 500.0); 
+	}
+
+	/* If We Are Drawing The Fourth Scene */
+	if (loop == 3) {
+	    /* Set The Viewport To The Bottom Left.
+	     * It Will Take Up Half The Screen Width And Height */
+	    gl.Viewport(0, 0,
+			window_width / 2, window_height / 2);
+	    /* Select The Projection Matrix */
+	    gl.MatrixMode(gl.PROJECTION);
+	    /* Reset The Projection Matrix */
+	    gl.LoadIdentity();
+	    /* Set Up Perspective Mode To Fit 1/4 The Screen
+	     * (Size Of A Viewport) */
+	    glu.Perspective(45.0, win.w / win.h, 0.1, 500.0); 
+	}
+
+	/* Select The Modelview Matrix */
+	gl.MatrixMode(gl.MODELVIEW);
+	/* Reset The Modelview Matrix */
+	gl.LoadIdentity();
+
+	gl.Clear(gl.DEPTH_BUFFER_BIT);		/* Clear Depth Buffer */
+
+	/* Are We Drawing The First Image?
+	 * (Original Texture... Ortho) */
+	if (loop == 0) {
+	    gl.Begin(gl.QUADS);	/* Begin Drawing A Single Quad */
+	    /* We Fill The Entire 1/4 Section With A Single Textured Quad. */
+	    gl.TexCoord2(1.0, 0.0); gl.Vertex2(window_width \ 2, 0                );
+	    gl.TexCoord2(0.0, 0.0); gl.Vertex2(0,                0                );
+	    gl.TexCoord2(0.0, 1.0); gl.Vertex2(0,                window_height \ 2);
+	    gl.TexCoord2(1.0, 1.0); gl.Vertex2(window_width / 2, window_height \ 2);
+	    gl.End();		/* Done Drawing The Textured Quad */
+	}
+
+	/* Are We Drawing The Second Image?
+	 * (3D Texture Mapped Sphere... Perspective) */
+	if (loop == 1) {
+	    /* Move 14 Units Into The Screen */
+	    gl.Translate(0.0, 0.0, -14.0);
+
+	    /* Rotate By xrot On The X-Axis */
+	    gl.Rotate(xrot, 1.0, 0.0, 0.0);
+	    /* Rotate By yrot On The Y-Axis */
+	    gl.Rotate(yrot, 0.0, 1.0, 0.0);
+	    /* Rotate By zrot On The Z-Axis */
+	    gl.Rotate(zrot, 0.0, 0.0, 1.0);
+
+	    /* Enable Lighting */
+	    gl.Enable(gl.LIGHTING);
+	    /* Draw A Sphere */
+	    glu.Sphere(quadric, 4.0, 32, 32);
+	    /* Disable Lighting */
+	    gl.Disable(gl.LIGHTING);
+	}
+
+	/* Are We Drawing The Third Image?
+	 * (Texture At An Angle... Perspective) */
+	if (loop == 2) {
+	    /* Move 2 Units Into The Screen */
+	    gl.Translate(0.0, 0.0, -2.0);
+	    /* Tilt The Quad Below Back 45 Degrees. */
+	    gl.Rotate(-45.0, 1.0, 0.0, 0.0);
+	    /* Rotate By zrot/1.5 On The Z-Axis */
+	    gl.Rotate(zrot / 1.5, 0.0, 0.0, 1.0);
+
+	    gl.Begin(gl.QUADS);	/* Begin Drawing A Single Quad */
+	    gl.TexCoord2(1.0, 1.0); gl.Vertex3( 1.0,  1.0, 0.0);
+	    gl.TexCoord2(0.0, 1.0); gl.Vertex3(-1.0,  1.0, 0.0);
+	    gl.TexCoord2(0.0, 0.0); gl.Vertex3(-1.0, -1.0, 0.0);
+	    gl.TexCoord2(1.0, 0.0); gl.Vertex3( 1.0, -1.0, 0.0);
+	    gl.End();		/* Done Drawing The Textured Quad */
+	}
+
+	/* Are We Drawing The Fourth Image?  (3D Texture Mapped Cylinder... Perspective) */
+	if (loop == 3) {
+	    /* Move 7 Units Into The Screen */
+	    gl.Translate(0.0, 0.0, -7.0);
+	    /* Rotate By -xrot/2 On The X-Axis */
+	    gl.Rotate(-xrot / 2, 1.0, 0.0, 0.0);
+	    /* Rotate By -yrot/2 On The Y-Axis */
+	    gl.Rotate(-yrot / 2, 0.0, 1.0, 0.0);
+	    /* Rotate By -zrot/2 On The Z-Axis */
+	    gl.Rotate(-zrot / 2, 0.0, 0.0, 1.0);
+
+	    gl.Enable(gl.LIGHTING);		/* Enable Lighting */
+	    /* Translate -2 On The Z-Axis (To Rotate Cylinder Around The Center, Not An End) */
+	    gl.Translate(0.0, 0.0, -2.0);
+	    /* Draw A Cylinder */
+	    glu.Cylinder(quadric, 1.5, 1.5, 4.0, 32, 16);
+	    gl.Disable(gl.LIGHTING);		/* Disable Lighting */
+	}
+    }
+
+    gl.Flush();					/* Flush The GL Rendering Pipeline */
+
+    /* Draw it to the screen */
+    sdl.gl.swap_window(win);
+}
+
+void initGL() {
+    /* Allocate Space For Our Texture */
+    tex_data = new uint8_t[width * height * 3];
+
+    /* Call Reset To Build Our Initial Texture, Etc. */
+    Reset();
+
+    /* Start Of User Initialization */
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); 
+    gl.TexImage2D(gl.TEXTURE_2D, 0, width, height, 0, gl.RGB, tex_data);
+
+    /* Realy Nice perspective calculations */
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    gl.ClearColor(0.0, 0.0, 0.0, 0.0);	/* Light Grey Background */
+    gl.ClearDepth(1.0);			  /* Depth Buffer Setup */
+
+    gl.DepthFunc(gl.LEQUAL);		/* The Type Of Depth Test To Do */
+    gl.Enable(gl.DEPTH_TEST);		/* Enable Depth Testing */
+
+    gl.ShadeModel(gl.SMOOTH);		/* Enables Smooth Color Shading */
+    gl.Disable(gl.LINE_SMOOTH);		/* Initially Disable Line Smoothing */
+
+    /* Enable Color Material (Allows Us To Tint Textures) */
+    gl.Enable(gl.COLOR_MATERIAL);
+
+    gl.Enable(gl.TEXTURE_2D);		/* Enable Texture Mapping */
+
+    gl.Enable(gl.LIGHT0);		/* Enable Light0 (Default GL Light) */
+
+    /* Create A Pointer To The Quadric Object */
+    quadric = glu.NewQuadric();
+    glu.QuadricNormals(quadric, glu.SMOOTH);	/* Create Smooth Normals */
+    glu.QuadricTexture(quadric, true);		/* Create Texture Coords */
+}
+
+void main() {
+    uint32_t	lastTickCount;
+    uint32_t	tickCount;
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson42",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    1024, 768,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("\
+Esc: 		Exit\n\
+Space:		Reset maze\n");
+    initGL();
+    resizeWindow();
+
+    lastTickCount = sdl.get_ticks();
+    srand(lastTickCount);
+
+    uint8_t quit = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!quit) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    resizeWindow();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    quit = true;
+			    break;
+			case sdl.Key_Space:
+			    Reset();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    quit = true;
+		    break;
+	    }
+	}
+	tickCount = sdl.get_ticks();
+	Update(tickCount - lastTickCount);
+	lastTickCount = tickCount; 
+	drawGLScene();
+    }
+
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();
