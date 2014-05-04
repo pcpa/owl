@@ -761,7 +761,7 @@ oprint_mpq(ostream_t *stream, oformat_t *format, ompq_t rational)
 
 /*
  * Logic:
- * o "width" is not the number of digits bofore the dot, but a hint
+ * o "width" is not the number of digits before the dot, but a hint
  *   about alignment, that is used if the output string is smaller.
  * o "prec" is not the number of digits after the dot, but the number
  *   of significant digits to use.
@@ -951,7 +951,7 @@ oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
     }
 
     /* ensure stream buffer has enough bytes for number representation */
-    ocheck_buffer(stream, bytes);
+    ocheck_buffer(stream, bytes < format->width ? format->width : bytes);
 
     /* remember start of number representation */
     base = dst = (char *)stream->ptr + stream->offset;
@@ -974,7 +974,7 @@ oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
 	}
     }
 
-    /* in exponent mode, only use one digit bofore the dot */
+    /* in exponent mode, only use one digit before the dot */
     if (emode) {
 	/* if value is zero */
 	if (count == 0)
@@ -988,9 +988,9 @@ oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
 	    --count;
 	}
     }
-    /* put all integral significant digits bofore the dot */
+    /* put all integral significant digits before the dot */
     else {
-	/* number of digits bofore the dot */
+	/* number of digits before the dot */
 	digits = fexp <= 0 ? 1 : fexp;
 	if (fexp <= 0)
 	    *dst++ = '0';
