@@ -141,7 +141,7 @@ onew_function(orecord_t *record, ovector_t *name, otag_t *tag)
     onew_hash((oobject_t *)&function->labels, 8);
 
     function->name->value = function;
-    function->name->method = otype(current_record) != t_namespace;
+    function->name->method = otype(record) != t_namespace;
     function->name->ctor = function->name->name == symbol_new->name;
     /* If an actual new method */
     if (!function->name->offset && !function->name->ctor)
