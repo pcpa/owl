@@ -1,0 +1,1306 @@
+class glFont {
+    float64_t		WindowWidth;
+    float64_t		WindowHeight;
+    uint32_t		ListBase;
+    uint32_t		FontTexture;
+    void BuildFont(float64_t Scale) {
+	float64_t	cx;			// Holds Our X Character Coord
+	float64_t	cy;			// Holds Our Y Character Coord
+	uint32_t	loop;
+	ListBase = gl.GenLists(256);		// Creating 256 Display Lists
+	if (FontTexture) {
+	    // Select Our Font Texture
+	    gl.BindTexture(gl.TEXTURE_2D, FontTexture);
+	    // Loop Through All 256 Lists
+	    for (loop = 0; loop < 256; ++loop) {
+		cx= loop % 16 / 16.0;	// X Position Of Current Character
+		cy= loop \ 16 / 16.0;	// Y Position Of Current Character
+		// Start Building A List
+		gl.NewList(ListBase + loop, gl.COMPILE);
+		gl.Begin(gl.QUADS);	// Use A Quad For Each Character
+		{
+		    // Texture Coord (Bottom Left)
+		    gl.TexCoord2(cx, 1 - cy - 0.0625);
+		    // Vertex Coord (Bottom Left)
+		    gl.Vertex2(0, 0);
+		    // Texture Coord (Bottom Right)
+		    gl.TexCoord2(cx + 0.0625, 1 - cy - 0.0625);
+		    // Vertex Coord (Bottom Right)
+		    gl.Vertex2(16 * Scale, 0);
+		    // Texture Coord (Top Right)
+		    gl.TexCoord2(cx + 0.0625, 1 - cy);
+		    // Vertex Coord (Top Right)
+		    gl.Vertex2(16 * Scale, 16 * Scale);
+		    // Texture Coord (Top Left)
+		    gl.TexCoord2(cx, 1 - cy);
+		    // Vertex Coord (Top Left)
+		    gl.Vertex2(0, 16 * Scale);
+		}
+		gl.End();		// Done Building Our Quad (Character)
+		// Move To The Right Of The Character
+		gl.Translate(10 * Scale, 0, 0);
+		gl.EndList();		// Done Building The Display List
+	    }
+	}
+    }
+    void glPrint(int32_t x, int32_t y, int32_t set, string_t text) {
+	if (set > 1)
+	    set = 1;
+	gl.Enable(gl.TEXTURE_2D);	// Enable 2d Textures
+	gl.Enable(gl.BLEND);		// Enable Blending
+	gl.BlendFunc(gl.SRC_COLOR, gl.ONE_MINUS_SRC_COLOR);
+	// Select Our Font Texture
+	gl.BindTexture(gl.TEXTURE_2D, FontTexture);
+	gl.Disable(gl.DEPTH_TEST);	// Disables Depth Testing
+	gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+	gl.PushMatrix();		// Store The Projection Matrix
+	gl.LoadIdentity();		// Reset The Projection Matrix
+	// Set Up An Ortho Screen
+	gl.Ortho(0, WindowWidth, 0, WindowHeight, -1, 1);
+	gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+	gl.PushMatrix();		// Store The Modelview Matrix
+	gl.LoadIdentity();		// Reset The Modelview Matrix
+	// Position The Text (0,0 - Bottom Left)
+	gl.Translate(x, y, 0);
+	// Choose The Font Set (0 or 1)
+	gl.ListBase(ListBase - 32 + (128 * set));
+	gl.CallLists(text);		// Write The Text To The Screen
+	gl.MatrixMode(gl.PROJECTION);	// Select The Projection Matrix
+	gl.PopMatrix();			// Restore The Old Projection Matrix
+	gl.MatrixMode(gl.MODELVIEW);	// Select The Modelview Matrix
+	gl.PopMatrix();			// Restore The Old Projection Matrix
+	gl.Enable(gl.DEPTH_TEST);
+	gl.Disable(gl.BLEND);
+	gl.Disable(gl.TEXTURE_2D);
+    }
+};
+
+class glVector {
+    float64_t		x;
+    float64_t		y;
+    float64_t		z;
+    float64_t		mag;
+    glVector set(glVector v) {
+	x = v.x;
+	y = v.y;
+	z = v.z;
+	mag = v.mag;
+	return this;
+    }
+    glVector copy() {
+	return { x, y, z, mag };
+    }
+    glVector add(glVector v) {
+	return { x + v.x, y + v.y, z + v.z };
+    }
+    glVector addeq(glVector v) {
+	x += v.x;
+	y += v.y;
+	z += v.z;
+	return this;
+    }
+    glVector subeq(glVector v) {
+	x -= v.x;
+	y -= v.y;
+	z -= v.z;
+	return this;
+    }
+    glVector mul(float64_t s) {
+	return { x * s, y * s, z * s };
+    }
+    glVector muleq(float64_t s) {
+	x *= s;
+	y *= s;
+	z *= s;
+	return this;
+    }
+    float64_t magnitude() {
+	return mag = sqrt(x * x + y * y * z * z);
+    }
+    void normalize() {
+	if (mag != 0) {
+	    x / mag;
+	    y / mag;
+	    z / mag;
+	    magnitude();
+	}
+    }
+};
+
+class glCamera {
+    glVector	LightSourceToCamera, LightSourceToIntersect;
+    glVector	ptIntersect, pt;
+    int32_t	WindowHeight;
+    int32_t	WindowWidth;
+    uint32_t	StreakTexture;
+    uint32_t	HaloTexture;
+    uint32_t	GlowTexture;
+    uint32_t	BigGlowTexture;
+    float64_t	MaxPointSize;
+    float64_t	Frustum[6][4];
+    glVector	LightSourcePos;
+    float64_t	MaxPitchRate;
+    float64_t	MaxHeadingRate;
+    float64_t	HeadingDegrees;
+    float64_t	PitchDegrees;
+    float64_t	MaxForwardVelocity;
+    float64_t	ForwardVelocity;
+    glVector	Position;
+    glVector	DirectionVector;
+    glCamera() {
+	if (!LightSourceToCamera)	LightSourceToCamera = new glVector;
+	if (!LightSourceToIntersect)	LightSourceToIntersect = new glVector;
+	if (!ptIntersect)		ptIntersect = new glVector;
+	if (!pt)			pt = new glVector;
+	if (!Frustum)			Frustum = {{},{},{},{},{},{}};
+	if (!LightSourcePos)		LightSourcePos = new glVector;
+	if (!Position)			Position = new glVector;
+	if (!DirectionVector)		DirectionVector = new glVector;
+    }
+    void SetPrespective() {
+	// A array to hold the model view matrix.
+	float64_t	Matrix[16] = {};
+	// A vector to hold our cameras direction * the forward velocity
+	glVector	v;
+	// we don't want to destory the Direction vector by using it instead.
+
+	// Going to use glRotate to calculate our direction vector
+	gl.Rotate(HeadingDegrees, 0.0, 1.0, 0.0);
+	gl.Rotate(PitchDegrees, 1.0, 0.0, 0.0);
+
+	// Get the resulting matrix from OpenGL it will have our
+	// direction vector in the 3rd row.
+	gl.GetDoublev(gl.MODELVIEW_MATRIX, Matrix);
+
+	// Get the direction vector from the matrix. Element 10 must
+	// be inverted!
+	DirectionVector.x =  Matrix[8];
+	DirectionVector.y =  Matrix[9];
+	DirectionVector.z = -Matrix[10];
+
+	// Ok erase the results of the last computation.
+	gl.LoadIdentity();
+
+	// Rotate the scene to get the right orientation.
+	gl.Rotate(PitchDegrees, 1.0, 0.0, 0.0);
+	gl.Rotate(HeadingDegrees, 0.0, 1.0, 0.0);
+
+	// Scale the direction by our speed.
+	v = DirectionVector.copy();
+	v.muleq(ForwardVelocity);
+
+	// Increment our position by the vector
+	Position.x += v.x;
+	Position.y += v.y;
+	Position.z += v.z;
+
+	// Translate to our new position.
+	gl.Translate(-Position.x, -Position.y, -Position.z);
+    }
+    void ChangePitch(float64_t degrees) {
+	if (abs(degrees) < abs(MaxPitchRate))
+	    // Our pitch is less than the max pitch rate that we 
+	    // defined so lets increment it.
+	    PitchDegrees += degrees;
+	else {
+	    // Our pitch is greater than the max pitch rate that
+	    // we defined so we can only increment our pitch by the 
+	    // maximum allowed value.
+	    if(degrees < 0)
+		// We are pitching down so decrement
+		PitchDegrees -= MaxPitchRate;
+	    else
+		// We are pitching up so increment
+		PitchDegrees += MaxPitchRate;
+	}
+
+	// We don't want our pitch to run away from us. Although it
+	// really doesn't matter I prefer to have my pitch degrees
+	// within the range of -360.0 to 360.0
+	if (PitchDegrees > 360.0)
+	    PitchDegrees -= 360.0;
+	else if (PitchDegrees < -360.0)
+	    PitchDegrees += 360.0;
+    }
+
+    void ChangeHeading(float64_t degrees) {
+	if (abs(degrees) < abs(MaxHeadingRate)) {
+	    // Our Heading is less than the max heading rate that we 
+	    // defined so lets increment it but first we must check
+	    // to see if we are inverted so that our heading will not
+	    // become inverted.
+	    if ((PitchDegrees >  90 && PitchDegrees <  270) ||
+		(PitchDegrees < -90 && PitchDegrees > -270))
+		HeadingDegrees -= degrees;
+	    else
+		HeadingDegrees += degrees;
+	}
+	else {
+	    // Our heading is greater than the max heading rate that
+	    // we defined so we can only increment our heading by the 
+	    // maximum allowed value.
+	    if (degrees < 0) {
+		// Check to see if we are upside down.
+		if ((PitchDegrees >  90 && PitchDegrees < 270) ||
+		    (PitchDegrees < -90 && PitchDegrees > -270))
+		    // Ok we would normally decrement here but since we are upside
+		    // down then we need to increment our heading
+		    HeadingDegrees += MaxHeadingRate;
+		else
+		    // We are not upside down so decrement as usual
+		    HeadingDegrees -= MaxHeadingRate;
+	    }
+	    else {
+		// Check to see if we are upside down.
+		if ((PitchDegrees >  90 && PitchDegrees <  270) ||
+		    (PitchDegrees < -90 && PitchDegrees > -270))
+		    // Ok we would normally increment here but since we are upside
+		    // down then we need to decrement our heading.
+		    HeadingDegrees -= MaxHeadingRate;
+		else
+		    // We are not upside down so increment as usual.
+		    HeadingDegrees += MaxHeadingRate;
+	    }
+	}
+
+	// We don't want our heading to run away from us either. Although it
+	// really doesn't matter I prefer to have my heading degrees
+	// within the range of -360.0f to 360.0f
+	if(HeadingDegrees > 360.0)
+	    HeadingDegrees -= 360.0;
+	else if (HeadingDegrees < -360.0)
+	    HeadingDegrees += 360.0;
+    }
+
+    void ChangeVelocity(float64_t vel) {
+	if (abs(vel) < abs(MaxForwardVelocity))
+	    // Our velocity is less than the max velocity increment that we 
+	    // defined so lets increment it.
+	    ForwardVelocity += vel;
+	else {
+	    // Our velocity is greater than the max velocity increment that
+	    // we defined so we can only increment our velocity by the 
+	    // maximum allowed value.
+	    if (vel < 0)
+		// We are slowing down so decrement
+		ForwardVelocity -= -MaxForwardVelocity;
+	    else
+		// We are speeding up so increment
+		ForwardVelocity += MaxForwardVelocity;
+	}
+    }
+
+    // I found this code here: http://www.markmorley.com/opengl/frustumculling.html
+    // and decided to make it part of
+    // the camera class just in case I might want to rotate
+    // and translate the projection matrix. This code will
+    // make sure that the Frustum is updated correctly but
+    // this member is computational expensive with:
+    // 82 muliplications, 72 additions, 24 divisions, and
+    // 12 subtractions for a total of 190 operations. Ouch!
+    void UpdateFrustum() {
+	float64_t	clip[16] = {};
+	float64_t	Proj[16] = {};
+	float64_t	modl[16] = {};
+	float64_t	t;
+
+	/* Get the current PROJECTION matrix from OpenGL */
+	gl.GetDoublev(gl.PROJECTION_MATRIX, Proj);
+
+	/* Get the current MODELVIEW matrix from OpenGL */
+	gl.GetDoublev(gl.MODELVIEW_MATRIX, modl);
+
+	/* Combine the two matrices (multiply projection by modelview) */
+	clip[ 0] = modl[ 0] * Proj[ 0] + modl[ 1] * Proj[ 4] + modl[ 2] * Proj[ 8] + modl[ 3] * Proj[12];
+	clip[ 1] = modl[ 0] * Proj[ 1] + modl[ 1] * Proj[ 5] + modl[ 2] * Proj[ 9] + modl[ 3] * Proj[13];
+	clip[ 2] = modl[ 0] * Proj[ 2] + modl[ 1] * Proj[ 6] + modl[ 2] * Proj[10] + modl[ 3] * Proj[14];
+	clip[ 3] = modl[ 0] * Proj[ 3] + modl[ 1] * Proj[ 7] + modl[ 2] * Proj[11] + modl[ 3] * Proj[15];
+
+	clip[ 4] = modl[ 4] * Proj[ 0] + modl[ 5] * Proj[ 4] + modl[ 6] * Proj[ 8] + modl[ 7] * Proj[12];
+	clip[ 5] = modl[ 4] * Proj[ 1] + modl[ 5] * Proj[ 5] + modl[ 6] * Proj[ 9] + modl[ 7] * Proj[13];
+	clip[ 6] = modl[ 4] * Proj[ 2] + modl[ 5] * Proj[ 6] + modl[ 6] * Proj[10] + modl[ 7] * Proj[14];
+	clip[ 7] = modl[ 4] * Proj[ 3] + modl[ 5] * Proj[ 7] + modl[ 6] * Proj[11] + modl[ 7] * Proj[15];
+
+	clip[ 8] = modl[ 8] * Proj[ 0] + modl[ 9] * Proj[ 4] + modl[10] * Proj[ 8] + modl[11] * Proj[12];
+	clip[ 9] = modl[ 8] * Proj[ 1] + modl[ 9] * Proj[ 5] + modl[10] * Proj[ 9] + modl[11] * Proj[13];
+	clip[10] = modl[ 8] * Proj[ 2] + modl[ 9] * Proj[ 6] + modl[10] * Proj[10] + modl[11] * Proj[14];
+	clip[11] = modl[ 8] * Proj[ 3] + modl[ 9] * Proj[ 7] + modl[10] * Proj[11] + modl[11] * Proj[15];
+
+	clip[12] = modl[12] * Proj[ 0] + modl[13] * Proj[ 4] + modl[14] * Proj[ 8] + modl[15] * Proj[12];
+	clip[13] = modl[12] * Proj[ 1] + modl[13] * Proj[ 5] + modl[14] * Proj[ 9] + modl[15] * Proj[13];
+	clip[14] = modl[12] * Proj[ 2] + modl[13] * Proj[ 6] + modl[14] * Proj[10] + modl[15] * Proj[14];
+	clip[15] = modl[12] * Proj[ 3] + modl[13] * Proj[ 7] + modl[14] * Proj[11] + modl[15] * Proj[15];
+
+	/* Extract the numbers for the RIGHT plane */
+	Frustum[0][0] = clip[ 3] - clip[ 0];
+	Frustum[0][1] = clip[ 7] - clip[ 4];
+	Frustum[0][2] = clip[11] - clip[ 8];
+	Frustum[0][3] = clip[15] - clip[12];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[0][0] * Frustum[0][0] +
+		 Frustum[0][1] * Frustum[0][1] +
+		 Frustum[0][2] * Frustum[0][2]);
+	Frustum[0][0] /= t;
+	Frustum[0][1] /= t;
+	Frustum[0][2] /= t;
+	Frustum[0][3] /= t;
+
+	/* Extract the numbers for the LEFT plane */
+	Frustum[1][0] = clip[ 3] + clip[ 0];
+	Frustum[1][1] = clip[ 7] + clip[ 4];
+	Frustum[1][2] = clip[11] + clip[ 8];
+	Frustum[1][3] = clip[15] + clip[12];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[1][0] * Frustum[1][0] +
+		 Frustum[1][1] * Frustum[1][1] +
+		 Frustum[1][2] * Frustum[1][2]);
+	Frustum[1][0] /= t;
+	Frustum[1][1] /= t;
+	Frustum[1][2] /= t;
+	Frustum[1][3] /= t;
+
+	/* Extract the BOTTOM plane */
+	Frustum[2][0] = clip[ 3] + clip[ 1];
+	Frustum[2][1] = clip[ 7] + clip[ 5];
+	Frustum[2][2] = clip[11] + clip[ 9];
+	Frustum[2][3] = clip[15] + clip[13];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[2][0] * Frustum[2][0] +
+		 Frustum[2][1] * Frustum[2][1] +
+		 Frustum[2][2] * Frustum[2][2]);
+	Frustum[2][0] /= t;
+	Frustum[2][1] /= t;
+	Frustum[2][2] /= t;
+	Frustum[2][3] /= t;
+
+	/* Extract the TOP plane */
+	Frustum[3][0] = clip[ 3] - clip[ 1];
+	Frustum[3][1] = clip[ 7] - clip[ 5];
+	Frustum[3][2] = clip[11] - clip[ 9];
+	Frustum[3][3] = clip[15] - clip[13];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[3][0] * Frustum[3][0] +
+		 Frustum[3][1] * Frustum[3][1] +
+		 Frustum[3][2] * Frustum[3][2]);
+	Frustum[3][0] /= t;
+	Frustum[3][1] /= t;
+	Frustum[3][2] /= t;
+	Frustum[3][3] /= t;
+
+	/* Extract the FAR plane */
+	Frustum[4][0] = clip[ 3] - clip[ 2];
+	Frustum[4][1] = clip[ 7] - clip[ 6];
+	Frustum[4][2] = clip[11] - clip[10];
+	Frustum[4][3] = clip[15] - clip[14];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[4][0] * Frustum[4][0] +
+		 Frustum[4][1] * Frustum[4][1] +
+		 Frustum[4][2] * Frustum[4][2]);
+	Frustum[4][0] /= t;
+	Frustum[4][1] /= t;
+	Frustum[4][2] /= t;
+	Frustum[4][3] /= t;
+
+	/* Extract the NEAR plane */
+	Frustum[5][0] = clip[ 3] + clip[ 2];
+	Frustum[5][1] = clip[ 7] + clip[ 6];
+	Frustum[5][2] = clip[11] + clip[10];
+	Frustum[5][3] = clip[15] + clip[14];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[5][0] * Frustum[5][0] +
+		 Frustum[5][1] * Frustum[5][1] +
+		 Frustum[5][2] * Frustum[5][2]);
+	Frustum[5][0] /= t;
+	Frustum[5][1] /= t;
+	Frustum[5][2] /= t;
+	Frustum[5][3] /= t;
+    }
+
+    // This is the much faster version of the above member 
+    // function, however the speed increase is not gained 
+    // without a cost. If you rotate or translate the projection
+    // matrix then this member will not work correctly. That is acceptable
+    // in my book considering I very rarely do such a thing.
+    // This function has far fewer operations in it and I 
+    // shaved off 2 square root functions by passing in the
+    // near and far values. This member has:
+    // 38 muliplications, 28 additions, 24 divisions, and
+    // 12 subtractions for a total of 102 operations. Still hurts
+    // but at least it is decent now. In practice this will 
+    // run about 2 times faster than the above function.
+    void UpdateFrustumFaster() {
+	float64_t	clip[16] = {};
+	float64_t	Proj[16] = {};
+	float64_t	modl[16] = {};
+	float64_t	t;
+
+	/* Get the current PROJECTION matrix from OpenGL */
+	gl.GetDoublev(gl.PROJECTION_MATRIX, Proj);
+
+	/* Get the current MODELVIEW matrix from OpenGL */
+	gl.GetDoublev(gl.MODELVIEW_MATRIX, modl);
+
+	/* Combine the two matrices (multiply projection by modelview) 
+	   but keep in mind this function will only work if you do NOT
+	   rotate or translate your projection matrix                  */
+	clip[ 0] = modl[ 0] * Proj[ 0];
+	clip[ 1] = modl[ 1] * Proj[ 5];
+	clip[ 2] = modl[ 2] * Proj[10] + modl[ 3] * Proj[14];
+	clip[ 3] = modl[ 2] * Proj[11];
+
+	clip[ 4] = modl[ 4] * Proj[ 0];
+	clip[ 5] = modl[ 5] * Proj[ 5];
+	clip[ 6] = modl[ 6] * Proj[10] + modl[ 7] * Proj[14];
+	clip[ 7] = modl[ 6] * Proj[11];
+
+	clip[ 8] = modl[ 8] * Proj[ 0];
+	clip[ 9] = modl[ 9] * Proj[ 5];
+	clip[10] = modl[10] * Proj[10] + modl[11] * Proj[14];
+	clip[11] = modl[10] * Proj[11];
+
+	clip[12] = modl[12] * Proj[ 0];
+	clip[13] = modl[13] * Proj[ 5];
+	clip[14] = modl[14] * Proj[10] + modl[15] * Proj[14];
+	clip[15] = modl[14] * Proj[11];
+
+	/* Extract the numbers for the RIGHT plane */
+	Frustum[0][0] = clip[ 3] - clip[ 0];
+	Frustum[0][1] = clip[ 7] - clip[ 4];
+	Frustum[0][2] = clip[11] - clip[ 8];
+	Frustum[0][3] = clip[15] - clip[12];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[0][0] * Frustum[0][0] +
+		 Frustum[0][1] * Frustum[0][1] +
+		 Frustum[0][2] * Frustum[0][2]);
+	Frustum[0][0] /= t;
+	Frustum[0][1] /= t;
+	Frustum[0][2] /= t;
+	Frustum[0][3] /= t;
+
+	/* Extract the numbers for the LEFT plane */
+	Frustum[1][0] = clip[ 3] + clip[ 0];
+	Frustum[1][1] = clip[ 7] + clip[ 4];
+	Frustum[1][2] = clip[11] + clip[ 8];
+	Frustum[1][3] = clip[15] + clip[12];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[1][0] * Frustum[1][0] +
+		 Frustum[1][1] * Frustum[1][1] +
+		 Frustum[1][2] * Frustum[1][2]);
+	Frustum[1][0] /= t;
+	Frustum[1][1] /= t;
+	Frustum[1][2] /= t;
+	Frustum[1][3] /= t;
+
+	/* Extract the BOTTOM plane */
+	Frustum[2][0] = clip[ 3] + clip[ 1];
+	Frustum[2][1] = clip[ 7] + clip[ 5];
+	Frustum[2][2] = clip[11] + clip[ 9];
+	Frustum[2][3] = clip[15] + clip[13];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[2][0] * Frustum[2][0] +
+		 Frustum[2][1] * Frustum[2][1] +
+		 Frustum[2][2] * Frustum[2][2]);
+	Frustum[2][0] /= t;
+	Frustum[2][1] /= t;
+	Frustum[2][2] /= t;
+	Frustum[2][3] /= t;
+
+	/* Extract the TOP plane */
+	Frustum[3][0] = clip[ 3] - clip[ 1];
+	Frustum[3][1] = clip[ 7] - clip[ 5];
+	Frustum[3][2] = clip[11] - clip[ 9];
+	Frustum[3][3] = clip[15] - clip[13];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[3][0] * Frustum[3][0] +
+		 Frustum[3][1] * Frustum[3][1] +
+		 Frustum[3][2] * Frustum[3][2]);
+	Frustum[3][0] /= t;
+	Frustum[3][1] /= t;
+	Frustum[3][2] /= t;
+	Frustum[3][3] /= t;
+
+	/* Extract the FAR plane */
+	Frustum[4][0] = clip[ 3] - clip[ 2];
+	Frustum[4][1] = clip[ 7] - clip[ 6];
+	Frustum[4][2] = clip[11] - clip[10];
+	Frustum[4][3] = clip[15] - clip[14];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[4][0] * Frustum[4][0] +
+		 Frustum[4][1] * Frustum[4][1] +
+		 Frustum[4][2] * Frustum[4][2]);
+	Frustum[4][0] /= t;
+	Frustum[4][1] /= t;
+	Frustum[4][2] /= t;
+	Frustum[4][3] /= t;
+
+	/* Extract the NEAR plane */
+	Frustum[5][0] = clip[ 3] + clip[ 2];
+	Frustum[5][1] = clip[ 7] + clip[ 6];
+	Frustum[5][2] = clip[11] + clip[10];
+	Frustum[5][3] = clip[15] + clip[14];
+
+	/* Normalize the result */
+	t = sqrt(Frustum[5][0] * Frustum[5][0] +
+		 Frustum[5][1] * Frustum[5][1] +
+		 Frustum[5][2] * Frustum[5][2]);
+	Frustum[5][0] /= t;
+	Frustum[5][1] /= t;
+	Frustum[5][2] /= t;
+	Frustum[5][3] /= t;
+    }
+
+    // This member function checks to see if a sphere is in
+    // the viewing volume.  
+    uint8_t SphereInFrustum(float64_t x, float64_t y, float64_t z,
+			    float64_t Radius) {
+	int32_t		i;
+
+	// The idea here is the same as the PointInFrustum function.
+
+	for (i = 0; i < 6; ++i)
+	    // If the point is outside of the plane then its not in the viewing volume.
+	    if(Frustum[i][0] * x + Frustum[i][1] * y +
+	       Frustum[i][2] * z + Frustum[i][3] <= -Radius)
+		return false;
+
+	return true;
+    }
+
+    // This member fuction checks to see if a point is in
+    // the viewing volume.
+    uint8_t PointInFrustum(float64_t x, float64_t y, float64_t z) {
+	int32_t		i;
+
+	// The idea behind this algorithum is that if the point
+	// is inside all 6 clipping planes then it is inside our
+	// viewing volume so we can return true.
+
+	for (i = 0; i < 6; ++i)	// Loop through all our clipping planes
+	    // If the point is outside of the plane then its not in the viewing volume.
+	    if (Frustum[i][0] * x + Frustum[i][1] * y + 
+		Frustum[i][2] * z + Frustum[i][3] <= 0)
+		return false;
+
+	return true;
+    }
+
+    void RenderLensFlare() {
+	float64_t	Length = 0.0;
+
+	// Draw the flare only If the light source is in our line of sight
+	if (SphereInFrustum(LightSourcePos.x,
+			    LightSourcePos.y,
+			    LightSourcePos.z, 1.0)) {
+	    // Lets compute the vector that points to the camera from
+	    // the light source.
+	    LightSourceToCamera.set(Position).subeq(LightSourcePos);
+
+	    // Save the length we will need it in a minute
+	    Length = LightSourceToCamera.magnitude();
+
+	    // Now lets find an point along the cameras direction
+	    ptIntersect.set(DirectionVector).muleq(Length);
+
+	    // vector that we can use as an intersection point. 
+	    // Lets translate down this vector the same distance
+	    // that the camera is away from the light source.
+	    ptIntersect.addeq(Position);
+
+	    // Lets compute the vector that points to the Intersect
+	    // point from the light source
+	    LightSourceToIntersect.set(ptIntersect).subeq(LightSourcePos);
+
+	    // Save the length we will need it later.
+	    Length = LightSourceToIntersect.magnitude();
+	    // Normalize the vector so its unit length
+	    LightSourceToIntersect.normalize();
+
+	    // You should already know what this does
+	    gl.Enable(gl.BLEND);
+	    // You should already know what this does
+	    gl.BlendFunc(gl.SRC_ALPHA, gl.ONE);
+	    // You should already know what this does
+	    gl.Disable(gl.DEPTH_TEST);
+	    // You should already know what this does
+	    gl.Enable(gl.TEXTURE_2D);
+
+	    /////////// Differenet Color Glows & Streaks /////////////////////
+	    //RenderBigGlow(1.0, 1.0, 1.0, 1.0, LightSourcePos, 1.0);
+	    //RenderStreaks(1.0, 1.0, 0.8, 1.0, LightSourcePos, 0.7);
+	    //
+	    //RenderBigGlow(1.0, 0.9, 1.0, 1.0, m_LightSourcePos, 1.0);
+	    //RenderStreaks(1.0, 0.9, 1.0, 1.0, m_LightSourcePos, 0.7);
+	    //////////////////////////////////////////////////////////////////
+
+	    // Render the large hazy glow
+	    RenderBigGlow(0.60, 0.60, 0.8, 1.0, LightSourcePos, 16.0);
+	    // Render the streaks
+	    RenderStreaks(0.60, 0.60, 0.8, 1.0, LightSourcePos, 16.0);
+	    // Render the small Glow
+	    RenderGlow(0.8, 0.8, 1.0, 0.5, LightSourcePos, 3.5);
+
+	    // Lets compute a point that is 20%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.1);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.9, 0.6, 0.4, 0.5, pt, 0.6);
+
+	    // Lets compute a point that is 30%
+	    // away from the light source in the
+	    // direction of the intersection point.		
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.15);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.8, 0.5, 0.6, 0.5, pt, 1.7);
+
+	    // Lets compute a point that is 35%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.175);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.9, 0.2, 0.1, 0.5, pt, 0.83);
+
+	    // Lets compute a point that is 57%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.285);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.7, 0.7, 0.4, 0.5, pt, 1.6);
+
+	    // Lets compute a point that is 55.1%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.2755);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.9, 0.9, 0.2, 0.5, pt, 0.8);
+
+	    // Lets compute a point that is 95.5%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.4775);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.93, 0.82, 0.73, 0.5, pt, 1.0);
+
+	    // Lets compute a point that is 98%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.49);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.7, 0.6, 0.5, 0.5, pt, 1.4);
+
+	    // Lets compute a point that is 130%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.65);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.7, 0.8, 0.3, 0.5, pt, 1.8);
+
+	    // Lets compute a point that is 126%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.63);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.4, 0.3, 0.2, 0.5, pt, 1.4);
+
+	    // Lets compute a point that is 160%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.8);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.7, 0.5, 0.5, 0.5, pt, 1.4);
+
+	    // Lets compute a point that is 156.5%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.7825);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.8, 0.5, 0.1, 0.5, pt, 0.6);
+
+	    // Lets compute a point that is 200%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 1.0);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the a Halo
+	    RenderHalo(0.5, 0.5, 0.7, 0.5, pt, 1.7);
+
+	    // Lets compute a point that is 195%
+	    // away from the light source in the
+	    // direction of the intersection point.
+	    pt.set(LightSourceToIntersect).muleq(Length * 0.975);
+	    pt.addeq(LightSourcePos);
+
+	    // Render the small Glow
+	    RenderGlow(0.4, 0.1, 0.9, 0.5, pt, 2.0);
+
+	    // You should already know what this does
+	    gl.Disable(gl.BLEND);
+	    // You should already know what this does
+	    gl.Enable(gl.DEPTH_TEST);
+	    // You should already know what this does
+	    gl.Disable(gl.TEXTURE_2D);
+	}
+    }
+    void RenderHalo(float32_t r, float32_t g, float32_t b, float32_t a,
+		    glVector p, float64_t scale) {
+	glVector q[4] = {};
+	
+	// Basically we are just going to make a 2D box
+	// from four points we don't need a z coord because
+	// we are rotating the camera by the inverse so the 
+	// texture mapped quads will always face us.
+	q[0] = { p.x - scale, p.y - scale };
+	q[1] = { p.x - scale, p.y + scale };
+	q[2] = { p.x + scale, p.y - scale };
+	q[3] = { p.x + scale, p.y + scale };
+
+	gl.PushMatrix();			// Save the model view matrix
+	gl.Translate(p.x, p.y, p.z);		// Translate to our point
+	gl.Rotate(-HeadingDegrees, 0.0, 1.0, 0.0);
+	gl.Rotate(-PitchDegrees, 1.0, 0.0, 0.0);
+	// Bind to the Big Glow texture
+	gl.BindTexture(gl.TEXTURE_2D, HaloTexture);
+	// Set the color since the texture is a gray scale
+	gl.Color4(r, g, b, a);
+
+	// Draw the Big Glow on a Triangle Strip
+	gl.Begin(gl.TRIANGLE_STRIP);
+	{
+	    gl.TexCoord2(0.0, 0.0);
+	    gl.Vertex2(q[0].x, q[0].y);
+	    gl.TexCoord2(0.0, 1.0);
+	    gl.Vertex2(q[1].x, q[1].y);
+	    gl.TexCoord2(1.0, 0.0);
+	    gl.Vertex2(q[2].x, q[2].y);
+	    gl.TexCoord2(1.0, 1.0);
+	    gl.Vertex2(q[3].x, q[3].y);
+	}
+	gl.End();
+	gl.PopMatrix();			// Restore the model view matrix
+    }
+
+    void RenderGlow(float32_t r, float32_t g, float32_t b, float32_t a,
+		    glVector p, float64_t scale) {
+	glVector q[4] = {};
+
+	// Basically we are just going to make a 2D box
+	// from four points we don't need a z coord because
+	// we are rotating the camera by the inverse so the 
+	// texture mapped quads will always face us.
+	q[0] = { p.x - scale, p.y - scale };
+	q[1] = { p.x - scale, p.y + scale };
+	q[2] = { p.x + scale, p.y - scale };
+	q[3] = { p.x + scale, p.y + scale };
+
+	gl.PushMatrix();		// Save the model view matrix
+	gl.Translate(p.x, p.y, p.z);	// Translate to our point
+	gl.Rotate(-HeadingDegrees, 0.0, 1.0, 0.0);
+	gl.Rotate(-PitchDegrees, 1.0, 0.0, 0.0);
+	// Bind to the Big Glow texture
+	gl.BindTexture(gl.TEXTURE_2D, GlowTexture);
+	// Set the color since the texture is a gray scale
+	gl.Color4(r, g, b, a);
+
+	// Draw the Big Glow on a Triangle Strip
+	gl.Begin(gl.TRIANGLE_STRIP);
+	{
+	    gl.TexCoord2(0.0, 0.0);
+	    gl.Vertex2(q[0].x, q[0].y);
+	    gl.TexCoord2(0.0, 1.0);
+	    gl.Vertex2(q[1].x, q[1].y);
+	    gl.TexCoord2(1.0, 0.0);
+	    gl.Vertex2(q[2].x, q[2].y);
+	    gl.TexCoord2(1.0, 1.0);
+	    gl.Vertex2(q[3].x, q[3].y);
+	}
+	gl.End();
+	gl.PopMatrix();		// Restore the model view matrix
+    }
+
+    void RenderBigGlow(float32_t r, float32_t g, float32_t b, float32_t a,
+		       glVector p, float64_t scale) {
+	glVector q[4] = {};
+
+	// Basically we are just going to make a 2D box
+	// from four points we don't need a z coord because
+	// we are rotating the camera by the inverse so the 
+	// texture mapped quads will always face us.
+	q[0] = { p.x - scale, p.y - scale };
+	q[1] = { p.x - scale, p.y + scale };
+	q[2] = { p.x + scale, p.y - scale };
+	q[3] = { p.x + scale, p.y + scale };
+
+	gl.PushMatrix();		// Save the model view matrix
+	gl.Translate(p.x, p.y, p.z);	// Translate to our point
+	gl.Rotate(-HeadingDegrees, 0.0, 1.0, 0.0);
+	gl.Rotate(-PitchDegrees, 1.0, 0.0, 0.0);
+	// Bind to the Big Glow texture
+	gl.BindTexture(gl.TEXTURE_2D, BigGlowTexture);
+	// Set the color since the texture is a gray scale
+	gl.Color4(r, g, b, a);
+
+	// Draw the Big Glow on a Triangle Strip
+	gl.Begin(gl.TRIANGLE_STRIP);
+	{
+	    gl.TexCoord2(0.0, 0.0);					
+	    gl.Vertex2(q[0].x, q[0].y);
+	    gl.TexCoord2(0.0, 1.0);
+	    gl.Vertex2(q[1].x, q[1].y);
+	    gl.TexCoord2(1.0, 0.0);
+	    gl.Vertex2(q[2].x, q[2].y);
+	    gl.TexCoord2(1.0, 1.0);
+	    gl.Vertex2(q[3].x, q[3].y);
+	}
+	gl.End();
+	gl.PopMatrix();			// Restore the model view matrix
+    }
+
+    void RenderStreaks(float32_t r, float32_t g, float32_t b, float32_t a,
+		       glVector p, float64_t scale) {
+	glVector q[4] = {};
+
+	// Basically we are just going to make a 2D box
+	// from four points we don't need a z coord because
+	// we are rotating the camera by the inverse so the 
+	// texture mapped quads will always face us.
+	q[0] = { p.x - scale, p.y - scale };
+	q[1] = { p.x - scale, p.y + scale };
+	q[2] = { p.x + scale, p.y - scale };
+	q[3] = { p.x + scale, p.y + scale };
+
+	gl.PushMatrix();		// Save the model view matrix
+	gl.Translate(p.x, p.y, p.z);	// Translate to our point
+	gl.Rotate(-HeadingDegrees, 0.0, 1.0, 0.0);
+	gl.Rotate(-PitchDegrees, 1.0, 0.0, 0.0);
+	// Bind to the Big Glow texture
+	gl.BindTexture(gl.TEXTURE_2D, StreakTexture);
+	// Set the color since the texture is a gray scale
+	gl.Color4(r, g, b, a);
+
+	// Draw the Big Glow on a Triangle Strip
+	gl.Begin(gl.TRIANGLE_STRIP);
+	{
+	    gl.TexCoord2(0.0, 0.0);					
+	    gl.Vertex2(q[0].x, q[0].y);
+	    gl.TexCoord2(0.0, 1.0);
+	    gl.Vertex2(q[1].x, q[1].y);
+	    gl.TexCoord2(1.0, 0.0);
+	    gl.Vertex2(q[2].x, q[2].y);
+	    gl.TexCoord2(1.0, 1.0);
+	    gl.Vertex2(q[3].x, q[3].y);
+	}
+	gl.End();
+	gl.PopMatrix();			// Restore the model view matrix
+    }
+};
+
+glFont			gFont = new glFont;
+glCamera		gCamera = new glCamera;
+uint32_t		texid[1] = {};
+uint8_t			infoOn;
+uint32_t		gFrames;
+uint32_t		gStartTime;
+uint32_t		gCurrentTime;
+float64_t		gFPS;
+sdl.window_t		win;
+sdl.gl.context_t	ctx;
+
+// Creates Texture From A Bitmap File
+uint32_t LoadTexture(string_t path) {
+    sdl.surface_t surface = sdl.load_surface(path);
+    if (surface) {
+	gl.GenTextures(texid);
+	gl.BindTexture(gl.TEXTURE_2D, texid[0]);
+	// Linear Min Filter
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	// Linear Mag Filter
+	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	sdl.gl.TexImage2D(surface);
+	sdl.free_surface(surface);
+	return texid[0];
+    }
+    return 0;
+}
+
+uint8_t InitGL() {
+    uint32_t	tex;
+
+    gl.ShadeModel(gl.SMOOTH);			// Enable Smooth Shading
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);		// Black Background
+    gl.ClearDepth(1.0);				// Depth Buffer Setup
+    gl.Enable(gl.DEPTH_TEST);			// Enables Depth Testing
+    // The Type Of Depth Testing To Do
+    gl.DepthFunc(gl.LEQUAL);
+    // Really Nice Perspective Calculations
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    if ((gFont.FontTexture = LoadTexture("nehe/lesson44/Font.bmp"))) {
+	gFont.WindowWidth = 1024;
+	gFont.WindowHeight = 768;
+	gFont.BuildFont(1.0);
+    }
+    else
+	print("Failed to load font texture.");
+
+    gCamera.MaxHeadingRate = 1.0;	// Set our Maximum rates for the camera
+    gCamera.MaxPitchRate = 1.0;		// Set our Maximum rates for the camera
+    gCamera.HeadingDegrees = 0.0;	// Set our Maximum rates for the camera
+
+    // Try and load the HardGlow texture tell the user if we can't find it
+    // then quit
+    gCamera.GlowTexture = LoadTexture("nehe/lesson44/HardGlow2.bmp");
+    if (!gCamera.GlowTexture) {
+	print("Failed to load Hard Glow texture.");
+	return false;
+    }
+
+    // Try and load the BigGlow texture tell the user if we can't find it
+    // then quit
+    gCamera.BigGlowTexture = LoadTexture("nehe/lesson44/BigGlow3.bmp");
+    if (!gCamera.BigGlowTexture) {
+	print("Failed to load Big Glow texture.");
+	return false;
+    }
+
+    // Try and load the Halo texture tell the user if we can't find it
+    // then quit
+    gCamera.HaloTexture = LoadTexture("nehe/lesson44/Halo3.bmp");
+    if (!gCamera.HaloTexture) {
+	print("Failed to load Halo texture.");
+	return false;
+    }
+
+    // Try and load the Streaks texture tell the user if we can't find it then quit
+    gCamera.StreakTexture = LoadTexture("nehe/lesson44/Streaks4.bmp");
+    if (!gCamera.StreakTexture) {
+	print("Failed to load Streaks texture.");
+	return false;
+    }
+
+    gStartTime = sdl.get_ticks();
+
+    return true;
+}
+
+void ReSizeGLScene() {
+    gl.Viewport(0, 0, win.w, win.h);
+    gl.MatrixMode(gl.PROJECTION);
+    gl.LoadIdentity();
+    glu.Perspective(45.0, win.w / win.h, 0.1, 100.0);
+    gl.MatrixMode(gl.MODELVIEW);
+    gl.LoadIdentity();
+}
+
+void DrawGLInfo() {
+    float64_t	modelMatrix[16] = {};		// This will hold the model view matrix
+    float64_t	projMatrix[16] = {};		// This will hold the projection matrix
+    float64_t	DiffTime;			// This is will contain the difference in time
+    string_t	String = {};
+
+    gl.GetDoublev(gl.PROJECTION_MATRIX, projMatrix);	// Grab the projection matrix
+    gl.GetDoublev(gl.MODELVIEW_MATRIX, modelMatrix);	// Grab the modelview matrix
+
+    // Print out the cameras position
+    gl.Color4(1.0, 1.0, 1.0, 1.0);
+    printf(String, "Position.............. = %5.2f, %5.2f, %5.2f",
+	   gCamera.Position.x, gCamera.Position.y, gCamera.Position.z);
+    gFont.glPrint(10, 720, 1, String);
+
+    // Print out the cameras direction
+    printf(String, "DirectionVector....... = %5.2f, %5.2f, %5.2f",
+	   gCamera.DirectionVector.x, gCamera.DirectionVector.y, gCamera.DirectionVector.z);
+    gFont.glPrint(10, 700, 1, String);
+
+    // Print out the light sources position
+    printf(String, "LightSourcePos........ = %5.2f, %5.2f, %5.2f",
+	   gCamera.LightSourcePos.x, gCamera.LightSourcePos.y, gCamera.LightSourcePos.z);
+    gFont.glPrint(10, 680, 1, String);
+
+    // Print out the intersection point
+    printf(String, "ptIntersect........... = %5.2f, %5.2f, %5.2f",
+	   gCamera.ptIntersect.x, gCamera.ptIntersect.y, gCamera.ptIntersect.x);
+    gFont.glPrint(10, 660, 1, String);
+
+    // Print out the vector that points from the light source to the camera
+    printf(String, "LightSourceToCamera... = %5.2f, %5.2f, %5.2f",
+	   gCamera.LightSourceToCamera.x, gCamera.LightSourceToCamera.y, gCamera.LightSourceToCamera.z);
+    gFont.glPrint(10, 640, 1, String);
+
+    // Print out the vector that points from the light source to the intersection point.
+    printf(String, "LightSourceToIntersect = %5.2f, %5.2f, %5.2f",
+	   gCamera.LightSourceToIntersect.x, gCamera.LightSourceToIntersect.y, gCamera.LightSourceToIntersect.z);
+    gFont.glPrint(10, 620, 1, String);
+
+    // Let everyone know the below matrix is the model view matrix
+    printf(String, "GL_MODELVIEW_MATRIX");
+    gFont.glPrint(10, 580, 1, String);
+
+    // Print out row 1 of the model view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   modelMatrix[0], modelMatrix[1], modelMatrix[2], modelMatrix[3]);
+    gFont.glPrint(10, 560, 1, String);
+
+    // Print out row 2 of the model view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   modelMatrix[4], modelMatrix[5], modelMatrix[6], modelMatrix[7]);
+    gFont.glPrint(10, 540, 1, String);
+
+    // Print out row 3 of the model view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   modelMatrix[8], modelMatrix[9], modelMatrix[10], modelMatrix[11]);
+    gFont.glPrint(10, 520, 1, String);
+
+    // Print out row 4 of the model view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   modelMatrix[12], modelMatrix[13], modelMatrix[14], modelMatrix[15]);
+    gFont.glPrint(10, 500, 1, String);
+
+    // Let everyone know the below matrix is the projection matrix
+    printf(String, "GL_PROJECTION_MATRIX");
+    gFont.glPrint(10, 460, 1, String);
+
+    // Print out row 1 of the projection view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   projMatrix[0], projMatrix[1], projMatrix[2], projMatrix[3]);
+    gFont.glPrint(10, 440, 1, String);
+
+    // Print out row 2 of the projection view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   projMatrix[4], projMatrix[5], projMatrix[6], projMatrix[7]);
+    gFont.glPrint(10, 420, 1, String);
+
+    // Print out row 3 of the projection view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   projMatrix[8], projMatrix[9], projMatrix[10], projMatrix[11]);
+    gFont.glPrint(10, 400, 1, String);
+
+    // Print out row 4 of the projection view matrix
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   projMatrix[12], projMatrix[13], projMatrix[14], projMatrix[15]);
+    gFont.glPrint(10, 380, 1, String);
+
+    // Let everyone know the below values are the Frustum clipping planes
+    gFont.glPrint(10, 320, 1, "FRUSTUM CLIPPING PLANES");
+
+    // Print out the right clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[0][0], gCamera.Frustum[0][1], gCamera.Frustum[0][2], gCamera.Frustum[0][3]);
+    gFont.glPrint(10, 300, 1, String);
+
+    // Print out the left clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[1][0], gCamera.Frustum[1][1], gCamera.Frustum[1][2], gCamera.Frustum[1][3]);
+    gFont.glPrint(10, 280, 1, String);
+
+    // Print out the bottom clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[2][0], gCamera.Frustum[2][1], gCamera.Frustum[2][2], gCamera.Frustum[2][3]);
+    gFont.glPrint(10, 260, 1, String);
+
+    // Print out the top clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[3][0], gCamera.Frustum[3][1], gCamera.Frustum[3][2], gCamera.Frustum[3][3]);
+    gFont.glPrint(10, 240, 1, String);
+
+    // Print out the far clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[4][0], gCamera.Frustum[4][1], gCamera.Frustum[4][2], gCamera.Frustum[4][3]);
+    gFont.glPrint(10, 220, 1, String);
+
+    // Print out the near clipping plane
+    printf(String, "%5.2f, %5.2f, %5.2f, %5.2f",
+	   gCamera.Frustum[5][0], gCamera.Frustum[5][1], gCamera.Frustum[5][2], gCamera.Frustum[5][3]);
+    gFont.glPrint(10, 200, 1, String);
+
+    // if we are due for another FPS update
+    if (gFrames >= 100) {
+	// Get the current time
+	gCurrentTime = sdl.get_ticks();
+	// Find the difference between the start and end times
+	DiffTime = gCurrentTime - gStartTime;
+	// Compute the FPS
+	gFPS = (gFrames / DiffTime) * 1000.0;
+	// Set the current start time to the current time
+	gStartTime = gCurrentTime;
+	// Set the number of frames to 1
+	gFrames = 1;
+    }
+    else
+	// We are not due to for another update so add one to the frame count
+	++gFrames;
+
+    // Print out the FPS
+    printf(String, "FPS %5.2f", gFPS);
+    gFont.glPrint(10, 160, 1, String);
+}
+
+void DrawGLScene() {
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.LoadIdentity();		// Reset The Current Modelview Matrix
+
+    // We want our light source to be 50 units if front 
+    // of the camera all the time to make it look like 
+    // it is infinately far away from the camera. We only
+    // do this to the z coordinate because we want to see
+    // the flares adjust if we fly in a straight line.
+    gCamera.LightSourcePos.z = gCamera.Position.z - 50.0;
+
+    gCamera.SetPrespective();		// Set our perspective/oriention on the world
+    gCamera.RenderLensFlare();		// Render the lens flare
+    gCamera.UpdateFrustumFaster();	// Update the frustum as fast as possible.
+
+    if (infoOn)
+	DrawGLInfo();			// Info is on so draw the GL information.								
+
+    sdl.gl.swap_window(win);
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson44",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    640, 480,
+			    sdl.WindowOpenGL |
+			    sdl.WindowResizable |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    print("\
+Esc: 		Exit\n\
+w:		Pitch the camera up 0.2 degrees\n\
+s:		Pitch the camera down 0.2 degrees\n\
+d:		Yaw the camera to the left\n\
+a:		Yaw the camera to the right\n\
+z:		Start moving the camera forward 0.01 units\n\
+c:		Start moving the camera backwards 0.01 units\n\
+x:		Stop the camera from moving\n\
+1:		Toggle info on\n\
+2:		Toggle info off\n");
+    if (!InitGL())
+	exit(1);
+    ReSizeGLScene();
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventWindow:
+		    switch (ev.event) {
+			case sdl.WindowEventResized:
+			    ReSizeGLScene();
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_Escape:
+			    done = true;
+			    break;
+			case sdl.Key_w:
+			    // Pitch the camera up 0.2 degrees
+			    gCamera.ChangePitch(-0.2);
+			    break;
+			case sdl.Key_s:
+			    // Pitch the camera down 0.2 degrees
+			    gCamera.ChangePitch(0.2);
+			    break;
+			case sdl.Key_d:
+			    // Yaw the camera to the left
+			    gCamera.ChangeHeading(0.2);
+			    break;
+			case sdl.Key_a:
+			    // Yaw the camera to the right
+			    gCamera.ChangeHeading(-0.2);
+			    break;
+			case sdl.Key_z:
+			    // Start moving the camera forward 0.01 units every frame
+			    gCamera.ForwardVelocity = 0.01;
+			    break;
+			case sdl.Key_c:
+			    // Start moving the camera backwards 0.01 units every frame
+			    gCamera.ForwardVelocity = -0.01;
+			    break;
+			case sdl.Key_x:
+			    // Stop the camera from moving
+			    gCamera.ForwardVelocity = 0.0;
+			    break;
+			case sdl.Key_1:
+			    // Toggle info on
+			    infoOn = true;
+			    break;
+			case sdl.Key_2:
+			    // Toggle info off
+			    infoOn = false;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+	    }
+	}
+	DrawGLScene();
+    }
+    
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();
