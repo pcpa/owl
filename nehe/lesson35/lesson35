@@ -1,0 +1,329 @@
+#define O_READ		1
+
+#define win_width	512
+#define	win_height	512
+int32_t		TEX_WIDTH	= 256;
+int32_t		TEX_HEIGHT	= 256;
+float64_t	tex_param_s	= 1.0;
+float64_t	tex_param_t	= 1.0;
+float64_t	aspect_ratio	= 1.0;
+uint32_t	cube_list;
+uint32_t	texture[1]	= {};	// we need one texture later
+float64_t	tex_mat[16];
+int32_t		effect;			// switch between the effects
+int32_t		frame;
+uint8_t		bg		= true;	// enable background   ('b' key)
+uint8_t		env		= true;	// enable environment  ('e' key)
+float64_t	angle;
+int32_t		msec;
+int32_t		width;			// width and height of video stream
+int32_t		height;
+// fps (for playback, since we don't use avi player)
+float64_t	stream_fps;
+glu.quadric_t	quadratic;		// Storage For Our Quadratic Objects
+uint8_t		ui_image_copy[];	// image data
+auto		video;
+
+sdl.window_t	win;
+sdl.gl.context_t ctx;
+sdl.timer_t	timer;
+
+void initialize() {
+    // Create A Pointer To The Quadric Object
+    quadratic = glu.NewQuadric();
+    glu.QuadricNormals(quadratic, glu.SMOOTH);	// Create Smooth Normals
+    glu.QuadricTexture(quadratic, true);	// Create Texture Coords
+
+    gl.ClearColor(0.0, 0.0, 0.0, 0.5);		// Black Background
+    gl.ClearDepth(1.0);				// Depth Buffer Setup
+    gl.DepthFunc(gl.LEQUAL);	// The Type Of Depth Testing (Less Or Equal)
+    gl.Enable(gl.DEPTH_TEST);			// Enable Depth Testing
+    gl.ShadeModel(gl.SMOOTH);			// Select Smooth Shading
+    gl.Hint(gl.PERSPECTIVE_CORRECTION_HINT, gl.NICEST);
+
+    gl.MatrixMode(gl.PROJECTION);
+    // field of fiew, aspect, near, far
+    glu.Perspective(60.0, 1.0, 0.2, 40.0);
+    gl.MatrixMode(gl.MODELVIEW);
+
+    gl.GenTextures(texture);		// generate OpenGL texture object
+    gl.Enable(gl.TEXTURE_2D);
+    // use previously created texture object and set options
+    gl.BindTexture(gl.TEXTURE_2D, texture[0]);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    // how to set texture coords
+    gl.TexGen(gl.S, gl.TEXTURE_GEN_MODE, gl.SPHERE_MAP);
+    gl.TexGen(gl.T, gl.TEXTURE_GEN_MODE, gl.SPHERE_MAP);
+
+
+    // display lists are much faster than drawing directly
+    cube_list = gl.GenLists(1);		// generate display list
+    gl.NewList(cube_list, gl.COMPILE_AND_EXECUTE);	// fill display list
+    gl.Begin(gl.QUADS);			// Begin Drawing A Cube
+    {
+	// Front Face
+	gl.Normal3(  0.0, 0.0,  0.5);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	// Back Face   0
+	gl.Normal3(  0.0, 0.0, -0.5);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	// Top Face
+	gl.Normal3( 0.0, 0.5, 0.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	// Bottom Face
+	gl.Normal3(  0.0,-0.5, 0.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	// Right Face
+	gl.Normal3(  0.5, 0.0, 0.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3( 1.0, -1.0, -1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3( 1.0,  1.0, -1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3( 1.0,  1.0,  1.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3( 1.0, -1.0,  1.0);
+	// Left Face
+	gl.Normal3( -0.5, 0.0, 0.0);
+	gl.TexCoord2(0.0, 0.0);	gl.Vertex3(-1.0, -1.0, -1.0);
+	gl.TexCoord2(1.0, 0.0);	gl.Vertex3(-1.0, -1.0,  1.0);
+	gl.TexCoord2(1.0, 1.0);	gl.Vertex3(-1.0,  1.0,  1.0);
+	gl.TexCoord2(0.0, 1.0);	gl.Vertex3(-1.0,  1.0, -1.0);
+    }
+    gl.End();												// Done Drawing Our Cube
+    gl.EndList();
+
+    // set texture transform matrix to alter (here only to scale) texture
+    // coordinates (our video stream must not be 2^n by 2^m but our texture
+    // has to be)
+    gl.MatrixMode(gl.TEXTURE);
+    gl.LoadMatrix(tex_mat);
+    gl.MatrixMode(gl.MODELVIEW);
+}
+
+#define ZERO	0.0
+#define ONE	1.0
+void display_func() {
+    // Clear Screen And Depth Buffer
+    gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // GL_TEXTURE_2D was enabled in init function !
+    angle += 20.0 / 60.0;	// does some rotation
+
+    if (bg) {			// Is Background Visible?
+	gl.LoadIdentity();	// Reset The Modelview Matrix
+	gl.Begin(gl.QUADS);	// Begin Drawing The Background (One Quad)
+	{
+	    // Front Face
+	    gl.TexCoord2(ONE , ONE );	gl.Vertex3( 11.0,  8.3, -20.0);
+	    gl.TexCoord2(ZERO, ONE );	gl.Vertex3(-11.0,  8.3, -20.0);
+	    gl.TexCoord2(ZERO, ZERO);	gl.Vertex3(-11.0, -8.3, -20.0);
+	    gl.TexCoord2(ONE , ZERO);	gl.Vertex3( 11.0, -8.3, -20.0);
+	}
+	gl.End();		// Done Drawing The Background
+    }
+
+    gl.LoadIdentity();		// Reset The Modelview Matrix
+    gl.Translate(0.0, 0.0, -10.0);	// Translate 10 Units Into The Screen
+
+    if (env) {				// Is Environment Mapping On?
+	// Enable Texture Coord Generation For S
+	gl.Enable(gl.TEXTURE_GEN_S);
+	// Enable Texture Coord Generation For T
+	gl.Enable(gl.TEXTURE_GEN_T);
+    }
+
+    // Throw In Some Rotations To Move Things Around A Bit
+    gl.Rotate(angle *2.3, 1.0, 0.0, 0.0);
+    // Throw In Some Rotations To Move Things Around A Bit
+    gl.Rotate(angle *1.8, 0.0, 1.0, 0.0);
+    // After Rotating Translate To New Position
+    gl.Translate(0.0, 0.0, 2.0);
+
+    switch (effect) {		// Which Effect?
+	case 0:			// Effect 0 - Cube
+	    // Rotate On The X-Axis By angle
+	    gl.Rotate(angle * 1.3, 1.0, 0.0, 0.0);
+	    // Rotate On The Y-Axis By angle
+	    gl.Rotate(angle * 1.1, 0.0, 1.0, 0.0);
+	    // Rotate On The Z-Axis By angle
+	    gl.Rotate(angle * 1.2, 0.0, 0.0, 1.0);
+	    // Draw cube via display list
+	    gl.CallList(cube_list);
+	    break;
+	case 1:			// Effect 1 - Sphere
+	    // Rotate On The X-Axis By angle
+	    gl.Rotate(angle * 1.3, 1.0, 0.0, 0.0);
+	    // Rotate On The Y-Axis By angle
+	    gl.Rotate(angle * 1.1, 0.0, 1.0, 0.0);
+	    // Rotate On The Z-Axis By angle
+	    gl.Rotate(angle * 1.2, 0.0, 0.0, 1.0);
+	    // Draw A Sphere
+	    glu.Sphere(quadratic, 1.3, 20, 20);
+	    break;
+	case 2:			// Effect 2 - Cylinder
+	    // Rotate On The X-Axis By angle
+	    gl.Rotate(angle * 1.3, 1.0, 0.0, 0.0);
+	    // Rotate On The Y-Axis By angle
+	    gl.Rotate(angle * 1.1, 0.0, 1.0, 0.0);
+	    // Rotate On The Z-Axis By angle
+	    gl.Rotate(angle * 1.2, 0.0, 0.0, 1.0);
+	    // Center The Cylinder
+	    gl.Translate(0.0, 0.0, -1.5);
+	    // Draw A Cylinder
+	    glu.Cylinder(quadratic, 1.0, 1.0, 3.0, 32, 32);
+	    break;
+    }
+    if (env) {			// Environment Mapping Enabled?
+	// Disable Texture Coord Generation For S
+	gl.Disable(gl.TEXTURE_GEN_S);
+	// Disable Texture Coord Generation For T
+	gl.Disable(gl.TEXTURE_GEN_T);
+    }
+
+    sdl.gl.swap_window(win);
+}
+
+void timer_func() {
+    /* for the actual lesson, should be reading and possibly formating
+     * a video frame from an here */
+    read(video, ui_image_copy, sizeof(ui_image_copy));
+    gl.TexImage2D(gl.TEXTURE_2D, 0, TEX_WIDTH, TEX_HEIGHT, 0,
+		  gl.RGB, ui_image_copy);
+    display_func();
+}
+
+void main() {
+    if (sdl.init()) {
+	print("init error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
+    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
+    win = sdl.create_window("lesson35",
+			    sdl.WindowposCentered,
+			    sdl.WindowposCentered,
+			    win_width, win_height,
+			    sdl.WindowOpenGL |
+			    sdl.WindowShown);
+    if (win == null) {
+	print("create_window error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    ctx = sdl.gl.create_context(win);
+    if (ctx == null) {
+	print("create_context error: %s\n", sdl.get_error());
+	exit(1);
+    }
+    sdl.gl.set_swap_interval(1);
+    sdl.gl.make_current(win, ctx);
+
+    // avistream->StartStreaming();
+    video = open("/dev/urandom", O_READ);	// cosmic background
+    // streaminfo = avistream->GetStreamInfo();
+    // width      = streaminfo->GetVideoWidth();
+    width = 256;
+    // height     = streaminfo->GetVideoHeight();
+    height = 256;
+    // stream_fps = streaminfo->GetFps();
+    stream_fps = 24;
+
+    if (width > 256)
+	TEX_WIDTH = 512;
+    else if (width > 512)
+	TEX_WIDTH = 1024;
+    else if (width > 1024)
+	TEX_WIDTH = 2048;
+    if (height > 256)
+	TEX_HEIGHT = 512;
+    else if (height > 512)
+	TEX_HEIGHT = 1024;
+    else if (height > 1024)
+	TEX_HEIGHT = 2048;
+
+    tex_param_s = width  / TEX_WIDTH;
+    tex_param_t = height / TEX_HEIGHT;
+    ui_image_copy = new uint8_t[TEX_WIDTH * TEX_HEIGHT * 3];
+
+    /* create texture transform matrix (avi file must not be 2^n by 2^m but a texture has to be) */
+    tex_mat = new float64_t[16];
+    tex_mat[0]  = tex_param_s;
+    tex_mat[5]  = tex_param_t;
+    tex_mat[10] = tex_mat[15] = 1.0;
+
+    print("\
+Esc: 		Exit\n\
+0:		Set effect to 0\n\
+1:		Set effect to 1\n\
+2:		Set effect to 2\n\
+b:		Toggle background\n\
+e:		Toggle environment\n");
+    initialize();
+
+    // call timer once per video fps
+    timer = sdl.add_timer(1000 / stream_fps, null);
+
+    uint8_t done = false;
+    sdl.event_t	ev = new sdl.event_t;
+    while (!done) {
+	if (sdl.poll_event(ev)) {
+	    switch (ev.type) {
+		case sdl.EventKeyDown:
+		    switch (ev.keysym) {
+			case sdl.Key_0:
+			    effect = 0;
+			    display_func();
+			    break;
+			case sdl.Key_1:
+			    effect = 1;
+			    display_func();
+			    break;
+			case sdl.Key_2:
+			    effect = 2;
+			    display_func();
+			    break;
+			case sdl.Key_b:
+			    bg = !bg;
+			    display_func();
+			    break;
+			case sdl.Key_e:
+			    env = !env;
+			    display_func();
+			    break;
+			case sdl.Key_Escape:
+			    if (timer) {
+				sdl.remove_timer(timer);
+				timer = null;
+			    }
+			    done = true;
+			    break;
+			default:
+			    break;
+		    }
+		    break;
+		case sdl.EventQuit:
+		    done = true;
+		    break;
+		case sdl.EventTimer:
+		    timer_func();
+		    break;
+	    }
+	}
+    }
+
+    close(video);
+    sdl.gl.delete_context(ctx);
+    sdl.destroy_window(win);
+    sdl.quit();
+}
+
+main();
