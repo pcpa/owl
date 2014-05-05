@@ -772,6 +772,7 @@ oprint_mpq(ostream_t *stream, oformat_t *format, ompq_t rational)
 oword_t
 oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
 {
+    GET_THREAD_SELF()
     char		*dst;
     char		*src;
     obool_t		 neg;
@@ -842,8 +843,17 @@ oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
 	count = format->prec;
 
     /* get number representation, plus one for sign and one for ending '\0' */
-    if (count + 2 > sizeof(buffer))
-	onew_object((oobject_t *)&src, t_uint8, count + 2);/* left for gc */
+    if (count + 2 > sizeof(buffer)) {
+	if (stream == (ostream_t *)thread_self->vec) {
+	    onew_object(&thread_self->obj, t_uint8, count + 2);
+	    src = thread_self->obj;	/* left for gc */
+	}
+	else {
+	    if (thread_self->vec->length < count + 2)
+		orenew_vector(thread_self->vec, count + 2);
+	    src = thread_self->vec->v.obj;
+	}
+    }
     else
 	src = buffer;
 
