@@ -131,12 +131,36 @@
 	oend_builtin(builtin);						\
     } while (0)
 
-#define bad_arg_type(A, T)						\
-    (alist->A == null || otype(alist->A) != (T))
-#define bad_arg_type_field(A, T, F)					\
-    (alist->A == null || otype(alist->A) != (T) || alist->A->F == null)
-#define bad_arg_type_length(A, T, L)					\
-    (alist->A == null || otype(alist->A) != (T) || alist->A->length != L)
+#define CHECK_NULL(A)							\
+    do {								\
+	if ((A) == null)						\
+	    ovm_raise(except_null_dereference);				\
+    } while (0)
+#define CHECK_TYPE(A, T)						\
+    do {								\
+	if (otype(A) != (T))						\
+	    ovm_raise(except_type_mismatch);				\
+    } while (0)
+#define CHECK_VECTOR(A)							\
+    do {								\
+	if ((otype(A) & t_vector) != t_vector)				\
+	    ovm_raise(except_out_of_bounds);				\
+    } while (0)
+#define CHECK_BOUNDS(A, L)						\
+    do {								\
+	if ((A)->length < L)						\
+	    ovm_raise(except_out_of_bounds);				\
+    } while (0)
+#define CHECK_LENGTH(A, L)						\
+    do {								\
+	if ((A)->length != L)						\
+	    ovm_raise(except_type_mismatch);				\
+    } while (0)
+#define CHECK_NULL_OR_TYPE(A, T)					\
+    do {								\
+	if ((A) && otype(A) != (T))					\
+	    ovm_raise(except_type_mismatch);				\
+    } while (0)
 
 /*
  * Types

@@ -1647,8 +1647,9 @@ native_PolygonStipple(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a0, t_vector|t_uint8, 128))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint8);
+    CHECK_LENGTH(alist->a0, 128);
     r0->t = t_void;
     glPolygonStipple(alist->a0->v.u8);
 }
@@ -1663,8 +1664,8 @@ native_GetPolygonStipple(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint8);
     if (alist->a0->length != 128)
 	orenew_vector(alist->a0, 128);
     r0->t = t_void;
@@ -1709,8 +1710,9 @@ native_ClipPlane(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a1, t_vector|t_float64, 4))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float64);
+    CHECK_LENGTH(alist->a1, 4);
     r0->t = t_void;
     glClipPlane(alist->a0, alist->a1->v.f64);
 }
@@ -1725,8 +1727,8 @@ native_GetClipPlane(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a1, t_vector|t_float64))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float64);
     if (alist->a1->length != 4)
 	orenew_vector(alist->a1, 4);
     r0->t = t_void;
@@ -1842,8 +1844,8 @@ native_GetBooleanv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a1, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint8);
     switch (alist->a0) {
 	case GL_ALPHA_TEST:
 	case GL_AUTO_NORMAL:
@@ -1970,8 +1972,8 @@ native_GetDoublev(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a1, t_vector|t_float64))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float64);
     switch (alist->a0) {
 	case GL_CURRENT_RASTER_DISTANCE:
 	case GL_DEPTH_CLEAR_VALUE:
@@ -2016,8 +2018,8 @@ native_GetFloatv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a1, t_vector|t_float32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float32);
     switch (alist->a0) {
 	case GL_ALPHA_BIAS:
 	case GL_ALPHA_SCALE:
@@ -2081,8 +2083,8 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a1, t_vector|t_int32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_int32);
     switch (alist->a0) {
 	case GL_ACCUM_ALPHA_BITS:
 	case GL_ACCUM_BLUE_BITS:
@@ -2560,7 +2562,7 @@ native_LoadMatrix(oobject_t list, oint32_t ac)
 	    break;
 	default:
 	fail:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -2587,7 +2589,7 @@ native_MultMatrix(oobject_t list, oint32_t ac)
 	    break;
 	default:
 	fail:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -2726,8 +2728,7 @@ native_CallLists(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a0 == null)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
     switch (otype(alist->a0)) {
 	case t_vector|t_uint8:
 	    type = GL_UNSIGNED_BYTE;
@@ -2739,7 +2740,7 @@ native_CallLists(oobject_t list, oint32_t ac)
 	    type = GL_UNSIGNED_INT;
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
     r0->t = t_void;
     glCallLists(alist->a0->length, type, alist->a0->v.u8);
@@ -2838,9 +2839,9 @@ native_Vertex2v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 2)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 2);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glVertex2sv(alist->a0->v.i16);
@@ -2855,7 +2856,7 @@ native_Vertex2v(oobject_t list, oint32_t ac)
 	    glVertex2dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -2870,9 +2871,9 @@ native_Vertex3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glVertex3sv(alist->a0->v.i16);
@@ -2887,7 +2888,7 @@ native_Vertex3v(oobject_t list, oint32_t ac)
 	    glVertex3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -2902,9 +2903,9 @@ native_Vertex4v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 4);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glVertex4sv(alist->a0->v.i16);
@@ -2919,7 +2920,7 @@ native_Vertex4v(oobject_t list, oint32_t ac)
 	    glVertex4dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -2948,9 +2949,9 @@ native_Normal3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int8:
 	    glNormal3bv(alist->a0->v.i8);
@@ -2968,7 +2969,7 @@ native_Normal3v(oobject_t list, oint32_t ac)
 	    glNormal3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3026,9 +3027,9 @@ native_Color3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int8:
 	    glColor3bv(alist->a0->v.i8);
@@ -3055,7 +3056,7 @@ native_Color3v(oobject_t list, oint32_t ac)
 	    glColor3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3071,9 +3072,9 @@ native_Color4v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 4);
     switch (otype(alist->a0)) {
 	case t_vector|t_int8:
 	    glColor4bv(alist->a0->v.i8);
@@ -3100,7 +3101,7 @@ native_Color4v(oobject_t list, oint32_t ac)
 	    glColor4dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3171,9 +3172,9 @@ native_TexCoord2v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 2)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 2);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glTexCoord2sv(alist->a0->v.i16);
@@ -3188,7 +3189,7 @@ native_TexCoord2v(oobject_t list, oint32_t ac)
 	    glTexCoord2dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3203,9 +3204,9 @@ native_TexCoord3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glTexCoord3sv(alist->a0->v.i16);
@@ -3220,7 +3221,7 @@ native_TexCoord3v(oobject_t list, oint32_t ac)
 	    glTexCoord3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3235,9 +3236,9 @@ native_TexCoord4v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 4);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glTexCoord4sv(alist->a0->v.i16);
@@ -3252,7 +3253,7 @@ native_TexCoord4v(oobject_t list, oint32_t ac)
 	    glTexCoord4dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3309,9 +3310,9 @@ native_RasterPos2v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 2)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 2);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glRasterPos2sv(alist->a0->v.i16);
@@ -3326,7 +3327,7 @@ native_RasterPos2v(oobject_t list, oint32_t ac)
 	    glRasterPos2dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3341,9 +3342,9 @@ native_RasterPos3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glRasterPos3sv(alist->a0->v.i16);
@@ -3358,7 +3359,7 @@ native_RasterPos3v(oobject_t list, oint32_t ac)
 	    glRasterPos3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3373,9 +3374,9 @@ native_RasterPos4v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 4);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glRasterPos4sv(alist->a0->v.i16);
@@ -3390,7 +3391,7 @@ native_RasterPos4v(oobject_t list, oint32_t ac)
 	    glRasterPos4dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3419,9 +3420,9 @@ native_Rectv(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 4);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glRectsv(alist->a0->v.i16, alist->a0->v.i16 + 2);
@@ -3436,7 +3437,7 @@ native_Rectv(oobject_t list, oint32_t ac)
 	    glRectdv(alist->a0->v.f64, alist->a0->v.f64 + 2);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -3472,37 +3473,37 @@ native_VertexPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
+	/* FIXME check it is a valid type */
 	type = vector[ARRAY_BUFFER_OFFSET];
 	glVertexPointer(alist->a0, type, alist->a1, null);
     }
     else {
-	if (alist->a0 < 2 || alist->a0 > 4 ||	/* size */
-	    !(otype(alist->a2) & t_vector))
+	if (alist->a0 < 2 || alist->a0 > 0)	/* size */
 	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a2);
 	switch (otype(alist->a2)) {
 	    case t_vector|t_int16:
 		type = GL_SHORT;
 		if (alist->a1 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_int32:
 		type = GL_INT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float32:
 		type = GL_FLOAT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float64:
 		type = GL_DOUBLE;
 		if (alist->a1 & 7)  /* stride & 7 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    default:
-	    fail:
-		ovm_raise(except_invalid_argument);
+		ovm_raise(except_type_mismatch);
 	}
 	glVertexPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
     }
@@ -3540,12 +3541,12 @@ native_NormalPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
+	/* FIXME check it is a valid type */
 	type = vector[ARRAY_BUFFER_OFFSET];
 	glNormalPointer(type, alist->a0, null);
     }
     else {
-	if (!(otype(alist->a1) & t_vector))
-	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a1);
 	switch (otype(alist->a1)) {
 	    case t_vector|t_int8:
 		type = GL_BYTE;
@@ -3553,26 +3554,25 @@ native_NormalPointer(oobject_t list, oint32_t ac)
 	    case t_vector|t_int16:
 		type = GL_SHORT;
 		if (alist->a0 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_int32:
 		type = GL_INT;
 		if (alist->a0 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float32:
 		type = GL_FLOAT;
 		if (alist->a0 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float64:
 		type = GL_DOUBLE;
 		if (alist->a0 & 7)  /* stride & 7 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    default:
-	    fail:
-		ovm_raise(except_invalid_argument);
+		ovm_raise(except_type_mismatch);
 	}
 	glNormalPointer(type, alist->a0, alist->a1->v.obj);
     }
@@ -3610,13 +3610,14 @@ native_ColorPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
+	/* FIXME check it is a valid type */
 	type = vector[ARRAY_BUFFER_OFFSET];
 	glColorPointer(alist->a0, type, alist->a1, null);
     }
     else {
-	if (alist->a0 < 3 || alist->a0 > 4 ||	    /* size */
-	    !(otype(alist->a2) & t_vector))
+	if (alist->a0 < 3 || alist->a0 > 4)	    /* size */
 	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a2);
 	switch (otype(alist->a2)) {
 	    case t_vector|t_int8:
 		type = GL_BYTE;
@@ -3627,36 +3628,35 @@ native_ColorPointer(oobject_t list, oint32_t ac)
 	    case t_vector|t_int16:
 		type = GL_SHORT;
 		if (alist->a1 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_uint16:
 		type = GL_UNSIGNED_SHORT;
 		if (alist->a1 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_int32:
 		type = GL_INT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_uint32:
 		type = GL_UNSIGNED_INT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float32:
 		type = GL_FLOAT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float64:
 		type = GL_DOUBLE;
 		if (alist->a1 & 7)  /* stride & 7 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    default:
-	    fail:
-		ovm_raise(except_invalid_argument);
+		ovm_raise(except_type_mismatch);
 	}
 	glColorPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
     }
@@ -3693,12 +3693,12 @@ native_IndexPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
+	/* FIXME check it is a valid type */
 	type = vector[ARRAY_BUFFER_OFFSET];
 	glIndexPointer(type, alist->a0, null);
     }
     else {
-	if (!(otype(alist->a1) & t_vector))
-	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a1);
 	switch (otype(alist->a1)) {
 	    case t_vector|t_uint8:
 		type = GL_UNSIGNED_BYTE;
@@ -3706,26 +3706,25 @@ native_IndexPointer(oobject_t list, oint32_t ac)
 	    case t_vector|t_int16:
 		type = GL_SHORT;
 		if (alist->a0 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_int32:
 		type = GL_INT;
 		if (alist->a0 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float32:
 		type = GL_FLOAT;
 		if (alist->a0 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float64:
 		type = GL_DOUBLE;
 		if (alist->a0 & 7)  /* stride & 7 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    default:
-	    fail:
-		ovm_raise(except_invalid_argument);
+		ovm_raise(except_type_mismatch);
 	}
 	glIndexPointer(type, alist->a0, alist->a1->v.obj);
     }
@@ -3763,36 +3762,36 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
+	/* FIXME check it is a valid type */
 	type = vector[ARRAY_BUFFER_OFFSET];
 	glTexCoordPointer(alist->a0, type, alist->a1, null);
     }
     else {
-	if (alist->a0 < 2 || alist->a0 > 4 ||	    /* size */
-	    !(otype(alist->a2) & t_vector))
+	if (alist->a0 < 2 || alist->a0 > 4)	    /* size */
 	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a2);
 	switch (otype(alist->a2)) {
 	    case t_vector|t_int16:
 		type = GL_SHORT;
 		if (alist->a1 & 1)  /* stride & 1 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_int32:
 		type = GL_INT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float32:
 		type = GL_FLOAT;
 		if (alist->a1 & 3)  /* stride & 3 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    case t_vector|t_float64:
 		type = GL_DOUBLE;
 		if (alist->a1 & 7)  /* stride & 7 */
-		    goto fail;
+		    ovm_raise(except_invalid_argument);
 		break;
 	    default:
-	    fail:
 		ovm_raise(except_invalid_argument);
 	}
 	glTexCoordPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
@@ -3829,8 +3828,7 @@ native_EdgeFlagPointer(oobject_t list, oint32_t ac)
 	glEdgeFlagPointer(alist->a0, null);
     }
     else {
-	if (bad_arg_type(a1, t_vector|t_uint8))
-	    ovm_raise(except_invalid_argument);
+	CHECK_TYPE(alist->a1, t_vector|t_uint8);
 	glEdgeFlagPointer(alist->a0, alist->a1->v.obj);
     }
 }
@@ -3876,6 +3874,8 @@ native_DrawElements(oobject_t list, oint32_t ac)
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_vec_t *)list;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
     switch (otype(alist->a1)) {
 	case t_vector|t_uint8:
 	    type = GL_UNSIGNED_BYTE;
@@ -3887,7 +3887,7 @@ native_DrawElements(oobject_t list, oint32_t ac)
 	    type = GL_UNSIGNED_INT;
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
     r0 = &thread_self->r0;
     r0->t = t_void;
@@ -3954,9 +3954,9 @@ native_Lightv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null ||
-	!(otype(alist->a2) & t_vector) || alist->a2->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
+    CHECK_LENGTH(alist->a2, length);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    glLightiv(alist->a0, alist->a1, alist->a2->v.i32);
@@ -3965,7 +3965,7 @@ native_Lightv(oobject_t list, oint32_t ac)
 	    glLightfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4002,8 +4002,8 @@ native_GetLightv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    if (alist->a2->length != length)
@@ -4016,7 +4016,7 @@ native_GetLightv(oobject_t list, oint32_t ac)
 	    glGetLightfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4057,9 +4057,9 @@ native_LightModelv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, length);
     switch (otype(alist->a1)) {
 	case t_vector|t_int32:
 	    glLightModeliv(alist->a0, alist->a1->v.i32);
@@ -4068,7 +4068,7 @@ native_LightModelv(oobject_t list, oint32_t ac)
 	    glLightModelfv(alist->a0, alist->a1->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4116,9 +4116,9 @@ native_Materialv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null ||
-	!(otype(alist->a2) & t_vector) || alist->a2->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
+    CHECK_LENGTH(alist->a2, length);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    glMaterialiv(alist->a0, alist->a1, alist->a2->v.i32);
@@ -4127,7 +4127,7 @@ native_Materialv(oobject_t list, oint32_t ac)
 	    glMaterialfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4161,8 +4161,8 @@ native_GetMaterialv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    if (alist->a2->length != length)
@@ -4175,7 +4175,7 @@ native_GetMaterialv(oobject_t list, oint32_t ac)
 	    glGetMaterialfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4301,8 +4301,8 @@ native_PixelMapv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
     switch (otype(alist->a1)) {
 	case t_vector|t_uint16:
 	    glPixelMapusv(alist->a0, alist->a1->length, alist->a1->v.u16);
@@ -4314,7 +4314,7 @@ native_PixelMapv(oobject_t list, oint32_t ac)
 	    glPixelMapfv(alist->a0, alist->a1->length, alist->a1->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4348,8 +4348,8 @@ native_GetPixelMapv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
     switch (otype(alist->a1)) {
 	case t_vector|t_uint16:
 	    if (alist->a1->length != length)
@@ -4367,7 +4367,7 @@ native_GetPixelMapv(oobject_t list, oint32_t ac)
 	    glGetPixelMapfv(alist->a0, alist->a1->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4388,8 +4388,9 @@ native_Bitmap(oobject_t list, oint32_t ac)
     length = (alist->a0 + 7) & ~7;
     check_mult(length, alist->a1);
     length = (length * alist->a1) >> 3;
-    if (bad_arg_type(a6, t_vector|t_uint8) || alist->a6->length < length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a6);
+    CHECK_TYPE(alist->a6, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a6, length);
     r0->t = t_void;
     glBitmap(alist->a0, alist->a1, alist->a2, alist->a3,
 	     alist->a4, alist->a5, alist->a6->v.u8);
@@ -4407,8 +4408,8 @@ native_ReadPixels(oobject_t list, oint32_t ac)
 
     alist = (nat_i32_i32_i32_i32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a5, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a5);
+    CHECK_TYPE(alist->a5, t_vector|t_uint8);
     check_mult(alist->a2, alist->a3);
     length = alist->a2 * alist->a3;
     switch (alist->a4) {
@@ -4444,8 +4445,8 @@ native_ReadBitmap(oobject_t list, oint32_t ac)
 
     alist = (nat_i32_i32_i32_i32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a5, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a5);
+    CHECK_TYPE(alist->a5, t_vector|t_uint8);
     length = (alist->a2 + 7) & ~7;
     check_mult(length, alist->a3);
     length = (length * alist->a3) >> 3;
@@ -4484,8 +4485,9 @@ native_DrawPixels(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (bad_arg_type(a3, t_vector|t_uint8) || alist->a3->length < length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a3, length);
     r0->t = t_void;
     glDrawPixels(alist->a0, alist->a1, alist->a2, GL_UNSIGNED_BYTE,
 		 alist->a3->v.u8);
@@ -4508,8 +4510,9 @@ native_DrawBitmap(oobject_t list, oint32_t ac)
     check_mult(length, alist->a1);
     length = (length * alist->a1) >> 3;
 
-    if (bad_arg_type(a3, t_vector|t_uint8) || alist->a3->length < length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a3, length);
     r0->t = t_void;
     glDrawPixels(alist->a0, alist->a1, alist->a2, GL_BITMAP, alist->a3->v.u8);
 }
@@ -4624,9 +4627,9 @@ native_TexGenv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null ||
-	!(otype(alist->a2) & t_vector) || alist->a2->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
+    CHECK_LENGTH(alist->a2, length);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    glTexGeniv(alist->a0, alist->a1, alist->a2->v.i32);
@@ -4638,7 +4641,7 @@ native_TexGenv(oobject_t list, oint32_t ac)
 	    glTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4665,8 +4668,8 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    if (alist->a2->length != length)
@@ -4684,7 +4687,7 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
 	    glGetTexGendv(alist->a0, alist->a1, alist->a2->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4831,8 +4834,8 @@ native_GetTexEnvv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    if (alist->a2->length != length)
@@ -4845,7 +4848,7 @@ native_GetTexEnvv(oobject_t list, oint32_t ac)
 	    glGetTexEnvfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4923,9 +4926,9 @@ native_TexParameterv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null ||
-	!(otype(alist->a2) & t_vector) || alist->a2->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
+    CHECK_LENGTH(alist->a2, length);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    glTexParameteriv(alist->a0, alist->a1, alist->a2->v.i32);
@@ -4934,7 +4937,7 @@ native_TexParameterv(oobject_t list, oint32_t ac)
 	    glTexParameterfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -4977,8 +4980,8 @@ native_GetTexParameterv(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    if (alist->a2->length != length)
@@ -4991,7 +4994,7 @@ native_GetTexParameterv(oobject_t list, oint32_t ac)
 	    glGetTexParameterfv(alist->a0, alist->a1, alist->a2->v.f32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5058,8 +5061,9 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 	    ovm_raise(except_invalid_argument);
 	    break;
     }
-    if (bad_arg_type_length(a5, t_vector|t_uint8, length))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a5);
+    CHECK_TYPE(alist->a5, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a5, length);
     r0->t = t_void;
     glTexImage1D(alist->a0, alist->a1, alist->a4, alist->a2, alist->a3,
 		 alist->a4, GL_UNSIGNED_BYTE, alist->a5->v.u8);
@@ -5121,8 +5125,9 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 	    ovm_raise(except_invalid_argument);
 	    break;
     }
-    if (bad_arg_type_length(a6, t_vector|t_uint8, length))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a6);
+    CHECK_TYPE(alist->a6, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a6, length);
     r0->t = t_void;
     glTexImage2D(alist->a0, alist->a1, alist->a5, alist->a2, alist->a3,
 		 alist->a4, alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
@@ -5186,8 +5191,8 @@ native_GetTexImage(oobject_t list, oint32_t ac)
     length = width * height;
     check_mult(length, mult);
     length *= mult;
-    if (bad_arg_type(a3, t_vector|t_uint8))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_vector|t_uint8);
     if (alist->a3->length != length)
 	orenew_vector(alist->a3, length);
     r0->t = t_void;
@@ -5205,8 +5210,8 @@ native_GenTextures(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     r0->t = t_void;
     glGenTextures(alist->a0->length, alist->a0->v.u32);
 }
@@ -5221,8 +5226,8 @@ native_DeleteTextures(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     r0->t = t_void;
     glDeleteTextures(alist->a0->length, alist->a0->v.u32);
 }
@@ -5251,10 +5256,11 @@ native_PrioritizeTextures(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32) ||
-	bad_arg_type(a0, t_vector|t_float32) ||
-	alist->a0->length != alist->a1->length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float32);
+    CHECK_LENGTH(alist->a0, alist->a1->length);
     r0->t = t_void;
     glPrioritizeTextures(alist->a0->length, alist->a0->v.u32, alist->a1->v.f32);
 }
@@ -5269,10 +5275,11 @@ native_AreTexturesResident(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32) ||
-	bad_arg_type(a1, t_vector|t_uint8) ||
-	alist->a0->length != alist->a1->length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint8);
+    CHECK_LENGTH(alist->a0, alist->a1->length);
     r0->t = t_void;
     glAreTexturesResident(alist->a0->length, alist->a0->v.u32, alist->a1->v.u8);
 }
@@ -5330,8 +5337,9 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (bad_arg_type(a5, t_vector|t_uint8) || alist->a5->length < length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a5);
+    CHECK_TYPE(alist->a5, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a5, length);
     r0->t = t_void;
     glTexSubImage1D(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
 		    GL_UNSIGNED_BYTE, alist->a5->v.u8);
@@ -5378,8 +5386,9 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-    if (bad_arg_type(a7, t_vector|t_uint8) || alist->a7->length < length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a7);
+    CHECK_TYPE(alist->a7, t_vector|t_uint8);
+    CHECK_BOUNDS(alist->a7, length);
     r0->t = t_void;
     glTexSubImage2D(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4,
 		    alist->a5, alist->a6, GL_UNSIGNED_BYTE, alist->a7->v.u8);
@@ -5488,9 +5497,9 @@ native_Map1(oobject_t list, oint32_t ac)
     }
     check_mult(alist->a3, mult);
     length = alist->a3 * mult;
-    if (alist->a4 == null ||
-	!(otype(alist->a4) & t_vector) || alist->a4->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a4);
+    CHECK_VECTOR(alist->a4);
+    CHECK_LENGTH(alist->a4, length);
     switch (otype(alist->a4)) {
 	case t_vector|t_float32:
 	    glMap1f(alist->a0, alist->a1, alist->a2, 0,
@@ -5501,7 +5510,7 @@ native_Map1(oobject_t list, oint32_t ac)
 		    alist->a3, alist->a4->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5546,10 +5555,9 @@ native_Map2(oobject_t list, oint32_t ac)
     length = alist->a3 * alist->a6;
     check_mult(length, mult);
     length *= mult;
-
-    if (alist->a7 == null ||
-	!(otype(alist->a7) & t_vector) || alist->a7->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a7);
+    CHECK_VECTOR(alist->a7);
+    CHECK_LENGTH(alist->a7, length);
     switch (otype(alist->a7)) {
 	case t_vector|t_float32:
 	    glMap2f(alist->a0, alist->a1, alist->a2, 0, alist->a3,
@@ -5560,7 +5568,7 @@ native_Map2(oobject_t list, oint32_t ac)
 		    alist->a4, alist->a5, 0, alist->a6, alist->a7->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5643,7 +5651,7 @@ GetMapCoeff(uint32_t target, ovector_t *v)
 	    glGetMapdv(target, GL_COEFF, v->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5695,7 +5703,7 @@ GetMapOrder(uint32_t target, ovector_t *v)
 	    glGetMapdv(target, GL_ORDER, v->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5747,7 +5755,7 @@ GetMapDomain(uint32_t target, ovector_t *v)
 	    glGetMapdv(target, GL_DOMAIN, v->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5763,8 +5771,8 @@ native_GetMapv(oobject_t list, oint32_t ac)
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (alist->a1) {
 	case GL_COEFF:
 	    GetMapCoeff(alist->a0, alist->a2);
@@ -5950,10 +5958,9 @@ native_Fogv(oobject_t list, oint32_t ac)
 	    ovm_raise(except_invalid_argument);
 	    break;
     }
-
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != length)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, length);
     switch (otype(alist->a1)) {
 	case t_vector|t_int32:
 	    glFogiv(alist->a0, alist->a1->v.i32);
@@ -5962,7 +5969,7 @@ native_Fogv(oobject_t list, oint32_t ac)
 	    glFogfv(alist->a0, alist->a1->v.f32);
 	    break;
 	default:
-	ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -5977,8 +5984,8 @@ native_FeedbackBuffer(oobject_t list, oint32_t ac)
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (bad_arg_type(a1, t_vector|t_float32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_float32);
     glFeedbackBuffer(alist->a1->length, alist->a0, alist->a1->v.f32);
 }
 
@@ -6007,8 +6014,8 @@ native_SelectBuffer(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     glSelectBuffer(alist->a0->length, alist->a0->v.u32);
 }
 
@@ -6118,9 +6125,9 @@ native_MultiTexCoord1v(oobject_t list, oint32_t ac)
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != 1)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 1);
     switch (otype(alist->a1)) {
 	case t_vector|t_int16:
 	    glMultiTexCoord1sv(alist->a0, alist->a1->v.i16);
@@ -6135,7 +6142,7 @@ native_MultiTexCoord1v(oobject_t list, oint32_t ac)
 	    glMultiTexCoord1dv(alist->a0, alist->a1->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6165,9 +6172,9 @@ native_MultiTexCoord2v(oobject_t list, oint32_t ac)
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != 2)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 2);
     switch (otype(alist->a1)) {
 	case t_vector|t_int16:
 	    glMultiTexCoord2sv(alist->a0, alist->a1->v.i16);
@@ -6182,7 +6189,7 @@ native_MultiTexCoord2v(oobject_t list, oint32_t ac)
 	    glMultiTexCoord2dv(alist->a0, alist->a1->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6213,9 +6220,9 @@ native_MultiTexCoord3v(oobject_t list, oint32_t ac)
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 3);
     switch (otype(alist->a1)) {
 	case t_vector|t_int16:
 	    glMultiTexCoord3sv(alist->a0, alist->a1->v.i16);
@@ -6230,7 +6237,7 @@ native_MultiTexCoord3v(oobject_t list, oint32_t ac)
 	    glMultiTexCoord3dv(alist->a0, alist->a1->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6261,9 +6268,9 @@ native_MultiTexCoord4v(oobject_t list, oint32_t ac)
     alist = (nat_u32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a1 == null ||
-	!(otype(alist->a1) & t_vector) || alist->a1->length != 4)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 4);
     switch (otype(alist->a1)) {
 	case t_vector|t_int16:
 	    glMultiTexCoord4sv(alist->a0, alist->a1->v.i16);
@@ -6278,7 +6285,7 @@ native_MultiTexCoord4v(oobject_t list, oint32_t ac)
 	    glMultiTexCoord4dv(alist->a0, alist->a1->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6322,9 +6329,9 @@ native_WindowPos2v(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
 
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 2)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 2);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glWindowPos2sv(alist->a0->v.i16);
@@ -6339,7 +6346,7 @@ native_WindowPos2v(oobject_t list, oint32_t ac)
 	    glWindowPos2dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6368,10 +6375,9 @@ native_WindowPos3v(oobject_t list, oint32_t ac)
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-
-    if (alist->a0 == null ||
-	!(otype(alist->a0) & t_vector) || alist->a0->length != 3)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_VECTOR(alist->a0);
+    CHECK_LENGTH(alist->a0, 3);
     switch (otype(alist->a0)) {
 	case t_vector|t_int16:
 	    glWindowPos3sv(alist->a0->v.i16);
@@ -6386,7 +6392,7 @@ native_WindowPos3v(oobject_t list, oint32_t ac)
 	    glWindowPos3dv(alist->a0->v.f64);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
 }
 
@@ -6400,8 +6406,8 @@ native_GenQueries(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     r0->t = t_void;
     glGenQueries(alist->a0->length, alist->a0->v.u32);
 }
@@ -6416,8 +6422,8 @@ native_DeleteQueries(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     r0->t = t_void;
     glDeleteQueries(alist->a0->length, alist->a0->v.u32);
 }
@@ -6474,8 +6480,9 @@ native_GetQueryv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a2, t_vector|t_uint32, 1))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_uint32);
+    CHECK_LENGTH(alist->a2, 1);
     r0->t = t_void;
     glGetQueryiv(alist->a0, alist->a1, alist->a2->v.i32);
 }
@@ -6490,9 +6497,9 @@ native_GetQueryObjectv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector) ||
-	alist->a2->length != 1)
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
+    CHECK_LENGTH(alist->a2, 1);
     switch (otype(alist->a2)) {
 	case t_vector|t_int32:
 	    glGetQueryObjectiv(alist->a0, alist->a1, alist->a2->v.i32);
@@ -6501,7 +6508,7 @@ native_GetQueryObjectv(oobject_t list, oint32_t ac)
 	    glGetQueryObjectuiv(alist->a0, alist->a1, alist->a2->v.u32);
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
     r0->t = t_void;
 }
@@ -6547,8 +6554,8 @@ native_GenBuffers(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     r0->t = t_void;
     glGenBuffers(alist->a0->length, alist->a0->v.u32);
 }
@@ -6566,9 +6573,8 @@ native_DeleteBuffers(oobject_t list, oint32_t ac)
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type(a0, t_vector|t_uint32))
-	ovm_raise(except_invalid_argument);
-
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
     check.nt = t_word;
     for (offset = 0; offset < alist->a0->length; offset++) {
 	check.nv.w = alist->a0->v.u32[offset];
@@ -6576,7 +6582,6 @@ native_DeleteBuffers(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)))
 	    orem_hashentry(buffer_table, entry);
     }
-
     r0->t = t_void;
     glDeleteBuffers(alist->a0->length, alist->a0->v.u32);
 }
@@ -6613,8 +6618,8 @@ native_BufferData(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_vec_u32_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a1 == null || !(otype(alist->a1) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
     switch (otype(alist->a1)) {
 	case t_vector|t_int8:
 	    type = GL_BYTE;
@@ -6649,9 +6654,8 @@ native_BufferData(oobject_t list, oint32_t ac)
 	    size = alist->a1->length << 3;
 	    break;
 	default:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
-
     buffer = -1;
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
     /* No buffer bound */
@@ -6685,7 +6689,6 @@ native_BufferData(oobject_t list, oint32_t ac)
 	default:
 	    ovm_raise(except_invalid_argument);
     }
-
     r0->t = t_void;
     glBufferData(alist->a0, size, alist->a1->v.obj, alist->a2);
 }
@@ -6703,8 +6706,8 @@ native_BufferSubData(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_w_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int8:	case t_vector|t_uint8:
 	    size = alist->a2->length;
@@ -6712,22 +6715,21 @@ native_BufferSubData(oobject_t list, oint32_t ac)
 	case t_vector|t_int16:	case t_vector|t_uint16:
 	    size = alist->a2->length << 1;
 	    if (alist->a1 & 1)		/* offset & 1 */
-		goto fail;
+		ovm_raise(except_invalid_argument);
 	    break;
 	case t_vector|t_int32:	case t_vector|t_uint32:
 	case t_vector|t_float32:
 	    size = alist->a2->length << 2;
-	    if (alist->a1 & 1)		/* offset & 3 */
-		goto fail;
+	    if (alist->a1 & 3)		/* offset & 3 */
+		ovm_raise(except_invalid_argument);
 	    break;
 	case t_vector|t_float64:
 	    size = alist->a2->length << 3;
-	    if (alist->a1 & 1)		/* offset & 7 */
-		goto fail;
+	    if (alist->a1 & 7)		/* offset & 7 */
+		ovm_raise(except_invalid_argument);
 	    break;
 	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
     r0->t = t_void;
     glBufferSubData(alist->a0, alist->a1, size, alist->a2->v.obj);
@@ -6746,8 +6748,8 @@ native_GetBufferSubData(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_w_vec_t *)list;
     r0 = &thread_self->r0;
-    if (alist->a2 == null || !(otype(alist->a2) & t_vector))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_VECTOR(alist->a2);
     switch (otype(alist->a2)) {
 	case t_vector|t_int8:	case t_vector|t_uint8:
 	    size = alist->a2->length;
@@ -6755,22 +6757,21 @@ native_GetBufferSubData(oobject_t list, oint32_t ac)
 	case t_vector|t_int16:	case t_vector|t_uint16:
 	    size = alist->a2->length << 1;
 	    if (alist->a1 & 1)		/* offset & 1 */
-		goto fail;
+		ovm_raise(except_invalid_argument);
 	    break;
 	case t_vector|t_int32:	case t_vector|t_uint32:
 	case t_vector|t_float32:
 	    size = alist->a2->length << 2;
-	    if (alist->a1 & 1)		/* offset & 3 */
-		goto fail;
+	    if (alist->a1 & 3)		/* offset & 3 */
+		ovm_raise(except_invalid_argument);
 	    break;
 	case t_vector|t_float64:
 	    size = alist->a2->length << 3;
-	    if (alist->a1 & 1)		/* offset & 7 */
-		goto fail;
+	    if (alist->a1 & 7)		/* offset & 7 */
+		ovm_raise(except_invalid_argument);
 	    break;
 	default:
-	fail:
-	    ovm_raise(except_invalid_argument);
+	    ovm_raise(except_type_mismatch);
     }
     r0->t = t_void;
     glGetBufferSubData(alist->a0, alist->a1, size, alist->a2->v.obj);
@@ -6786,8 +6787,9 @@ native_GetBufferParameterv(oobject_t list, oint32_t ac)
 
     alist = (nat_u32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    if (bad_arg_type_length(a2, t_vector|t_uint32, 1))
-	ovm_raise(except_invalid_argument);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_uint32);
+    CHECK_LENGTH(alist->a2, 1);
     r0->t = t_void;
     glGetBufferParameteriv(alist->a0, alist->a1, alist->a2->v.i32);
 }
