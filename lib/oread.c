@@ -1134,7 +1134,7 @@ read_ident(oint32_t ch)
     size = sizeof(buffer);
     length = 1;
     string[0] = ch;
-
+    vector = null;
     for (ch = getch(); ch != eof && symbol_char_p(ch); ch = getch()) {
 	if (length >= size) {
 	    size += BUFSIZ;

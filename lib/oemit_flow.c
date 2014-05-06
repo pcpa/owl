@@ -234,6 +234,8 @@ emit_if(oast_t *ast)
     jit_node_t		*label;
     oword_t		 offset;
 
+    node = null;
+
     /* test */
     offset = stack->offset;
     for (test = ast->t.ast; test->next; test = test->next) {
@@ -393,6 +395,8 @@ emit_for(oast_t *ast)
     jit_node_t		*node;
     jit_node_t		*label;
     oword_t		 offset;
+
+    node = null;
 
     /* init expression */
     emit_stat(ast->l.ast);
@@ -987,6 +991,8 @@ emit_call_next(ooperand_t *rop,
     ovector_t		*vector;
     jit_node_t		*address;
     oint32_t		 framesize;
+
+    address = null;
 
     /* Too few or too many arguments already checked */
     vector = function->record->vector;

@@ -222,10 +222,10 @@ static void
 load_d(oword_t regno);
 
 static void
-loadif_d(oword_t regno);
+loadif_d(oword_t regno) maybe_unused;
 
 static void
-loadif_f(oword_t regno);
+loadif_f(oword_t regno) maybe_unused;
 
 static void
 load_r(oword_t regno);

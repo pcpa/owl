@@ -426,7 +426,7 @@ oparser(void)
     oast_t		*ast;
     oast_t		*tail;
 
-    for (;;) {
+    for (tail = null;;) {
 	if (statement() == tok_eof) {
 	    assert(parser_vector->offset == 0);
 	    return (root_ast);

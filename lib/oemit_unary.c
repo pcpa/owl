@@ -450,6 +450,8 @@ emit_inc_dec(oast_t *ast)
     osymbol_t		*symbol;
     obool_t		 vararg;
 
+    symbol = null;
+    bop = lop = pop = null;
     switch (ast->token) {
 	case tok_inc:		inc = true;	post = false;	break;
 	case tok_dec:		inc = false;	post = false;	break;

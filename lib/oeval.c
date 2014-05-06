@@ -187,6 +187,7 @@ ocoerce(oobject_t *pointer, otype_t type, oobject_t value)
 	    }
 	    break;
 	default:
+	    data.i = 0;
 	    break;
     }
 
