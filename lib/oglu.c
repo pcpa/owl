@@ -525,22 +525,15 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    length = alist->a1;		/* width */
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, 2);
-	    length = alist->a1 * 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
-	    check_mult(alist->a1, 3);
-	    length = alist->a1 * 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
-	    check_mult(alist->a1, 4);
-	    length = alist->a1 * 4;
 	    format = 4;
 	    break;
 	default:
@@ -548,6 +541,8 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, format);
+    length = alist->a1 * format;
     CHECK_NULL(alist->a6);
     CHECK_TYPE(alist->a6, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a6, length);
@@ -580,24 +575,17 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    length = alist->a2;		/* width */
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, 2);
-	    length = alist->a1 * 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a1, 3);
-	    length = alist->a1 * 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a1, 4);
-	    length = alist->a1 * 4;
 	    format = 4;
 	    break;
 	default:
@@ -605,6 +593,8 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, format);
+    length = alist->a1 * format;
     CHECK_NULL(alist->a3);
     CHECK_TYPE(alist->a3, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a3, length);
@@ -638,31 +628,17 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 2);
-	    length *= 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 3);
-	    length *= 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 4);
-	    length *= 4;
 	    format = 4;
 	    break;
 	default:
@@ -670,6 +646,10 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, alist->a2);
+    length = alist->a1 * alist->a2;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a7);
     CHECK_TYPE(alist->a7, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a7, length);
@@ -703,31 +683,17 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 2);
-	    length *= 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 3);
-	    length *= 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, 4);
-	    length *= 4;
 	    format = 4;
 	    break;
 	default:
@@ -735,6 +701,10 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, alist->a2);
+    length = alist->a1 * alist->a2;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a4);
     CHECK_TYPE(alist->a4, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a4, length);
@@ -770,39 +740,17 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 2);
-	    length *= 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 3);
-	    length *= 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 4);
-	    length *= 4;
 	    format = 4;
 	    break;
 	default:
@@ -810,6 +758,12 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, alist->a2);
+    length = alist->a1 * alist->a2;
+    check_mult(length, alist->a3);
+    length *= alist->a3;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a8);
     CHECK_TYPE(alist->a8, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a8, length);
@@ -845,39 +799,17 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
 	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 2);
-	    length *= 2;
 	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 3);
-	    length *= 3;
 	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a1, alist->a2);
-	    length = alist->a1 * alist->a2;
-	    check_mult(length, alist->a3);
-	    length *= alist->a3;
-	    check_mult(length, 4);
-	    length *= 4;
 	    format = 4;
 	    break;
 	default:
@@ -885,6 +817,12 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 	    break;
     }
     r0->t = t_void;
+    check_mult(alist->a1, alist->a2);
+    length = alist->a1 * alist->a2;
+    check_mult(length, alist->a3);
+    length *= alist->a3;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a5);
     CHECK_TYPE(alist->a5, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a5, length);

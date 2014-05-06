@@ -5024,6 +5024,7 @@ native_TexImage1D(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_i32_i32_i32_u32_vec_t	*alist;
+    oword_t				 format;
     oword_t				 length;
 
     alist = (nat_u32_i32_i32_i32_u32_vec_t *)list;
@@ -5041,31 +5042,30 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    length = alist->a2;		/* width */
+	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a2, 2);
-	    length = alist->a2 * 2;
+	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a2, 3);
-	    length = alist->a2 * 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a2, 4);
-	    length = alist->a2 * 4;
+	    format = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
 	    break;
     }
+    check_mult(alist->a2, format);
+    length = alist->a2 * format;
     CHECK_NULL(alist->a5);
     CHECK_TYPE(alist->a5, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a5, length);
     r0->t = t_void;
-    glTexImage1D(alist->a0, alist->a1, alist->a4, alist->a2, alist->a3,
+    glTexImage1D(alist->a0, alist->a1, format, alist->a2, alist->a3,
 		 alist->a4, GL_UNSIGNED_BYTE, alist->a5->v.u8);
 }
 
@@ -5078,6 +5078,7 @@ native_TexImage2D(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_i32_i32_i32_i32_u32_vec_t	*alist;
+    oword_t				 format;
     oword_t				 length;
 
     alist = (nat_u32_i32_i32_i32_i32_u32_vec_t *)list;
@@ -5098,38 +5099,32 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
+	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 2);
-	    length *= 2;
+	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 3);
-	    length *= 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(alist->a2, alist->a3);
-	    length = alist->a2 * alist->a3;
-	    check_mult(length, 4);
-	    length *= 4;
+	    format = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
 	    break;
     }
+    check_mult(alist->a2, alist->a3);
+    length = alist->a2 * alist->a3;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a6);
     CHECK_TYPE(alist->a6, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a6, length);
     r0->t = t_void;
-    glTexImage2D(alist->a0, alist->a1, alist->a5, alist->a2, alist->a3,
+    glTexImage2D(alist->a0, alist->a1, format, alist->a2, alist->a3,
 		 alist->a4, alist->a5, GL_UNSIGNED_BYTE, alist->a6->v.u8);
 }
 
@@ -5141,15 +5136,15 @@ native_GetTexImage(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_i32_u32_vec_t		*alist;
-    oword_t				 mult;
     oword_t				 width;
     oword_t				 height;
+    oword_t				 format;
     oword_t				 length;
     GLint				 value[4];
 
     alist = (nat_u32_i32_u32_vec_t *)list;
     r0 = &thread_self->r0;
-    height = mult = 1;
+    height = 1;
     switch (alist->a0) {
 	case GL_TEXTURE_1D:
 	    glGetTexLevelParameteriv(GL_TEXTURE_1D, alist->a1,
@@ -5174,23 +5169,27 @@ native_GetTexImage(oobject_t list, oint32_t ac)
 	case GL_BLUE:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
+	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    mult = 2;
+	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    mult = 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    mult = 4;
+	    format = 4;
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
 	    break;
     }
     check_mult(width, height);
     length = width * height;
-    check_mult(length, mult);
-    length *= mult;
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a3);
     CHECK_TYPE(alist->a3, t_vector|t_uint8);
     if (alist->a3->length != length)
@@ -5306,6 +5305,7 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_i32_i32_i32_u32_vec_t	*alist;
+    oword_t				 format;
     oword_t				 length;
 
     alist = (nat_u32_i32_i32_i32_u32_vec_t *)list;
@@ -5319,24 +5319,24 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
+	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(length, 2);
-	    length *= 2;
+	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(length, 3);
-	    length *= 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(length, 4);
-	    length *= 4;
+	    format = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a5);
     CHECK_TYPE(alist->a5, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a5, length);
@@ -5354,6 +5354,7 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t				*r0;
     nat_u32_i32_i32_i32_i32_i32_u32_vec_t	*alist;
+    oword_t				 format;
     oword_t				 length;
 
     alist = (nat_u32_i32_i32_i32_i32_i32_u32_vec_t *)list;
@@ -5368,24 +5369,24 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 	case GL_ALPHA:
 	case GL_LUMINANCE:
 	case GL_DEPTH_COMPONENT:
+	    format = 1;
 	    break;
 	case GL_LUMINANCE_ALPHA:
-	    check_mult(length, 2);
-	    length *= 2;
+	    format = 2;
 	    break;
 	case GL_RGB:
 	case GL_BGR:
-	    check_mult(length, 3);
-	    length *= 3;
+	    format = 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
-	    check_mult(length, 4);
-	    length *= 4;
+	    format = 4;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
     }
+    check_mult(length, format);
+    length *= format;
     CHECK_NULL(alist->a7);
     CHECK_TYPE(alist->a7, t_vector|t_uint8);
     CHECK_BOUNDS(alist->a7, length);
