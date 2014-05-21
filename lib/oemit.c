@@ -1231,6 +1231,8 @@ emit_new(oast_t *ast)
 	    default:
 		abort();
 	}
+	/* must load bop because right side operand may have spilled it */
+	emit_load(bop);
 	jit_prepare();
 	jit_pushargr(GPR[bop->u.w]);
 	jit_pushargi(type & ~t_vector);

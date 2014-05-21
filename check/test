@@ -40639,3 +40639,19 @@ namespace t58 {
 	a.u[c] ^= a.u[c + 2] ^= c0 ^= c2;
     }
 }
+
+/* Check another previous regression that was causing a crash due to
+ * not properly handling a function call (or very complex expression)
+ * as argument to new */
+namespace t59 {
+    int32_t call(int32_t a, int32_t b) {
+	return a + b;
+    }
+    int32_t i = 1, j = 2, k = 3, l = 4, m = 5;
+    string_t a = new uint8_t[call(1, 2)];
+    if (sizeof(a) != 3)
+	print("error %d\n", __LINE__);
+    a = new uint8_t[i + j - k + m - l];
+    if (sizeof(a) != 1)
+	print("error %d\n", __LINE__);
+};

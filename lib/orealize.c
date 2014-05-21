@@ -205,7 +205,7 @@ realize(oast_t *ast)
 	    break;
 	case tok_vecnew:
 	    if (ast->r.ast->token != tok_number)
-		ast->r.ast->offset = get();
+		realize(ast->r.ast);
 	    break;
 
 	case tok_vector:	case tok_hash:
