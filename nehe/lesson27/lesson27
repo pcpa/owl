@@ -590,35 +590,35 @@ void DrawGLScene() {
     yrot += yspeed;	
 
     gl.Flush();
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void main() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    sdl.gl.set_attribute(sdl.gl.StencilSize, 8);
-    win = sdl.create_window("lesson27",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    800, 600,
-			    sdl.WindowOpenGL |
-			    sdl.WindowResizable |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    sdl.gl.SetAttribute(sdl.gl.STENCIL_SIZE, 8);
+    win = sdl.CreateWindow("lesson27",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   800, 600,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_RESIZABLE |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 
     if (!InitGL()) {
 	print("Failed to initialize GL\n");
@@ -655,109 +655,109 @@ q:		Move ball away from viewer\n");
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    ResizeGLScene();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    done = true;
 			    break;
-			case sdl.Key_Left:
+			case sdl.K_LEFT:
 			    // 'Arrow Left' Decrease yspeed
 			    yspeed -= 0.1;
 			    break;
-			case sdl.Key_Right:
+			case sdl.K_RIGHT:
 			    // 'Arrow Right' Increase yspeed
 			    yspeed += 0.1;
 			    break;
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    // 'Arrow Up' Decrease xspeed
 			    xspeed -= 0.1;
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    // 'Arrow Down' Increase xspeed
 			    xspeed += 0.1;
 			    break;
 
 			    // Adjust Light's Position
-			case sdl.Key_l: 
+			case sdl.K_l: 
 			    LightPos[0] += 0.05;	// 'L' Moves Light Right
 			    break;
-			case sdl.Key_j: 
+			case sdl.K_j: 
 			    LightPos[0] -= 0.05;	// 'J' Moves Light Left
 			    break;
 
-			case sdl.Key_i: 
+			case sdl.K_i: 
 			    LightPos[1] += 0.05;	// 'I' Moves Light Up
 			    break;
-			case sdl.Key_k: 
+			case sdl.K_k: 
 			    LightPos[1] -= 0.05;	// 'K' Moves Light Down
 			    break;
 
-			case sdl.Key_o: 
+			case sdl.K_o: 
 			    LightPos[2] += 0.05;	// 'O' Moves Light Toward Viewer
 			    break;
-			case sdl.Key_u: 
+			case sdl.K_u: 
 			    LightPos[2] -= 0.05;	// 'U' Moves Light Away From Viewer
 			    break;
 
 			    // Adjust Object's Position
-			case sdl.Key_6: 
+			case sdl.K_6: 
 			    ObjPos[0] += 0.05;	// 'Numpad6' Move Object Right
 			    break;
-			case sdl.Key_4: 
+			case sdl.K_4: 
 			    ObjPos[0] -= 0.05;	// 'Numpad4' Move Object Left
 			    break;
 
-			case sdl.Key_8:
+			case sdl.K_8:
 			    ObjPos[1] += 0.05;	// 'Numpad8' Move Object U
 			    break;
-			case sdl.Key_5:
+			case sdl.K_5:
 			    ObjPos[1] -= 0.05;	// 'Numpad5' Move Object Down
 			    break;
 
-			case sdl.Key_9:
+			case sdl.K_9:
 			    ObjPos[2] += 0.05;	// 'Numpad9' Move Object Toward Viewer
 			    break;
-			case sdl.Key_7:
+			case sdl.K_7:
 			    ObjPos[2] -= 0.05;	// 'Numpad7' Move Object Away From Viewer
 			    break;
 
 			    // Adjust Ball's Position
-			case sdl.Key_d:
+			case sdl.K_d:
 			    SpherePos[0] += 0.05;	// 'D' Move Ball Right
 			    break;
-			case sdl.Key_a:
+			case sdl.K_a:
 			    SpherePos[0] -= 0.05;	// 'A' Move Ball Left
 			    break;
 
-			case sdl.Key_w:
+			case sdl.K_w:
 			    SpherePos[1] += 0.05;	// 'W' Move Ball Up
 			    break;
-			case sdl.Key_s:
+			case sdl.K_s:
 			    SpherePos[1] -= 0.05;	// 'S' Move Ball Down
 			    break;
 
-			case sdl.Key_e:
+			case sdl.K_e:
 			    SpherePos[2] += 0.05;	// 'E' Move Ball Toward Viewer
 			    break;
-			case sdl.Key_q:
+			case sdl.K_q:
 			    SpherePos[2] -= 0.05;	// 'Q' Move Ball Away From Viewer
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
@@ -765,9 +765,9 @@ q:		Move ball away from viewer\n");
 	DrawGLScene();
     }
 
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 main();

@@ -40,144 +40,146 @@
  * Prototypes
  */
 /* sdl */
-static void native_init(oobject_t list, oint32_t ac);
-static void native_get_error(oobject_t list, oint32_t ac);
-static void native_clear_error(oobject_t list, oint32_t ac);
-static void native_quit(oobject_t list, oint32_t ac);
-static void native_create_window(oobject_t list, oint32_t ac);
-static void native_change_window(oobject_t list, oint32_t ac);
-static void native_get_window_renderer(oobject_t list, oint32_t ac);
-static void native_destroy_window(oobject_t list, oint32_t ac);
+static void native_Init(oobject_t list, oint32_t ac);
+static void native_GetError(oobject_t list, oint32_t ac);
+static void native_ClearError(oobject_t list, oint32_t ac);
+static void native_Quit(oobject_t list, oint32_t ac);
+static void native_CreateWindow(oobject_t list, oint32_t ac);
+static void native_ChangeWindow(oobject_t list, oint32_t ac);
+static void native_GetWindowRenderer(oobject_t list, oint32_t ac);
+static void native_DestroyWindow(oobject_t list, oint32_t ac);
 static void query_renderer(orenderer_t *or);
-static void native_create_renderer(oobject_t list, oint32_t ac);
-static void native_change_renderer(oobject_t list, oint32_t ac);
-static void native_get_renderer_window(oobject_t list, oint32_t ac);
-static void native_render_clear(oobject_t list, oint32_t ac);
-static void native_render_draw_point(oobject_t list, oint32_t ac);
-static void native_render_draw_points(oobject_t list, oint32_t ac);
-static void native_render_draw_line(oobject_t list, oint32_t ac);
-static void native_render_draw_lines(oobject_t list, oint32_t ac);
-static void native_render_draw_rect(oobject_t list, oint32_t ac);
-static void native_render_draw_rects(oobject_t list, oint32_t ac);
-static void native_render_fill_rect(oobject_t list, oint32_t ac);
-static void native_render_fill_rects(oobject_t list, oint32_t ac);
-static void native_render_copy(oobject_t list, oint32_t ac);
-static void native_render_copy_ex(oobject_t list, oint32_t ac);
-static void native_render_present(oobject_t list, oint32_t ac);
-static void native_destroy_renderer(oobject_t list, oint32_t ac);
-static void native_destroy_renderer(oobject_t list, oint32_t ac);
+static void native_CreateRenderer(oobject_t list, oint32_t ac);
+static void native_ChangeRenderer(oobject_t list, oint32_t ac);
+static void native_GetRendererWindow(oobject_t list, oint32_t ac);
+static void native_RenderClear(oobject_t list, oint32_t ac);
+static void native_RenderDrawPoint(oobject_t list, oint32_t ac);
+static void native_RenderDrawPoints(oobject_t list, oint32_t ac);
+static void native_RenderDrawLine(oobject_t list, oint32_t ac);
+static void native_RenderDrawLines(oobject_t list, oint32_t ac);
+static void native_RenderDrawRect(oobject_t list, oint32_t ac);
+static void native_RenderDrawRects(oobject_t list, oint32_t ac);
+static void native_RenderFillRect(oobject_t list, oint32_t ac);
+static void native_RenderFillRects(oobject_t list, oint32_t ac);
+static void native_RenderCopy(oobject_t list, oint32_t ac);
+static void native_RenderCopyEx(oobject_t list, oint32_t ac);
+static void native_RenderPresent(oobject_t list, oint32_t ac);
+static void native_DestroyRenderer(oobject_t list, oint32_t ac);
+static void native_DestroyRenderer(oobject_t list, oint32_t ac);
 static void query_surface(osurface_t *surface);
-static void native_load_surface(oobject_t list, oint32_t ac);
-static void native_create_rgb_surface(oobject_t list, oint32_t ac);
-static void native_create_rgba_surface(oobject_t list, oint32_t ac);
-static void native_convert_surface(oobject_t list, oint32_t ac);
-static void native_change_surface(oobject_t list, oint32_t ac);
-static void native_pull_surface(oobject_t list, oint32_t ac);
-static void native_push_surface(oobject_t list, oint32_t ac);
-static void native_blit_surface(oobject_t list, oint32_t ac);
-static void native_scale_surface(oobject_t list, oint32_t ac);
-static void native_free_surface(oobject_t list, oint32_t ac);
+static void native_LoadSurface(oobject_t list, oint32_t ac);
+static void native_CreateRGBSurface(oobject_t list, oint32_t ac);
+static void native_CreateRGBASurface(oobject_t list, oint32_t ac);
+static void native_ConvertSurface(oobject_t list, oint32_t ac);
+static void native_ChangeSurface(oobject_t list, oint32_t ac);
+static void native_PullSurface(oobject_t list, oint32_t ac);
+static void native_PushSurface(oobject_t list, oint32_t ac);
+static void native_BlitSurface(oobject_t list, oint32_t ac);
+static void native_ScaleSurface(oobject_t list, oint32_t ac);
+static void native_FreeSurface(oobject_t list, oint32_t ac);
 static void query_texture(otexture_t *ot);
 static void handle_texture(orenderer_t *ren, otexture_t *tex);
-static void native_create_texture(oobject_t list, oint32_t ac);
-static void native_create_texture_from_surface(oobject_t list, oint32_t ac);
-static void native_load_texture(oobject_t list, oint32_t ac);
-static void native_change_texture(oobject_t list, oint32_t ac);
-static void native_destroy_texture(oobject_t list, oint32_t ac);
+static void native_CreateTexture(oobject_t list, oint32_t ac);
+static void native_CreateTextureFromSurface(oobject_t list, oint32_t ac);
+static void native_LoadTexture(oobject_t list, oint32_t ac);
+static void native_ChangeTexture(oobject_t list, oint32_t ac);
+static void native_DestroyTexture(oobject_t list, oint32_t ac);
 static inline void translate_window(oevent_t *ev, ouint32_t id);
 static void translate_event(oevent_t *ev);
-static void native_poll_event(oobject_t list, oint32_t ac);
-static void native_wait_event(oobject_t list, oint32_t ac);
-static void query_font(ofont_t *of);
-static void native_open_font(oobject_t list, oint32_t ac);
-static void native_change_font(oobject_t list, oint32_t ac);
-static void native_glyph_is_provided(oobject_t list, oint32_t ac);
-static void native_glyph_metrics(oobject_t list, oint32_t ac);
-static void native_size_text(oobject_t list, oint32_t ac);
-static void native_size_utf8(oobject_t list, oint32_t ac);
-static void native_size_unicode(oobject_t list, oint32_t ac);
-static void native_render_text_solid(oobject_t list, oint32_t ac);
-static void native_render_utf8_solid(oobject_t list, oint32_t ac);
-static void native_render_unicode_solid(oobject_t list, oint32_t ac);
-static void native_render_glyph_solid(oobject_t list, oint32_t ac);
-static void native_render_text_shaded(oobject_t list, oint32_t ac);
-static void native_render_utf8_shaded(oobject_t list, oint32_t ac);
-static void native_render_unicode_shaded(oobject_t list, oint32_t ac);
-static void native_render_glyph_shaded(oobject_t list, oint32_t ac);
-static void native_render_text_blended(oobject_t list, oint32_t ac);
-static void native_render_utf8_blended(oobject_t list, oint32_t ac);
-static void native_render_unicode_blended(oobject_t list, oint32_t ac);
-static void native_render_glyph_blended(oobject_t list, oint32_t ac);
-static void native_render_text_blended_wrapped(oobject_t list, oint32_t ac);
-static void native_render_utf8_blended_wrapped(oobject_t list, oint32_t ac);
-static void native_render_unicode_blended_wrapped(oobject_t list, oint32_t ac);
-static void native_get_kerning(oobject_t list, oint32_t ac);
-static void native_close_font(oobject_t list, oint32_t ac);
-static void native_get_mod_state(oobject_t list, oint32_t ac);
+static void native_PollEvent(oobject_t list, oint32_t ac);
+static void native_WaitEvent(oobject_t list, oint32_t ac);
+static void native_GetModState(oobject_t list, oint32_t ac);
 static Uint32 timer_callback(Uint32 ms, void *data);
 static void pop_timer(oobject_t *pointer);
 static void push_timer(otimer_t *timer);
-static void native_add_timer(oobject_t list, oint32_t ac);
-static void native_get_ticks(oobject_t list, oint32_t ac);
-static void native_delay(oobject_t list, oint32_t ac);
-static void native_remove_timer(oobject_t list, oint32_t ac);
-static void native_open_audio(oobject_t list, oint32_t ac);
-static void native_allocate_channels(oobject_t list, oint32_t ac);
-static void native_load_chunk(oobject_t list, oint32_t ac);
+static void native_AddTimer(oobject_t list, oint32_t ac);
+static void native_GetTicks(oobject_t list, oint32_t ac);
+static void native_Delay(oobject_t list, oint32_t ac);
+static void native_RemoveTimer(oobject_t list, oint32_t ac);
+static void native_ShowCursor(oobject_t list, oint32_t ac);
+/* ttf */
+static void query_font(ofont_t *of);
+static void native_OpenFont(oobject_t list, oint32_t ac);
+static void native_ChangeFont(oobject_t list, oint32_t ac);
+static void native_GlyphIsProvided(oobject_t list, oint32_t ac);
+static void native_GlyphMetrics(oobject_t list, oint32_t ac);
+static void native_SizeText(oobject_t list, oint32_t ac);
+static void native_SizeUTF8(oobject_t list, oint32_t ac);
+static void native_SizeUNICODE(oobject_t list, oint32_t ac);
+static void native_RenderText_Solid(oobject_t list, oint32_t ac);
+static void native_RenderUTF8_Solid(oobject_t list, oint32_t ac);
+static void native_RenderUNICODE_Solid(oobject_t list, oint32_t ac);
+static void native_RenderGlyph_Solid(oobject_t list, oint32_t ac);
+static void native_RenderText_Shaded(oobject_t list, oint32_t ac);
+static void native_RenderUTF8_Shaded(oobject_t list, oint32_t ac);
+static void native_RenderUNICODE_Shaded(oobject_t list, oint32_t ac);
+static void native_RenderGlyph_Shaded(oobject_t list, oint32_t ac);
+static void native_RenderText_Blended(oobject_t list, oint32_t ac);
+static void native_RenderUTF8_Blended(oobject_t list, oint32_t ac);
+static void native_RenderUNICODE_Blended(oobject_t list, oint32_t ac);
+static void native_RenderGlyph_Blended(oobject_t list, oint32_t ac);
+static void native_RenderText_Blended_Wrapped(oobject_t list, oint32_t ac);
+static void native_RenderUTF8_Blended_Wrapped(oobject_t list, oint32_t ac);
+static void native_RenderUNICODE_Blended_Wrapped(oobject_t list, oint32_t ac);
+static void native_GetFontKerningSize(oobject_t list, oint32_t ac);
+static void native_CloseFont(oobject_t list, oint32_t ac);
+/* mix */
+static void native_OpenAudio(oobject_t list, oint32_t ac);
+static void native_AllocateChannels(oobject_t list, oint32_t ac);
+static void native_LoadChunk(oobject_t list, oint32_t ac);
 static void channel_callback(int channel);
-static void native_play_channel(oobject_t list, oint32_t ac);
-static void native_fade_in_channel(oobject_t list, oint32_t ac);
-static void native_volume_chunk(oobject_t list, oint32_t ac);
-static void native_panning_channel(oobject_t list, oint32_t ac);
-static void native_position_channel(oobject_t list, oint32_t ac);
-static void native_distance_channel(oobject_t list, oint32_t ac);
-static void native_reverse_stereo_channel(oobject_t list, oint32_t ac);
-static void native_fade_out_channel(oobject_t list, oint32_t ac);
-static void native_playing_channel(oobject_t list, oint32_t ac);
-static void native_fading_channel(oobject_t list, oint32_t ac);
-static void native_expire_channel(oobject_t list, oint32_t ac);
-static void native_pause_channel(oobject_t list, oint32_t ac);
-static void native_resume_channel(oobject_t list, oint32_t ac);
-static void native_paused_channel(oobject_t list, oint32_t ac);
-static void native_halt_channel(oobject_t list, oint32_t ac);
-static void native_free_chunk(oobject_t list, oint32_t ac);
-static void native_group_channel(oobject_t list, oint32_t ac);
-static void native_group_channels(oobject_t list, oint32_t ac);
-static void native_group_available(oobject_t list, oint32_t ac);
-static void native_group_count(oobject_t list, oint32_t ac);
-static void native_group_oldest(oobject_t list, oint32_t ac);
-static void native_group_newer(oobject_t list, oint32_t ac);
-static void native_fade_out_group(oobject_t list, oint32_t ac);
-static void native_halt_group(oobject_t list, oint32_t ac);
-static void native_load_music(oobject_t list, oint32_t ac);
+static void native_PlayChannel(oobject_t list, oint32_t ac);
+static void native_FadeInChannel(oobject_t list, oint32_t ac);
+static void native_VolumeChunk(oobject_t list, oint32_t ac);
+static void native_SetPanning(oobject_t list, oint32_t ac);
+static void native_SetPosition(oobject_t list, oint32_t ac);
+static void native_SetDistance(oobject_t list, oint32_t ac);
+static void native_SetReverseStereo(oobject_t list, oint32_t ac);
+static void native_FadeOutChannel(oobject_t list, oint32_t ac);
+static void native_Playing(oobject_t list, oint32_t ac);
+static void native_FadingChannel(oobject_t list, oint32_t ac);
+static void native_ExpireChannel(oobject_t list, oint32_t ac);
+static void native_Pause(oobject_t list, oint32_t ac);
+static void native_Resume(oobject_t list, oint32_t ac);
+static void native_Paused(oobject_t list, oint32_t ac);
+static void native_HaltChannel(oobject_t list, oint32_t ac);
+static void native_FreeChunk(oobject_t list, oint32_t ac);
+static void native_GroupChannel(oobject_t list, oint32_t ac);
+static void native_GroupChannels(oobject_t list, oint32_t ac);
+static void native_GroupAvailable(oobject_t list, oint32_t ac);
+static void native_GroupCount(oobject_t list, oint32_t ac);
+static void native_GroupOldest(oobject_t list, oint32_t ac);
+static void native_GroupNewer(oobject_t list, oint32_t ac);
+static void native_FadeOutGroup(oobject_t list, oint32_t ac);
+static void native_HaltGroup(oobject_t list, oint32_t ac);
+static void native_LoadMusic(oobject_t list, oint32_t ac);
 static void music_callback(void);
-static void native_play_music(oobject_t list, oint32_t ac);
-static void native_fade_in_music(oobject_t list, oint32_t ac);
-static void native_volume_music(oobject_t list, oint32_t ac);
-static void native_playing_music(oobject_t list, oint32_t ac);
-static void native_fade_out_music(oobject_t list, oint32_t ac);
-static void native_fading_music(oobject_t list, oint32_t ac);
-static void native_pause_music(oobject_t list, oint32_t ac);
-static void native_resume_music(oobject_t list, oint32_t ac);
-static void native_rewind_music(oobject_t list, oint32_t ac);
-static void native_paused_music(oobject_t list, oint32_t ac);
-static void native_set_music_position(oobject_t list, oint32_t ac);
-static void native_halt_music(oobject_t list, oint32_t ac);
-static void native_free_music(oobject_t list, oint32_t ac);
-static void native_close_audio(oobject_t list, oint32_t ac);
-static void native_show_cursor(oobject_t list, oint32_t ac);
+static void native_PlayMusic(oobject_t list, oint32_t ac);
+static void native_FadeInMusic(oobject_t list, oint32_t ac);
+static void native_VolumeMusic(oobject_t list, oint32_t ac);
+static void native_PlayingMusic(oobject_t list, oint32_t ac);
+static void native_FadeOutMusic(oobject_t list, oint32_t ac);
+static void native_FadingMusic(oobject_t list, oint32_t ac);
+static void native_PauseMusic(oobject_t list, oint32_t ac);
+static void native_ResumeMusic(oobject_t list, oint32_t ac);
+static void native_RewindMusic(oobject_t list, oint32_t ac);
+static void native_PausedMusic(oobject_t list, oint32_t ac);
+static void native_SetMusicPosition(oobject_t list, oint32_t ac);
+static void native_HaltMusic(oobject_t list, oint32_t ac);
+static void native_FreeMusic(oobject_t list, oint32_t ac);
+static void native_CloseAudio(oobject_t list, oint32_t ac);
 /* sdl.gl */
-static void native_reset_attributes(oobject_t list, oint32_t ac);
-static void native_set_attribute(oobject_t list, oint32_t ac);
-static void native_get_attribute(oobject_t list, oint32_t ac);
-static void native_create_context(oobject_t list, oint32_t ac);
-static void native_make_current(oobject_t list, oint32_t ac);
-static void native_get_current_window(oobject_t list, oint32_t ac);
-static void native_get_current_context(oobject_t list, oint32_t ac);
-static void native_set_swap_interval(oobject_t list, oint32_t ac);
-static void native_get_swap_interval(oobject_t list, oint32_t ac);
-static void native_swap_window(oobject_t list, oint32_t ac);
-static void native_delete_context(oobject_t list, oint32_t ac);
+static void native_ResetAttributes(oobject_t list, oint32_t ac);
+static void native_SetAttribute(oobject_t list, oint32_t ac);
+static void native_GetAttribute(oobject_t list, oint32_t ac);
+static void native_CreateContext(oobject_t list, oint32_t ac);
+static void native_MakeCurrent(oobject_t list, oint32_t ac);
+static void native_GetCurrentWindow(oobject_t list, oint32_t ac);
+static void native_GetCurrentContext(oobject_t list, oint32_t ac);
+static void native_SetSwapInterval(oobject_t list, oint32_t ac);
+static void native_GetSwapInterval(oobject_t list, oint32_t ac);
+static void native_SwapWindow(oobject_t list, oint32_t ac);
+static void native_DeleteContext(oobject_t list, oint32_t ac);
 static void query_format(SDL_Surface*, uint32_t*, uint32_t*);
 static void native_ReadPixels(oobject_t list, oint32_t ac);
 static void native_DrawPixels(oobject_t list, oint32_t ac);
@@ -200,6 +202,8 @@ static void ret_u32(oregister_t *r, ouint32_t v);
  * Initialization
  */
 orecord_t	*sdl_record;
+orecord_t	*ttf_record;
+orecord_t	*mix_record;
 orecord_t	*sdl_gl_record;
 
 static struct {
@@ -207,460 +211,470 @@ static struct {
     int		 value;
 } sdl[] = {
     /* event_t.state */
-    { "Pressed",			SDL_PRESSED },
-    { "Released",			SDL_RELEASED },
+    { "PRESSED",			SDL_PRESSED },
+    { "RELEASED",			SDL_RELEASED },
     /* event_t.button */
-    { "ButtonLeft",			SDL_BUTTON_LEFT },
-    { "ButtonMiddle",			SDL_BUTTON_MIDDLE },
-    { "ButtonRight",			SDL_BUTTON_RIGHT },
-    { "ButtonX1",			SDL_BUTTON_X1 },
-    { "ButtonX2",			SDL_BUTTON_X2 },
+    { "BUTTON_LEFT",			SDL_BUTTON_LEFT },
+    { "BUTTON_MIDDLE",			SDL_BUTTON_MIDDLE },
+    { "BUTTON_RIGHT",			SDL_BUTTON_RIGHT },
+    { "BUTTON_X1",			SDL_BUTTON_X1 },
+    { "BUTTON_X2",			SDL_BUTTON_X2 },
     /* event_t.state (for EventMouse*) */
-    { "ButtonLMask",			SDL_BUTTON_LMASK },
-    { "ButtonMMask",			SDL_BUTTON_MMASK },
-    { "ButtonRMask",			SDL_BUTTON_RMASK },
-    { "ButtonX1Mask",			SDL_BUTTON_X1MASK },
-    { "ButtonX2Mask",			SDL_BUTTON_X2MASK },
+    { "BUTTON_LMASK",			SDL_BUTTON_LMASK },
+    { "BUTTON_MMASK",			SDL_BUTTON_MMASK },
+    { "BUTTON_RMASK",			SDL_BUTTON_RMASK },
+    { "BUTTON_X1MASK",			SDL_BUTTON_X1MASK },
+    { "BUTTON_X2MASK",			SDL_BUTTON_X2MASK },
     /* event_t.event */
-    { "WindowEventShown",		SDL_WINDOWEVENT_SHOWN },
-    { "WindowEventHidden",		SDL_WINDOWEVENT_HIDDEN },
-    { "WindowEventExposed",		SDL_WINDOWEVENT_EXPOSED },
-    { "WindowEventMoved",		SDL_WINDOWEVENT_MOVED },
-    { "WindowEventResized",		SDL_WINDOWEVENT_RESIZED },
-    { "WindowEventSizeChanged",		SDL_WINDOWEVENT_SIZE_CHANGED },
-    { "WindowEventMinimized",		SDL_WINDOWEVENT_MINIMIZED },
-    { "WindowEventMaximized",		SDL_WINDOWEVENT_MAXIMIZED },
-    { "WindowEventRestored",		SDL_WINDOWEVENT_RESTORED },
-    { "WindowEventEnter",		SDL_WINDOWEVENT_ENTER },
-    { "WindowEventLeave",		SDL_WINDOWEVENT_LEAVE },
-    { "WindowEventFocusGained",		SDL_WINDOWEVENT_FOCUS_GAINED },
-    { "WindowEventFocusLost",		SDL_WINDOWEVENT_FOCUS_LOST },
-    { "WindowEventClose",		SDL_WINDOWEVENT_CLOSE },
+    { "WINDOWEVENT_SHOWN",		SDL_WINDOWEVENT_SHOWN },
+    { "WINDOWEVENT_HIDDEN",		SDL_WINDOWEVENT_HIDDEN },
+    { "WINDOWEVENT_EXPOSED",		SDL_WINDOWEVENT_EXPOSED },
+    { "WINDOWEVENT_MOVED",		SDL_WINDOWEVENT_MOVED },
+    { "WINDOWEVENT_RESIZED",		SDL_WINDOWEVENT_RESIZED },
+    { "WINDOWEVENT_SIZE_CHANGED",	SDL_WINDOWEVENT_SIZE_CHANGED },
+    { "WINDOWEVENT_MINIMIZED",		SDL_WINDOWEVENT_MINIMIZED },
+    { "WINDOWEVENT_MAXIMIZED",		SDL_WINDOWEVENT_MAXIMIZED },
+    { "WINDOWEVENT_RESTORED",		SDL_WINDOWEVENT_RESTORED },
+    { "WINDOWEVENT_ENTER",		SDL_WINDOWEVENT_ENTER },
+    { "WINDOWEVENT_LEAVE",		SDL_WINDOWEVENT_LEAVE },
+    { "WINDOWEVENT_FOCUS_GAINED",	SDL_WINDOWEVENT_FOCUS_GAINED },
+    { "WINDOWEVENT_FOCUS_LOST",		SDL_WINDOWEVENT_FOCUS_LOST },
+    { "WINDOWEVENT_CLOSE",		SDL_WINDOWEVENT_CLOSE },
     /* event_t.hat */
-    { "HatCentered",			SDL_HAT_CENTERED },
-    { "HatUp",				SDL_HAT_UP },
-    { "HatRight",			SDL_HAT_RIGHT },
-    { "HatDown",			SDL_HAT_DOWN },
-    { "HatLeft",			SDL_HAT_LEFT },
-    { "HatRightup",			SDL_HAT_RIGHTUP },
-    { "HatRightdown",			SDL_HAT_RIGHTDOWN },
-    { "HatLeftup",			SDL_HAT_LEFTUP },
-    { "HatLeftdown",			SDL_HAT_LEFTDOWN },
+    { "HAT_CENTERED",			SDL_HAT_CENTERED },
+    { "HAT_UP",				SDL_HAT_UP },
+    { "HAT_RIGHT",			SDL_HAT_RIGHT },
+    { "HAT_DOWN",			SDL_HAT_DOWN },
+    { "HAT_LEFT",			SDL_HAT_LEFT },
+    { "HAT_RIGHTUP",			SDL_HAT_RIGHTUP },
+    { "HAT_RIGHTDOWN",			SDL_HAT_RIGHTDOWN },
+    { "HAT_LEFTUP",			SDL_HAT_LEFTUP },
+    { "HAT_LEFTDOWN",			SDL_HAT_LEFTDOWN },
     /* event_t.keysym*/
-    { "Key_Return",			SDLK_RETURN },
-    { "Key_Escape",			SDLK_ESCAPE },
-    { "Key_Backspace",			SDLK_BACKSPACE },
-    { "Key_Tab",			SDLK_TAB },
-    { "Key_Space",			SDLK_SPACE },
-    { "Key_Exclaim",			SDLK_EXCLAIM },
-    { "Key_Quotedbl",			SDLK_QUOTEDBL },
-    { "Key_Hash",			SDLK_HASH },
-    { "Key_Percent",			SDLK_PERCENT },
-    { "Key_Dollar",			SDLK_DOLLAR },
-    { "Key_Ampersand",			SDLK_AMPERSAND },
-    { "Key_Quote",			SDLK_QUOTE },
-    { "Key_LeftParen",			SDLK_LEFTPAREN },
-    { "Key_RightParen",			SDLK_RIGHTPAREN },
-    { "Key_Asterisk",			SDLK_ASTERISK },
-    { "Key_Plus",			SDLK_PLUS },
-    { "Key_Comma",			SDLK_COMMA },
-    { "Key_Minus",			SDLK_MINUS },
-    { "Key_Period",			SDLK_PERIOD },
-    { "Key_Slash",			SDLK_SLASH },
-    { "Key_0",				SDLK_0 },
-    { "Key_1",				SDLK_1 },
-    { "Key_2",				SDLK_2 },
-    { "Key_3",				SDLK_3 },
-    { "Key_4",				SDLK_4 },
-    { "Key_5",				SDLK_5 },
-    { "Key_6",				SDLK_6 },
-    { "Key_7",				SDLK_7 },
-    { "Key_8",				SDLK_8 },
-    { "Key_9",				SDLK_9 },
-    { "Key_Colon",			SDLK_COLON },
-    { "Key_Semicolon",			SDLK_SEMICOLON },
-    { "Key_Less",			SDLK_LESS },
-    { "Key_Equals",			SDLK_EQUALS },
-    { "Key_Greater",			SDLK_GREATER },
-    { "Key_Question",			SDLK_QUESTION },
-    { "Key_At",				SDLK_AT },
-    { "Key_LeftBracket",		SDLK_LEFTBRACKET },
-    { "Key_Backslash",			SDLK_BACKSLASH },
-    { "Key_RightBracket",		SDLK_RIGHTBRACKET },
-    { "Key_Caret",			SDLK_CARET },
-    { "Key_Underscore",			SDLK_UNDERSCORE },
-    { "Key_Backquote",			SDLK_BACKQUOTE },
-    { "Key_a",				SDLK_a },
-    { "Key_b",				SDLK_b },
-    { "Key_c",				SDLK_c },
-    { "Key_d",				SDLK_d },
-    { "Key_e",				SDLK_e },
-    { "Key_f",				SDLK_f },
-    { "Key_g",				SDLK_g },
-    { "Key_h",				SDLK_h },
-    { "Key_i",				SDLK_i },
-    { "Key_j",				SDLK_j },
-    { "Key_k",				SDLK_k },
-    { "Key_l",				SDLK_l },
-    { "Key_m",				SDLK_m },
-    { "Key_n",				SDLK_n },
-    { "Key_o",				SDLK_o },
-    { "Key_p",				SDLK_p },
-    { "Key_q",				SDLK_q },
-    { "Key_r",				SDLK_r },
-    { "Key_s",				SDLK_s },
-    { "Key_t",				SDLK_t },
-    { "Key_u",				SDLK_u },
-    { "Key_v",				SDLK_v },
-    { "Key_w",				SDLK_w },
-    { "Key_x",				SDLK_x },
-    { "Key_y",				SDLK_y },
-    { "Key_z",				SDLK_z },
-    { "Key_CapsLock",			SDLK_CAPSLOCK },
-    { "Key_F1",				SDLK_F1 },
-    { "Key_F2",				SDLK_F2 },
-    { "Key_F3",				SDLK_F3 },
-    { "Key_F4",				SDLK_F4 },
-    { "Key_F5",				SDLK_F5 },
-    { "Key_F6",				SDLK_F6 },
-    { "Key_F7",				SDLK_F7 },
-    { "Key_F8",				SDLK_F8 },
-    { "Key_F9",				SDLK_F9 },
-    { "Key_F10",			SDLK_F10 },
-    { "Key_F11",			SDLK_F11 },
-    { "Key_F12",			SDLK_F12 },
-    { "Key_PrintScreen",		SDLK_PRINTSCREEN },
-    { "Key_ScrollLock",			SDLK_SCROLLLOCK },
-    { "Key_Pause",			SDLK_PAUSE },
-    { "Key_Insert",			SDLK_INSERT },
-    { "Key_Home",			SDLK_HOME },
-    { "Key_PageUp",			SDLK_PAGEUP },
-    { "Key_Delete",			SDLK_DELETE },
-    { "Key_End",			SDLK_END },
-    { "Key_PageDown",			SDLK_PAGEDOWN },
-    { "Key_Right",			SDLK_RIGHT },
-    { "Key_Left",			SDLK_LEFT },
-    { "Key_Down",			SDLK_DOWN },
-    { "Key_Up",				SDLK_UP },
-    { "Key_NumlockClear",		SDLK_NUMLOCKCLEAR },
-    { "Key_KP_Divide",			SDLK_KP_DIVIDE },
-    { "Key_KP_Multiply",		SDLK_KP_MULTIPLY },
-    { "Key_KP_Minus",			SDLK_KP_MINUS },
-    { "Key_KP_Plus",			SDLK_KP_PLUS },
-    { "Key_KP_Enter",			SDLK_KP_ENTER },
-    { "Key_KP_1",			SDLK_KP_1 },
-    { "Key_KP_2",			SDLK_KP_2 },
-    { "Key_KP_3",			SDLK_KP_3 },
-    { "Key_KP_4",			SDLK_KP_4 },
-    { "Key_KP_5",			SDLK_KP_5 },
-    { "Key_KP_6",			SDLK_KP_6 },
-    { "Key_KP_7",			SDLK_KP_7 },
-    { "Key_KP_8",			SDLK_KP_8 },
-    { "Key_KP_9",			SDLK_KP_9 },
-    { "Key_KP_0",			SDLK_KP_0 },
-    { "Key_KP_Period",			SDLK_KP_PERIOD },
-    { "Key_Application",		SDLK_APPLICATION },
-    { "Key_Power",			SDLK_POWER },
-    { "Key_KP_Equals",			SDLK_KP_EQUALS },
-    { "Key_F13",			SDLK_F13 },
-    { "Key_F14",			SDLK_F14 },
-    { "Key_F15",			SDLK_F15 },
-    { "Key_F16",			SDLK_F16 },
-    { "Key_F17",			SDLK_F17 },
-    { "Key_F18",			SDLK_F18 },
-    { "Key_F19",			SDLK_F19 },
-    { "Key_F20",			SDLK_F20 },
-    { "Key_F21",			SDLK_F21 },
-    { "Key_F22",			SDLK_F22 },
-    { "Key_F23",			SDLK_F23 },
-    { "Key_F24",			SDLK_F24 },
-    { "Key_Execute",			SDLK_EXECUTE },
-    { "Key_Help",			SDLK_HELP },
-    { "Key_Menu",			SDLK_MENU },
-    { "Key_Select",			SDLK_SELECT },
-    { "Key_Stop",			SDLK_STOP },
-    { "Key_Again",			SDLK_AGAIN },
-    { "Key_Undo",			SDLK_UNDO },
-    { "Key_Cut",			SDLK_CUT },
-    { "Key_Copy",			SDLK_COPY },
-    { "Key_Paste",			SDLK_PASTE },
-    { "Key_Find",			SDLK_FIND },
-    { "Key_Mute",			SDLK_MUTE },
-    { "Key_VolumeUp",			SDLK_VOLUMEUP },
-    { "Key_VolumeDown",			SDLK_VOLUMEDOWN },
-    { "Key_KP_Comma",			SDLK_KP_COMMA },
-    { "Key_KP_EqualsAs400",		SDLK_KP_EQUALSAS400 },
-    { "Key_AltErase",			SDLK_ALTERASE },
-    { "Key_SysReq",			SDLK_SYSREQ },
-    { "Key_Cancel",			SDLK_CANCEL },
-    { "Key_Clear",			SDLK_CLEAR },
-    { "Key_Prior",			SDLK_PRIOR },
-    { "Key_Return2",			SDLK_RETURN2 },
-    { "Key_Separator",			SDLK_SEPARATOR },
-    { "Key_Out",			SDLK_OUT },
-    { "Key_Oper",			SDLK_OPER },
-    { "Key_ClearAgain",			SDLK_CLEARAGAIN },
-    { "Key_Crsel",			SDLK_CRSEL },
-    { "Key_Exsel",			SDLK_EXSEL },
-    { "Key_KP_00",			SDLK_KP_00 },
-    { "Key_KP_000",			SDLK_KP_000 },
-    { "Key_ThousandsSeparator",		SDLK_THOUSANDSSEPARATOR },
-    { "Key_DecimalSeparator",		SDLK_DECIMALSEPARATOR },
-    { "Key_CurrencyUnit",		SDLK_CURRENCYUNIT },
-    { "Key_CurrencySubUnit",		SDLK_CURRENCYSUBUNIT },
-    { "Key_KP_LeftParen",		SDLK_KP_LEFTPAREN },
-    { "Key_KP_RightParen",		SDLK_KP_RIGHTPAREN },
-    { "Key_KP_LeftBrace",		SDLK_KP_LEFTBRACE },
-    { "Key_KP_RightBrace",		SDLK_KP_RIGHTBRACE },
-    { "Key_KP_Tab",			SDLK_KP_TAB },
-    { "Key_KP_Backspace",		SDLK_KP_BACKSPACE },
-    { "Key_KP_A",			SDLK_KP_A },
-    { "Key_KP_B",			SDLK_KP_B },
-    { "Key_KP_C",			SDLK_KP_C },
-    { "Key_KP_D",			SDLK_KP_D },
-    { "Key_KP_E",			SDLK_KP_E },
-    { "Key_KP_F",			SDLK_KP_F },
-    { "Key_KP_Xor",			SDLK_KP_XOR },
-    { "Key_KP_Power",			SDLK_KP_POWER },
-    { "Key_KP_Percent",			SDLK_KP_PERCENT },
-    { "Key_KP_Less",			SDLK_KP_LESS },
-    { "Key_KP_Greater",			SDLK_KP_GREATER },
-    { "Key_KP_Ampersand",		SDLK_KP_AMPERSAND },
-    { "Key_KP_Dblampersand",		SDLK_KP_DBLAMPERSAND },
-    { "Key_KP_VerticalBar",		SDLK_KP_VERTICALBAR },
-    { "Key_KP_DblverticalBar",		SDLK_KP_DBLVERTICALBAR },
-    { "Key_KP_Colon",			SDLK_KP_COLON },
-    { "Key_KP_Hash",			SDLK_KP_HASH },
-    { "Key_KP_Space",			SDLK_KP_SPACE },
-    { "Key_KP_At",			SDLK_KP_AT },
-    { "Key_KP_Exclam",			SDLK_KP_EXCLAM },
-    { "Key_KP_MemStore",		SDLK_KP_MEMSTORE },
-    { "Key_KP_MemRecall",		SDLK_KP_MEMRECALL },
-    { "Key_KP_MemClear",		SDLK_KP_MEMCLEAR },
-    { "Key_KP_MemAdd",			SDLK_KP_MEMADD },
-    { "Key_KP_MemSubtract",		SDLK_KP_MEMSUBTRACT },
-    { "Key_KP_MemMultiply",		SDLK_KP_MEMMULTIPLY },
-    { "Key_KP_MemDivide",		SDLK_KP_MEMDIVIDE },
-    { "Key_KP_PlusMinus",		SDLK_KP_PLUSMINUS },
-    { "Key_KP_Clear",			SDLK_KP_CLEAR },
-    { "Key_KP_ClearEntry",		SDLK_KP_CLEARENTRY },
-    { "Key_KP_Binary",			SDLK_KP_BINARY },
-    { "Key_KP_Octal",			SDLK_KP_OCTAL },
-    { "Key_KP_Decimal",			SDLK_KP_DECIMAL },
-    { "Key_KP_Hexadecimal",		SDLK_KP_HEXADECIMAL },
-    { "Key_Lctrl",			SDLK_LCTRL },
-    { "Key_Lshift",			SDLK_LSHIFT },
-    { "Key_Lalt",			SDLK_LALT },
-    { "Key_Lgui",			SDLK_LGUI },
-    { "Key_Rctrl",			SDLK_RCTRL },
-    { "Key_Rshift",			SDLK_RSHIFT },
-    { "Key_Ralt",			SDLK_RALT },
-    { "Key_Rgui",			SDLK_RGUI },
-    { "Key_Mode",			SDLK_MODE },
-    { "Key_AudioNext",			SDLK_AUDIONEXT },
-    { "Key_AudioPrev",			SDLK_AUDIOPREV },
-    { "Key_AudioStop",			SDLK_AUDIOSTOP },
-    { "Key_AudioPlay",			SDLK_AUDIOPLAY },
-    { "Key_AudioMute",			SDLK_AUDIOMUTE },
-    { "Key_MediaSelect",		SDLK_MEDIASELECT },
-    { "Key_WWW",			SDLK_WWW },
-    { "Key_Mail",			SDLK_MAIL },
-    { "Key_Calculator",			SDLK_CALCULATOR },
-    { "Key_Computer",			SDLK_COMPUTER },
-    { "Key_AC_Search",			SDLK_AC_SEARCH },
-    { "Key_AC_Home",			SDLK_AC_HOME },
-    { "Key_AC_Back",			SDLK_AC_BACK },
-    { "Key_AC_Forward",			SDLK_AC_FORWARD },
-    { "Key_AC_Stop",			SDLK_AC_STOP },
-    { "Key_AC_Refresh",			SDLK_AC_REFRESH },
-    { "Key_AC_Bookmarks",		SDLK_AC_BOOKMARKS },
-    { "Key_BrightnessDown",		SDLK_BRIGHTNESSDOWN },
-    { "Key_BrightnessUp",		SDLK_BRIGHTNESSUP },
-    { "Key_DisplaySwitch",		SDLK_DISPLAYSWITCH },
-    { "Key_KbdillumToggle",		SDLK_KBDILLUMTOGGLE },
-    { "Key_KbdillumDown",		SDLK_KBDILLUMDOWN },
-    { "Key_KbdillumUp",			SDLK_KBDILLUMUP },
-    { "Key_Eject",			SDLK_EJECT },
-    { "Key_Sleep",			SDLK_SLEEP },
+    { "K_RETURN",			SDLK_RETURN },
+    { "K_ESCAPE",			SDLK_ESCAPE },
+    { "K_BACKSPACE",			SDLK_BACKSPACE },
+    { "K_TAB",				SDLK_TAB },
+    { "K_SPACE",			SDLK_SPACE },
+    { "K_EXCLAIM",			SDLK_EXCLAIM },
+    { "K_QUOTEDBL",			SDLK_QUOTEDBL },
+    { "K_HASH",				SDLK_HASH },
+    { "K_PERCENT",			SDLK_PERCENT },
+    { "K_DOLLAR",			SDLK_DOLLAR },
+    { "K_AMPERSAND",			SDLK_AMPERSAND },
+    { "K_QUOTE",			SDLK_QUOTE },
+    { "K_LEFTPAREN",			SDLK_LEFTPAREN },
+    { "K_RIGHTPAREN",			SDLK_RIGHTPAREN },
+    { "K_ASTERISK",			SDLK_ASTERISK },
+    { "K_PLUS",				SDLK_PLUS },
+    { "K_COMMA",			SDLK_COMMA },
+    { "K_MINUS",			SDLK_MINUS },
+    { "K_PERIOD",			SDLK_PERIOD },
+    { "K_SLASH",			SDLK_SLASH },
+    { "K_0",				SDLK_0 },
+    { "K_1",				SDLK_1 },
+    { "K_2",				SDLK_2 },
+    { "K_3",				SDLK_3 },
+    { "K_4",				SDLK_4 },
+    { "K_5",				SDLK_5 },
+    { "K_6",				SDLK_6 },
+    { "K_7",				SDLK_7 },
+    { "K_8",				SDLK_8 },
+    { "K_9",				SDLK_9 },
+    { "K_COLON",			SDLK_COLON },
+    { "K_SEMICOLON",			SDLK_SEMICOLON },
+    { "K_LESS",				SDLK_LESS },
+    { "K_EQUALS",			SDLK_EQUALS },
+    { "K_GREATER",			SDLK_GREATER },
+    { "K_QUESTION",			SDLK_QUESTION },
+    { "K_AT",				SDLK_AT },
+    { "K_LEFTBRACKET",			SDLK_LEFTBRACKET },
+    { "K_BACKSLASH",			SDLK_BACKSLASH },
+    { "K_RIGHTBRACKET",			SDLK_RIGHTBRACKET },
+    { "K_CARET",			SDLK_CARET },
+    { "K_UNDERSCORE",			SDLK_UNDERSCORE },
+    { "K_BACKQUOTE",			SDLK_BACKQUOTE },
+    { "K_a",				SDLK_a },
+    { "K_b",				SDLK_b },
+    { "K_c",				SDLK_c },
+    { "K_d",				SDLK_d },
+    { "K_e",				SDLK_e },
+    { "K_f",				SDLK_f },
+    { "K_g",				SDLK_g },
+    { "K_h",				SDLK_h },
+    { "K_i",				SDLK_i },
+    { "K_j",				SDLK_j },
+    { "K_k",				SDLK_k },
+    { "K_l",				SDLK_l },
+    { "K_m",				SDLK_m },
+    { "K_n",				SDLK_n },
+    { "K_o",				SDLK_o },
+    { "K_p",				SDLK_p },
+    { "K_q",				SDLK_q },
+    { "K_r",				SDLK_r },
+    { "K_s",				SDLK_s },
+    { "K_t",				SDLK_t },
+    { "K_u",				SDLK_u },
+    { "K_v",				SDLK_v },
+    { "K_w",				SDLK_w },
+    { "K_x",				SDLK_x },
+    { "K_y",				SDLK_y },
+    { "K_z",				SDLK_z },
+    { "K_CAPSLOCK",			SDLK_CAPSLOCK },
+    { "K_F1",				SDLK_F1 },
+    { "K_F2",				SDLK_F2 },
+    { "K_F3",				SDLK_F3 },
+    { "K_F4",				SDLK_F4 },
+    { "K_F5",				SDLK_F5 },
+    { "K_F6",				SDLK_F6 },
+    { "K_F7",				SDLK_F7 },
+    { "K_F8",				SDLK_F8 },
+    { "K_F9",				SDLK_F9 },
+    { "K_F10",				SDLK_F10 },
+    { "K_F11",				SDLK_F11 },
+    { "K_F12",				SDLK_F12 },
+    { "K_PRINTSCREEN",			SDLK_PRINTSCREEN },
+    { "K_SCROLLLOCK",			SDLK_SCROLLLOCK },
+    { "K_PAUSE",			SDLK_PAUSE },
+    { "K_INSERT",			SDLK_INSERT },
+    { "K_HOME",				SDLK_HOME },
+    { "K_PAGEUP",			SDLK_PAGEUP },
+    { "K_DELETE",			SDLK_DELETE },
+    { "K_END",				SDLK_END },
+    { "K_PAGEDOWN",			SDLK_PAGEDOWN },
+    { "K_RIGHT",			SDLK_RIGHT },
+    { "K_LEFT",				SDLK_LEFT },
+    { "K_DOWN",				SDLK_DOWN },
+    { "K_UP",				SDLK_UP },
+    { "K_NUMLOCKCLEAR",			SDLK_NUMLOCKCLEAR },
+    { "K_KP_DIVIDE",			SDLK_KP_DIVIDE },
+    { "K_KP_MULTIPLY",			SDLK_KP_MULTIPLY },
+    { "K_KP_MINUS",			SDLK_KP_MINUS },
+    { "K_KP_PLUS",			SDLK_KP_PLUS },
+    { "K_KP_ENTER",			SDLK_KP_ENTER },
+    { "K_KP_1",				SDLK_KP_1 },
+    { "K_KP_2",				SDLK_KP_2 },
+    { "K_KP_3",				SDLK_KP_3 },
+    { "K_KP_4",				SDLK_KP_4 },
+    { "K_KP_5",				SDLK_KP_5 },
+    { "K_KP_6",				SDLK_KP_6 },
+    { "K_KP_7",				SDLK_KP_7 },
+    { "K_KP_8",				SDLK_KP_8 },
+    { "K_KP_9",				SDLK_KP_9 },
+    { "K_KP_0",				SDLK_KP_0 },
+    { "K_KP_PERIOD",			SDLK_KP_PERIOD },
+    { "K_APPLICATION",			SDLK_APPLICATION },
+    { "K_POWER",			SDLK_POWER },
+    { "K_KP_EQUALS",			SDLK_KP_EQUALS },
+    { "K_F13",				SDLK_F13 },
+    { "K_F14",				SDLK_F14 },
+    { "K_F15",				SDLK_F15 },
+    { "K_F16",				SDLK_F16 },
+    { "K_F17",				SDLK_F17 },
+    { "K_F18",				SDLK_F18 },
+    { "K_F19",				SDLK_F19 },
+    { "K_F20",				SDLK_F20 },
+    { "K_F21",				SDLK_F21 },
+    { "K_F22",				SDLK_F22 },
+    { "K_F23",				SDLK_F23 },
+    { "K_F24",				SDLK_F24 },
+    { "K_EXECUTE",			SDLK_EXECUTE },
+    { "K_HELP",				SDLK_HELP },
+    { "K_MENU",				SDLK_MENU },
+    { "K_SELECT",			SDLK_SELECT },
+    { "K_STOP",				SDLK_STOP },
+    { "K_AGAIN",			SDLK_AGAIN },
+    { "K_UNDO",				SDLK_UNDO },
+    { "K_CUT",				SDLK_CUT },
+    { "K_COPY",				SDLK_COPY },
+    { "K_PASTE",			SDLK_PASTE },
+    { "K_FIND",				SDLK_FIND },
+    { "K_MUTE",				SDLK_MUTE },
+    { "K_VOLUMEUP",			SDLK_VOLUMEUP },
+    { "K_VOLUMEDOWN",			SDLK_VOLUMEDOWN },
+    { "K_KP_COMMA",			SDLK_KP_COMMA },
+    { "K_KP_EQUALSAS400",		SDLK_KP_EQUALSAS400 },
+    { "K_ALTERASE",			SDLK_ALTERASE },
+    { "K_SYSREQ",			SDLK_SYSREQ },
+    { "K_CANCEL",			SDLK_CANCEL },
+    { "K_CLEAR",			SDLK_CLEAR },
+    { "K_PRIOR",			SDLK_PRIOR },
+    { "K_RETURN2",			SDLK_RETURN2 },
+    { "K_SEPARATOR",			SDLK_SEPARATOR },
+    { "K_OUT",				SDLK_OUT },
+    { "K_OPER",				SDLK_OPER },
+    { "K_CLEARAGAIN",			SDLK_CLEARAGAIN },
+    { "K_CRSEL",			SDLK_CRSEL },
+    { "K_EXSEL",			SDLK_EXSEL },
+    { "K_KP_00",			SDLK_KP_00 },
+    { "K_KP_000",			SDLK_KP_000 },
+    { "K_THOUSANDSSEPARATOR",		SDLK_THOUSANDSSEPARATOR },
+    { "K_DECIMALSEPARATOR",		SDLK_DECIMALSEPARATOR },
+    { "K_CURRENCYUNIT",			SDLK_CURRENCYUNIT },
+    { "K_CURRENCYSUBUNIT",		SDLK_CURRENCYSUBUNIT },
+    { "K_KP_LEFTPAREN",			SDLK_KP_LEFTPAREN },
+    { "K_KP_RIGHTPAREN",		SDLK_KP_RIGHTPAREN },
+    { "K_KP_LEFTBRACE",			SDLK_KP_LEFTBRACE },
+    { "K_KP_RIGHTBRACE",		SDLK_KP_RIGHTBRACE },
+    { "K_KP_TAB",			SDLK_KP_TAB },
+    { "K_KP_BACKSPACE",			SDLK_KP_BACKSPACE },
+    { "K_KP_A",				SDLK_KP_A },
+    { "K_KP_B",				SDLK_KP_B },
+    { "K_KP_C",				SDLK_KP_C },
+    { "K_KP_D",				SDLK_KP_D },
+    { "K_KP_E",				SDLK_KP_E },
+    { "K_KP_F",				SDLK_KP_F },
+    { "K_KP_XOR",			SDLK_KP_XOR },
+    { "K_KP_POWER",			SDLK_KP_POWER },
+    { "K_KP_PERCENT",			SDLK_KP_PERCENT },
+    { "K_KP_LESS",			SDLK_KP_LESS },
+    { "K_KP_GREATER",			SDLK_KP_GREATER },
+    { "K_KP_AMPERSAND",			SDLK_KP_AMPERSAND },
+    { "K_KP_DBLAMPERSAND",		SDLK_KP_DBLAMPERSAND },
+    { "K_KP_VERTICALBAR",		SDLK_KP_VERTICALBAR },
+    { "K_KP_DBLVERTICALBAR",		SDLK_KP_DBLVERTICALBAR },
+    { "K_KP_COLON",			SDLK_KP_COLON },
+    { "K_KP_HASH",			SDLK_KP_HASH },
+    { "K_KP_SPACE",			SDLK_KP_SPACE },
+    { "K_KP_AT",			SDLK_KP_AT },
+    { "K_KP_EXCLAM",			SDLK_KP_EXCLAM },
+    { "K_KP_MEMSTORE",			SDLK_KP_MEMSTORE },
+    { "K_KP_MEMRECALL",			SDLK_KP_MEMRECALL },
+    { "K_KP_MEMCLEAR",			SDLK_KP_MEMCLEAR },
+    { "K_KP_MEMADD",			SDLK_KP_MEMADD },
+    { "K_KP_MEMSUBTRACT",		SDLK_KP_MEMSUBTRACT },
+    { "K_KP_MEMMULTIPLY",		SDLK_KP_MEMMULTIPLY },
+    { "K_KP_MEMDIVIDE",			SDLK_KP_MEMDIVIDE },
+    { "K_KP_PLUSMINUS",			SDLK_KP_PLUSMINUS },
+    { "K_KP_CLEAR",			SDLK_KP_CLEAR },
+    { "K_KP_CLEARENTRY",		SDLK_KP_CLEARENTRY },
+    { "K_KP_BINARY",			SDLK_KP_BINARY },
+    { "K_KP_OCTAL",			SDLK_KP_OCTAL },
+    { "K_KP_DECIMAL",			SDLK_KP_DECIMAL },
+    { "K_KP_HEXADECIMAL",		SDLK_KP_HEXADECIMAL },
+    { "K_LCTRL",			SDLK_LCTRL },
+    { "K_LSHIFT",			SDLK_LSHIFT },
+    { "K_LALT",				SDLK_LALT },
+    { "K_LGUI",				SDLK_LGUI },
+    { "K_RCTRL",			SDLK_RCTRL },
+    { "K_RSHIFT",			SDLK_RSHIFT },
+    { "K_RALT",				SDLK_RALT },
+    { "K_RGUI",				SDLK_RGUI },
+    { "K_MODE",				SDLK_MODE },
+    { "K_AUDIONEXT",			SDLK_AUDIONEXT },
+    { "K_AUDIOPREV",			SDLK_AUDIOPREV },
+    { "K_AUDIOSTOP",			SDLK_AUDIOSTOP },
+    { "K_AUDIOPLAY",			SDLK_AUDIOPLAY },
+    { "K_AUDIOMUTE",			SDLK_AUDIOMUTE },
+    { "K_MEDIASELECT",			SDLK_MEDIASELECT },
+    { "K_WWW",				SDLK_WWW },
+    { "K_MAIL",				SDLK_MAIL },
+    { "K_CALCULATOR",			SDLK_CALCULATOR },
+    { "K_COMPUTER",			SDLK_COMPUTER },
+    { "K_AC_SEARCH",			SDLK_AC_SEARCH },
+    { "K_AC_HOME",			SDLK_AC_HOME },
+    { "K_AC_BACK",			SDLK_AC_BACK },
+    { "K_AC_FORWARD",			SDLK_AC_FORWARD },
+    { "K_AC_STOP",			SDLK_AC_STOP },
+    { "K_AC_REFRESH",			SDLK_AC_REFRESH },
+    { "K_AC_BOOKMARKS",			SDLK_AC_BOOKMARKS },
+    { "K_BRIGHTNESSDOWN",		SDLK_BRIGHTNESSDOWN },
+    { "K_BRIGHTNESSUP",			SDLK_BRIGHTNESSUP },
+    { "K_DISPLAYSWITCH",		SDLK_DISPLAYSWITCH },
+    { "K_KBDILLUMTOGGLE",		SDLK_KBDILLUMTOGGLE },
+    { "K_KBDILLUMDOWN",			SDLK_KBDILLUMDOWN },
+    { "K_KBDILLUMUP",			SDLK_KBDILLUMUP },
+    { "K_EJECT",			SDLK_EJECT },
+    { "K_SLEEP",			SDLK_SLEEP },
     /* event_t.type */
-    { "EventQuit",			SDL_QUIT },
-    { "EventWindow",			SDL_WINDOWEVENT },
-    { "EventKeyDown",			SDL_KEYDOWN },
-    { "EventKeyUp",			SDL_KEYUP },
-    { "EventTextEdit",			SDL_TEXTEDITING },
-    { "EventTextInput",			SDL_TEXTINPUT },
-    { "EventMouseMotion",		SDL_MOUSEMOTION },
-    { "EventMouseButtonDown",		SDL_MOUSEBUTTONDOWN },
-    { "EventMouseButtonUp",		SDL_MOUSEBUTTONUP },
-    { "EventMouseWheel",		SDL_MOUSEWHEEL },
-    { "EventJoyAxisMotion",		SDL_JOYAXISMOTION },
-    { "EventJoyBallMotion",		SDL_JOYBALLMOTION },
-    { "EventJoyHatMotion",		SDL_JOYHATMOTION },
-    { "EventJoyButtonDown",		SDL_JOYBUTTONDOWN },
-    { "EventJoyButtonUp",		SDL_JOYBUTTONUP },
-    { "EventJoyDeviceAdded",		SDL_JOYDEVICEADDED },
-    { "EventJoyDeviceRemoved",		SDL_JOYDEVICEREMOVED },
-    { "EventControllerAxisMotion",	SDL_CONTROLLERAXISMOTION },
-    { "EventControllerButtonDown",	SDL_CONTROLLERBUTTONDOWN },
-    { "EventControllerButtonUp",	SDL_CONTROLLERBUTTONUP },
-    { "EventControllerDeviceAdded",	SDL_CONTROLLERDEVICEADDED },
-    { "EventControllerDeviceRemoved",	SDL_CONTROLLERDEVICEREMOVED },
-    { "EventControllerDeviceRemapped",	SDL_CONTROLLERDEVICEREMAPPED },
-    { "EventFingerDown",		SDL_FINGERDOWN },
-    { "EventFingerUp",			SDL_FINGERUP },
-    { "EventFingerMotion",		SDL_FINGERMOTION },
-    { "EventDollarGesture",		SDL_DOLLARGESTURE },
-    { "EventDollarRecord",		SDL_DOLLARRECORD },
-    { "EventMultiGesture",		SDL_MULTIGESTURE },
-    { "EventTimer",			SDL_USEREVENT },
-    { "EventMusicFinished",		SDL_USEREVENT + 1 },
-    { "EventChannelFinished",		SDL_USEREVENT + 2 },
+    { "QUIT",				SDL_QUIT },
+    { "WINDOWEVENT",			SDL_WINDOWEVENT },
+    { "KEYDOWN",			SDL_KEYDOWN },
+    { "KEYUP",				SDL_KEYUP },
+    { "TEXTEDITING",			SDL_TEXTEDITING },
+    { "TEXTINPUT",			SDL_TEXTINPUT },
+    { "MOUSEMOTION",			SDL_MOUSEMOTION },
+    { "MOUSEBUTTONDOWN",		SDL_MOUSEBUTTONDOWN },
+    { "MOUSEBUTTONUP",			SDL_MOUSEBUTTONUP },
+    { "MOUSEWHEEL",			SDL_MOUSEWHEEL },
+    { "JOYAXISMOTION",			SDL_JOYAXISMOTION },
+    { "JOYBALLMOTION",			SDL_JOYBALLMOTION },
+    { "JOYHATMOTION",			SDL_JOYHATMOTION },
+    { "JOYBUTTONDOWN",			SDL_JOYBUTTONDOWN },
+    { "JOYBUTTONUP",			SDL_JOYBUTTONUP },
+    { "JOYDEVICEADDED",			SDL_JOYDEVICEADDED },
+    { "JOYDEVICEREMOVED",		SDL_JOYDEVICEREMOVED },
+    { "CONTROLLERAXISMOTION",		SDL_CONTROLLERAXISMOTION },
+    { "CONTROLLERBUTTONDOWN",		SDL_CONTROLLERBUTTONDOWN },
+    { "CONTROLLERBUTTONUP",		SDL_CONTROLLERBUTTONUP },
+    { "CONTROLLERDEVICEADDED",		SDL_CONTROLLERDEVICEADDED },
+    { "CONTROLLERDEVICEREMOVED",	SDL_CONTROLLERDEVICEREMOVED },
+    { "CONTROLLERDEVICEREMAPPED",	SDL_CONTROLLERDEVICEREMAPPED },
+    { "FINGERDOWN",			SDL_FINGERDOWN },
+    { "FINGERUP",			SDL_FINGERUP },
+    { "FINGERMOTION",			SDL_FINGERMOTION },
+    { "DOLLARGESTURE",			SDL_DOLLARGESTURE },
+    { "DOLLARRECORD",			SDL_DOLLARRECORD },
+    { "MULTIGESTURE",			SDL_MULTIGESTURE },
+    { "TIMEREVENT",			SDL_USEREVENT },
+    { "MUSICFINISHEDEVENT",		SDL_USEREVENT + 1 },
+    { "CHANNELFINISHEDEVENT",		SDL_USEREVENT + 2 },
     /* create_window */
-    { "WindowFullscreen",		SDL_WINDOW_FULLSCREEN },
-    { "WindowOpenGL",			SDL_WINDOW_OPENGL },
-    { "WindowShown",			SDL_WINDOW_SHOWN },
-    { "WindowHidden",			SDL_WINDOW_HIDDEN },
-    { "WindowBorderless",		SDL_WINDOW_BORDERLESS },
-    { "WindowResizable",		SDL_WINDOW_RESIZABLE },
-    { "WindowMinimized",		SDL_WINDOW_MINIMIZED },
-    { "WindowMaximized",		SDL_WINDOW_MAXIMIZED },
-    { "WindowInputGrabbed",		SDL_WINDOW_INPUT_GRABBED },
-    { "WindowInputFocus",		SDL_WINDOW_INPUT_FOCUS },
-    { "WindowMouseFocus",		SDL_WINDOW_MOUSE_FOCUS },
-    { "WindowFullscreenDesktop",	SDL_WINDOW_FULLSCREEN_DESKTOP },
-    { "WindowForeign",			SDL_WINDOW_FOREIGN },
-    { "WindowAllowHighDpi",		SDL_WINDOW_ALLOW_HIGHDPI },
-    { "WindowposUndefined",		SDL_WINDOWPOS_UNDEFINED },
-    { "WindowposCentered",		SDL_WINDOWPOS_CENTERED },
+    { "WINDOW_FULLSCREEN",		SDL_WINDOW_FULLSCREEN },
+    { "WINDOW_OPENGL",			SDL_WINDOW_OPENGL },
+    { "WINDOW_SHOWN",			SDL_WINDOW_SHOWN },
+    { "WINDOW_HIDDEN",			SDL_WINDOW_HIDDEN },
+    { "WINDOW_BORDERLESS",		SDL_WINDOW_BORDERLESS },
+    { "WINDOW_RESIZABLE",		SDL_WINDOW_RESIZABLE },
+    { "WINDOW_MINIMIZED",		SDL_WINDOW_MINIMIZED },
+    { "WINDOW_MAXIMIZED",		SDL_WINDOW_MAXIMIZED },
+    { "WINDOW_INPUT_GRABBED",		SDL_WINDOW_INPUT_GRABBED },
+    { "WINDOW_INPUT_FOCUS",		SDL_WINDOW_INPUT_FOCUS },
+    { "WINDOW_MOUSE_FOCUS",		SDL_WINDOW_MOUSE_FOCUS },
+    { "WINDOW_FULLSCREEN_DESKTOP",	SDL_WINDOW_FULLSCREEN_DESKTOP },
+    { "WINDOW_FOREIGN",			SDL_WINDOW_FOREIGN },
+    { "WINDOW_ALLOW_HIGHDPI",		SDL_WINDOW_ALLOW_HIGHDPI },
+    { "WINDOWPOS_UNDEFINED",		SDL_WINDOWPOS_UNDEFINED },
+    { "WINDOWPOS_CENTERED",		SDL_WINDOWPOS_CENTERED },
     /* create_renderer, renderer_t.flags */
-    { "RendererSoftware",		SDL_RENDERER_SOFTWARE },
-    { "RendererAccelerated",		SDL_RENDERER_ACCELERATED },
-    { "RendererPresentVsync",		SDL_RENDERER_PRESENTVSYNC },
-    { "RendererTargetTexture",		SDL_RENDERER_TARGETTEXTURE },
+    { "RENDERER_SOFTWARE",		SDL_RENDERER_SOFTWARE },
+    { "RENDERER_ACCELERATED",		SDL_RENDERER_ACCELERATED },
+    { "RENDERER_PRESENTVSYNC",		SDL_RENDERER_PRESENTVSYNC },
+    { "RENDERER_TARGETTEXTURE",		SDL_RENDERER_TARGETTEXTURE },
     /* texture_t.access */
-    { "TextureAccessStatic",		SDL_TEXTUREACCESS_STATIC },
-    { "TextureAccessStreaming",		SDL_TEXTUREACCESS_STREAMING },
-    { "TextureAccessTarget",		SDL_TEXTUREACCESS_TARGET },
+    { "TEXTUREACCESS_STATIC",		SDL_TEXTUREACCESS_STATIC },
+    { "TEXTUREACCESS_STREAMING",	SDL_TEXTUREACCESS_STREAMING },
+    { "TEXTUREACCESS_TARGET",		SDL_TEXTUREACCESS_TARGET },
     /* surface_t.blend,texture_t.blend */
-    { "BlendModeNone",			SDL_BLENDMODE_NONE },
-    { "BlendModeBlend",			SDL_BLENDMODE_BLEND },
-    { "BlendModeAdd",			SDL_BLENDMODE_ADD },
-    { "BlendModeMod",			SDL_BLENDMODE_MOD },
+    { "BLENDMODE_NONE",			SDL_BLENDMODE_NONE },
+    { "BLENDMODE_BLEND",		SDL_BLENDMODE_BLEND },
+    { "BLENDMODE_ADD",			SDL_BLENDMODE_ADD },
+    { "BLENDMODE_MOD",			SDL_BLENDMODE_MOD },
     /* render_copy_ex */
-    { "FlipNone",			SDL_FLIP_NONE },
-    { "FlipHorizontal",			SDL_FLIP_HORIZONTAL },
-    { "FlipVertical",			SDL_FLIP_VERTICAL },
-    /* font_t.style */
-    { "StyleNormal",			TTF_STYLE_NORMAL },
-    { "StyleBold",			TTF_STYLE_BOLD },
-    { "StyleItalic",			TTF_STYLE_ITALIC },
-    { "StyleUnderline",			TTF_STYLE_UNDERLINE },
-    { "StyleStrikethrough",		TTF_STYLE_STRIKETHROUGH },
-    /* font_t.hinting */
-    { "HintingNormal",			TTF_HINTING_NORMAL },
-    { "HintingLight",			TTF_HINTING_LIGHT },
-    { "HintingMono",			TTF_HINTING_MONO },
-    { "HintingNone",			TTF_HINTING_NONE },
-    /* open_audio flags */
-    { "MixerDefaultFrequency",		MIX_DEFAULT_FREQUENCY },
-    { "MixerDefaultFormat",		MIX_DEFAULT_FORMAT },
-    { "MixerDefaultChannels",		MIX_DEFAULT_CHANNELS },
-    /* music_t.type */
-    { "MusicNone",			MUS_NONE },
-    { "MusicCmd",			MUS_CMD },
-    { "MusicWav",			MUS_WAV },
-    { "MusicMod",			MUS_MOD },
-    { "MusicMid",			MUS_MID },
-    { "MusicOgg",			MUS_OGG },
-    { "MusicMp3",			MUS_MP3 },
-    { "MusicMp3Mad",			MUS_MP3_MAD },
-    { "MusicFlac",			MUS_FLAC },
-    { "MusicModplug",			MUS_MODPLUG },
-    /* Special channel effects identifier */
-    { "MixerChannelPost",		MIX_CHANNEL_POST },
-    /* Mix_Fadding */
-    { "FadingNone",			MIX_NO_FADING },
-    { "FadingOut",			MIX_FADING_OUT },
-    { "FadingIn",			MIX_FADING_IN },
-    /* Audio format */
-    { "AudioU8",			AUDIO_U8 },
-    { "AudioS8",			AUDIO_S8 },
-    { "AudioU16Lsb",			AUDIO_U16LSB },
-    { "AudioS16Lsb",			AUDIO_S16LSB },
-    { "AudioU16Msb",			AUDIO_U16MSB },
-    { "AudioS16Msb",			AUDIO_S16MSB },
-    { "AudioU16",			AUDIO_U16 },
-    { "AudioS16",			AUDIO_S16 },
-    { "AudioS32Lsb",			AUDIO_S32LSB },
-    { "AudioS32Msb",			AUDIO_S32MSB },
-    { "AudioS32",			AUDIO_S32 },
-    { "AudioF32Lsb",			AUDIO_F32LSB },
-    { "AudioF32Msb",			AUDIO_F32MSB },
-    { "AudioF32",			AUDIO_F32 },
-    { "AudioU16Sys",			AUDIO_U16SYS },
-    { "AudioS16Sys",			AUDIO_S16SYS },
-    { "AudioS32Sys",			AUDIO_S32SYS },
-    { "AudioF32Sys",			AUDIO_F32SYS },
+    { "FLIP_NONE",			SDL_FLIP_NONE },
+    { "FLIP_HORIZONTAL",		SDL_FLIP_HORIZONTAL },
+    { "FLIP_VERTICAL",			SDL_FLIP_VERTICAL },
     /* SDL_KeyMod */
-    { "KmodNone",			KMOD_NONE },
-    { "KmodLShift",			KMOD_LSHIFT },
-    { "KmodRShift",			KMOD_RSHIFT },
-    { "KmodLCtrl",			KMOD_LCTRL },
-    { "KmodRCtrl",			KMOD_RCTRL },
-    { "KmodLAlt",			KMOD_LALT },
-    { "KmodRAlt",			KMOD_RALT },
-    { "KmodLGui",			KMOD_LGUI },
-    { "KmodRGui",			KMOD_RGUI },
-    { "KmodNum",			KMOD_NUM },
-    { "KmodCaps",			KMOD_CAPS },
-    { "KmodMode",			KMOD_MODE },
-    { "KmodCtrl",			KMOD_CTRL },
-    { "KmodShift",			KMOD_SHIFT },
-    { "KmodAlt",			KMOD_ALT },
-    { "KmodGui",			KMOD_GUI },
+    { "KMOD_NONE",			KMOD_NONE },
+    { "KMOD_LSHIFT",			KMOD_LSHIFT },
+    { "KMOD_RSHIFT",			KMOD_RSHIFT },
+    { "KMOD_LCTRL",			KMOD_LCTRL },
+    { "KMOD_RCTRL",			KMOD_RCTRL },
+    { "KMOD_LALT",			KMOD_LALT },
+    { "KMOD_RALT",			KMOD_RALT },
+    { "KMOD_LGUI",			KMOD_LGUI },
+    { "KMOD_RGUI",			KMOD_RGUI },
+    { "KMOD_NUM",			KMOD_NUM },
+    { "KMOD_CAPS",			KMOD_CAPS },
+    { "KMOD_MODE",			KMOD_MODE },
+    { "KMOD_CTRL",			KMOD_CTRL },
+    { "KMOD_SHIFT",			KMOD_SHIFT },
+    { "KMOD_ALT",			KMOD_ALT },
+    { "KMOD_GUI",			KMOD_GUI },
     /* Pixel format */
-    { "PixelformatBitmap",		SDL_PIXELFORMAT_INDEX1LSB },
-    { "PixelformatRgb",			SDL_PIXELFORMAT_RGB24 },
-    { "PixelformatRgba",		SDL_PIXELFORMAT_RGBA8888 },
+    { "PIXELFORMAT_BITMAP",		SDL_PIXELFORMAT_INDEX1LSB },
+    { "PIXELFORMAT_RGB",		SDL_PIXELFORMAT_RGB24 },
+    { "PIXELFORMAT_RGBA",		SDL_PIXELFORMAT_RGBA8888 },
+};
+static struct {
+    char	*name;
+    int		 value;
+} ttf[] = {
+    /* font_t.style */
+    { "STYLE_NORMAL",			TTF_STYLE_NORMAL },
+    { "STYLE_BOLD",			TTF_STYLE_BOLD },
+    { "STYLE_ITALIC",			TTF_STYLE_ITALIC },
+    { "STYLE_UNDERLINE",		TTF_STYLE_UNDERLINE },
+    { "STYLE_STRIKETHROUGH",		TTF_STYLE_STRIKETHROUGH },
+    /* font_t.hinting */
+    { "HINTING_NORMAL",			TTF_HINTING_NORMAL },
+    { "HINTING_LIGHT",			TTF_HINTING_LIGHT },
+    { "HINTING_MONO",			TTF_HINTING_MONO },
+    { "HINTING_NONE",			TTF_HINTING_NONE },
+};
+static struct {
+    char	*name;
+    int		 value;
+} mix[] = {
+    /* open_audio flags */
+    { "DEFAULT_FREQUENCY",		MIX_DEFAULT_FREQUENCY },
+    { "DEFAULT_FORMAT",			MIX_DEFAULT_FORMAT },
+    { "DEFAULT_CHANNELS",		MIX_DEFAULT_CHANNELS },
+    /* music_t.type */
+    { "MUS_NONE",			MUS_NONE },
+    { "MUS_CMD",			MUS_CMD },
+    { "MUS_WAV",			MUS_WAV },
+    { "MUS_MOD",			MUS_MOD },
+    { "MUS_MID",			MUS_MID },
+    { "MUS_OGG",			MUS_OGG },
+    { "MUS_MP3",			MUS_MP3 },
+    { "MUS_MP3_MAD",			MUS_MP3_MAD },
+    { "MUS_FLAC",			MUS_FLAC },
+    { "MUS_MODPLUG",			MUS_MODPLUG },
+    /* Special channel effects identifier */
+    { "CHANNEL_POST",			MIX_CHANNEL_POST },
+    /* Mix_Fadding */
+    { "NO_FADING",			MIX_NO_FADING },
+    { "FADING_OUT",			MIX_FADING_OUT },
+    { "FADING_IN",			MIX_FADING_IN },
+    /* Audio format */
+    { "AUDIO_U8",			AUDIO_U8 },
+    { "AUDIO_S8",			AUDIO_S8 },
+    { "AUDIO_U16LSB",			AUDIO_U16LSB },
+    { "AUDIO_S16LSB",			AUDIO_S16LSB },
+    { "AUDIO_U16MSB",			AUDIO_U16MSB },
+    { "AUDIO_S16MSB",			AUDIO_S16MSB },
+    { "AUDIO_U16",			AUDIO_U16 },
+    { "AUDIO_S16",			AUDIO_S16 },
+    { "AUDIO_S32LSB",			AUDIO_S32LSB },
+    { "AUDIO_S32MSB",			AUDIO_S32MSB },
+    { "AUDIO_S32",			AUDIO_S32 },
+    { "AUDIO_F32LSB",			AUDIO_F32LSB },
+    { "AUDIO_F32MSB",			AUDIO_F32MSB },
+    { "AUDIO_F32",			AUDIO_F32 },
+    { "AUDIO_U16SYS",			AUDIO_U16SYS },
+    { "AUDIO_S16SYS",			AUDIO_S16SYS },
+    { "AUDIO_S32SYS",			AUDIO_S32SYS },
+    { "AUDIO_F32SYS",			AUDIO_F32SYS },
 };
 static struct {
     char	*name;
     int		 value;
 } gl[] = {
     /* SDL_GLattr */
-    { "RedSize",			SDL_GL_RED_SIZE },
-    { "GreenSize",			SDL_GL_GREEN_SIZE },
-    { "BlueSize",			SDL_GL_BLUE_SIZE },
-    { "AlphaSize",			SDL_GL_ALPHA_SIZE },
-    { "BufferSize",			SDL_GL_BUFFER_SIZE },
-    { "DoubleBuffer",			SDL_GL_DOUBLEBUFFER },
-    { "DepthSize",			SDL_GL_DEPTH_SIZE },
-    { "StencilSize",			SDL_GL_STENCIL_SIZE },
-    { "AccumRedSize",			SDL_GL_ACCUM_RED_SIZE },
-    { "AccumGreenSize",			SDL_GL_ACCUM_GREEN_SIZE },
-    { "AccumBlueSize",			SDL_GL_ACCUM_BLUE_SIZE },
-    { "AccumAlphaSize",			SDL_GL_ACCUM_ALPHA_SIZE },
-    { "Stereo",				SDL_GL_STEREO },
-    { "MultiSampleBuffers",		SDL_GL_MULTISAMPLEBUFFERS },
-    { "MultiSampleSamples",		SDL_GL_MULTISAMPLESAMPLES },
-    { "AcceleratedVisual",		SDL_GL_ACCELERATED_VISUAL },
-    { "RetainedBacking",		SDL_GL_RETAINED_BACKING },
-    { "ContextMajorVersion",		SDL_GL_CONTEXT_MAJOR_VERSION },
-    { "ContextMinorVersion",		SDL_GL_CONTEXT_MINOR_VERSION },
-    { "ContextEgl",			SDL_GL_CONTEXT_EGL },
-    { "ContextFlags",			SDL_GL_CONTEXT_FLAGS },
-    { "ContextProfileMask",		SDL_GL_CONTEXT_PROFILE_MASK },
-    { "ShareWithCurrentContext",	SDL_GL_SHARE_WITH_CURRENT_CONTEXT },
-    { "FramebufferSrgbCapable",		SDL_GL_FRAMEBUFFER_SRGB_CAPABLE },
+    { "RED_SIZE",			SDL_GL_RED_SIZE },
+    { "GREEN_SIZE",			SDL_GL_GREEN_SIZE },
+    { "BLUE_SIZE",			SDL_GL_BLUE_SIZE },
+    { "ALPHA_SIZE",			SDL_GL_ALPHA_SIZE },
+    { "BUFFER_SIZE",			SDL_GL_BUFFER_SIZE },
+    { "DOUBLE_BUFFER",			SDL_GL_DOUBLEBUFFER },
+    { "DEPTH_SIZE",			SDL_GL_DEPTH_SIZE },
+    { "STENCIL_SIZE",			SDL_GL_STENCIL_SIZE },
+    { "ACCUM_RED_SIZE",			SDL_GL_ACCUM_RED_SIZE },
+    { "ACCUM_GREEN_SIZE",		SDL_GL_ACCUM_GREEN_SIZE },
+    { "ACCUM_BLUE_SIZE",		SDL_GL_ACCUM_BLUE_SIZE },
+    { "ACCUM_ALPHA_SIZE",		SDL_GL_ACCUM_ALPHA_SIZE },
+    { "STEREO",				SDL_GL_STEREO },
+    { "MULTISAMPLEBUFFERS",		SDL_GL_MULTISAMPLEBUFFERS },
+    { "MULTISAMPLESAMPLES",		SDL_GL_MULTISAMPLESAMPLES },
+    { "ACCELERATED_VISUAL",		SDL_GL_ACCELERATED_VISUAL },
+    { "RETAINED_BACKING",		SDL_GL_RETAINED_BACKING },
+    { "CONTEXT_MAJOR_VERSION",		SDL_GL_CONTEXT_MAJOR_VERSION },
+    { "CONTEXT_MINOR_VERSION",		SDL_GL_CONTEXT_MINOR_VERSION },
+    { "CONTEXT_EGL",			SDL_GL_CONTEXT_EGL },
+    { "CONTEXT_FLAGS",			SDL_GL_CONTEXT_FLAGS },
+    { "CONTEXT_PROFILE_MASK",		SDL_GL_CONTEXT_PROFILE_MASK },
+    { "SHARE_WITH_CURRENT_CONTEXT",	SDL_GL_SHARE_WITH_CURRENT_CONTEXT },
+    { "FRAMEBUFFER_SRGB_CAPABLE",	SDL_GL_FRAMEBUFFER_SRGB_CAPABLE },
     /* SDL_GLprofile */
-    { "ContextProfileCore",		SDL_GL_CONTEXT_PROFILE_CORE },
-    { "ContextProfileCompatibility",	SDL_GL_CONTEXT_PROFILE_COMPATIBILITY },
-    { "ContextProfileEs",		SDL_GL_CONTEXT_PROFILE_ES },
+    { "CONTEXT_PROFILE_CORE",		SDL_GL_CONTEXT_PROFILE_CORE },
+    { "CONTEXT_PROFILE_COMPATIBILITY",	SDL_GL_CONTEXT_PROFILE_COMPATIBILITY },
+    { "CONTEXT_PROFILE_ES",		SDL_GL_CONTEXT_PROFILE_ES },
     /* SDL_GLcontextFlag */
-    { "ContextDebugFlag",		SDL_GL_CONTEXT_DEBUG_FLAG },
-    { "ContextForwardCompatibleFlag",	SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG },
-    { "ContextRobustAccessFlag",	SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG },
-    { "ContextResetIsolationFlag",	SDL_GL_CONTEXT_RESET_ISOLATION_FLAG },
+    { "CONTEXT_DEBUG_FLAG",		SDL_GL_CONTEXT_DEBUG_FLAG },
+    { "CONTEXT_FORWARD_COMPATIBLE_FLAG",SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG },
+    { "CONTEXT_ROBUST_ACCESS_FLAG",	SDL_GL_CONTEXT_ROBUST_ACCESS_FLAG },
+    { "CONTEXT_RESET_ISOLATION_FLAG",	SDL_GL_CONTEXT_RESET_ISOLATION_FLAG },
 };
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
@@ -682,6 +696,7 @@ init_sdl(void)
     orecord_t			*record;
     ovector_t			*vector;
     obuiltin_t			*builtin;
+    orecord_t			*this_record;
 
     oadd_root((oobject_t *)&error_vector);
     oadd_root((oobject_t *)&timer_vector);
@@ -692,6 +707,18 @@ init_sdl(void)
 	onew_constant(sdl_record, oget_string((ouint8_t *)string,
 					      strlen(string)),
 		      sdl[offset].value);
+    }
+    for (offset = 0; offset < osize(ttf); ++offset) {
+	string = ttf[offset].name;
+	onew_constant(ttf_record, oget_string((ouint8_t *)string,
+					      strlen(string)),
+		      ttf[offset].value);
+    }
+    for (offset = 0; offset < osize(mix); ++offset) {
+	string = mix[offset].name;
+	onew_constant(mix_record, oget_string((ouint8_t *)string,
+					      strlen(string)),
+		      mix[offset].value);
     }
     for (offset = 0; offset < osize(gl); ++offset) {
 	string = gl[offset].name;
@@ -713,7 +740,7 @@ init_sdl(void)
 	vector = oget_string((ouint8_t *)type, strlen(type));		\
 	symbol = oget_identifier(vector);				\
 	if (!symbol->base) {						\
-	    symbol = oget_symbol(sdl_record, vector);			\
+	    symbol = oget_symbol(this_record, vector);			\
 	    /*assert(symbol && symbol->type);*/				\
 	}								\
 	vector = oget_string((ouint8_t *)name, strlen(name));		\
@@ -725,7 +752,7 @@ init_sdl(void)
 	vector = oget_string((ouint8_t *)type, strlen(type));		\
 	symbol = oget_identifier(vector);				\
 	if (!symbol->base) {						\
-	    symbol = oget_symbol(sdl_record, vector);			\
+	    symbol = oget_symbol(this_record, vector);			\
 	    /*assert(symbol && symbol->type);*/				\
 	}								\
 	vector = oget_string((ouint8_t *)name, strlen(name));		\
@@ -737,7 +764,7 @@ init_sdl(void)
 	vector = oget_string((ouint8_t *)type, strlen(type));		\
 	symbol = oget_identifier(vector);				\
 	if (!symbol->base) {						\
-	    symbol = oget_symbol(sdl_record, vector);			\
+	    symbol = oget_symbol(this_record, vector);			\
 	    /*assert(symbol && symbol->type);*/				\
 	}								\
 	vector = oget_string((ouint8_t *)name, strlen(name));		\
@@ -746,6 +773,7 @@ init_sdl(void)
     } while (0)
 
     /* sdl */
+    this_record = sdl_record;
     record = type_vector->v.ptr[t_point];
     add_field("int32_t",	"x");
     add_field("int32_t",	"y");
@@ -894,53 +922,10 @@ init_sdl(void)
     add_field("uint8_t",	"*blend*");
     oend_record(record);
 
-    record = type_vector->v.ptr[t_font];
-    add_field(pointer_string,	"*font*");
-    add_field("int8_t",		"style");
-    add_field("int8_t",		"hinting");
-    add_field("int8_t",		"kerning");
-    add_field("int32_t",	"outline");
-    add_field("int32_t",	"height");
-    add_field("int32_t",	"ascent");
-    add_field("int32_t",	"descent");
-    add_field("int32_t",	"skip");
-    add_field(word_string,	"faces");
-    add_field("string_t",	"style_name");
-    add_field("string_t",	"family_name");
-    add_field("int8_t",		"fixed");
-    add_field("int8_t",		"*style*");
-    add_field("int8_t",		"*hinting*");
-    add_field("int8_t",		"*kerning*");
-    add_field("int32_t",	"*outline*");
-    oend_record(record);
-
-    record = type_vector->v.ptr[t_glyph];
-    add_field("int32_t",	"min_x");
-    add_field("int32_t",	"max_x");
-    add_field("int32_t",	"min_y");
-    add_field("int32_t",	"max_y");
-    add_field("int32_t",	"advance");
-    oend_record(record);
-
     record = type_vector->v.ptr[t_timer];
     add_field("uint32_t",	"*timer*");
     add_field("uint32_t",	"msec");
     add_field("auto",		"data");
-    oend_record(record);
-
-    record = type_vector->v.ptr[t_chunk];
-    add_field(pointer_string,	"*chunk*");
-    oend_record(record);
-
-    record = type_vector->v.ptr[t_music];
-    add_field(pointer_string,	"*music*");
-    add_field("uint8_t",	"type");
-    oend_record(record);
-
-    record = type_vector->v.ptr[t_audio];
-    add_field("int32_t",	"frequency");
-    add_field("uint16_t",	"format");
-    add_field("int32_t",	"channels");
     oend_record(record);
 
     record = type_vector->v.ptr[t_event];
@@ -995,7 +980,55 @@ init_sdl(void)
     add_field("timer_t",	"timer");
     oend_record(record);
 
+    /* ttf */
+    this_record = ttf_record;
+    record = type_vector->v.ptr[t_font];
+    add_field(pointer_string,	"*font*");
+    add_field("int8_t",		"style");
+    add_field("int8_t",		"hinting");
+    add_field("int8_t",		"kerning");
+    add_field("int32_t",	"outline");
+    add_field("int32_t",	"height");
+    add_field("int32_t",	"ascent");
+    add_field("int32_t",	"descent");
+    add_field("int32_t",	"skip");
+    add_field(word_string,	"faces");
+    add_field("string_t",	"style_name");
+    add_field("string_t",	"family_name");
+    add_field("int8_t",		"fixed");
+    add_field("int8_t",		"*style*");
+    add_field("int8_t",		"*hinting*");
+    add_field("int8_t",		"*kerning*");
+    add_field("int32_t",	"*outline*");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_glyph];
+    add_field("int32_t",	"min_x");
+    add_field("int32_t",	"max_x");
+    add_field("int32_t",	"min_y");
+    add_field("int32_t",	"max_y");
+    add_field("int32_t",	"advance");
+    oend_record(record);
+
+    /* mix */
+    this_record = mix_record;
+    record = type_vector->v.ptr[t_chunk];
+    add_field(pointer_string,	"*chunk*");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_music];
+    add_field(pointer_string,	"*music*");
+    add_field("uint8_t",	"type");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_audio];
+    add_field("int32_t",	"frequency");
+    add_field("uint16_t",	"format");
+    add_field("int32_t",	"channels");
+    oend_record(record);
+
     /* sdl.gl */
+    this_record = sdl_gl_record;
     record = type_vector->v.ptr[t_context];
     add_field(pointer_string,	"*context*");
     oend_record(record);
@@ -1003,171 +1036,168 @@ init_sdl(void)
     record = current_record;
     current_record = sdl_record;
 
-    define_builtin0(t_int32,  init);
-    define_builtin0(t_string, get_error);
-    define_builtin0(t_void,   clear_error);
-    define_builtin0(t_void,   quit);
+    define_builtin0(t_int32,  Init);
+    define_builtin0(t_string, GetError);
+    define_builtin0(t_void,   ClearError);
+    define_builtin0(t_void,   Quit);
 
-    define_builtin6(t_window,   create_window,
+    define_builtin6(t_window,   CreateWindow,
 		    t_string, t_int32, t_int32, t_int32, t_int32, t_uint32);
-    define_builtin1(t_void,     change_window, t_window);
-    define_builtin1(t_renderer, get_window_renderer, t_window);
-    define_builtin1(t_void,     destroy_window, t_window);
+    define_builtin1(t_void,     ChangeWindow, t_window);
+    define_builtin1(t_renderer, GetWindowRenderer, t_window);
+    define_builtin1(t_void,     DestroyWindow, t_window);
 
-    define_builtin3(t_renderer, create_renderer,
+    define_builtin3(t_renderer, CreateRenderer,
 		    t_window, t_int32, t_uint32);
-    define_builtin1(t_int32,    change_renderer, t_renderer);
-    define_builtin1(t_window,   get_renderer_window, t_renderer);
-    define_builtin1(t_void,     render_clear, t_renderer);
-    define_builtin3(t_int32,    render_draw_point,
-		    t_renderer, t_int32, t_int32);
-    define_builtin2(t_int32,    render_draw_points,
-		    t_renderer, t_vector|t_int32);
-    define_builtin5(t_int32,    render_draw_line,
+    define_builtin1(t_int32,    ChangeRenderer, t_renderer);
+    define_builtin1(t_window,   GetRendererWindow, t_renderer);
+    define_builtin1(t_void,     RenderClear, t_renderer);
+    define_builtin3(t_int32,    RenderDrawPoint, t_renderer, t_int32, t_int32);
+    define_builtin2(t_int32,    RenderDrawPoints, t_renderer, t_vector|t_int32);
+    define_builtin5(t_int32,    RenderDrawLine,
 		    t_renderer, t_int32, t_int32, t_int32, t_int32);
-    define_builtin2(t_int32,    render_draw_lines,
-		    t_renderer, t_vector|t_int32);
-    define_builtin5(t_int32,    render_draw_rect,
+    define_builtin2(t_int32,    RenderDrawLines, t_renderer, t_vector|t_int32);
+    define_builtin5(t_int32,    RenderDrawRect,
 		    t_renderer, t_int32, t_int32, t_int32, t_int32);
-    define_builtin2(t_int32,    render_draw_rects,
-		    t_renderer, t_vector|t_int32);
-    define_builtin5(t_int32,    render_fill_rect,
+    define_builtin2(t_int32,    RenderDrawRects, t_renderer, t_vector|t_int32);
+    define_builtin5(t_int32,    RenderFillRect,
 		    t_renderer, t_int32, t_int32, t_int32, t_int32);
-    define_builtin2(t_int32,    render_fill_rects,
-		    t_renderer, t_vector|t_int32);
-    define_builtin4(t_int32,    render_copy,
+    define_builtin2(t_int32,    RenderFillRects, t_renderer, t_vector|t_int32);
+    define_builtin4(t_int32,    RenderCopy,
 		    t_renderer, t_texture, t_rect, t_rect);
-    define_builtin7(t_int32,    render_copy_ex,
+    define_builtin7(t_int32,    RenderCopyEx,
 		    t_renderer, t_texture, t_rect, t_rect,
 		    t_float64, t_point, t_int32);
-    define_builtin1(t_void,    render_present, t_renderer);
-    define_builtin1(t_void,    destroy_renderer, t_renderer);
+    define_builtin1(t_void,    RenderPresent, t_renderer);
+    define_builtin1(t_void,    DestroyRenderer, t_renderer);
 
-    define_builtin1(t_surface, load_surface, t_string);
-    define_builtin1(t_int32,   change_surface, t_surface);
-    define_builtin2(t_surface, convert_surface, t_surface, t_uint32);
-    define_builtin2(t_surface, create_rgb_surface, t_int32, t_int32);
-    define_builtin2(t_surface, create_rgba_surface, t_int32, t_int32);
-    define_builtin1(t_int32,   pull_surface, t_surface);
-    define_builtin1(t_int32,   push_surface, t_surface);
-    define_builtin4(t_int32,   blit_surface,
+    define_builtin1(t_surface, LoadSurface, t_string);
+    define_builtin1(t_int32,   ChangeSurface, t_surface);
+    define_builtin2(t_surface, ConvertSurface, t_surface, t_uint32);
+    define_builtin2(t_surface, CreateRGBSurface, t_int32, t_int32);
+    define_builtin2(t_surface, CreateRGBASurface, t_int32, t_int32);
+    define_builtin1(t_int32,   PullSurface, t_surface);
+    define_builtin1(t_int32,   PushSurface, t_surface);
+    define_builtin4(t_int32,   BlitSurface,
 		    t_surface, t_rect, t_surface, t_rect);
-    define_builtin4(t_int32,   scale_surface,
+    define_builtin4(t_int32,   ScaleSurface,
 		    t_surface, t_rect, t_surface, t_rect);
-    define_builtin1(t_void,    free_surface, t_surface);
+    define_builtin1(t_void,    FreeSurface, t_surface);
 
-    define_builtin5(t_texture, create_texture,
+    define_builtin5(t_texture, CreateTexture,
 		    t_renderer, t_uint32, t_int32, t_int32, t_int32);
-    define_builtin2(t_texture, create_texture_from_surface,
+    define_builtin2(t_texture, CreateTextureFromSurface,
 		    t_renderer, t_surface);
-    define_builtin2(t_texture, load_texture, t_string, t_renderer);
-    define_builtin1(t_int32,   change_texture, t_texture);
-    define_builtin1(t_void,    destroy_texture, t_texture);
+    define_builtin2(t_texture, LoadTexture, t_string, t_renderer);
+    define_builtin1(t_int32,   ChangeTexture, t_texture);
+    define_builtin1(t_void,    DestroyTexture, t_texture);
 
-    define_builtin1(t_int32,   poll_event, t_event);
-    define_builtin1(t_int32,   wait_event, t_event);
+    define_builtin1(t_int32,   PollEvent, t_event);
+    define_builtin1(t_int32,   WaitEvent, t_event);
 
-    define_builtin2(t_font,  open_font, t_string, t_int32);
-    define_builtin1(t_int32, change_font, t_font);
-    define_builtin2(t_int32, glyph_is_provided, t_font, t_uint16);
-    define_builtin2(t_glyph, glyph_metrics, t_font, t_uint16);
-    define_builtin3(t_int32, size_text, t_font, t_string, t_point);
-    define_builtin3(t_int32, size_utf8, t_font, t_string, t_point);
-    define_builtin3(t_int32, size_unicode, t_font, t_vector|t_uint16, t_point);
-    define_builtin3(t_surface, render_text_solid, t_font, t_string, t_color);
-    define_builtin3(t_surface, render_utf8_solid, t_font, t_string, t_color);
-    define_builtin3(t_surface, render_unicode_solid,
+    define_builtin0(t_uint32, GetModState);
+
+    define_builtin2(t_timer,   AddTimer, t_uint32, t_void);
+    define_builtin0(t_uint32,  GetTicks);
+    define_builtin1(t_void,    Delay, t_uint32);
+    define_builtin1(t_int32,   RemoveTimer, t_timer);
+
+    define_builtin1(t_int32,  ShowCursor, t_int32);
+
+    current_record = ttf_record;
+    define_builtin2(t_font,  OpenFont, t_string, t_int32);
+    define_builtin1(t_int32, ChangeFont, t_font);
+    define_builtin2(t_int32, GlyphIsProvided, t_font, t_uint16);
+    define_builtin2(t_glyph, GlyphMetrics, t_font, t_uint16);
+    define_builtin3(t_int32, SizeText, t_font, t_string, t_point);
+    define_builtin3(t_int32, SizeUTF8, t_font, t_string, t_point);
+    define_builtin3(t_int32, SizeUNICODE, t_font, t_vector|t_uint16, t_point);
+    define_builtin3(t_surface, RenderText_Solid, t_font, t_string, t_color);
+    define_builtin3(t_surface, RenderUTF8_Solid, t_font, t_string, t_color);
+    define_builtin3(t_surface, RenderUNICODE_Solid,
 		    t_font, t_vector|t_uint16, t_color);
-    define_builtin3(t_surface, render_glyph_solid, t_font, t_uint16, t_color);
-    define_builtin4(t_surface, render_text_shaded,
+    define_builtin3(t_surface, RenderGlyph_Solid, t_font, t_uint16, t_color);
+    define_builtin4(t_surface, RenderText_Shaded,
 		    t_font, t_string, t_color, t_color);
-    define_builtin4(t_surface, render_utf8_shaded,
+    define_builtin4(t_surface, RenderUTF8_Shaded,
 		    t_font, t_string, t_color, t_color);
-    define_builtin4(t_surface, render_unicode_shaded,
+    define_builtin4(t_surface, RenderUNICODE_Shaded,
 		    t_font, t_vector|t_uint16, t_color, t_color);
-    define_builtin4(t_surface, render_glyph_shaded,
+    define_builtin4(t_surface, RenderGlyph_Shaded,
 		    t_font, t_uint16, t_color, t_color);
-    define_builtin3(t_surface, render_text_blended, t_font, t_string, t_color);
-    define_builtin3(t_surface, render_utf8_blended, t_font, t_string, t_color);
-    define_builtin3(t_surface, render_unicode_blended,
+    define_builtin3(t_surface, RenderText_Blended, t_font, t_string, t_color);
+    define_builtin3(t_surface, RenderUTF8_Blended, t_font, t_string, t_color);
+    define_builtin3(t_surface, RenderUNICODE_Blended,
 		    t_font, t_vector|t_uint16, t_color);
-    define_builtin3(t_surface, render_glyph_blended, t_font, t_uint16, t_color);
-    define_builtin4(t_surface, render_text_blended_wrapped,
+    define_builtin3(t_surface, RenderGlyph_Blended, t_font, t_uint16, t_color);
+    define_builtin4(t_surface, RenderText_Blended_Wrapped,
 		    t_font, t_string, t_color, t_uint32);
-    define_builtin4(t_surface, render_utf8_blended_wrapped,
+    define_builtin4(t_surface, RenderUTF8_Blended_Wrapped,
 		    t_font, t_string, t_color, t_uint32);
-    define_builtin4(t_surface, render_unicode_blended_wrapped,
+    define_builtin4(t_surface, RenderUNICODE_Blended_Wrapped,
 		    t_font, t_vector|t_uint16, t_color, t_uint32);
-    define_builtin3(t_int32, get_kerning, t_font, t_uint16, t_uint16);
-    define_builtin1(t_void,  close_font, t_font);
+    define_builtin3(t_int32, GetFontKerningSize, t_font, t_uint16, t_uint16);
+    define_builtin1(t_void,  CloseFont, t_font);
 
-    define_builtin0(t_uint32, get_mod_state);
-
-    define_builtin2(t_timer,   add_timer, t_uint32, t_void);
-    define_builtin0(t_uint32,  get_ticks);
-    define_builtin1(t_void,    delay, t_uint32);
-    define_builtin1(t_int32,   remove_timer, t_timer);
-
-    define_builtin4(t_audio, open_audio,
+    current_record = mix_record;
+    define_builtin4(t_audio, OpenAudio,
 		    t_int32, t_uint16, t_int32, t_int32);
-    define_builtin1(t_int32, allocate_channels, t_int32);
-    define_builtin1(t_chunk, load_chunk, t_string);
-    define_builtin3(t_int32, play_channel, t_int32, t_chunk, t_int32);
-    define_builtin4(t_int32, fade_in_channel,
+    define_builtin1(t_int32, AllocateChannels, t_int32);
+    define_builtin1(t_chunk, LoadChunk, t_string);
+    define_builtin3(t_int32, PlayChannel, t_int32, t_chunk, t_int32);
+    define_builtin4(t_int32, FadeInChannel,
 		    t_int32, t_chunk, t_int32, t_int32);
-    define_builtin2(t_int32, volume_chunk, t_chunk, t_int32);
-    define_builtin3(t_int32, panning_channel, t_int32, t_uint8, t_uint8);
-    define_builtin3(t_int32, position_channel, t_int32, t_int16, t_uint8);
-    define_builtin2(t_int32, distance_channel, t_int32, t_uint8);
-    define_builtin2(t_int32, reverse_stereo_channel, t_int32, t_int8);
-    define_builtin2(t_int32, fade_out_channel, t_int32, t_int32);
-    define_builtin1(t_int32, playing_channel, t_int32);
-    define_builtin1(t_int32, fading_channel, t_int32);
-    define_builtin2(t_int32, expire_channel, t_int32, t_int32);
-    define_builtin1(t_void, pause_channel, t_int32);
-    define_builtin1(t_void, resume_channel, t_int32);
-    define_builtin1(t_int32, paused_channel, t_int32);
-    define_builtin1(t_int32, halt_channel, t_int32);
-    define_builtin1(t_void,  free_chunk, t_chunk);
-    define_builtin2(t_int32, group_channel, t_int32, t_int32);
-    define_builtin3(t_int32, group_channels, t_int32, t_int32, t_int32);
-    define_builtin1(t_int32, group_available, t_int32);
-    define_builtin1(t_int32, group_count, t_int32);
-    define_builtin1(t_int32, group_oldest, t_int32);
-    define_builtin1(t_int32, group_newer, t_int32);
-    define_builtin1(t_int32, fade_out_group, t_int32);
-    define_builtin1(t_int32, halt_group, t_int32);
-    define_builtin1(t_music, load_music, t_string);
-    define_builtin2(t_int32, play_music, t_music, t_int32);
-    define_builtin3(t_int32, fade_in_music, t_music, t_int32, t_int32);
-    define_builtin1(t_int32, volume_music, t_uint8);
-    define_builtin0(t_int32, playing_music);
-    define_builtin1(t_int32,  fade_out_music, t_int32);
-    define_builtin0(t_int32,  fading_music);
-    define_builtin0(t_void,  pause_music);
-    define_builtin0(t_void,  resume_music);
-    define_builtin0(t_void,  rewind_music);
-    define_builtin0(t_int32,  paused_music);
-    define_builtin1(t_int32,  set_music_position, t_float64);
-    define_builtin0(t_int32,  halt_music);
-    define_builtin1(t_void,  free_music, t_music);
-    define_builtin0(t_void,  close_audio);
-
-    define_builtin1(t_int32,  show_cursor, t_int32);
+    define_builtin2(t_int32, VolumeChunk, t_chunk, t_int32);
+    define_builtin3(t_int32, SetPanning, t_int32, t_uint8, t_uint8);
+    define_builtin3(t_int32, SetPosition, t_int32, t_int16, t_uint8);
+    define_builtin2(t_int32, SetDistance, t_int32, t_uint8);
+    define_builtin2(t_int32, SetReverseStereo, t_int32, t_int8);
+    define_builtin2(t_int32, FadeOutChannel, t_int32, t_int32);
+    define_builtin1(t_int32, Playing, t_int32);
+    define_builtin1(t_int32, FadingChannel, t_int32);
+    define_builtin2(t_int32, ExpireChannel, t_int32, t_int32);
+    define_builtin1(t_void, Pause, t_int32);
+    define_builtin1(t_void, Resume, t_int32);
+    define_builtin1(t_int32, Paused, t_int32);
+    define_builtin1(t_int32, HaltChannel, t_int32);
+    define_builtin1(t_void,  FreeChunk, t_chunk);
+    define_builtin2(t_int32, GroupChannel, t_int32, t_int32);
+    define_builtin3(t_int32, GroupChannels, t_int32, t_int32, t_int32);
+    define_builtin1(t_int32, GroupAvailable, t_int32);
+    define_builtin1(t_int32, GroupCount, t_int32);
+    define_builtin1(t_int32, GroupOldest, t_int32);
+    define_builtin1(t_int32, GroupNewer, t_int32);
+    define_builtin1(t_int32, FadeOutGroup, t_int32);
+    define_builtin1(t_int32, HaltGroup, t_int32);
+    define_builtin1(t_music, LoadMusic, t_string);
+    define_builtin2(t_int32, PlayMusic, t_music, t_int32);
+    define_builtin3(t_int32, FadeInMusic, t_music, t_int32, t_int32);
+    define_builtin1(t_int32, VolumeMusic, t_uint8);
+    define_builtin0(t_int32, PlayingMusic);
+    define_builtin1(t_int32,  FadeOutMusic, t_int32);
+    define_builtin0(t_int32,  FadingMusic);
+    define_builtin0(t_void,  PauseMusic);
+    define_builtin0(t_void,  ResumeMusic);
+    define_builtin0(t_void,  RewindMusic);
+    define_builtin0(t_int32,  PausedMusic);
+    define_builtin1(t_int32,  SetMusicPosition, t_float64);
+    define_builtin0(t_int32,  HaltMusic);
+    define_builtin1(t_void,  FreeMusic, t_music);
+    define_builtin0(t_void,  CloseAudio);
 
     current_record = sdl_gl_record;
 
-    define_builtin0(t_void,    reset_attributes);
-    define_builtin2(t_int32,   set_attribute, t_int32, t_int32);
-    define_builtin2(t_int32,   get_attribute, t_int32, t_vector|t_int32);
-    define_builtin1(t_context, create_context, t_window);
-    define_builtin2(t_int32,   make_current, t_window, t_context);
-    define_builtin0(t_window,  get_current_window);
-    define_builtin0(t_context, get_current_context);
-    define_builtin1(t_int32,   set_swap_interval, t_int8);
-    define_builtin0(t_int8,    get_swap_interval);
-    define_builtin1(t_void,    swap_window, t_window);
-    define_builtin1(t_void,    delete_context, t_context);
+    define_builtin0(t_void,    ResetAttributes);
+    define_builtin2(t_int32,   SetAttribute, t_int32, t_int32);
+    define_builtin2(t_int32,   GetAttribute, t_int32, t_vector|t_int32);
+    define_builtin1(t_context, CreateContext, t_window);
+    define_builtin2(t_int32,   MakeCurrent, t_window, t_context);
+    define_builtin0(t_window,  GetCurrentWindow);
+    define_builtin0(t_context, GetCurrentContext);
+    define_builtin1(t_int32,   SetSwapInterval, t_int8);
+    define_builtin0(t_int8,    GetSwapInterval);
+    define_builtin1(t_void,    SwapWindow, t_window);
+    define_builtin1(t_void,    DeleteContext, t_context);
 
     define_builtin4(t_surface, ReadPixels, t_int32, t_int32, t_int32, t_int32);
     define_builtin1(t_void,    DrawPixels, t_surface);
@@ -1307,8 +1337,8 @@ odestroy_timer(otimer_t *timer)
 }
 
 static void
-native_init(oobject_t list, oint32_t ac)
-/* int32_t init(); */
+native_Init(oobject_t list, oint32_t ac)
+/* int32_t Init(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1332,8 +1362,8 @@ native_init(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_error(oobject_t list, oint32_t ac)
-/* string_t get_error(); */
+native_GetError(oobject_t list, oint32_t ac)
+/* string_t GetError(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1356,8 +1386,8 @@ native_get_error(oobject_t list, oint32_t ac)
 }
 
 static void
-native_clear_error(oobject_t list, oint32_t ac)
-/* void get_error(); */
+native_ClearError(oobject_t list, oint32_t ac)
+/* void ClearError(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1368,8 +1398,8 @@ native_clear_error(oobject_t list, oint32_t ac)
 }
 
 static void
-native_quit(oobject_t list, oint32_t ac)
-/* void quit(); */
+native_Quit(oobject_t list, oint32_t ac)
+/* void Quit(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1386,10 +1416,10 @@ native_quit(oobject_t list, oint32_t ac)
 }
 
 static void
-native_create_window(oobject_t list, oint32_t ac)
-/* window_t create_window(string_t title,
-			  int32_t x, int32_t y, int32_t w, int32_t h,
-			  uint32_t flags); */
+native_CreateWindow(oobject_t list, oint32_t ac)
+/* window_t CreateWindow(string_t title,
+			 int32_t x, int32_t y, int32_t w, int32_t h,
+			 uint32_t flags); */
 {
     GET_THREAD_SELF()
     SDL_Window				*sw;
@@ -1470,8 +1500,8 @@ native_create_window(oobject_t list, oint32_t ac)
 }
 
 static void
-native_change_window(oobject_t list, oint32_t ac)
-/* int32_t change_window(window_t window); */
+native_ChangeWindow(oobject_t list, oint32_t ac)
+/* int32_t ChangeWindow(window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1591,8 +1621,8 @@ native_change_window(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_window_renderer(oobject_t list, oint32_t ac)
-/* renderer_t get_window_renderer(window_t window); */
+native_GetWindowRenderer(oobject_t list, oint32_t ac)
+/* renderer_t GetWindowRenderer(window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1610,8 +1640,8 @@ native_get_window_renderer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_destroy_window(oobject_t list, oint32_t ac)
-/* void destroy_window(window_t window); */
+native_DestroyWindow(oobject_t list, oint32_t ac)
+/* void DestroyWindow(window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1668,8 +1698,8 @@ query_renderer(orenderer_t *or)
 }
 
 static void
-native_create_renderer(oobject_t list, oint32_t ac)
-/* renderer_t create_renderer(window_t win, int32_t index, uint32_t flags); */
+native_CreateRenderer(oobject_t list, oint32_t ac)
+/* renderer_t CreateRenderer(window_t win, int32_t index, uint32_t flags); */
 {
     GET_THREAD_SELF()
     orenderer_t			*or;
@@ -1717,8 +1747,8 @@ native_create_renderer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_change_renderer(oobject_t list, oint32_t ac)
-/* int32_t change_renderer(renderer_t ren); */
+native_ChangeRenderer(oobject_t list, oint32_t ac)
+/* int32_t ChangeRenderer(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1769,8 +1799,8 @@ native_change_renderer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_renderer_window(oobject_t list, oint32_t ac)
-/* window_t get_renderer_window(renderer_t ren); */
+native_GetRendererWindow(oobject_t list, oint32_t ac)
+/* window_t GetRendererWindow(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1788,8 +1818,8 @@ native_get_renderer_window(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_clear(oobject_t list, oint32_t ac)
-/* void render_clear(renderer_t ren); */
+native_RenderClear(oobject_t list, oint32_t ac)
+/* void RenderClear(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1805,8 +1835,8 @@ native_render_clear(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_point(oobject_t list, oint32_t ac)
-/* int32_t render_draw_point(renderer_t ren, int32_t, int32_t y); */
+native_RenderDrawPoint(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawPoint(renderer_t ren, int32_t, int32_t y); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1823,8 +1853,8 @@ native_render_draw_point(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_points(oobject_t list, oint32_t ac)
-/* int32_t render_draw_points(renderer_t ren, int32_t points[]); */
+native_RenderDrawPoints(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawPoints(renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1846,9 +1876,9 @@ native_render_draw_points(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_line(oobject_t list, oint32_t ac)
-/* int32_t render_draw_point(renderer_t ren, int32_t x1, int32_t y1,
-			     int32_t x2, int32_t y2); */
+native_RenderDrawLine(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawPoint(renderer_t ren, int32_t x1, int32_t y1,
+			   int32_t x2, int32_t y2); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1866,8 +1896,8 @@ native_render_draw_line(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_lines(oobject_t list, oint32_t ac)
-/* int32_t render_draw_lines(renderer_t ren, int32_t points[]); */
+native_RenderDrawLines(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawLines(renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1889,9 +1919,9 @@ native_render_draw_lines(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_rect(oobject_t list, oint32_t ac)
-/* int32_t render_draw_rect(renderer_t ren, int32_t x, int32_t y,
-			     int32_t w, int32_t h); */
+native_RenderDrawRect(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawRect(renderer_t ren, int32_t x, int32_t y,
+			  int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1908,8 +1938,8 @@ native_render_draw_rect(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_draw_rects(oobject_t list, oint32_t ac)
-/* int32_t render_draw_rects(renderer_t ren, int32_t points[]); */
+native_RenderDrawRects(oobject_t list, oint32_t ac)
+/* int32_t RenderDrawRects(renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1931,9 +1961,9 @@ native_render_draw_rects(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_fill_rect(oobject_t list, oint32_t ac)
-/* int32_t render_fill_rect(renderer_t ren, int32_t x, int32_t y,
-			     int32_t w, int32_t h); */
+native_RenderFillRect(oobject_t list, oint32_t ac)
+/* int32_t RenderFillRect(renderer_t ren, int32_t x, int32_t y,
+			  int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1950,8 +1980,8 @@ native_render_fill_rect(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_fill_rects(oobject_t list, oint32_t ac)
-/* int32_t render_fill_rects(renderer_t ren, int32_t points[]); */
+native_RenderFillRects(oobject_t list, oint32_t ac)
+/* int32_t RenderFillRects(renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1973,9 +2003,9 @@ native_render_fill_rects(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_copy(oobject_t list, oint32_t ac)
-/* int32_t render_copy(renderer_t ren, texture_t tex,
-		       rect_t src, rect_t dst); */
+native_RenderCopy(oobject_t list, oint32_t ac)
+/* int32_t RenderCopy(renderer_t ren, texture_t tex,
+		      rect_t src, rect_t dst); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1997,11 +2027,11 @@ native_render_copy(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_copy_ex(oobject_t list, oint32_t ac)
-/* int32_t render_copy_ex(renderer_t ren, texture_t tex,
-		          rect_t src, rect_t dst,
-                          float64_t angle, point_t center,
-			  int32_t flip); */
+native_RenderCopyEx(oobject_t list, oint32_t ac)
+/* int32_t RenderCopyEx(renderer_t ren, texture_t tex,
+		        rect_t src, rect_t dst,
+                        float64_t angle, point_t center,
+			int32_t flip); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2025,8 +2055,8 @@ native_render_copy_ex(oobject_t list, oint32_t ac)
 }
 
 static void
-native_render_present(oobject_t list, oint32_t ac)
-/* void render_present(renderer_t ren); */
+native_RenderPresent(oobject_t list, oint32_t ac)
+/* void RenderPresent(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2042,8 +2072,8 @@ native_render_present(oobject_t list, oint32_t ac)
 }
 
 static void
-native_destroy_renderer(oobject_t list, oint32_t ac)
-/* void destroy_renderer(renderer_t ren); */
+native_DestroyRenderer(oobject_t list, oint32_t ac)
+/* void DestroyRenderer(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2091,8 +2121,8 @@ query_surface(osurface_t *os)
 }
 
 static void
-native_load_surface(oobject_t list, oint32_t ac)
-/* surface_t load_surface(string_t path); */
+native_LoadSurface(oobject_t list, oint32_t ac)
+/* surface_t LoadSurface(string_t path); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2122,8 +2152,8 @@ native_load_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_create_rgb_surface(oobject_t list, oint32_t ac)
-/* surface_t create_rgb_surface(int32_t w, int32_t h); */
+native_CreateRGBSurface(oobject_t list, oint32_t ac)
+/* surface_t CreateRGBSurface(int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2147,8 +2177,8 @@ native_create_rgb_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_create_rgba_surface(oobject_t list, oint32_t ac)
-/* surface_t create_rgba_surface(int32_t w, int32_t h); */
+native_CreateRGBASurface(oobject_t list, oint32_t ac)
+/* surface_t CreateRGBASurface(int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2172,8 +2202,8 @@ native_create_rgba_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_convert_surface(oobject_t list, oint32_t ac)
-/* surface_t convert_surface(surface_t surf, uint32_t format); */
+native_ConvertSurface(oobject_t list, oint32_t ac)
+/* surface_t ConvertSurface(surface_t surf, uint32_t format); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2200,8 +2230,8 @@ native_convert_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_change_surface(oobject_t list, oint32_t ac)
-/* int32_t change_surface(surface_t surf); */
+native_ChangeSurface(oobject_t list, oint32_t ac)
+/* int32_t ChangeSurface(surface_t surf); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2229,8 +2259,8 @@ native_change_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_pull_surface(oobject_t list, oint32_t ac)
-/* int32_t pull_surface(renderer_t ren); */
+native_PullSurface(oobject_t list, oint32_t ac)
+/* int32_t PullSurface(renderer_t ren); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2266,8 +2296,8 @@ native_pull_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_push_surface(oobject_t list, oint32_t ac)
-/* int32_t push_surface(renderer_t ren); */
+native_PushSurface(oobject_t list, oint32_t ac)
+/* int32_t PushSurface(renderer_t ren); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2300,9 +2330,9 @@ native_push_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_blit_surface(oobject_t list, oint32_t ac)
-/* int32_t blit_surface(surface_t src, rect_t src_rect,
-			surface_t dst, rect_t dst_rect); */
+native_BlitSurface(oobject_t list, oint32_t ac)
+/* int32_t BlitSurface(surface_t src, rect_t src_rect,
+		       surface_t dst, rect_t dst_rect); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2324,9 +2354,9 @@ native_blit_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_scale_surface(oobject_t list, oint32_t ac)
-/* int32_t scale_surface(surface_t src, rect_t src_rect,
-			 surface_t dst, rect_t dst_rect); */
+native_ScaleSurface(oobject_t list, oint32_t ac)
+/* int32_t ScaleSurface(surface_t src, rect_t src_rect,
+			surface_t dst, rect_t dst_rect); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2348,8 +2378,8 @@ native_scale_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_free_surface(oobject_t list, oint32_t ac)
-/* void free_surface(renderer_t ren); */
+native_FreeSurface(oobject_t list, oint32_t ac)
+/* void FreeSurface(renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2397,9 +2427,9 @@ handle_texture(orenderer_t *ren, otexture_t *tex)
 }
 
 static void
-native_create_texture(oobject_t list, oint32_t ac)
-/* texture_t create_texture(renderer_t ren, uint32_t format,
-			    int32_t access, int32_t w, int32_t h); */
+native_CreateTexture(oobject_t list, oint32_t ac)
+/* texture_t CreateTexture(renderer_t ren, uint32_t format,
+			   int32_t access, int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2427,8 +2457,8 @@ native_create_texture(oobject_t list, oint32_t ac)
 }
 
 static void
-native_create_texture_from_surface(oobject_t list, oint32_t ac)
-/* texture_t create_texture_from_surface(renderer_t ren, surface_t surf); */
+native_CreateTextureFromSurface(oobject_t list, oint32_t ac)
+/* texture_t CreateTextureFromSurface(renderer_t ren, surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2459,8 +2489,8 @@ native_create_texture_from_surface(oobject_t list, oint32_t ac)
 }
 
 static void
-native_load_texture(oobject_t list, oint32_t ac)
-/* texture_t load_texture(renderer_t ren, string_t path); */
+native_LoadTexture(oobject_t list, oint32_t ac)
+/* texture_t LoadTexture(renderer_t ren, string_t path); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2494,8 +2524,8 @@ native_load_texture(oobject_t list, oint32_t ac)
 }
 
 static void
-native_change_texture(oobject_t list, oint32_t ac)
-/* int32_t change_texture(texture_t tex); */
+native_ChangeTexture(oobject_t list, oint32_t ac)
+/* int32_t ChangeTexture(texture_t tex); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2520,8 +2550,8 @@ native_change_texture(oobject_t list, oint32_t ac)
 }
 
 static void
-native_destroy_texture(oobject_t list, oint32_t ac)
-/* void destroy_texture(texture_t tex); */
+native_DestroyTexture(oobject_t list, oint32_t ac)
+/* void DestroyTexture(texture_t tex); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2743,8 +2773,8 @@ translate_event(oevent_t *ev)
 }
 
 static void
-native_poll_event(oobject_t list, oint32_t ac)
-/* void poll_event(event_t ev); */
+native_PollEvent(oobject_t list, oint32_t ac)
+/* void PollEvent(event_t ev); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2763,8 +2793,8 @@ native_poll_event(oobject_t list, oint32_t ac)
 }
 
 static void
-native_wait_event(oobject_t list, oint32_t ac)
-/* void poll_event(event_t ev); */
+native_WaitEvent(oobject_t list, oint32_t ac)
+/* void PollEvent(event_t ev); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2783,786 +2813,8 @@ native_wait_event(oobject_t list, oint32_t ac)
 }
 
 static void
-query_font(ofont_t *of)
-{
-    TTF_Font			*sf;
-
-    sf = of->__font;
-    of->__style = of->style = TTF_GetFontStyle(sf);
-    of->__hinting = of->hinting = TTF_GetFontHinting(sf);
-    of->__kerning = of->kerning = TTF_GetFontKerning(sf);
-    of->__outline = of->outline = TTF_GetFontOutline(sf);
-}
-
-static void
-native_open_font(oobject_t list, oint32_t ac)
-/* font_t open_font(string_t name, int32_t ptsize) */
-{
-    GET_THREAD_SELF()
-    TTF_Font			*sf;
-    ofont_t			*of;
-    oregister_t			*r0;
-    char			*spec;
-    nat_vec_i32_t		*alist;
-    oword_t			 length;
-    char			 path[BUFSIZ];
-
-    alist = (nat_vec_i32_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_string);
-    if (alist->a0->length >= BUFSIZ - 1)
-	ovm_raise(except_out_of_bounds);
-    memcpy(path, alist->a0->v.ptr, alist->a0->length);
-    path[alist->a0->length] = '\0';
-    if ((sf = TTF_OpenFont(path, alist->a1))) {
-	onew_object(&thread_self->obj, t_font, sizeof(ofont_t));
-	of = (ofont_t *)thread_self->obj;
-	of->__font = sf;
-	query_font(of);
-	/* read only fields */
-	of->height = TTF_FontHeight(sf);
-	of->ascent = TTF_FontAscent(sf);
-	of->descent = TTF_FontDescent(sf);
-	of->skip = TTF_FontLineSkip(sf);
-	of->faces = TTF_FontFaces(sf);
-	if ((spec = TTF_FontFaceStyleName(sf))) {
-	    length = strlen(spec);
-	    onew_vector((oobject_t *)&of->style_name, t_uint8, length);
-	    memcpy(of->style_name->v.ptr, spec, length);
-	}
-	if ((spec = TTF_FontFaceFamilyName(sf))) {
-	    length = strlen(spec);
-	    onew_vector((oobject_t *)&of->family_name, t_uint8, length);
-	    memcpy(of->family_name->v.ptr, spec, length);
-	}
-	of->fixed = TTF_FontFaceIsFixedWidth(sf);
-	r0->v.o = thread_self->obj;
-	r0->t = t_font;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_change_font(oobject_t list, oint32_t ac)
-/* int32_t change_font(font_t) */
-{
-    GET_THREAD_SELF()
-    TTF_Font			*sf;
-    ofont_t			*of;
-    oregister_t			*r0;
-    nat_fnt_t			*alist;
-
-    alist = (nat_fnt_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    of = alist->a0;
-    sf = of->__font;
-    r0->t = t_word;
-    r0->v.w = 0;
-    if (of->style != of->__style)
-	TTF_SetFontStyle(sf, of->style);
-    if (of->hinting != of->__hinting)
-	TTF_SetFontHinting(sf, of->hinting);
-    if (of->kerning != of->__kerning)
-	TTF_SetFontKerning(sf, !!of->kerning);
-    if (of->outline != of->__outline)
-	TTF_SetFontOutline(sf, of->outline);
-    query_font(of);
-}
-
-static void
-native_glyph_is_provided(oobject_t list, oint32_t ac)
-/* int32_t glyph_is_provided(font_t font, uint16_t ch) */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_u16_t		*alist;
-
-    alist = (nat_fnt_u16_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    r0->t = t_word;
-    r0->v.w = TTF_GlyphIsProvided(alist->a0->__font, alist->a1);
-}
-
-static void
-native_glyph_metrics(oobject_t list, oint32_t ac)
-/* glyph_t glyph_metrics(font_t font, uint16_t ch) */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    oglyph_t			 ogm;
-    nat_fnt_u16_t		*alist;
-
-    alist = (nat_fnt_u16_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    if (TTF_GlyphMetrics(alist->a0->__font, alist->a1,
-			 &ogm.min_x, &ogm.max_x, &ogm.min_y, &ogm.max_y,
-			 &ogm.advance) == 0) {
-	onew_object(&thread_self->obj, t_glyph, sizeof(oglyph_t));
-	memcpy(thread_self->obj, &ogm, sizeof(oglyph_t));
-	r0->v.o = thread_self->obj;
-	r0->t = t_glyph;
-    }
-    else
-	r0->t = t_void;
-}
-
-/* XXX allocation is 16 bytes aligned and padded with zeros, still a
- * XXX pessimization due to not having a flag telling may have been
- *     already overallocated in case has 16 byte aligned length */
-#define make_vec_text(V)						\
-    do {								\
-	if (!(V->length & 15)) {					\
-	    orenew_vector(V, V->length + 1);				\
-	    --V->length;						\
-	}								\
-    } while (0)
-#define make_vec_unicode(V)						\
-    do {								\
-	if (!(V->length & 7)) {						\
-	    orenew_vector(V, V->length + 1);				\
-	    --V->length;						\
-	}								\
-    } while (0)
-
-static void
-native_size_text(oobject_t list, oint32_t ac)
-/* int32_t size_text(font_t font, string_t text, point_t size); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_vec_pnt_t		*alist;
-
-    alist = (nat_fnt_vec_pnt_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_point);
-    make_vec_text(alist->a1);
-    r0->t = t_word;
-    r0->v.w = TTF_SizeText(alist->a0->__font,
-			   (const char *)alist->a1->v.u8,
-			   &alist->a2->x, &alist->a2->y);
-}
-
-static void
-native_size_utf8(oobject_t list, oint32_t ac)
-/* int32_t size_utf8(font_t font, string_t text, point_t size); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_vec_pnt_t		*alist;
-
-    alist = (nat_fnt_vec_pnt_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_point);
-    make_vec_text(alist->a1);
-    r0->t = t_word;
-    r0->v.w = TTF_SizeUTF8(alist->a0->__font,
-			   (const char *)alist->a1->v.u8,
-			   &alist->a2->x, &alist->a2->y);
-}
-
-static void
-native_size_unicode(oobject_t list, oint32_t ac)
-/* int32_t size_unicode(font_t font, uint16_t text[], point_t size); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_vec_pnt_t		*alist;
-
-    alist = (nat_fnt_vec_pnt_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_vector|t_uint16);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_point);
-    make_vec_unicode(alist->a1);
-    r0->t = t_word;
-    r0->v.w = TTF_SizeUNICODE(alist->a0->__font,
-			      (const Uint16 *)alist->a1->v.u16,
-			      &alist->a2->x, &alist->a2->y);
-}
-
-static void
-native_render_text_solid(oobject_t list, oint32_t ac)
-/* surface_t render_text_solid(font_t font, string_t text, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderText_Solid(alist->a0->__font,
-				   (const char *)alist->a1->v.u8,
-				   *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_utf8_solid(oobject_t list, oint32_t ac)
-/* surface_t render_utf8_solid(font_t font, string_t text, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderUTF8_Solid(alist->a0->__font,
-				   (const char *)alist->a1->v.u8,
-				   *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_unicode_solid(oobject_t list, oint32_t ac)
-/* surface_t render_unicode_solid(font_t font, uint16_t text[], color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_vector|t_uint16);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_unicode(alist->a1);
-    if ((ss = TTF_RenderUNICODE_Solid(alist->a0->__font,
-				      (const Uint16 *)alist->a1->v.u16,
-				      *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_glyph_solid(oobject_t list, oint32_t ac)
-/* surface_t render_glyph_solid(font_t font, uint16_t glyph, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_u16_col_t		*alist;
-
-    alist = (nat_fnt_u16_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    if ((ss = TTF_RenderGlyph_Solid(alist->a0->__font, alist->a1,
-				    *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_text_shaded(oobject_t list, oint32_t ac)
-/* surface_t render_text_shaded(font_t font, string_t text,
-			        color_t fg, color_t bf); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_col_t	*alist;
-
-    alist = (nat_fnt_vec_col_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    CHECK_NULL(alist->a3);
-    CHECK_TYPE(alist->a3, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderText_Shaded(alist->a0->__font,
-				    (const char *)alist->a1->v.u8,
-				    *(SDL_Color *)alist->a2,
-				    *(SDL_Color *)alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_utf8_shaded(oobject_t list, oint32_t ac)
-/* surface_t render_utf8_shaded(font_t font, string_t text,
-			        color_t fg, color_t bf); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_col_t	*alist;
-
-    alist = (nat_fnt_vec_col_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    CHECK_NULL(alist->a3);
-    CHECK_TYPE(alist->a3, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderUTF8_Shaded(alist->a0->__font,
-				    (const char *)alist->a1->v.u8,
-				    *(SDL_Color *)alist->a2,
-				    *(SDL_Color *)alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_unicode_shaded(oobject_t list, oint32_t ac)
-/* surface_t render_unicode_shaded(font_t font, uint16_t text[],
-				   color_t fg, color_t bf); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_col_t	*alist;
-
-    alist = (nat_fnt_vec_col_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_vector|t_uint16);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    CHECK_NULL(alist->a3);
-    CHECK_TYPE(alist->a3, t_color);
-    make_vec_unicode(alist->a1);
-    if ((ss = TTF_RenderUNICODE_Shaded(alist->a0->__font,
-				       (const Uint16 *)alist->a1->v.u16,
-				       *(SDL_Color *)alist->a2,
-				       *(SDL_Color *)alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_glyph_shaded(oobject_t list, oint32_t ac)
-/* surface_t render_glyph_shaded(font_t font, uint16_t glyph,
-				 color_t fg, color_t bf); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_u16_col_col_t	*alist;
-
-    alist = (nat_fnt_u16_col_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    CHECK_NULL(alist->a3);
-    CHECK_TYPE(alist->a3, t_color);
-    if ((ss = TTF_RenderGlyph_Shaded(alist->a0->__font, alist->a1,
-				     *(SDL_Color *)alist->a2,
-				     *(SDL_Color *)alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_text_blended(oobject_t list, oint32_t ac)
-/* surface_t render_text_blended(font_t font, string_t text, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderText_Blended(alist->a0->__font,
-				     (const char *)alist->a1->v.u8,
-				     *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_utf8_blended(oobject_t list, oint32_t ac)
-/* surface_t render_utf8_blended(font_t font, string_t text, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderUTF8_Blended(alist->a0->__font,
-				     (const char *)alist->a1->v.u8,
-				     *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_unicode_blended(oobject_t list, oint32_t ac)
-/* surface_t render_unicode_blended(font_t font, uint16_t text[], color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_t		*alist;
-
-    alist = (nat_fnt_vec_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_vector|t_uint16);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_unicode(alist->a1);
-    if ((ss = TTF_RenderUNICODE_Blended(alist->a0->__font,
-					(const Uint16 *)alist->a1->v.u16,
-					*(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_glyph_blended(oobject_t list, oint32_t ac)
-/* surface_t render_glyph_blended(font_t font, uint16_t glyph, color_t fg); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_u16_col_t		*alist;
-
-    alist = (nat_fnt_u16_col_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    if ((ss = TTF_RenderGlyph_Blended(alist->a0->__font, alist->a1,
-				      *(SDL_Color *)alist->a2))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_text_blended_wrapped(oobject_t list, oint32_t ac)
-/* surface_t render_text_blended_wrapped(font_t font, string_t text,
-					 color_t fg, uint32_t length); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_u32_t	*alist;
-
-    alist = (nat_fnt_vec_col_u32_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderText_Blended_Wrapped(alist->a0->__font,
-					     (const char *)alist->a1->v.u8,
-					     *(SDL_Color *)alist->a2,
-					     alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_utf8_blended_wrapped(oobject_t list, oint32_t ac)
-/* surface_t render_utf8_blended_wrapped(font_t font, string_t text,
-					 color_t fg, uint32_t length); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_u32_t	*alist;
-
-    alist = (nat_fnt_vec_col_u32_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_string);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_text(alist->a1);
-    if ((ss = TTF_RenderUTF8_Blended_Wrapped(alist->a0->__font,
-					     (const char *)alist->a1->v.u8,
-					     *(SDL_Color *)alist->a2,
-					     alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_render_unicode_blended_wrapped(oobject_t list, oint32_t ac)
-/* surface_t render_unicode_blended_wrapped(font_t font, uint16_t text[],
-					    color_t fg, uint32_t length); */
-{
-    GET_THREAD_SELF()
-    osurface_t			*os;
-    SDL_Surface			*ss;
-    oregister_t			*r0;
-    nat_fnt_vec_col_u32_t	*alist;
-
-    alist = (nat_fnt_vec_col_u32_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    CHECK_NULL(alist->a1);
-    CHECK_TYPE(alist->a1, t_vector|t_uint16);
-    CHECK_NULL(alist->a2);
-    CHECK_TYPE(alist->a2, t_color);
-    make_vec_unicode(alist->a1);
-    if ((ss = TTF_RenderUNICODE_Blended_Wrapped(alist->a0->__font,
-						(const Uint16 *)alist->a1->v.u16,
-						*(SDL_Color *)alist->a2,
-						alist->a3))) {
-	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
-	os = (osurface_t *)thread_self->obj;
-	os->__surface = ss;
-	query_surface(os);
-	r0->v.o = thread_self->obj;
-	r0->t = t_surface;
-    }
-    else
-	r0->t = t_void;
-}
-
-static void
-native_get_kerning(oobject_t list, oint32_t ac)
-/* int32_t get_kerning(font_t font, uint16_t prev, uint16_t ch); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_u16_u16_t		*alist;
-
-    alist = (nat_fnt_u16_u16_t *)list;
-    r0 = &thread_self->r0;
-    CHECK_NULL(alist->a0);
-    CHECK_TYPE(alist->a0, t_font);
-    CHECK_NULL(alist->a0->__font);
-    r0->t = t_word;
-    r0->v.w = TTF_GetFontKerningSize(alist->a0->__font, alist->a1, alist->a2);
-}
-
-static void
-native_close_font(oobject_t list, oint32_t ac)
-/* void close_font(font_t font); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_fnt_t			*alist;
-
-    alist = (nat_fnt_t *)list;
-    r0 = &thread_self->r0;
-    r0->t = t_void;
-    if (alist->a0) {
-	CHECK_TYPE(alist->a0, t_font);
-	odestroy_font(alist->a0);
-    }
-}
-
-static void
-native_get_mod_state(oobject_t list, oint32_t ac)
-/* void get_mode_state(); */
+native_GetModState(oobject_t list, oint32_t ac)
+/* void GetModeState(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3619,8 +2871,8 @@ push_timer(otimer_t *timer)
 }
 
 static void
-native_add_timer(oobject_t list, oint32_t ac)
-/* timer_t add_timer(uint32_t ms, auto data); */
+native_AddTimer(oobject_t list, oint32_t ac)
+/* timer_t AddTimer(uint32_t ms, auto data); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3649,8 +2901,8 @@ native_add_timer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_ticks(oobject_t list, oint32_t ac)
-/* uint32_t get_ticks(); */
+native_GetTicks(oobject_t list, oint32_t ac)
+/* uint32_t GetTicks(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3660,8 +2912,8 @@ native_get_ticks(oobject_t list, oint32_t ac)
 }
 
 static void
-native_delay(oobject_t list, oint32_t ac)
-/* void delay(uint32_t ms); */
+native_Delay(oobject_t list, oint32_t ac)
+/* void Delay(uint32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3674,8 +2926,8 @@ native_delay(oobject_t list, oint32_t ac)
 }
 
 static void
-native_remove_timer(oobject_t list, oint32_t ac)
-/* int32_t remove_timer(otimer_t); */
+native_RemoveTimer(oobject_t list, oint32_t ac)
+/* int32_t RemoveTimer(otimer_t); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3696,9 +2948,801 @@ native_remove_timer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_open_audio(oobject_t list, oint32_t ac)
-/* audio_t open_audio(int32_t frequency, uint16_t format, int32_t channels,
-		      int32_t chunksize); */
+native_ShowCursor(oobject_t list, oint32_t ac)
+/* int32_t ShowCursor(int32_t toggle); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_i32_t			*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_int32;
+    r0->v.w = SDL_ShowCursor(alist->a0);
+}
+
+static void
+query_font(ofont_t *of)
+{
+    TTF_Font			*sf;
+
+    sf = of->__font;
+    of->__style = of->style = TTF_GetFontStyle(sf);
+    of->__hinting = of->hinting = TTF_GetFontHinting(sf);
+    of->__kerning = of->kerning = TTF_GetFontKerning(sf);
+    of->__outline = of->outline = TTF_GetFontOutline(sf);
+}
+
+static void
+native_OpenFont(oobject_t list, oint32_t ac)
+/* font_t OpenFont(string_t name, int32_t ptsize) */
+{
+    GET_THREAD_SELF()
+    TTF_Font			*sf;
+    ofont_t			*of;
+    oregister_t			*r0;
+    char			*spec;
+    nat_vec_i32_t		*alist;
+    oword_t			 length;
+    char			 path[BUFSIZ];
+
+    alist = (nat_vec_i32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_string);
+    if (alist->a0->length >= BUFSIZ - 1)
+	ovm_raise(except_out_of_bounds);
+    memcpy(path, alist->a0->v.ptr, alist->a0->length);
+    path[alist->a0->length] = '\0';
+    if ((sf = TTF_OpenFont(path, alist->a1))) {
+	onew_object(&thread_self->obj, t_font, sizeof(ofont_t));
+	of = (ofont_t *)thread_self->obj;
+	of->__font = sf;
+	query_font(of);
+	/* read only fields */
+	of->height = TTF_FontHeight(sf);
+	of->ascent = TTF_FontAscent(sf);
+	of->descent = TTF_FontDescent(sf);
+	of->skip = TTF_FontLineSkip(sf);
+	of->faces = TTF_FontFaces(sf);
+	if ((spec = TTF_FontFaceStyleName(sf))) {
+	    length = strlen(spec);
+	    onew_vector((oobject_t *)&of->style_name, t_uint8, length);
+	    memcpy(of->style_name->v.ptr, spec, length);
+	}
+	if ((spec = TTF_FontFaceFamilyName(sf))) {
+	    length = strlen(spec);
+	    onew_vector((oobject_t *)&of->family_name, t_uint8, length);
+	    memcpy(of->family_name->v.ptr, spec, length);
+	}
+	of->fixed = TTF_FontFaceIsFixedWidth(sf);
+	r0->v.o = thread_self->obj;
+	r0->t = t_font;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_ChangeFont(oobject_t list, oint32_t ac)
+/* int32_t ChangeFont(font_t) */
+{
+    GET_THREAD_SELF()
+    TTF_Font			*sf;
+    ofont_t			*of;
+    oregister_t			*r0;
+    nat_fnt_t			*alist;
+
+    alist = (nat_fnt_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    of = alist->a0;
+    sf = of->__font;
+    r0->t = t_word;
+    r0->v.w = 0;
+    if (of->style != of->__style)
+	TTF_SetFontStyle(sf, of->style);
+    if (of->hinting != of->__hinting)
+	TTF_SetFontHinting(sf, of->hinting);
+    if (of->kerning != of->__kerning)
+	TTF_SetFontKerning(sf, !!of->kerning);
+    if (of->outline != of->__outline)
+	TTF_SetFontOutline(sf, of->outline);
+    query_font(of);
+}
+
+static void
+native_GlyphIsProvided(oobject_t list, oint32_t ac)
+/* int32_t GlyphIsProvided(font_t font, uint16_t ch) */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_u16_t		*alist;
+
+    alist = (nat_fnt_u16_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    r0->t = t_word;
+    r0->v.w = TTF_GlyphIsProvided(alist->a0->__font, alist->a1);
+}
+
+static void
+native_GlyphMetrics(oobject_t list, oint32_t ac)
+/* glyph_t GlyphMetrics(font_t font, uint16_t ch) */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    oglyph_t			 ogm;
+    nat_fnt_u16_t		*alist;
+
+    alist = (nat_fnt_u16_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    if (TTF_GlyphMetrics(alist->a0->__font, alist->a1,
+			 &ogm.min_x, &ogm.max_x, &ogm.min_y, &ogm.max_y,
+			 &ogm.advance) == 0) {
+	onew_object(&thread_self->obj, t_glyph, sizeof(oglyph_t));
+	memcpy(thread_self->obj, &ogm, sizeof(oglyph_t));
+	r0->v.o = thread_self->obj;
+	r0->t = t_glyph;
+    }
+    else
+	r0->t = t_void;
+}
+
+/* XXX allocation is 16 bytes aligned and padded with zeros, still a
+ * XXX pessimization due to not having a flag telling may have been
+ *     already overallocated in case has 16 byte aligned length */
+#define make_vec_text(V)						\
+    do {								\
+	if (!(V->length & 15)) {					\
+	    orenew_vector(V, V->length + 1);				\
+	    --V->length;						\
+	}								\
+    } while (0)
+#define make_vec_unicode(V)						\
+    do {								\
+	if (!(V->length & 7)) {						\
+	    orenew_vector(V, V->length + 1);				\
+	    --V->length;						\
+	}								\
+    } while (0)
+
+static void
+native_SizeText(oobject_t list, oint32_t ac)
+/* int32_t SizeText(font_t font, string_t text, point_t size); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_vec_pnt_t		*alist;
+
+    alist = (nat_fnt_vec_pnt_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_point);
+    make_vec_text(alist->a1);
+    r0->t = t_word;
+    r0->v.w = TTF_SizeText(alist->a0->__font,
+			   (const char *)alist->a1->v.u8,
+			   &alist->a2->x, &alist->a2->y);
+}
+
+static void
+native_SizeUTF8(oobject_t list, oint32_t ac)
+/* int32_t SizeUTF8(font_t font, string_t text, point_t size); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_vec_pnt_t		*alist;
+
+    alist = (nat_fnt_vec_pnt_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_point);
+    make_vec_text(alist->a1);
+    r0->t = t_word;
+    r0->v.w = TTF_SizeUTF8(alist->a0->__font,
+			   (const char *)alist->a1->v.u8,
+			   &alist->a2->x, &alist->a2->y);
+}
+
+static void
+native_SizeUNICODE(oobject_t list, oint32_t ac)
+/* int32_t SizeUNICODE(font_t font, uint16_t text[], point_t size); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_vec_pnt_t		*alist;
+
+    alist = (nat_fnt_vec_pnt_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint16);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_point);
+    make_vec_unicode(alist->a1);
+    r0->t = t_word;
+    r0->v.w = TTF_SizeUNICODE(alist->a0->__font,
+			      (const Uint16 *)alist->a1->v.u16,
+			      &alist->a2->x, &alist->a2->y);
+}
+
+static void
+native_RenderText_Solid(oobject_t list, oint32_t ac)
+/* surface_t RenderText_Solid(font_t font, string_t text, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderText_Solid(alist->a0->__font,
+				   (const char *)alist->a1->v.u8,
+				   *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUTF8_Solid(oobject_t list, oint32_t ac)
+/* surface_t RenderUTF8_Solid(font_t font, string_t text, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderUTF8_Solid(alist->a0->__font,
+				   (const char *)alist->a1->v.u8,
+				   *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUNICODE_Solid(oobject_t list, oint32_t ac)
+/* surface_t RenderUNICODE_Solid(font_t font, uint16_t text[], color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint16);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_unicode(alist->a1);
+    if ((ss = TTF_RenderUNICODE_Solid(alist->a0->__font,
+				      (const Uint16 *)alist->a1->v.u16,
+				      *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderGlyph_Solid(oobject_t list, oint32_t ac)
+/* surface_t RenderGlyph_Solid(font_t font, uint16_t glyph, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_u16_col_t		*alist;
+
+    alist = (nat_fnt_u16_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    if ((ss = TTF_RenderGlyph_Solid(alist->a0->__font, alist->a1,
+				    *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderText_Shaded(oobject_t list, oint32_t ac)
+/* surface_t RenderText_Shaded(font_t font, string_t text,
+			       color_t fg, color_t bf); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_col_t	*alist;
+
+    alist = (nat_fnt_vec_col_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderText_Shaded(alist->a0->__font,
+				    (const char *)alist->a1->v.u8,
+				    *(SDL_Color *)alist->a2,
+				    *(SDL_Color *)alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUTF8_Shaded(oobject_t list, oint32_t ac)
+/* surface_t RenderUTF8_Shaded(font_t font, string_t text,
+			       color_t fg, color_t bf); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_col_t	*alist;
+
+    alist = (nat_fnt_vec_col_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderUTF8_Shaded(alist->a0->__font,
+				    (const char *)alist->a1->v.u8,
+				    *(SDL_Color *)alist->a2,
+				    *(SDL_Color *)alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUNICODE_Shaded(oobject_t list, oint32_t ac)
+/* surface_t RenderUNICODE_Shaded(font_t font, uint16_t text[],
+				  color_t fg, color_t bf); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_col_t	*alist;
+
+    alist = (nat_fnt_vec_col_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint16);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_color);
+    make_vec_unicode(alist->a1);
+    if ((ss = TTF_RenderUNICODE_Shaded(alist->a0->__font,
+				       (const Uint16 *)alist->a1->v.u16,
+				       *(SDL_Color *)alist->a2,
+				       *(SDL_Color *)alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderGlyph_Shaded(oobject_t list, oint32_t ac)
+/* surface_t RenderGlyph_Shaded(font_t font, uint16_t glyph,
+				color_t fg, color_t bf); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_u16_col_col_t	*alist;
+
+    alist = (nat_fnt_u16_col_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_color);
+    if ((ss = TTF_RenderGlyph_Shaded(alist->a0->__font, alist->a1,
+				     *(SDL_Color *)alist->a2,
+				     *(SDL_Color *)alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderText_Blended(oobject_t list, oint32_t ac)
+/* surface_t RenderText_Blended(font_t font, string_t text, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderText_Blended(alist->a0->__font,
+				     (const char *)alist->a1->v.u8,
+				     *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUTF8_Blended(oobject_t list, oint32_t ac)
+/* surface_t RenderUTF8_Blended(font_t font, string_t text, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderUTF8_Blended(alist->a0->__font,
+				     (const char *)alist->a1->v.u8,
+				     *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUNICODE_Blended(oobject_t list, oint32_t ac)
+/* surface_t RenderUNICODE_Blended(font_t font, uint16_t text[], color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_t		*alist;
+
+    alist = (nat_fnt_vec_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint16);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_unicode(alist->a1);
+    if ((ss = TTF_RenderUNICODE_Blended(alist->a0->__font,
+					(const Uint16 *)alist->a1->v.u16,
+					*(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderGlyph_Blended(oobject_t list, oint32_t ac)
+/* surface_t RenderGlyph_Blended(font_t font, uint16_t glyph, color_t fg); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_u16_col_t		*alist;
+
+    alist = (nat_fnt_u16_col_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    if ((ss = TTF_RenderGlyph_Blended(alist->a0->__font, alist->a1,
+				      *(SDL_Color *)alist->a2))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderText_Blended_Wrapped(oobject_t list, oint32_t ac)
+/* surface_t RenderText_Blended_Wrapped(font_t font, string_t text,
+					color_t fg, uint32_t length); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_u32_t	*alist;
+
+    alist = (nat_fnt_vec_col_u32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderText_Blended_Wrapped(alist->a0->__font,
+					     (const char *)alist->a1->v.u8,
+					     *(SDL_Color *)alist->a2,
+					     alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUTF8_Blended_Wrapped(oobject_t list, oint32_t ac)
+/* surface_t RenderUTF8_Blended_Wrapped(font_t font, string_t text,
+				        color_t fg, uint32_t length); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_u32_t	*alist;
+
+    alist = (nat_fnt_vec_col_u32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_text(alist->a1);
+    if ((ss = TTF_RenderUTF8_Blended_Wrapped(alist->a0->__font,
+					     (const char *)alist->a1->v.u8,
+					     *(SDL_Color *)alist->a2,
+					     alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_RenderUNICODE_Blended_Wrapped(oobject_t list, oint32_t ac)
+/* surface_t RenderUNICODE_Blended_Wrapped(font_t font, uint16_t text[],
+					   color_t fg, uint32_t length); */
+{
+    GET_THREAD_SELF()
+    osurface_t			*os;
+    SDL_Surface			*ss;
+    oregister_t			*r0;
+    nat_fnt_vec_col_u32_t	*alist;
+
+    alist = (nat_fnt_vec_col_u32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint16);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_color);
+    make_vec_unicode(alist->a1);
+    if ((ss = TTF_RenderUNICODE_Blended_Wrapped(alist->a0->__font,
+						(const Uint16 *)alist->a1->v.u16,
+						*(SDL_Color *)alist->a2,
+						alist->a3))) {
+	onew_object(&thread_self->obj, t_surface, sizeof(osurface_t));
+	os = (osurface_t *)thread_self->obj;
+	os->__surface = ss;
+	query_surface(os);
+	r0->v.o = thread_self->obj;
+	r0->t = t_surface;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_GetFontKerningSize(oobject_t list, oint32_t ac)
+/* int32_t GetFontKerningSize(font_t font, uint16_t prev, uint16_t ch); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_u16_u16_t		*alist;
+
+    alist = (nat_fnt_u16_u16_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_font);
+    CHECK_NULL(alist->a0->__font);
+    r0->t = t_word;
+    r0->v.w = TTF_GetFontKerningSize(alist->a0->__font, alist->a1, alist->a2);
+}
+
+static void
+native_CloseFont(oobject_t list, oint32_t ac)
+/* void CloseFont(font_t font); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_fnt_t			*alist;
+
+    alist = (nat_fnt_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    if (alist->a0) {
+	CHECK_TYPE(alist->a0, t_font);
+	odestroy_font(alist->a0);
+    }
+}
+
+static void
+native_OpenAudio(oobject_t list, oint32_t ac)
+/* audio_t OpenAudio(int32_t frequency, uint16_t format, int32_t channels,
+		     int32_t chunksize); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3719,8 +3763,8 @@ native_open_audio(oobject_t list, oint32_t ac)
 }
 
 static void
-native_allocate_channels(oobject_t list, oint32_t ac)
-/* int32_t allocate_channels(int32_t channels); */
+native_AllocateChannels(oobject_t list, oint32_t ac)
+/* int32_t AllocateChannels(int32_t channels); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3733,8 +3777,8 @@ native_allocate_channels(oobject_t list, oint32_t ac)
 }
 
 static void
-native_load_chunk(oobject_t list, oint32_t ac)
-/* chunk_t load_chunk(string_t path); */
+native_LoadChunk(oobject_t list, oint32_t ac)
+/* chunk_t LoadChunk(string_t path); */
 {
     GET_THREAD_SELF()
     Mix_Chunk			*sc;
@@ -3775,8 +3819,8 @@ channel_callback(int channel)
 }
 
 static void
-native_play_channel(oobject_t list, oint32_t ac)
-/* int32_t play_channel(int32_t channel, chunk_t chunk, int32_t loops); */
+native_PlayChannel(oobject_t list, oint32_t ac)
+/* int32_t PlayChannel(int32_t channel, chunk_t chunk, int32_t loops); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3792,9 +3836,9 @@ native_play_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fade_in_channel(oobject_t list, oint32_t ac)
-/* int32_t channel_fade_in(int32_t channel, chunk_t chunk,
-			  int32_t loops, int32_t ms); */
+native_FadeInChannel(oobject_t list, oint32_t ac)
+/* int32_t FadeInChannel(int32_t channel, chunk_t chunk,
+			 int32_t loops, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3811,8 +3855,8 @@ native_fade_in_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_volume_chunk(oobject_t list, oint32_t ac)
-/* int32_t volume_chunk(chunk_t chunk, int32_t volume); */
+native_VolumeChunk(oobject_t list, oint32_t ac)
+/* int32_t VolumeChunk(chunk_t chunk, int32_t volume); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3828,8 +3872,8 @@ native_volume_chunk(oobject_t list, oint32_t ac)
 }
 
 static void
-native_panning_channel(oobject_t list, oint32_t ac)
-/* int32_t panning_channel(int32_t channel, uint8_t left, uint8_t right); */
+native_SetPanning(oobject_t list, oint32_t ac)
+/* int32_t SetPanning(int32_t channel, uint8_t left, uint8_t right); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3842,8 +3886,8 @@ native_panning_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_position_channel(oobject_t list, oint32_t ac)
-/* int32_t position_channel(int32_t channel, int16_t angle, uint8_t dist); */
+native_SetPosition(oobject_t list, oint32_t ac)
+/* int32_t SetPosition(int32_t channel, int16_t angle, uint8_t dist); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3856,8 +3900,8 @@ native_position_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_distance_channel(oobject_t list, oint32_t ac)
-/* int32_t distance_channel(int32_t channel, uint8_t dist); */
+native_SetDistance(oobject_t list, oint32_t ac)
+/* int32_t SetDistance(int32_t channel, uint8_t dist); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3870,8 +3914,8 @@ native_distance_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_reverse_stereo_channel(oobject_t list, oint32_t ac)
-/* int32_t reverse_stereo_channel(int32_t channel, int8_t flip); */
+native_SetReverseStereo(oobject_t list, oint32_t ac)
+/* int32_t SetReverseStereo(int32_t channel, int8_t flip); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3884,8 +3928,8 @@ native_reverse_stereo_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fade_out_channel(oobject_t list, oint32_t ac)
-/* int32_t fade_out_channel(int32_t channel, int32_t ms); */
+native_FadeOutChannel(oobject_t list, oint32_t ac)
+/* int32_t FadeOutChannel(int32_t channel, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3898,8 +3942,8 @@ native_fade_out_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_playing_channel(oobject_t list, oint32_t ac)
-/* int32_t playing_channel(int32_t channel); */
+native_Playing(oobject_t list, oint32_t ac)
+/* int32_t Playing(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3912,8 +3956,8 @@ native_playing_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fading_channel(oobject_t list, oint32_t ac)
-/* int32_t fading_channel(int32_t channel); */
+native_FadingChannel(oobject_t list, oint32_t ac)
+/* int32_t FadingChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3926,8 +3970,8 @@ native_fading_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_expire_channel(oobject_t list, oint32_t ac)
-/* int32_t expire_channel(int32_t channel); */
+native_ExpireChannel(oobject_t list, oint32_t ac)
+/* int32_t ExpireChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3940,8 +3984,8 @@ native_expire_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_pause_channel(oobject_t list, oint32_t ac)
-/* void pause_channel(int32_t channel); */
+native_Pause(oobject_t list, oint32_t ac)
+/* void Pause(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3954,8 +3998,8 @@ native_pause_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_resume_channel(oobject_t list, oint32_t ac)
-/* void resume_channel(int32_t channel); */
+native_Resume(oobject_t list, oint32_t ac)
+/* void Resume(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3968,8 +4012,8 @@ native_resume_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_paused_channel(oobject_t list, oint32_t ac)
-/* void paused_channel(int32_t channel); */
+native_Paused(oobject_t list, oint32_t ac)
+/* void Paused(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3982,8 +4026,8 @@ native_paused_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_halt_channel(oobject_t list, oint32_t ac)
-/* int32_t halt_channel(int32_t channel); */
+native_HaltChannel(oobject_t list, oint32_t ac)
+/* int32_t HaltChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3996,8 +4040,8 @@ native_halt_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_free_chunk(oobject_t list, oint32_t ac)
-/* void free_chunk(chunk_t chunk); */
+native_FreeChunk(oobject_t list, oint32_t ac)
+/* void FreeChunk(chunk_t chunk); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4013,8 +4057,8 @@ native_free_chunk(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_channel(oobject_t list, oint32_t ac)
-/* int32_t group_channel(int32_t channel, int32_t tag); */
+native_GroupChannel(oobject_t list, oint32_t ac)
+/* int32_t GroupChannel(int32_t channel, int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4027,9 +4071,9 @@ native_group_channel(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_channels(oobject_t list, oint32_t ac)
-/* int32_t group_channels(int32_t from_channel, int32_t to_channel,
-			  int32_t tag); */
+native_GroupChannels(oobject_t list, oint32_t ac)
+/* int32_t GroupChannels(int32_t from_channel, int32_t to_channel,
+			 int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4042,8 +4086,8 @@ native_group_channels(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_available(oobject_t list, oint32_t ac)
-/* int32_t group_available(int32_t tag); */
+native_GroupAvailable(oobject_t list, oint32_t ac)
+/* int32_t GroupAvailable(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4056,8 +4100,8 @@ native_group_available(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_count(oobject_t list, oint32_t ac)
-/* int32_t group_count(int32_t tag); */
+native_GroupCount(oobject_t list, oint32_t ac)
+/* int32_t GroupCount(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4070,8 +4114,8 @@ native_group_count(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_oldest(oobject_t list, oint32_t ac)
-/* int32_t group_oldest(int32_t tag); */
+native_GroupOldest(oobject_t list, oint32_t ac)
+/* int32_t GroupOldest(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4084,8 +4128,8 @@ native_group_oldest(oobject_t list, oint32_t ac)
 }
 
 static void
-native_group_newer(oobject_t list, oint32_t ac)
-/* int32_t group_newer(int32_t tag); */
+native_GroupNewer(oobject_t list, oint32_t ac)
+/* int32_t GroupNewer(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4098,8 +4142,8 @@ native_group_newer(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fade_out_group(oobject_t list, oint32_t ac)
-/* int32_t fade_out_group(int32_t tag, int32_t ms); */
+native_FadeOutGroup(oobject_t list, oint32_t ac)
+/* int32_t FadeOutGroup(int32_t tag, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4112,8 +4156,8 @@ native_fade_out_group(oobject_t list, oint32_t ac)
 }
 
 static void
-native_halt_group(oobject_t list, oint32_t ac)
-/* int32_t halt_group(int32_t tag); */
+native_HaltGroup(oobject_t list, oint32_t ac)
+/* int32_t HaltGroup(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4126,8 +4170,8 @@ native_halt_group(oobject_t list, oint32_t ac)
 }
 
 static void
-native_load_music(oobject_t list, oint32_t ac)
-/* music_t load_music(string_t path); */
+native_LoadMusic(oobject_t list, oint32_t ac)
+/* music_t LoadMusic(string_t path); */
 {
     GET_THREAD_SELF()
     Mix_Music			*sm;
@@ -4169,8 +4213,8 @@ music_callback(void)
 }
 
 static void
-native_play_music(oobject_t list, oint32_t ac)
-/* int32_t play_music(music_t music, int32_t loops); */
+native_PlayMusic(oobject_t list, oint32_t ac)
+/* int32_t PlayMusic(music_t music, int32_t loops); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4186,8 +4230,8 @@ native_play_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fade_in_music(oobject_t list, oint32_t ac)
-/* int32_t fade_in_music(music_t music, int32_t loops, int ms); */
+native_FadeInMusic(oobject_t list, oint32_t ac)
+/* int32_t FadeInMusic(music_t music, int32_t loops, int ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4203,8 +4247,8 @@ native_fade_in_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_volume_music(oobject_t list, oint32_t ac)
-/* int32_t volume_music(uint8_t volume); */
+native_VolumeMusic(oobject_t list, oint32_t ac)
+/* int32_t VolumeMusic(uint8_t volume); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4217,8 +4261,8 @@ native_volume_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_playing_music(oobject_t list, oint32_t ac)
-/* int32_t playing_music(); */
+native_PlayingMusic(oobject_t list, oint32_t ac)
+/* int32_t PlayingMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4229,8 +4273,8 @@ native_playing_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fade_out_music(oobject_t list, oint32_t ac)
-/* int32_t fade_out_music(int32_t ms); */
+native_FadeOutMusic(oobject_t list, oint32_t ac)
+/* int32_t FadeOutMusic(int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4243,7 +4287,7 @@ native_fade_out_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_fading_music(oobject_t list, oint32_t ac)
+native_FadingMusic(oobject_t list, oint32_t ac)
 /* int32_t fading_music(); */
 {
     GET_THREAD_SELF()
@@ -4255,7 +4299,7 @@ native_fading_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_pause_music(oobject_t list, oint32_t ac)
+native_PauseMusic(oobject_t list, oint32_t ac)
 /* void pause_music(); */
 {
     GET_THREAD_SELF()
@@ -4267,7 +4311,7 @@ native_pause_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_resume_music(oobject_t list, oint32_t ac)
+native_ResumeMusic(oobject_t list, oint32_t ac)
 /* void resume_music(); */
 {
     GET_THREAD_SELF()
@@ -4279,7 +4323,7 @@ native_resume_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_rewind_music(oobject_t list, oint32_t ac)
+native_RewindMusic(oobject_t list, oint32_t ac)
 /* void rewind_music(); */
 {
     GET_THREAD_SELF()
@@ -4291,8 +4335,8 @@ native_rewind_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_paused_music(oobject_t list, oint32_t ac)
-/* void paused_music(); */
+native_PausedMusic(oobject_t list, oint32_t ac)
+/* void PausedMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4303,8 +4347,8 @@ native_paused_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_set_music_position(oobject_t list, oint32_t ac)
-/* int32_t set_music_position(float64_t position); */
+native_SetMusicPosition(oobject_t list, oint32_t ac)
+/* int32_t SetMusicPosition(float64_t position); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4317,8 +4361,8 @@ native_set_music_position(oobject_t list, oint32_t ac)
 }
 
 static void
-native_halt_music(oobject_t list, oint32_t ac)
-/* int32_t halt_music(); */
+native_HaltMusic(oobject_t list, oint32_t ac)
+/* int32_t HaltMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4329,8 +4373,8 @@ native_halt_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_free_music(oobject_t list, oint32_t ac)
-/* void free_music(music_t music); */
+native_FreeMusic(oobject_t list, oint32_t ac)
+/* void FreeMusic(music_t music); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4346,8 +4390,8 @@ native_free_music(oobject_t list, oint32_t ac)
 }
 
 static void
-native_close_audio(oobject_t list, oint32_t ac)
-/* void close_audio(); */
+native_CloseAudio(oobject_t list, oint32_t ac)
+/* void CloseAudio(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4355,20 +4399,6 @@ native_close_audio(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
     Mix_CloseAudio();
-}
-
-static void
-native_show_cursor(oobject_t list, oint32_t ac)
-/* int32_t show_cursor(int32_t toggle); */
-{
-    GET_THREAD_SELF()
-    oregister_t			*r0;
-    nat_i32_t			*alist;
-
-    alist = (nat_i32_t *)list;
-    r0 = &thread_self->r0;
-    r0->t = t_int32;
-    r0->v.w = SDL_ShowCursor(alist->a0);
 }
 
 #if __WORDSIZE == 32
@@ -4391,8 +4421,8 @@ ret_u32(oregister_t *r, ouint32_t v)
 #endif
 
 static void
-native_reset_attributes(oobject_t list, oint32_t ac)
-/* void reset_attributes(); */
+native_ResetAttributes(oobject_t list, oint32_t ac)
+/* void ResetAttributes(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4403,8 +4433,8 @@ native_reset_attributes(oobject_t list, oint32_t ac)
 }
 
 static void
-native_set_attribute(oobject_t list, oint32_t ac)
-/* int32_t set_attribute(int32_t attr, int32_t value); */
+native_SetAttribute(oobject_t list, oint32_t ac)
+/* int32_t SetAttribute(int32_t attr, int32_t value); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4417,8 +4447,8 @@ native_set_attribute(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_attribute(oobject_t list, oint32_t ac)
-/* int32_t get_attribute(int32_t attr, int32_t value[1]); */
+native_GetAttribute(oobject_t list, oint32_t ac)
+/* int32_t GetAttribute(int32_t attr, int32_t value[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4435,8 +4465,8 @@ native_get_attribute(oobject_t list, oint32_t ac)
 }
 
 static void
-native_create_context(oobject_t list, oint32_t ac)
-/* context_t create_context(window_t window); */
+native_CreateContext(oobject_t list, oint32_t ac)
+/* context_t CreateContext(window_t window); */
 {
     GET_THREAD_SELF()
     SDL_GLContext			 sc;
@@ -4461,8 +4491,8 @@ native_create_context(oobject_t list, oint32_t ac)
 }
 
 static void
-native_make_current(oobject_t list, oint32_t ac)
-/* int32_t make_current(window_t window, context_t context); */
+native_MakeCurrent(oobject_t list, oint32_t ac)
+/* int32_t MakeCurrent(window_t window, context_t context); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4483,8 +4513,8 @@ native_make_current(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_current_window(oobject_t list, oint32_t ac)
-/* window_t get_current_window(); */
+native_GetCurrentWindow(oobject_t list, oint32_t ac)
+/* window_t GetCurrentWindow(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4500,8 +4530,8 @@ native_get_current_window(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_current_context(oobject_t list, oint32_t ac)
-/* context_t get_current_context(); */
+native_GetCurrentContext(oobject_t list, oint32_t ac)
+/* context_t GetCurrentContext(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4517,8 +4547,8 @@ native_get_current_context(oobject_t list, oint32_t ac)
 }
 
 static void
-native_set_swap_interval(oobject_t list, oint32_t ac)
-/* int32_t set_swap_interval(int8_t interval); */
+native_SetSwapInterval(oobject_t list, oint32_t ac)
+/* int32_t SetSwapInterval(int8_t interval); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4531,8 +4561,8 @@ native_set_swap_interval(oobject_t list, oint32_t ac)
 }
 
 static void
-native_get_swap_interval(oobject_t list, oint32_t ac)
-/* int8_t get_swap_interval(); */
+native_GetSwapInterval(oobject_t list, oint32_t ac)
+/* int8_t GetSwapInterval(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4543,8 +4573,8 @@ native_get_swap_interval(oobject_t list, oint32_t ac)
 }
 
 static void
-native_swap_window(oobject_t list, oint32_t ac)
-/* void swap_window(window_t window); */
+native_SwapWindow(oobject_t list, oint32_t ac)
+/* void SwapWindow(window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4560,8 +4590,8 @@ native_swap_window(oobject_t list, oint32_t ac)
 }
 
 static void
-native_delete_context(oobject_t list, oint32_t ac)
-/* void delete_context(context_t context); */
+native_DeleteContext(oobject_t list, oint32_t ac)
+/* void DeleteContext(context_t context); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;

@@ -7,34 +7,34 @@ uint32_t texture[1] = {};
 sdl.window_t win;
 sdl.gl.context_t ctx;
 void init_all() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson24",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    640, 480,
-			    sdl.WindowOpenGL |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson24",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   640, 480,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 }
 
 void font() {
     int32_t loop1;
-    sdl.surface_t srf = sdl.load_surface("nehe/lesson24/Font.tga");
+    sdl.surface_t srf = sdl.LoadSurface("nehe/lesson24/Font.tga");
     if (srf) {
 	gl.GenTextures(texture);
 
@@ -42,7 +42,7 @@ void font() {
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	sdl.gl.TexImage2D(srf);
-	sdl.free_surface(srf);
+	sdl.FreeSurface(srf);
 
 	base = gl.GenLists(256);
 	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
@@ -180,64 +180,64 @@ void draw() {
     gl.Disable(gl.SCISSOR_TEST);
 
     /* Draw it to the screen */
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void loop() {
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    resize();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    done = true;
 			    break;
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    if (scroll > 2)
 				scroll -= 2;
 			    else
 				scroll = 0;
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    if (scroll < 32 * (maxtokens - 9) - 2)
 				scroll += 2;
 			    else 
 				scroll =  32 * (maxtokens - 9);
 			    break;
-			case sdl.Key_PageUp:
+			case sdl.K_PAGEUP:
 			    if (scroll > 288)
 				scroll -= 288;
 			    else
 				scroll = 0;
 			    break;
-			case sdl.Key_PageDown:
+			case sdl.K_PAGEDOWN:
 			    if (scroll < 32 * (maxtokens - 9) - 288)
 				scroll += 288;
 			    else 
 				scroll =  32 * (maxtokens - 9);
 			    break;
-			case sdl.Key_Home:
+			case sdl.K_HOME:
 			    scroll = 0;
 			    break;
-			case sdl.Key_End:
+			case sdl.K_END:
 			    scroll =  32 * (maxtokens - 9);
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
@@ -248,9 +248,9 @@ void loop() {
     
 void finish_all() {
     gl.DeleteLists(base, 256);
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 print("\

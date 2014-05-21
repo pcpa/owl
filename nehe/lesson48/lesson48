@@ -538,34 +538,34 @@ void Draw() {
     glu.Sphere(quadratic, 1.3, 20, 20);
     gl.PopMatrix();			// Unapply Dynamic Transform
 
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void main() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson48",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    640, 480,
-			    sdl.WindowOpenGL |
-			    sdl.WindowResizable |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson48",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   640, 480,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_RESIZABLE |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 
     ArcBall = new ArcBall_t;
 
@@ -580,38 +580,38 @@ Right mouse button down	Reset scene\n");
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    ReshapeGL();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
-		    if (ev.keysym == sdl.Key_Escape)
+		case sdl.KEYDOWN:
+		    if (ev.keysym == sdl.K_ESCAPE)
 			done = true;
 			break;
-		case sdl.EventMouseButtonDown:
-		    if (ev.button == sdl.ButtonLeft)
+		case sdl.MOUSEBUTTONDOWN:
+		    if (ev.button == sdl.BUTTON_LEFT)
 			isClicked = true;
-		    else if (ev.button == sdl.ButtonRight)
+		    else if (ev.button == sdl.BUTTON_RIGHT)
 			isRClicked = true;
 		    break;
-		case sdl.EventMouseButtonUp:
-		    if (ev.button == sdl.ButtonLeft)
+		case sdl.MOUSEBUTTONUP:
+		    if (ev.button == sdl.BUTTON_LEFT)
 			isClicked = false;
-		    else if (ev.button == sdl.ButtonRight)
+		    else if (ev.button == sdl.BUTTON_RIGHT)
 			isRClicked = false;
 		    break;
-		case sdl.EventMouseMotion:
+		case sdl.MOUSEMOTION:
 		    v_X(MousePt) = ev.x;
 		    v_Y(MousePt) = ev.y;
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
@@ -620,9 +620,9 @@ Right mouse button down	Reset scene\n");
 	Draw();
     }
 
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 main();

@@ -190,7 +190,7 @@ void display_func() {
 	gl.Disable(gl.TEXTURE_GEN_T);
     }
 
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void timer_func() {
@@ -203,29 +203,29 @@ void timer_func() {
 }
 
 void main() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson35",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    win_width, win_height,
-			    sdl.WindowOpenGL |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson35",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   win_width, win_height,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 
     // avistream->StartStreaming();
     video = open("/dev/urandom", O_READ);	// cosmic background
@@ -270,38 +270,38 @@ e:		Toggle environment\n");
     initialize();
 
     // call timer once per video fps
-    timer = sdl.add_timer(1000 / stream_fps, null);
+    timer = sdl.AddTimer(1000 / stream_fps, null);
 
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_0:
+			case sdl.K_0:
 			    effect = 0;
 			    display_func();
 			    break;
-			case sdl.Key_1:
+			case sdl.K_1:
 			    effect = 1;
 			    display_func();
 			    break;
-			case sdl.Key_2:
+			case sdl.K_2:
 			    effect = 2;
 			    display_func();
 			    break;
-			case sdl.Key_b:
+			case sdl.K_b:
 			    bg = !bg;
 			    display_func();
 			    break;
-			case sdl.Key_e:
+			case sdl.K_e:
 			    env = !env;
 			    display_func();
 			    break;
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    if (timer) {
-				sdl.remove_timer(timer);
+				sdl.RemoveTimer(timer);
 				timer = null;
 			    }
 			    done = true;
@@ -310,10 +310,10 @@ e:		Toggle environment\n");
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
-		case sdl.EventTimer:
+		case sdl.TIMEREVENT:
 		    timer_func();
 		    break;
 	    }
@@ -321,9 +321,9 @@ e:		Toggle environment\n");
     }
 
     close(video);
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 main();

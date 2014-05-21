@@ -25,30 +25,30 @@ uint32_t texture[NUM_TEXTURES] = {};
 sdl.window_t win;
 sdl.gl.context_t ctx;
 void init_all() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson23",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    640, 480,
-			    sdl.WindowOpenGL |
-			    sdl.WindowResizable |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson23",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   640, 480,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_RESIZABLE |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 }
 
 void init_texture() {
@@ -56,8 +56,8 @@ void init_texture() {
     int32_t loop;
 
     /* Load The Bitmap, Check For Errors, If Bitmap's Not Found Quit */
-    if ((srf[0] = sdl.load_surface("nehe/lesson23/bg.bmp")) &&
-	(srf[1] = sdl.load_surface("nehe/lesson23/reflect.bmp"))) {
+    if ((srf[0] = sdl.LoadSurface("nehe/lesson23/bg.bmp")) &&
+	(srf[1] = sdl.LoadSurface("nehe/lesson23/reflect.bmp"))) {
 
         /* Create The Texture */
 	gl.GenTextures(texture);
@@ -79,14 +79,14 @@ void init_texture() {
             gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 	    gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
 			    gl.LINEAR_MIPMAP_NEAREST);
-	    sdl.pull_surface(srf[loop]);
+	    sdl.PullSurface(srf[loop]);
 	    glu.Build2DMipmaps(gl.TEXTURE_2D, srf[loop].w, srf[loop].h,
 			       gl.BGR, srf[loop].pixels);
 	}
 
 	/* Free up any memory we may have used */
 	for (loop = 0; loop <= 1; ++loop)
-	    sdl.free_surface(srf[loop]);
+	    sdl.FreeSurface(srf[loop]);
     }
 }
 
@@ -269,7 +269,7 @@ void draw() {
     gl.PopMatrix();
 
     /* Draw it to the screen */
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 
     xrot += xspeed;	/* Add xspeed To xrot */
     yrot += yspeed;	/* Add yspeed To yrot */
@@ -279,29 +279,29 @@ void loop() {
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    resize();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    done = true;
 			    break;
-			case sdl.Key_f:
+			case sdl.K_f:
 			    /* 'f' key was pressed
 			     * this pages through the different filters
 			     */
 			    filter = (++filter) % 3;
 			    break;
-			case sdl.Key_l:
+			case sdl.K_l:
 			    /* 'l' key was pressed
 			     * this toggles the light
 			     */
@@ -311,43 +311,43 @@ void loop() {
 			    else
 				gl.Enable(gl.LIGHTING);
 			    break;
-			case sdl.Key_Space:
+			case sdl.K_SPACE:
 			    /* Spacebar was pressed
 			     * this pages through the objects
 			     */
 			    object = (object + 1) % 4;
 			    break;
-			case sdl.Key_PageUp:
+			case sdl.K_PAGEUP:
 			    /* PageUp key was pressed
 			     * this zooms into the scene
 			     */
 			    z -= 0.02;
 			    break;
-			case sdl.Key_PageDown:
+			case sdl.K_PAGEDOWN:
 			    /* PageDown key was pressed
 			     * this zooms out of the scene
 			     */
 			    z += 0.02;
 			    break;
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    /* Up arrow key was pressed
 			     * this affects the x rotation
 			     */
 			    xspeed -= 0.01;
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    /* Down arrow key was pressed
 			     * this affects the x rotation
 			     */
 			    xspeed += 0.01;
 			    break;
-			case sdl.Key_Right:
+			case sdl.K_RIGHT:
 			    /* Right arrow key was pressed
 			     * this affects the y rotation
 			     */
 			    yspeed += 0.01;
 			    break;
-			case sdl.Key_Left:
+			case sdl.K_LEFT:
 			    /* Left arrow key was pressed
 			     * this affects the y rotation
 			     */
@@ -357,7 +357,7 @@ void loop() {
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
@@ -367,9 +367,9 @@ void loop() {
 }
     
 void finish_all() {
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 print("\

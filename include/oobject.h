@@ -119,16 +119,23 @@ enum otype {
     t_renderer,
     t_surface,
     t_texture,
+    t_timer,
+    t_event,
+
+    t_ttf,		/* ttf namespace */
     t_font,
     t_glyph,
-    t_timer,
+
+    t_mix,		/* mix namespace */
     t_chunk,
     t_music,
     t_audio,
-    t_event,
+
     t_sdl_gl,		/* sdl.gl namespace */
     t_context,
+
     t_gl,		/* gl namespace */
+
     t_glu,		/* glu namespace */
     t_nurbs,
     t_quadric,

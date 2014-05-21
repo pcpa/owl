@@ -1,15 +1,15 @@
 #define DEBUG	0
-if (sdl.init()) {
-    print("init error: %s\n", sdl.get_error());
+if (sdl.Init()) {
+    print("init error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.window_t win = sdl.create_window("SDL example!",
-				     sdl.WindowposCentered,
-				     sdl.WindowposCentered,
-				     640, 480,
-				     sdl.WindowShown);
+sdl.window_t win = sdl.CreateWindow("SDL example!",
+				    sdl.WINDOWPOS_CENTERED,
+				    sdl.WINDOWPOS_CENTERED,
+				    640, 480,
+				    sdl.WINDOW_SHOWN);
 if (win == null) {
-    print("create_window error: %s\n", sdl.get_error());
+    print("create_window error: %s\n", sdl.GetError());
     exit(1);
 }
 #if DEBUG
@@ -28,28 +28,28 @@ title:		%#a\n\
 brightness:	%d\n",
       win,
       win.x, win.y, win.w, win.h, win.min_w, win.min_h, win.max_w, win.max_h,
-      win.flags & sdl.WindowFullscreenDesktop ?
-      (win.flags & sdl.WindowFullscreenDesktop == sdl.WindowFullscreenDesktop ?
-       "WindowFullscreenDesktop " : "WindowFullscreen ") : "",
-      win.flags & sdl.WindowOpenGL ? "OpenGL " : "",
-      win.flags & sdl.WindowShown ? "Shown " : "",
-      win.flags & sdl.WindowHidden ? "Hidden " : "",
-      win.flags & sdl.WindowBorderless ? "Borderless " : "",
-      win.flags & sdl.WindowResizable ? "Resizable " : "",
-      win.flags & sdl.WindowMinimized ? "Minimized " : "",
-      win.flags & sdl.WindowMaximized ? "Maximized " : "",
-      win.flags & sdl.WindowInputGrabbed ? "InputGrabbed " : "",
-      win.flags & sdl.WindowInputFocus ? "InputFocus " : "",
-      win.flags & sdl.WindowMouseFocus ? "MouseFocus " : "",
-      win.flags & sdl.WindowForeign ? "Foreign " : "",
-      win.flags & sdl.WindowAllowHighDpi ? "AllowHighDpi " : "",
+      win.flags & sdl.WINDOW_FULLSCREEN_DESKTOP ?
+      (win.flags & sdl.WINDOW_FULLSCREEN_DESKTOP == sdl.WINDOW_FULLSCREEN_DESKTOP ?
+       "FullscreenDesktop " : "Fullscreen ") : "",
+      win.flags & sdl.WINDOW_OPENGL ? "OpenGL " : "",
+      win.flags & sdl.WINDOW_SHOWN ? "Shown " : "",
+      win.flags & sdl.WINDOW_HIDDEN ? "Hidden " : "",
+      win.flags & sdl.WINDOW_BORDERLESS ? "Borderless " : "",
+      win.flags & sdl.WINDOW_RESIZABLE ? "Resizable " : "",
+      win.flags & sdl.WINDOW_MINIMIZED ? "Minimized " : "",
+      win.flags & sdl.WINDOW_MAXIMIZED ? "Maximized " : "",
+      win.flags & sdl.WINDOW_INPUT_GRABBED ? "InputGrabbed " : "",
+      win.flags & sdl.WINDOW_INPUT_FOCUS ? "InputFocus " : "",
+      win.flags & sdl.WINDOW_MOUSE_FOCUS ? "MouseFocus " : "",
+      win.flags & sdl.WINDOW_FOREIGN ? "Foreign " : "",
+      win.flags & sdl.WINDOW_ALLOW_HIGHDPI ? "AllowHighDpi " : "",
       win.title, win.brightness);
 #endif
-sdl.renderer_t ren = sdl.create_renderer(win, -1,
-					 sdl.RendererAccelerated |
-					 sdl.RendererPresentVsync);
+sdl.renderer_t ren = sdl.CreateRenderer(win, -1,
+					sdl.RENDERER_ACCELERATED |
+					sdl.RENDERER_PRESENTVSYNC);
 if (ren == null) {
-    print("create_renderer error: %s\n", sdl.get_error());
+    print("create_renderer error: %s\n", sdl.GetError());
     exit(1);
 }
 #if DEBUG
@@ -65,10 +65,10 @@ flags:		%s%s%s%s\n\
 formats:	",
       ren,
       ren.target, ren.log_w, ren.log_h, ren.max_w, ren.max_h, ren.name,
-      ren.flags & sdl.RendererSoftware ? "Software " : "",
-      ren.flags & sdl.RendererAccelerated ? "Accelerated " : "",
-      ren.flags & sdl.RendererPresentVsync ? "PresentVsync " : "",
-      ren.flags & sdl.RendererTargetTexture ? "TargetTexture " : "");
+      ren.flags & sdl.RENDERER_SOFTWARE ? "Software " : "",
+      ren.flags & sdl.RENDERER_ACCELERATED ? "Accelerated " : "",
+      ren.flags & sdl.RENDERER_PRESENTVSYNC ? "PresentVsync " : "",
+      ren.flags & sdl.RENDERER_TARGETTEXTURE ? "TargetTexture " : "");
 int32_t i;
 for (i = 0; i < sizeof(ren.formats); ++i)
     print("%#x ", ren.formats[i]);
@@ -95,20 +95,20 @@ a:		%d\n",
 if (ren.blend)
     print("\
 blend:		%s%s%s\n",
-	  ren.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  ren.blend & sdl.BlendModeAdd ? "Add " : "",
-	  ren.blend & sdl.BlendModeMod ? "Mod " : "");
+	  ren.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  ren.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  ren.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
 print("\n\
 get_window_renderer(win) = %a\n\
 get_renderer_window(ren) = %a\n",
-      sdl.get_window_renderer(win), sdl.get_renderer_window(ren));
+      sdl.GetWindowRenderer(win), sdl.GetRendererWindow(ren));
 #endif
-sdl.texture_t bg = sdl.load_texture(ren, "check/0.png");
+sdl.texture_t bg = sdl.LoadTexture(ren, "check/0.png");
 if (bg == null) {
-    print("load_texture error: %s\n", sdl.get_error());
+    print("load_texture error: %s\n", sdl.GetError());
     exit(1);
 }
 #if DEBUG
@@ -123,23 +123,23 @@ g:		%#x\n\
 b:		%#x\n\
 a:		%#x\n",
       bg.format,
-      bg.access == sdl.TextureAccessStatic ? "Static" :
-      bg.access == sdl.TextureAccessStreaming ? "Streaming" :
-      bg.access == sdl.TextureAccessTarget ? "Target" : "???",
+      bg.access == sdl.TEXTUREACCESS_STATIC ? "Static" :
+      bg.access == sdl.TEXTUREACCESS_STREAMING ? "Streaming" :
+      bg.access == sdl.TEXTUREACCESS_TARGET ? "Target" : "???",
       bg.w, bg.h, bg.r, bg.g, bg.b, bg.a);
 if (bg.blend)
     print("\
 blend:		%s%s%s\n",
-	  bg.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  bg.blend & sdl.BlendModeAdd ? "Add " : "",
-	  bg.blend & sdl.BlendModeMod ? "Mod " : "");
+	  bg.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  bg.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  bg.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
 #endif
-sdl.texture_t fg = sdl.load_texture(ren, "check/1.png");
+sdl.texture_t fg = sdl.LoadTexture(ren, "check/1.png");
 if (fg == null) {
-    print("load_texture error: %s\n", sdl.get_error());
+    print("load_texture error: %s\n", sdl.GetError());
     exit(1);
 }
 #if DEBUG
@@ -154,16 +154,16 @@ g:		%#x\n\
 b:		%#x\n\
 a:		%#x\n",
       fg.format,
-      fg.access == sdl.TextureAccessStatic ? "Static" :
-      fg.access == sdl.TextureAccessStreaming ? "Streaming" :
-      fg.access == sdl.TextureAccessTarget ? "Target" : "???",
+      fg.access == sdl.TEXTUREACCESS_STATIC ? "Static" :
+      fg.access == sdl.TEXTUREACCESS_STREAMING ? "Streaming" :
+      fg.access == sdl.TEXTUREACCESS_TARGET ? "Target" : "???",
       fg.w, fg.h, fg.r, fg.g, fg.b, fg.a);
 if (fg.blend)
     print("\
 blend:		%s%s%s\n",
-	  fg.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  fg.blend & sdl.BlendModeAdd ? "Add " : "",
-	  fg.blend & sdl.BlendModeMod ? "Mod " : "");
+	  fg.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  fg.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  fg.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
@@ -175,24 +175,24 @@ int32_t lines[] = { 150, 10, 160, 30, 170, 20 };
 int32_t draw_rects[] = { 180, 10, 10, 10, 190, 20, 10, 10 };
 int32_t fill_rects[] = { 200, 10, 10, 10, 210, 20, 10, 10 };
 for (i = 0; i < 2; ++i) {
-    sdl.render_draw_point(ren, 10, 10);
-    sdl.render_draw_points(ren, points);
-    sdl.render_draw_line(ren, 20, 20, 40, 40);
-    sdl.render_draw_lines(ren, lines);
-    sdl.render_draw_rect(ren, 20, 10, 10, 10);
-    sdl.render_draw_rects(ren, draw_rects);
-    sdl.render_fill_rect(ren, 30, 10, 10, 10);
-    sdl.render_fill_rects(ren, fill_rects);
-    sdl.render_present(ren);
-    sdl.delay(1000);
+    sdl.RenderDrawPoint(ren, 10, 10);
+    sdl.RenderDrawPoints(ren, points);
+    sdl.RenderDrawLine(ren, 20, 20, 40, 40);
+    sdl.RenderDrawLines(ren, lines);
+    sdl.RenderDrawRect(ren, 20, 10, 10, 10);
+    sdl.RenderDrawRects(ren, draw_rects);
+    sdl.RenderFillRect(ren, 30, 10, 10, 10);
+    sdl.RenderFillRects(ren, fill_rects);
+    sdl.RenderPresent(ren);
+    sdl.Delay(1000);
     ren.r = 0xff;	ren.g = 0;	ren.b = 0;	ren.a = 0xff;
-    if (sdl.change_renderer(ren)) {
-	print("change_renderer error: %s\n", sdl.get_error());
+    if (sdl.ChangeRenderer(ren)) {
+	print("change_renderer error: %s\n", sdl.GetError());
 	exit(1);
     }
 }
 
-sdl.surface_t tsf = sdl.create_rgba_surface(256, 256);
+sdl.surface_t tsf = sdl.CreateRGBASurface(256, 256);
 print("\nrgba surface\n\
 w:		%d\n\
 h:		%d\n\
@@ -215,13 +215,13 @@ key:		%#x\n",
 if (tsf.blend)
     print("\
 blend:		%s%s%s\n",
-	  tsf.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  tsf.blend & sdl.BlendModeAdd ? "Add " : "",
-	  tsf.blend & sdl.BlendModeMod ? "Mod " : "");
+	  tsf.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  tsf.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  tsf.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
-sdl.pull_surface(tsf);
+sdl.PullSurface(tsf);
 uint8_t pixels[] = tsf.pixels;
 int32_t j, c;
 for (i = c = 0; i < 256 * 256 * 4; i += 256 * 4, ++c) {
@@ -233,16 +233,16 @@ for (i = c = 0; i < 256 * 256 * 4; i += 256 * 4, ++c) {
     }
 }
 pixels = null;
-sdl.push_surface(tsf);
-sdl.texture_t tsr = sdl.create_texture_from_surface(ren, tsf);
-sdl.free_surface(tsf);
+sdl.PushSurface(tsf);
+sdl.texture_t tsr = sdl.CreateTextureFromSurface(ren, tsf);
+sdl.FreeSurface(tsf);
 sdl.rect_t tr0 = { 0, 0, 256, 256 };
-sdl.render_copy(ren, tsr, null, tr0);
-sdl.render_present(ren);
-sdl.delay(1000);
-sdl.destroy_texture(tsr);
+sdl.RenderCopy(ren, tsr, null, tr0);
+sdl.RenderPresent(ren);
+sdl.Delay(1000);
+sdl.DestroyTexture(tsr);
 
-tsf = sdl.create_rgb_surface(256, 256);
+tsf = sdl.CreateRGBSurface(256, 256);
 print("\nrgb surface\n\
 w:		%d\n\
 h:		%d\n\
@@ -265,13 +265,13 @@ key:		%#x\n",
 if (tsf.blend)
     print("\
 blend:		%s%s%s\n",
-	  tsf.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  tsf.blend & sdl.BlendModeAdd ? "Add " : "",
-	  tsf.blend & sdl.BlendModeMod ? "Mod " : "");
+	  tsf.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  tsf.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  tsf.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
-sdl.pull_surface(tsf);
+sdl.PullSurface(tsf);
 pixels = tsf.pixels;
 for (i = 0, c = 255; i < 256 * 256 * 3; i += 256 * 3, --c) {
     for (j = 0; j < 256 * 3; j += 3) {
@@ -281,20 +281,20 @@ for (i = 0, c = 255; i < 256 * 256 * 3; i += 256 * 3, --c) {
     }
 }
 pixels = null;
-sdl.push_surface(tsf);
-tsr = sdl.create_texture_from_surface(ren, tsf);
-sdl.free_surface(tsf);
-sdl.render_copy(ren, tsr, null, tr0);
-sdl.render_present(ren);
-sdl.delay(1000);
-sdl.destroy_texture(tsr);
+sdl.PushSurface(tsf);
+tsr = sdl.CreateTextureFromSurface(ren, tsf);
+sdl.FreeSurface(tsf);
+sdl.RenderCopy(ren, tsr, null, tr0);
+sdl.RenderPresent(ren);
+sdl.Delay(1000);
+sdl.DestroyTexture(tsr);
 #endif
 
 /* do not fail below if this does not exist
 $ rpm -qf /usr/share/fonts/gnu-free/FreeSans.ttf
 gnu-free-sans-fonts-20120503-8.fc20.noarch
  */
-sdl.font_t fnt = sdl.open_font("/usr/share/fonts/gnu-free/FreeSans.ttf", 25);
+ttf.font_t fnt = ttf.OpenFont("/usr/share/fonts/gnu-free/FreeSans.ttf", 25);
 sdl.color_t col = { 0xdd, 0xaa, 0x33 };
 sdl.texture_t txt;
 float64_t angle = 0;
@@ -306,28 +306,28 @@ style:		");
     if (fnt.style == 0)
 	print("Normal");
     else {
-	if (fnt.style & sdl.StyleBold)
+	if (fnt.style & ttf.STYLE_BOLD)
 	    print("Bold ");
-	if (fnt.style & sdl.StyleItalic)
+	if (fnt.style & ttf.STYLE_ITALIC)
 	    print("Italic ");
-	if (fnt.style & sdl.StyleUnderline)
+	if (fnt.style & ttf.STYLE_UNDERLINE)
 	    print("Underline ");
-	if (fnt.style & sdl.StyleStrikethrough)
+	if (fnt.style & ttf.STYLE_STRIKETHROUGH)
 	    print("Strikethrough");
     }
     print("\n\
 hinting:	");
     switch (fnt.hinting) {
-	case sdl.HintingNormal:
+	case ttf.HINTING_NORMAL:
 	    print("Normal");
 	    break;
-	case sdl.HintingLight:
+	case ttf.HINTING_LIGHT:
 	    print("Light");
 	    break;
-	case sdl.HintingMono:
+	case ttf.HINTING_MONO:
 	    print("Mono");
 	    break;
-	case sdl.HintingNone:
+	case ttf.HINTING_NONE:
 	    print("None");
 	    break;
 	default:
@@ -350,10 +350,10 @@ fixed:		%s\n",
 	  fnt.family_name, fnt.fixed ? "true" : "false");
 #endif
     string_t str = "Hello world!";
-    sdl.surface_t srf = sdl.render_text_blended(fnt, str, col);
-    txt = sdl.create_texture_from_surface(ren, srf);
+    sdl.surface_t srf = ttf.RenderText_Blended(fnt, str, col);
+    txt = sdl.CreateTextureFromSurface(ren, srf);
     if (txt == null) {
-	print("create_texture_from_surface error: %s\n", sdl.get_error());
+	print("create_texture_from_surface error: %s\n", sdl.GetError());
 	exit(1);
     }
 #if DEBUG
@@ -368,22 +368,22 @@ g:		%#x\n\
 b:		%#x\n\
 a:		%#x\n",
       txt.format,
-      txt.access == sdl.TextureAccessStatic ? "Static" :
-      txt.access == sdl.TextureAccessStreaming ? "Streaming" :
-      txt.access == sdl.TextureAccessTarget ? "Target" : "???",
+      txt.access == sdl.TEXTUREACCESS_STATIC ? "Static" :
+      txt.access == sdl.TEXTUREACCESS_STREAMING ? "Streaming" :
+      txt.access == sdl.TEXTUREACCESS_TARGET ? "Target" : "???",
       txt.w, txt.h, txt.r, txt.g, txt.b, txt.a);
 if (bg.blend)
     print("\
 blend:		%s%s%s\n",
-	  txt.blend & sdl.BlendModeBlend ? "Blend " : "",
-	  txt.blend & sdl.BlendModeAdd ? "Add " : "",
-	  txt.blend & sdl.BlendModeMod ? "Mod " : "");
+	  txt.blend & sdl.BLENDMODE_BLEND ? "Blend " : "",
+	  txt.blend & sdl.BLENDMODE_ADD ? "Add " : "",
+	  txt.blend & sdl.BLENDMODE_MOD ? "Mod " : "");
 else
     print("\
 blend:		None\n");
 #endif
-    sdl.free_surface(srf);
-    sdl.close_font(fnt);
+    sdl.FreeSurface(srf);
+    ttf.CloseFont(fnt);
 }
 
 sdl.rect_t rec = { 0, 0, fg.w, fg.h };
@@ -393,20 +393,20 @@ sdl.rect_t trc;
 if (txt)
     trc = { 320 - txt.w \ 2, 240 - txt.h \ 2, txt.w, txt.h };
 void paint() {
-    sdl.render_clear(ren);
+    sdl.RenderClear(ren);
     sdl.rect_t dst = { 0, 0, bg.w, bg.h };
     int32_t x, y;
     for (x = 0; x < 640; x+= 64) {
 	dst.x = x;
 	for (y = 0; y < 480; y+= 64) {
 	    dst.y = y;
-	    sdl.render_copy(ren, bg, null, dst);
+	    sdl.RenderCopy(ren, bg, null, dst);
 	}
     }
     if (txt)
-	sdl.render_copy_ex(ren, txt, null, trc, angle, piv, sdl.FlipNone);
-    sdl.render_copy(ren, fg, null, rec);
-    sdl.render_present(ren);
+	sdl.RenderCopyEx(ren, txt, null, trc, angle, piv, sdl.FLIP_NONE);
+    sdl.RenderCopy(ren, fg, null, rec);
+    sdl.RenderPresent(ren);
 }
 
 sdl.timer_t timer;
@@ -418,12 +418,12 @@ int8_t kstate;
 void kupdate() {
     if (kstate == 0) {
 	if (timer) {
-	    sdl.remove_timer(timer);
+	    sdl.RemoveTimer(timer);
 	    timer = null;
 	}
     }
     else if (timer == null)
-	timer = sdl.add_timer(10, null);
+	timer = sdl.AddTimer(10, null);
 }
 
 int8_t ktimer() {
@@ -464,84 +464,84 @@ int8_t ktimer() {
 int8_t done = false, change;
 sdl.event_t e = new sdl.event_t;
 while (!done) {
-    if (!sdl.wait_event(e))
+    if (!sdl.WaitEvent(e))
 	continue;
     change = false;
     switch (e.type) {
-	case sdl.EventQuit:
+	case sdl.QUIT:
 	    done = true;
 	    break;
-	case sdl.EventWindow:
+	case sdl.WINDOWEVENT:
 	    change = true;
 	    break;
-	case sdl.EventKeyDown:
+	case sdl.KEYDOWN:
 	    if (e.repeat == false) {
 		switch (e.keysym) {
-		    case sdl.Key_Left:
+		    case sdl.K_LEFT:
 			kstate &= ~RIGHT;
 			kstate |= LEFT;
 			kupdate();
 			change = ktimer();
 			break;
-		    case sdl.Key_Right:
+		    case sdl.K_RIGHT:
 			kstate &= ~LEFT;
 			kstate |= RIGHT;
 			kupdate();
 			change = ktimer();
 			break;
-		    case sdl.Key_Up:
+		    case sdl.K_UP:
 			kstate &= ~DOWN;
 			kstate |= UP;
 			kupdate();
 			change = ktimer();
 			break;
-		    case sdl.Key_Down:
+		    case sdl.K_DOWN:
 			kstate &= ~UP;
 			kstate |= DOWN;
 			kupdate();
 			change = ktimer();
 			break;
-		    case sdl.Key_Escape:
+		    case sdl.K_ESCAPE:
 			done = true;
 			break;
 		}
 	    }
 	    break;
-	case sdl.EventKeyUp:
+	case sdl.KEYUP:
 	    switch (e.keysym) {
-		case sdl.Key_Left:
+		case sdl.K_LEFT:
 		    kstate &= ~LEFT;
 		    kupdate();
 		    break;
-		case sdl.Key_Right:
+		case sdl.K_RIGHT:
 		    kstate &= ~RIGHT;
 		    kupdate();
 		    break;
-		case sdl.Key_Up:
+		case sdl.K_UP:
 		    kstate &= ~UP;
 		    kupdate();
 		    break;
-		case sdl.Key_Down:
+		case sdl.K_DOWN:
 		    kstate &= ~DOWN;
 		    kupdate();
 		    break;
 	    }
 	    break;
-	case sdl.EventMouseButtonDown:
-	    if (e.button == sdl.ButtonLeft) {
+	case sdl.MOUSEBUTTONDOWN:
+	    if (e.button == sdl.BUTTON_LEFT) {
 		rec.x = e.x - 32;
 		rec.y = e.y - 32;
 		change = true;
 	    }
 	    break;
-	case sdl.EventMouseMotion:
-	    if (e.state & sdl.ButtonLMask) {
+	case sdl.MOUSEMOTION:
+	    if (e.state & sdl.BUTTON_LMASK) {
 		rec.x = e.x - 32;
 		rec.y = e.y - 32;
 		change = true;
 	    }
 	    break;
-	case sdl.EventTimer:
+	case sdl.TIMEREVENT:
 	    change = ktimer();
 	    break;
     }
@@ -549,9 +549,9 @@ while (!done) {
 	paint();
 }
 
-sdl.audio_t au;
-au = sdl.open_audio(sdl.MixerDefaultFrequency, sdl.MixerDefaultFormat,
-		    sdl.MixerDefaultChannels, 1024);
+mix.audio_t au;
+au = mix.OpenAudio(mix.DEFAULT_FREQUENCY, mix.DEFAULT_FORMAT,
+		   mix.DEFAULT_CHANNELS, 1024);
 if (au) {
 #if DEBUG
     print("\
@@ -559,9 +559,9 @@ audio\n\
 au.frequency:	%d (%d)\n\
 au.format:	%d (%d)\n\
 au.channels:	%d (%d)\n",
-	  au.frequency, sdl.MixerDefaultFrequency,
-	  au.format, sdl.MixerDefaultFormat,
-	  au.channels, sdl.MixerDefaultChannels);
+	  au.frequency, mix.DEFAULT_FREQUENCY,
+	  au.format, mix.DEFAULT_FORMAT,
+	  au.channels, mix.DEFAULT_CHANNELS);
 #endif
     //sdl.allocate_channels(0);
     //sdl.volume_music(64);
@@ -574,41 +574,41 @@ au.channels:	%d (%d)\n",
     // distorted output, sdl_mixer issue?
     //sdl.music_t mus = sdl.load_music("/usr/share/sounds/KDE-K3B-Finish-Success.ogg");
     // this looks (sounds) a lot better
-    sdl.music_t mus = sdl.load_music("/usr/share/sounds/freedesktop/stereo/complete.oga");
+    mix.music_t mus = mix.LoadMusic("/usr/share/sounds/freedesktop/stereo/complete.oga");
     if (mus != null) {
 #if DEBUG
 	print("\
 music\n\
 type:		");
 	switch (mus.type) {
-	    case sdl.MusicNone:
+	    case mix.MUS_NONE:
 		print("None");
 		break;
-	    case sdl.MusicCmd:
+	    case mix.MUS_CMD:
 		print("None");
 		break;
-	    case sdl.MusicWav:
+	    case mix.MUS_WAV:
 		print("Wav");
 		break;
-	    case sdl.MusicMod:
+	    case mix.MUS_MOD:
 		print("Mod");
 		break;
-	    case sdl.MusicMid:
+	    case mix.MUS_MID:
 		print("Mid");
 		break;
-	    case sdl.MusicOgg:
+	    case mix.MUS_OGG:
 		print("Ogg");
 		break;
-	    case sdl.MusicMp3:
+	    case mix.MUS_MP3:
 		print("Mp3");
 		break;
-	    case sdl.MusicMp3Mad:
+	    case mix.MUS_MP3_MAD:
 		print("Mp3Mad");
 		break;
-	    case sdl.MusicFlac:
+	    case mix.MUS_FLAC:
 		print("Flac");
 		break;
-	    case sdl.MusicModplug:
+	    case mix.MUS_MODPLUG:
 		print("Modlug");
 		break;
 	    default:
@@ -617,44 +617,44 @@ type:		");
 	}
 	print("\n");
 #endif
-	if (sdl.play_music(mus, 0))
-	    print("%s\n", sdl.get_error());
+	if (mix.PlayMusic(mus, 0))
+	    print("%s\n", sdl.GetError());
 #if 0
 	/* Poll every 10 ms */
-	while (sdl.playing_music())
+	while (mix.PlayingMusic())
 	    sdl.delay(10);
 #else
 	/* Wait music finished event */
 	done = false;
 	while (!done) {
-	    if (!sdl.wait_event(e))
+	    if (!sdl.WaitEvent(e))
 		continue;
-	    if (e.type == sdl.EventMusicFinished)
+	    if (e.type == sdl.MUSICFINISHEDEVENT)
 		done = true;
 	}
 #endif
-	sdl.halt_music();
-	sdl.free_music(mus);
+	mix.HaltMusic();
+	mix.FreeMusic(mus);
     }
     else
-	print("%s\n", sdl.get_error());
+	print("%s\n", sdl.GetError());
 
     /*
 	$ rpm -qf /usr/share/sounds/pop.wav
 	kde-workspace-4.11.8-1.fc21.x86_64
      */
-    sdl.chunk_t chu = sdl.load_chunk("/usr/share/sounds/pop.wav");
+    mix.chunk_t chu = mix.LoadChunk("/usr/share/sounds/pop.wav");
     if (chu) {
-	int32_t cha = sdl.play_channel(-1, chu, 0);
+	int32_t cha = mix.PlayChannel(-1, chu, 0);
 #if 0
 	sdl.delay(100);
 #else
 	/* Wait channel finished event */
 	done = false;
 	while (!done) {
-	    if (!sdl.wait_event(e))
+	    if (!sdl.WaitEvent(e))
 		continue;
-	    if (e.type == sdl.EventChannelFinished) {
+	    if (e.type == sdl.CHANNELFINISHEDEVENT) {
 #if DEBUG
 		print("channel finished: cha = %d, e.channel = %d\n",
 		      cha, e.channel);
@@ -663,16 +663,16 @@ type:		");
 	    }
 	}
 #endif
-	sdl.halt_channel(cha);
-	sdl.free_chunk(chu);
+	mix.HaltChannel(cha);
+	mix.FreeChunk(chu);
     }
 
-    sdl.close_audio();
+    mix.CloseAudio();
 }
 if (txt)
-    sdl.destroy_texture(txt);
-sdl.destroy_texture(fg);
-sdl.destroy_texture(bg);
-sdl.destroy_renderer(ren);
-sdl.destroy_window(win);
-sdl.quit();
+    sdl.DestroyTexture(txt);
+sdl.DestroyTexture(fg);
+sdl.DestroyTexture(bg);
+sdl.DestroyRenderer(ren);
+sdl.DestroyWindow(win);
+sdl.Quit();

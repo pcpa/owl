@@ -9,30 +9,30 @@ uint32_t DrawFront = false;
 uint32_t Dither = true;
 uint32_t Invert = false;
 
-if (sdl.init()) {
-    print("init error: %s\n", sdl.get_error());
+if (sdl.Init()) {
+    print("init error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-sdl.window_t win = sdl.create_window("copypix",
-				     sdl.WindowposCentered,
-				     sdl.WindowposCentered,
-				     WinWidth, WinHeight,
-				     sdl.WindowOpenGL |
-				     sdl.WindowResizable |
-				     sdl.WindowShown);
+sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+sdl.window_t win = sdl.CreateWindow("copypix",
+				    sdl.WINDOWPOS_CENTERED,
+				    sdl.WINDOWPOS_CENTERED,
+				    WinWidth, WinHeight,
+				    sdl.WINDOW_OPENGL |
+				    sdl.WINDOW_RESIZABLE |
+				    sdl.WINDOW_SHOWN);
 if (win == null) {
-    print("create_window error: %s\n", sdl.get_error());
+    print("create_window error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.context_t ctx = sdl.gl.create_context(win);
+sdl.gl.context_t ctx = sdl.gl.CreateContext(win);
 if (ctx == null) {
-    print("create_context error: %s\n", sdl.get_error());
+    print("create_context error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.set_swap_interval(1);
-sdl.gl.make_current(win, ctx);
+sdl.gl.SetSwapInterval(1);
+sdl.gl.MakeCurrent(win, ctx);
 sdl.surface_t Image;
 
 void Reset() {
@@ -45,9 +45,9 @@ void Init() {
    print("GL_VERSION = %s\n", gl.GetString(gl.VERSION));
    print("GL_RENDERER = %s\n", gl.GetString(gl.RENDERER));
 
-   Image = sdl.load_surface("check/arch.png");
+   Image = sdl.LoadSurface("check/arch.png");
     if (Image == null) {
-	print("load_surface error: %s\n", sdl.get_error());
+	print("load_surface error: %s\n", sdl.GetError());
 	exit(1);
     }
 
@@ -111,7 +111,7 @@ void Display() {
     if (DrawFront)
 	gl.Finish();
     else
-	sdl.gl.swap_window(win);
+	sdl.gl.SwapWindow(win);
 }
 
 void Reshape(int32_t width, int32_t height) {
@@ -148,30 +148,30 @@ void event_loop() {
     int32_t step;
     sdl.event_t e = {};
     while (!done) {
-	if (!sdl.wait_event(e))
+	if (!sdl.WaitEvent(e))
 	    continue;
 	switch (e.type) {
-	    case sdl.EventQuit:
+	    case sdl.QUIT:
 		done = true;
 		break;
-	    case sdl.EventWindow:
+	    case sdl.WINDOWEVENT:
 		switch (e.event) {
-		    case sdl.WindowEventResized:
+		    case sdl.WINDOWEVENT_RESIZED:
 			Reshape(e.w, e.h);
 			break;
-		    case sdl.WindowEventHidden:
-		    case sdl.WindowEventMinimized:
+		    case sdl.WINDOWEVENT_HIDDEN:
+		    case sdl.WINDOWEVENT_MINIMIZED:
 			continue;
 		    default:
 			break;
 		}
 		break;
-	    case sdl.EventKeyDown:
+	    case sdl.KEYDOWN:
 		switch (e.keysym) {
-		    case sdl.Key_Space:
+		    case sdl.K_SPACE:
 			Reset();
 			break;
-		    case sdl.Key_d:
+		    case sdl.K_d:
 			Dither = !Dither;
 			if (Dither)
 			    gl.Enable(gl.DITHER);
@@ -179,54 +179,54 @@ void event_loop() {
 			    gl.Disable(gl.DITHER);
 			break;
 			/* Missing in Usage() */
-		    case sdl.Key_i:
+		    case sdl.K_i:
 			Invert = !Invert;
 			break;
-		    case sdl.Key_s:
+		    case sdl.K_s:
 			Scissor = !Scissor;
 			break;
-		    case sdl.Key_x:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_x:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Xzoom += 0.1;
 			else
 			    Xzoom -= 0.1;
 			break;
-		    case sdl.Key_y:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_y:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Yzoom += 0.1;
 			else
 			    Yzoom -= 0.1;
 			break;
-		    case sdl.Key_f:
+		    case sdl.K_f:
 			DrawFront = !DrawFront;
 			print("glDrawBuffer(%s)\n", DrawFront ?
 			      "GL_FRONT" : "GL_BACK");
 			break;
-		    case sdl.Key_Up:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_UP:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Ypos += 10;
 			else
 			    ++Ypos;
 			break;
-		    case sdl.Key_Down:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_DOWN:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Ypos -= 10;
 			else
 			    --Ypos;
 			break;
-		    case sdl.Key_Left:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_LEFT:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Xpos -= 10;
 			else
 			    --Xpos;
 			break;
-		    case sdl.Key_Right:
-			if (sdl.get_mod_state() & sdl.KmodShift)
+		    case sdl.K_RIGHT:
+			if (sdl.GetModState() & sdl.KMOD_SHIFT)
 			    Xpos += 10;
 			else
 			    ++Xpos;
 			break;
-		    case sdl.Key_Escape:
+		    case sdl.K_ESCAPE:
 			done = true;
 			break;
 		}
@@ -239,6 +239,6 @@ Init();
 Usage();
 event_loop();
 
-sdl.gl.delete_context(ctx);
-sdl.destroy_window(win);
-sdl.quit();
+sdl.gl.DeleteContext(ctx);
+sdl.DestroyWindow(win);
+sdl.Quit();

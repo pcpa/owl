@@ -51,30 +51,30 @@ int32_t		divs = 7;
 sdl.window_t win;
 sdl.gl.context_t ctx;
 void init_all() {
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson28",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    640, 480,
-			    sdl.WindowOpenGL |
-			    sdl.WindowResizable |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson28",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   640, 480,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_RESIZABLE |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 }
 
 /*  Adds 2 points. Don't just use '+' ;) */
@@ -187,13 +187,13 @@ uint32_t genBezier(BEZIER_PATCH patch, int32_t divs) {
 
 void init_texture(uint32_t texture[1], string_t path) {
     sdl.surface_t srf;
-    if ((srf = sdl.load_surface(path))) {
+    if ((srf = sdl.LoadSurface(path))) {
 	gl.GenTextures(texture);
 	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
 	sdl.gl.TexImage2D(srf);
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	sdl.free_surface(srf);
+	sdl.FreeSurface(srf);
     }
 }
 
@@ -267,55 +267,55 @@ void draw() {
 	gl.Enable(gl.TEXTURE_2D);
     }
 
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void loop() {
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    resize();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    done = true;
 			    break;
-			case sdl.Key_Left:
+			case sdl.K_LEFT:
 			    rotz -= 0.8;	/*  rotate left */
 			    break;
-			case sdl.Key_Right:
+			case sdl.K_RIGHT:
 			    rotz += 0.8;	/*  rotate left */
 			    break;
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    if (divs < 32) {
 				++divs;		/*  Update the patch */
 				mybezier.dlBPatch = genBezier(mybezier, divs);
 			    }
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    if (divs > 1) {
 				--divs;		/*  Update the patch */
 				mybezier.dlBPatch = genBezier(mybezier, divs);
 			    }
 			    break;
-			case sdl.Key_Space:
+			case sdl.K_SPACE:
 			    showCPoints = !showCPoints;
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
@@ -325,9 +325,9 @@ void loop() {
 }
     
 void finish_all() {
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 print("\

@@ -326,6 +326,8 @@ odestroy_timer(otimer_t *timer);
  * Externs
  */
 extern orecord_t	*sdl_record;
+extern orecord_t	*ttf_record;
+extern orecord_t	*mix_record;
 extern orecord_t	*sdl_gl_record;
 
 #endif /* _osdl_h */

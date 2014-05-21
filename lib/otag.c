@@ -94,13 +94,17 @@ static char *sdl[] = {
     "renderer_t",
     "surface_t",
     "texture_t",
+    "timer_t",
+    "event_t",
+};
+static char *ttf[] = {
     "font_t",
     "glyph_t",
-    "timer_t",
+};
+static char *mix[] = {
     "chunk_t",
     "music_t",
     "audio_t",
-    "event_t",
 };
 static char *sdl_gl[] = {
     "context_t",
@@ -148,7 +152,6 @@ init_tag(void)
     symbol = onew_symbol(current_record,
 			 oget_string((ouint8_t *)"sdl", 3), null);
     sdl_record = onew_namespace(symbol);
-
     record = current_record;
     current_record = sdl_record;
     for (offset = 0; offset < osize(sdl); offset++) {
@@ -157,7 +160,30 @@ init_tag(void)
 	onew_record(symbol);
     }
 
+    current_record = record;
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"ttf", 3), null);
+    ttf_record = onew_namespace(symbol);
+    current_record = ttf_record;
+    for (offset = 0; offset < osize(ttf); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)ttf[offset],
+					     strlen(ttf[offset])));
+	onew_record(symbol);
+    }
+
+    current_record = record;
+    symbol = onew_symbol(current_record,
+			 oget_string((ouint8_t *)"mix", 3), null);
+    mix_record = onew_namespace(symbol);
+    current_record = mix_record;
+    for (offset = 0; offset < osize(mix); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)mix[offset],
+					     strlen(mix[offset])));
+	onew_record(symbol);
+    }
+
     /* Also initialize sdl.gl namespace and types */
+    current_record = sdl_record;
     symbol = onew_symbol(current_record,
 			 oget_string((ouint8_t *)"gl", 2), null);
     sdl_gl_record = onew_namespace(symbol);
@@ -179,7 +205,6 @@ init_tag(void)
     symbol = onew_symbol(current_record,
 			 oget_string((ouint8_t *)"glu", 3), null);
     glu_record = onew_namespace(symbol);
-
     current_record = glu_record;
     for (offset = 0; offset < osize(glu); offset++) {
 	symbol = onew_identifier(oget_string((ouint8_t *)glu[offset],

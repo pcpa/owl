@@ -8,13 +8,13 @@ sdl.gl.context_t ctx;
 
 void BuildTexture(string_t filename) {
     sdl.surface_t	surface;
-    if ((surface = sdl.load_surface(filename))) {
+    if ((surface = sdl.LoadSurface(filename))) {
 	gl.GenTextures(texture);
 	gl.BindTexture(gl.TEXTURE_2D, texture[0]);
 	sdl.gl.TexImage2D(surface);
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 	gl.TexParameter(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-	sdl.free_surface(surface);
+	sdl.FreeSurface(surface);
     }
 }
 
@@ -126,7 +126,7 @@ void Draw() {
     gl.Flush();					// Flush The GL Rendering Pipeline
 
     /* Draw it to the screen */
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 }
 
 void main() {
@@ -139,30 +139,30 @@ void main() {
 #define LEFT		4
 #define RIGHT		8
 
-    if (sdl.init()) {
-	print("init error: %s\n", sdl.get_error());
+    if (sdl.Init()) {
+	print("init error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-    sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-    win = sdl.create_window("lesson41",
-			    sdl.WindowposCentered,
-			    sdl.WindowposCentered,
-			    640, 480,
-			    sdl.WindowOpenGL |
-			    sdl.WindowResizable |
-			    sdl.WindowShown);
+    sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+    sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+    win = sdl.CreateWindow("lesson41",
+			   sdl.WINDOWPOS_CENTERED,
+			   sdl.WINDOWPOS_CENTERED,
+			   640, 480,
+			   sdl.WINDOW_OPENGL |
+			   sdl.WINDOW_RESIZABLE |
+			   sdl.WINDOW_SHOWN);
     if (win == null) {
-	print("create_window error: %s\n", sdl.get_error());
+	print("create_window error: %s\n", sdl.GetError());
 	exit(1);
     }
-    ctx = sdl.gl.create_context(win);
+    ctx = sdl.gl.CreateContext(win);
     if (ctx == null) {
-	print("create_context error: %s\n", sdl.get_error());
+	print("create_context error: %s\n", sdl.GetError());
 	exit(1);
     }
-    sdl.gl.set_swap_interval(1);
-    sdl.gl.make_current(win, ctx);
+    sdl.gl.SetSwapInterval(1);
+    sdl.gl.MakeCurrent(win, ctx);
 
 print("\
 Esc: 		Exit\n\
@@ -173,68 +173,68 @@ Right:		Move camera right\n");
     InitGL();
     ReshapeGL();
 
-    LastCount = sdl.get_ticks();
+    LastCount = sdl.GetTicks();
 
     uint8_t done = false;
     sdl.event_t	ev = new sdl.event_t;
     while (!done) {
-	if (sdl.poll_event(ev)) {
+	if (sdl.PollEvent(ev)) {
 	    switch (ev.type) {
-		case sdl.EventWindow:
+		case sdl.WINDOWEVENT:
 		    switch (ev.event) {
-			case sdl.WindowEventResized:
+			case sdl.WINDOWEVENT_RESIZED:
 			    ReshapeGL();
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyDown:
+		case sdl.KEYDOWN:
 		    switch (ev.keysym) {
-			case sdl.Key_Escape:
+			case sdl.K_ESCAPE:
 			    done = true;
 			    break;
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    Keys |= UP;
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    Keys |= DOWN;
 			    break;
-			case sdl.Key_Left:
+			case sdl.K_LEFT:
 			    Keys |= LEFT;
 			    break;
-			case sdl.Key_Right:
+			case sdl.K_RIGHT:
 			    Keys |= RIGHT;
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventKeyUp:
+		case sdl.KEYUP:
 		    switch (ev.keysym) {
-			case sdl.Key_Up:
+			case sdl.K_UP:
 			    Keys &= ~UP;
 			    break;
-			case sdl.Key_Down:
+			case sdl.K_DOWN:
 			    Keys &= ~DOWN;
 			    break;
-			case sdl.Key_Left:
+			case sdl.K_LEFT:
 			    Keys &= ~LEFT;
 			    break;
-			case sdl.Key_Right:
+			case sdl.K_RIGHT:
 			    Keys &= ~RIGHT;
 			    break;
 			default:
 			    break;
 		    }
 		    break;
-		case sdl.EventQuit:
+		case sdl.QUIT:
 		    done = true;
 		    break;
 	    }
 	}
 	else {
-	    TickCount = sdl.get_ticks();
+	    TickCount = sdl.GetTicks();
 	    Milliseconds = TickCount - LastCount;
 	    if (Keys & UP)
 		camz += Milliseconds / 100.0;
@@ -249,9 +249,9 @@ Right:		Move camera right\n");
 	}
     }
 
-    sdl.gl.delete_context(ctx);
-    sdl.destroy_window(win);
-    sdl.quit();
+    sdl.gl.DeleteContext(ctx);
+    sdl.DestroyWindow(win);
+    sdl.Quit();
 }
 
 main();

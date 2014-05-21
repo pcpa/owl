@@ -20,30 +20,30 @@ float64_t eyesep = 5.0;		/* Eye separation. */
 float64_t fix_point = 40.0;	/* Fixation point distance.  */
 float64_t left, right, asp;	/* Stereo frustum params.  */
 
-if (sdl.init()) {
-    print("init error: %s\n", sdl.get_error());
+if (sdl.Init()) {
+    print("init error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.set_attribute(sdl.gl.DoubleBuffer, 1);
-sdl.gl.set_attribute(sdl.gl.DepthSize, 24);
-sdl.window_t win = sdl.create_window("gears",
-				     sdl.WindowposCentered,
-				     sdl.WindowposCentered,
-				     winWidth, winHeight,
-				     sdl.WindowOpenGL |
-				     sdl.WindowResizable |
-				     sdl.WindowShown);
+sdl.gl.SetAttribute(sdl.gl.DOUBLE_BUFFER, 1);
+sdl.gl.SetAttribute(sdl.gl.DEPTH_SIZE, 24);
+sdl.window_t win = sdl.CreateWindow("gears",
+				    sdl.WINDOWPOS_CENTERED,
+				    sdl.WINDOWPOS_CENTERED,
+				    winWidth, winHeight,
+				    sdl.WINDOW_OPENGL |
+				    sdl.WINDOW_RESIZABLE |
+				    sdl.WINDOW_SHOWN);
 if (win == null) {
-    print("create_window error: %s\n", sdl.get_error());
+    print("create_window error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.context_t ctx = sdl.gl.create_context(win);
+sdl.gl.context_t ctx = sdl.gl.CreateContext(win);
 if (ctx == null) {
-    print("create_context error: %s\n", sdl.get_error());
+    print("create_context error: %s\n", sdl.GetError());
     exit(1);
 }
-sdl.gl.set_swap_interval(1);
-sdl.gl.make_current(win, ctx);
+sdl.gl.SetSwapInterval(1);
+sdl.gl.MakeCurrent(win, ctx);
 
 void gear(float64_t inner_radius, float64_t outer_radius, float64_t width,
 	  int32_t teeth, float64_t tooth_depth) {
@@ -236,7 +236,7 @@ void draw_gears() {
 
 /** Draw single frame, do SwapBuffers, compute FPS */
 void draw_frame() {
-    float64_t dt, t = sdl.get_ticks() / 1000.0;	/* get_ticks is in ms */
+    float64_t dt, t = sdl.GetTicks() / 1000.0;	/* get_ticks is in ms */
 
     if (tRot0 < 0.0)
 	tRot0 = t;
@@ -251,7 +251,7 @@ void draw_frame() {
     }
 
     draw_gears();
-    sdl.gl.swap_window(win);
+    sdl.gl.SwapWindow(win);
 
     ++frames;
 
@@ -329,14 +329,14 @@ void event_loop() {
     sdl.event_t e = {};
     while (!done) {
 	do {
-	    if (sdl.poll_event(e)) {
+	    if (sdl.PollEvent(e)) {
 		switch (e.type) {
-		    case sdl.EventQuit:
+		    case sdl.QUIT:
 			done = true;
 			break;
-		    case sdl.EventWindow:
+		    case sdl.WINDOWEVENT:
 			switch (e.event) {
-			    case sdl.WindowEventResized:
+			    case sdl.WINDOWEVENT_RESIZED:
 				reshape(e.w, e.h);
 				break;
 			    default:
@@ -344,24 +344,24 @@ void event_loop() {
 			}
 			change = true;
 			break;
-		    case sdl.EventKeyDown:
+		    case sdl.KEYDOWN:
 			switch (e.keysym) {
-			    case sdl.Key_Left:
+			    case sdl.K_LEFT:
 				view_roty += 5.0;
 				break;
-			    case sdl.Key_Right:
+			    case sdl.K_RIGHT:
 				view_roty -= 5.0;
 				break;
-			    case sdl.Key_Up:
+			    case sdl.K_UP:
 				view_rotx += 5.0;
 				break;
-			    case sdl.Key_Down:
+			    case sdl.K_DOWN:
 				view_rotx -= 5.0;
 				break;
-			    case sdl.Key_a:
+			    case sdl.K_a:
 				animate = !animate;
 				break;
-			    case sdl.Key_Escape:
+			    case sdl.K_ESCAPE:
 				done = true;
 				break;
 			}
@@ -385,6 +385,6 @@ init();
 reshape(winWidth, winHeight);
 event_loop();
 
-sdl.gl.delete_context(ctx);
-sdl.destroy_window(win);
-sdl.quit();
+sdl.gl.DeleteContext(ctx);
+sdl.DestroyWindow(win);
+sdl.Quit();
