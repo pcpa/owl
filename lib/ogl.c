@@ -23,6 +23,13 @@
 	if (0x7fffffff / (y) < (x))					\
 	    ovm_raise(except_not_a_32_bits_integer);			\
     } while (0)
+#define make_vec_text(V)						\
+    do {								\
+	if (!(V->length & 15)) {					\
+	    orenew_vector(V, V->length + 1);				\
+	    --V->length;						\
+	}								\
+    } while (0)
 
 /*
  * Prototypes
@@ -267,6 +274,65 @@ static void native_GetBufferParameterv(oobject_t list, oint32_t ac);
 #if 0
 static void native_GetBufferPointerv(oobject_t list, oint32_t ac);
 #endif
+
+static void native_BlendEquationSeparate(oobject_t list, oint32_t ac);
+static void native_DrawBuffers(oobject_t list, oint32_t ac);
+static void native_StencilOpSeparate(oobject_t list, oint32_t ac);
+static void native_StencilFuncSeparate(oobject_t list, oint32_t ac);
+static void native_StencilMaskSeparate(oobject_t list, oint32_t ac);
+static void native_AttachShader(oobject_t list, oint32_t ac);
+static void native_BindAttribLocation(oobject_t list, oint32_t ac);
+static void native_CompileShader(oobject_t list, oint32_t ac);
+static void native_CreateProgram(oobject_t list, oint32_t ac);
+static void native_CreateShader(oobject_t list, oint32_t ac);
+static void native_DeleteProgram(oobject_t list, oint32_t ac);
+static void native_DeleteShader(oobject_t list, oint32_t ac);
+static void native_DetachShader(oobject_t list, oint32_t ac);
+static void native_DetachShader(oobject_t list, oint32_t ac);
+static void native_DisableVertexAttribArray(oobject_t list, oint32_t ac);
+static void native_EnableVertexAttribArray(oobject_t list, oint32_t ac);
+static void native_GetActiveAttrib(oobject_t list, oint32_t ac);
+static void native_GetActiveUniform(oobject_t list, oint32_t ac);
+static void native_GetAttachedShaders(oobject_t list, oint32_t ac);
+static void native_GetAttribLocation(oobject_t list, oint32_t ac);
+static void native_GetProgramv(oobject_t list, oint32_t ac);
+static void native_GetProgramInfoLog(oobject_t list, oint32_t ac);
+static void native_GetShaderv(oobject_t list, oint32_t ac);
+static void native_GetShaderInfoLog(oobject_t list, oint32_t ac);
+static void native_GetShaderSource(oobject_t list, oint32_t ac);
+static void native_GetUniformLocation(oobject_t list, oint32_t ac);
+#if 0
+static void native_GetUniformv(oobject_t list, oint32_t ac);
+static void native_glGetVertexAttribv(oobject_t list, oint32_t ac);
+static void native_glGetVertexAttribPointerv(oobject_t list, oint32_t ac);
+#endif
+static void native_IsProgram(oobject_t list, oint32_t ac);
+static void native_IsShader(oobject_t list, oint32_t ac);
+static void native_LinkProgram(oobject_t list, oint32_t ac);
+static void native_ShaderSource(oobject_t list, oint32_t ac);
+static void native_UseProgram(oobject_t list, oint32_t ac);
+static void native_Uniform1(oobject_t list, oint32_t ac);
+static void native_Uniform2(oobject_t list, oint32_t ac);
+static void native_Uniform3(oobject_t list, oint32_t ac);
+static void native_Uniform4(oobject_t list, oint32_t ac);
+static void native_Uniform1v(oobject_t list, oint32_t ac);
+static void native_Uniform2v(oobject_t list, oint32_t ac);
+static void native_Uniform3v(oobject_t list, oint32_t ac);
+static void native_Uniform4v(oobject_t list, oint32_t ac);
+static void native_UniformMatrix2v(oobject_t list, oint32_t ac);
+static void native_UniformMatrix3v(oobject_t list, oint32_t ac);
+static void native_UniformMatrix4v(oobject_t list, oint32_t ac);
+static void native_ValidateProgram(oobject_t list, oint32_t ac);
+static void native_VertexAttrib1(oobject_t list, oint32_t ac);
+static void native_VertexAttrib2(oobject_t list, oint32_t ac);
+static void native_VertexAttrib3(oobject_t list, oint32_t ac);
+static void native_VertexAttrib4(oobject_t list, oint32_t ac);
+static void native_VertexAttrib1v(oobject_t list, oint32_t ac);
+static void native_VertexAttrib2v(oobject_t list, oint32_t ac);
+static void native_VertexAttrib3v(oobject_t list, oint32_t ac);
+static void native_VertexAttrib4v(oobject_t list, oint32_t ac);
+static void native_VertexAttrib4Nv(oobject_t list, oint32_t ac);
+static void native_VertexAttribPointer(oobject_t list, oint32_t ac);
 
 /*
  * Initialization
@@ -1122,6 +1188,92 @@ static struct {
     { "SRC2_RGB",			GL_SRC2_RGB },
     { "SRC0_ALPHA",			GL_SRC0_ALPHA },
     { "SRC2_ALPHA",			GL_SRC2_ALPHA },
+
+    /* GL version 2.0 */
+    { "BLEND_EQUATION_RGB",		GL_BLEND_EQUATION_RGB },
+    { "VERTEX_ATTRIB_ARRAY_ENABLED",	GL_VERTEX_ATTRIB_ARRAY_ENABLED },
+    { "VERTEX_ATTRIB_ARRAY_SIZE",	GL_VERTEX_ATTRIB_ARRAY_SIZE },
+    { "VERTEX_ATTRIB_ARRAY_STRIDE",	GL_VERTEX_ATTRIB_ARRAY_STRIDE },
+    { "VERTEX_ATTRIB_ARRAY_TYPE",	GL_VERTEX_ATTRIB_ARRAY_TYPE },
+    { "CURRENT_VERTEX_ATTRIB",		GL_CURRENT_VERTEX_ATTRIB },
+    { "VERTEX_PROGRAM_POINT_SIZE",	GL_VERTEX_PROGRAM_POINT_SIZE },
+    { "VERTEX_ATTRIB_ARRAY_POINTER",	GL_VERTEX_ATTRIB_ARRAY_POINTER },
+    { "STENCIL_BACK_FUNC",		GL_STENCIL_BACK_FUNC },
+    { "STENCIL_BACK_FAIL",		GL_STENCIL_BACK_FAIL },
+    { "STENCIL_BACK_PASS_DEPTH_FAIL",	GL_STENCIL_BACK_PASS_DEPTH_FAIL },
+    { "STENCIL_BACK_PASS_DEPTH_PASS",	GL_STENCIL_BACK_PASS_DEPTH_PASS },
+    { "MAX_DRAW_BUFFERS",		GL_MAX_DRAW_BUFFERS },
+    { "DRAW_BUFFER0",			GL_DRAW_BUFFER0 },
+    { "DRAW_BUFFER1",			GL_DRAW_BUFFER1 },
+    { "DRAW_BUFFER2",			GL_DRAW_BUFFER2 },
+    { "DRAW_BUFFER3",			GL_DRAW_BUFFER3 },
+    { "DRAW_BUFFER4",			GL_DRAW_BUFFER4 },
+    { "DRAW_BUFFER5",			GL_DRAW_BUFFER5 },
+    { "DRAW_BUFFER6",			GL_DRAW_BUFFER6 },
+    { "DRAW_BUFFER7",			GL_DRAW_BUFFER7 },
+    { "DRAW_BUFFER8",			GL_DRAW_BUFFER8 },
+    { "DRAW_BUFFER9",			GL_DRAW_BUFFER9 },
+    { "DRAW_BUFFER10",			GL_DRAW_BUFFER10 },
+    { "DRAW_BUFFER11",			GL_DRAW_BUFFER11 },
+    { "DRAW_BUFFER12",			GL_DRAW_BUFFER12 },
+    { "DRAW_BUFFER13",			GL_DRAW_BUFFER13 },
+    { "DRAW_BUFFER14",			GL_DRAW_BUFFER14 },
+    { "DRAW_BUFFER15",			GL_DRAW_BUFFER15 },
+    { "BLEND_EQUATION_ALPHA",		GL_BLEND_EQUATION_ALPHA },
+    { "MAX_VERTEX_ATTRIBS",		GL_MAX_VERTEX_ATTRIBS },
+    { "VERTEX_ATTRIB_ARRAY_NORMALIZED",	GL_VERTEX_ATTRIB_ARRAY_NORMALIZED },
+    { "MAX_TEXTURE_IMAGE_UNITS",	GL_MAX_TEXTURE_IMAGE_UNITS },
+    { "FRAGMENT_SHADER",		GL_FRAGMENT_SHADER },
+    { "VERTEX_SHADER",			GL_VERTEX_SHADER },
+    { "MAX_FRAGMENT_UNIFORM_COMPONENTS",GL_MAX_FRAGMENT_UNIFORM_COMPONENTS },
+    { "MAX_VERTEX_UNIFORM_COMPONENTS",	GL_MAX_VERTEX_UNIFORM_COMPONENTS },
+    { "MAX_VARYING_FLOATS",		GL_MAX_VARYING_FLOATS },
+    { "MAX_VERTEX_TEXTURE_IMAGE_UNITS",	GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS },
+    { "MAX_COMBINED_TEXTURE_IMAGE_UNITS",GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS },
+    { "SHADER_TYPE",			GL_SHADER_TYPE },
+    { "FLOAT_VEC2",			GL_FLOAT_VEC2 },
+    { "FLOAT_VEC3",			GL_FLOAT_VEC3 },
+    { "FLOAT_VEC4",			GL_FLOAT_VEC4 },
+    { "INT_VEC2",			GL_INT_VEC2 },
+    { "INT_VEC3",			GL_INT_VEC3 },
+    { "INT_VEC4",			GL_INT_VEC4 },
+    { "BOOL",				GL_BOOL },
+    { "BOOL_VEC2",			GL_BOOL_VEC2 },
+    { "BOOL_VEC3",			GL_BOOL_VEC3 },
+    { "BOOL_VEC4",			GL_BOOL_VEC4 },
+    { "FLOAT_MAT2",			GL_FLOAT_MAT2 },
+    { "FLOAT_MAT3",			GL_FLOAT_MAT3 },
+    { "FLOAT_MAT4",			GL_FLOAT_MAT4 },
+    { "SAMPLER_1D",			GL_SAMPLER_1D },
+    { "SAMPLER_2D",			GL_SAMPLER_2D },
+    { "SAMPLER_3D",			GL_SAMPLER_3D },
+    { "SAMPLER_CUBE",			GL_SAMPLER_CUBE },
+    { "SAMPLER_1D_SHADOW",		GL_SAMPLER_1D_SHADOW },
+    { "SAMPLER_2D_SHADOW",		GL_SAMPLER_2D_SHADOW },
+    { "DELETE_STATUS",			GL_DELETE_STATUS },
+    { "COMPILE_STATUS",			GL_COMPILE_STATUS },
+    { "LINK_STATUS",			GL_LINK_STATUS },
+    { "VALIDATE_STATUS",		GL_VALIDATE_STATUS },
+    { "INFO_LOG_LENGTH",		GL_INFO_LOG_LENGTH },
+    { "ATTACHED_SHADERS",		GL_ATTACHED_SHADERS },
+    { "ACTIVE_UNIFORMS",		GL_ACTIVE_UNIFORMS },
+    { "ACTIVE_UNIFORM_MAX_LENGTH",	GL_ACTIVE_UNIFORM_MAX_LENGTH },
+    { "SHADER_SOURCE_LENGTH",		GL_SHADER_SOURCE_LENGTH },
+    { "ACTIVE_ATTRIBUTES",		GL_ACTIVE_ATTRIBUTES },
+    { "ACTIVE_ATTRIBUTE_MAX_LENGTH",	GL_ACTIVE_ATTRIBUTE_MAX_LENGTH },
+    { "FRAGMENT_SHADER_DERIVATIVE_HINT",GL_FRAGMENT_SHADER_DERIVATIVE_HINT },
+    { "SHADING_LANGUAGE_VERSION",	GL_SHADING_LANGUAGE_VERSION },
+    { "CURRENT_PROGRAM",		GL_CURRENT_PROGRAM },
+    { "POINT_SPRITE_COORD_ORIGIN",	GL_POINT_SPRITE_COORD_ORIGIN },
+    { "LOWER_LEFT",			GL_LOWER_LEFT },
+    { "UPPER_LEFT",			GL_UPPER_LEFT },
+    { "STENCIL_BACK_REF",		GL_STENCIL_BACK_REF },
+    { "STENCIL_BACK_VALUE_MASK",	GL_STENCIL_BACK_VALUE_MASK },
+    { "STENCIL_BACK_WRITEMASK",		GL_STENCIL_BACK_WRITEMASK },
+    { "VERTEX_PROGRAM_TWO_SIDE",	GL_VERTEX_PROGRAM_TWO_SIDE },
+    { "POINT_SPRITE",			GL_POINT_SPRITE },
+    { "COORD_REPLACE",			GL_COORD_REPLACE },
+    { "MAX_TEXTURE_COORDS",		GL_MAX_TEXTURE_COORDS },
 };
 
 #define ARRAY_BUFFER_OFFSET			0
@@ -1134,6 +1286,8 @@ static struct {
 #define PIXEL_UNPACK_BUFFER_LENGTH		7
 #define BUFFER_VECTOR_SIZE			(sizeof(oword_t) * 8)
 static ohashtable_t		*buffer_table;
+static ovector_t		*int_vector;
+static ovector_t		*str_vector;
 
 /*
  * Implementation
@@ -1148,6 +1302,8 @@ init_gl(void)
 
     oadd_root((oobject_t *)&buffer_table);
     onew_hashtable(&buffer_table, 4);
+    oadd_root((oobject_t *)&int_vector);
+    oadd_root((oobject_t *)&str_vector);
 
     for (offset = 0; offset < osize(gl); ++offset) {
 	string = gl[offset].name;
@@ -1418,12 +1574,83 @@ init_gl(void)
     define_builtin3(t_void,  GetBufferParameterv,
 		    t_uint32, t_word, t_vector|t_int32);
 
+    define_builtin2(t_void,   BlendEquationSeparate, t_uint32, t_uint32);
+    define_builtin1(t_void,   DrawBuffers, t_vector|t_uint32);
+    define_builtin4(t_void,   StencilOpSeparate,
+		    t_uint32, t_uint32, t_uint32, t_uint32);
+    define_builtin4(t_void,   StencilFuncSeparate,
+		    t_uint32, t_uint32, t_uint32, t_uint32);
+    define_builtin2(t_void,   StencilMaskSeparate, t_uint32, t_uint32);
+    define_builtin2(t_void,   AttachShader, t_uint32, t_uint32);
+    define_builtin3(t_void,   BindAttribLocation, t_uint32, t_uint32, t_string);
+    define_builtin1(t_void,   CompileShader, t_uint32);
+    define_builtin0(t_uint32, CreateProgram);
+    define_builtin1(t_uint32, CreateShader, t_uint32);
+    define_builtin1(t_void,   DeleteProgram, t_uint32);
+    define_builtin1(t_void,   DeleteShader, t_uint32);
+    define_builtin2(t_void,   DetachShader, t_uint32, t_uint32);
+    define_builtin1(t_void,   DisableVertexAttribArray, t_uint32);
+    define_builtin1(t_void,   EnableVertexAttribArray, t_uint32);
+    define_builtin5(t_void,   GetActiveAttrib,
+		    t_uint32, t_uint32,
+		    t_vector|t_int32, t_vector|t_uint32, t_string);
+    define_builtin5(t_void,   GetActiveUniform,
+		    t_uint32, t_uint32,
+		    t_vector|t_int32, t_vector|t_uint32, t_string);
+    define_builtin2(t_void,   GetAttachedShaders, t_uint32, t_vector|t_uint32);
+    define_builtin2(t_int32,  GetAttribLocation, t_uint32, t_string);
+    define_builtin3(t_void,   GetProgramv,
+		    t_uint32, t_uint32, t_vector|t_int32);
+    define_builtin2(t_void,   GetProgramInfoLog, t_uint32, t_string);
+    define_builtin3(t_void,   GetShaderv, t_uint32, t_uint32, t_vector|t_int32);
+    define_builtin2(t_void,   GetShaderInfoLog, t_uint32, t_string);
+    define_builtin2(t_void,   GetShaderSource, t_uint32, t_string);
+    define_builtin2(t_int32,  GetUniformLocation, t_uint32, t_string);
+    define_builtin1(t_void,   IsProgram, t_uint32);
+    define_builtin1(t_void,   IsShader, t_uint32);
+    define_builtin1(t_void,   LinkProgram, t_uint32);
+    define_builtin2(t_void,   ShaderSource, t_uint32, t_vector|t_string);
+    define_builtin1(t_void,   UseProgram, t_uint32);
+    define_builtin2(t_void,   Uniform1, t_int32, t_float32);
+    define_builtin3(t_void,   Uniform2,
+		    t_int32, t_float32, t_float32);
+    define_builtin4(t_void,   Uniform3,
+		    t_int32, t_float32, t_float32, t_float32);
+    define_builtin5(t_void,   Uniform4,
+		    t_int32, t_float32, t_float32, t_float32, t_float32);
+    define_builtin2(t_void,   Uniform1v, t_int32, t_vector);
+    define_builtin2(t_void,   Uniform2v, t_int32, t_vector);
+    define_builtin2(t_void,   Uniform3v, t_int32, t_vector);
+    define_builtin2(t_void,   Uniform4v, t_int32, t_vector);
+    define_builtin3(t_void,   UniformMatrix2v,
+		    t_int32, t_uint8, t_vector|t_float32);
+    define_builtin3(t_void,   UniformMatrix3v,
+		    t_int32, t_uint8, t_vector|t_float32);
+    define_builtin3(t_void,   UniformMatrix4v,
+		    t_int32, t_uint8, t_vector|t_float32);
+    define_builtin1(t_void,   ValidateProgram, t_uint32);
+    define_builtin2(t_void,   VertexAttrib1, t_uint32, t_float64);
+    define_builtin3(t_void,   VertexAttrib2, t_uint32, t_float64, t_float64);
+    define_builtin4(t_void,   VertexAttrib3,
+		    t_uint32, t_float64, t_float64, t_float64);
+    define_builtin5(t_void,   VertexAttrib4,
+		    t_uint32, t_float64, t_float64, t_float64, t_float64);
+    define_builtin2(t_void,   VertexAttrib1v, t_uint32, t_vector);
+    define_builtin2(t_void,   VertexAttrib2v, t_uint32, t_vector);
+    define_builtin2(t_void,   VertexAttrib3v, t_uint32, t_vector);
+    define_builtin2(t_void,   VertexAttrib4v, t_uint32, t_vector);
+    define_builtin2(t_void,   VertexAttrib4Nv, t_uint32, t_vector);
+    define_builtin4(t_void,   VertexAttribPointer,
+		    t_uint32, t_int32, t_int32, t_vector);
+
     current_record = record;
 }
 
 void
 finish_gl(void)
 {
+    orem_root((oobject_t *)&int_vector);
+    orem_root((oobject_t *)&str_vector);
     orem_root((oobject_t *)&buffer_table);
 }
 
@@ -3453,6 +3680,8 @@ native_VertexPointer(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
+    oword_t				 offset;
+    oword_t				 stride;
     oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
@@ -3462,7 +3691,38 @@ native_VertexPointer(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
 
-    if (alist->a2 == null) {
+    if (alist->a2 && (otype(alist->a2) & t_vector)) {
+	if (alist->a0 < 2 || alist->a0 > 0)	/* size */
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a1 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a1 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glVertexPointer(alist->a0, type, stride, alist->a2->v.obj);
+    }
+    else {
+	if (alist->a2 == null)
+	    offset = 0;
+	else if (otype(alist->a2) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a2;
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
 	if (!glIsBuffer(buffer))
 	    ovm_raise(except_invalid_argument);
@@ -3473,39 +3733,20 @@ native_VertexPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
-	/* FIXME check it is a valid type */
-	type = vector[ARRAY_BUFFER_OFFSET];
-	glVertexPointer(alist->a0, type, alist->a1, null);
-    }
-    else {
-	if (alist->a0 < 2 || alist->a0 > 0)	/* size */
-	    ovm_raise(except_invalid_argument);
-	CHECK_VECTOR(alist->a2);
-	switch (otype(alist->a2)) {
-	    case t_vector|t_int16:
-		type = GL_SHORT;
-		if (alist->a1 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_SHORT:
+		stride = alist->a1 << 1;
 		break;
-	    case t_vector|t_int32:
-		type = GL_INT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_INT:		case GL_FLOAT:
+		stride = alist->a1 << 2;
 		break;
-	    case t_vector|t_float32:
-		type = GL_FLOAT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float64:
-		type = GL_DOUBLE;
-		if (alist->a1 & 7)  /* stride & 7 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_DOUBLE:
+		stride = alist->a1 << 3;
 		break;
 	    default:
 		ovm_raise(except_type_mismatch);
 	}
-	glVertexPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+	glVertexPointer(alist->a0, type, stride, (oobject_t)offset);
     }
 }
 
@@ -3521,6 +3762,8 @@ native_NormalPointer(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
+    oword_t				 offset;
+    oword_t				 stride;
     oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
@@ -3530,7 +3773,40 @@ native_NormalPointer(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
 
-    if (alist->a1 == null) {
+    if (alist->a1 && (otype(alist->a1) & t_vector)) {
+	switch (otype(alist->a1)) {
+	    case t_vector|t_int8:
+		type = GL_BYTE;
+		stride = alist->a0;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a0 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a0 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a0 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a0 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glNormalPointer(type, stride, alist->a1->v.obj);
+    }
+    else {
+	if (alist->a1 == null)
+	    offset = 0;
+	else if (otype(alist->a1) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a1;
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
 	if (!glIsBuffer(buffer))
 	    ovm_raise(except_invalid_argument);
@@ -3541,40 +3817,23 @@ native_NormalPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
-	/* FIXME check it is a valid type */
-	type = vector[ARRAY_BUFFER_OFFSET];
-	glNormalPointer(type, alist->a0, null);
-    }
-    else {
-	CHECK_VECTOR(alist->a1);
-	switch (otype(alist->a1)) {
-	    case t_vector|t_int8:
-		type = GL_BYTE;
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_BYTE:
+		stride = alist->a0;
 		break;
-	    case t_vector|t_int16:
-		type = GL_SHORT;
-		if (alist->a0 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_SHORT:
+		stride = alist->a0 << 1;
 		break;
-	    case t_vector|t_int32:
-		type = GL_INT;
-		if (alist->a0 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_INT:		case GL_FLOAT:
+		stride = alist->a0 << 2;
 		break;
-	    case t_vector|t_float32:
-		type = GL_FLOAT;
-		if (alist->a0 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float64:
-		type = GL_DOUBLE;
-		if (alist->a0 & 7)  /* stride & 7 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_DOUBLE:
+		stride = alist->a0 << 3;
 		break;
 	    default:
 		ovm_raise(except_type_mismatch);
 	}
-	glNormalPointer(type, alist->a0, alist->a1->v.obj);
+	glNormalPointer(type, stride, (oobject_t)offset);
     }
 }
 
@@ -3591,6 +3850,8 @@ native_ColorPointer(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
+    oword_t				 offset;
+    oword_t				 stride;
     oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
@@ -3599,7 +3860,55 @@ native_ColorPointer(oobject_t list, oint32_t ac)
     alist = (nat_i32_i32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a2 == null) {
+    if (alist->a2 && (otype(alist->a2) & t_vector)) {
+	if (alist->a0 < 3 || alist->a0 > 4)	    /* size */
+	    ovm_raise(except_invalid_argument);
+	CHECK_VECTOR(alist->a2);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int8:
+		type = GL_BYTE;
+		stride = alist->a1;
+		break;
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		stride = alist->a1;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a1 << 1;
+		break;
+	    case t_vector|t_uint16:
+		type = GL_UNSIGNED_SHORT;
+		stride = alist->a1 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_uint32:
+		type = GL_UNSIGNED_INT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a1 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glColorPointer(alist->a0, type, stride, alist->a2->v.obj);
+    }
+    else {
+	if (alist->a2 == null)
+	    offset = 0;
+	else if (otype(alist->a2) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a2;
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
 	if (!glIsBuffer(buffer))
 	    ovm_raise(except_invalid_argument);
@@ -3610,55 +3919,24 @@ native_ColorPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
-	/* FIXME check it is a valid type */
-	type = vector[ARRAY_BUFFER_OFFSET];
-	glColorPointer(alist->a0, type, alist->a1, null);
-    }
-    else {
-	if (alist->a0 < 3 || alist->a0 > 4)	    /* size */
-	    ovm_raise(except_invalid_argument);
-	CHECK_VECTOR(alist->a2);
-	switch (otype(alist->a2)) {
-	    case t_vector|t_int8:
-		type = GL_BYTE;
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_BYTE:		case GL_UNSIGNED_BYTE:
+		stride = alist->a1;
 		break;
-	    case t_vector|t_uint8:
-		type = GL_UNSIGNED_BYTE;
+	    case GL_SHORT:		case GL_UNSIGNED_SHORT:
+		stride = alist->a1 << 1;
 		break;
-	    case t_vector|t_int16:
-		type = GL_SHORT;
-		if (alist->a1 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_INT:		case GL_UNSIGNED_INT:
+	    case GL_FLOAT:
+		stride = alist->a1 << 2;
 		break;
-	    case t_vector|t_uint16:
-		type = GL_UNSIGNED_SHORT;
-		if (alist->a1 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_int32:
-		type = GL_INT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_uint32:
-		type = GL_UNSIGNED_INT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float32:
-		type = GL_FLOAT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float64:
-		type = GL_DOUBLE;
-		if (alist->a1 & 7)  /* stride & 7 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_DOUBLE:
+		stride = alist->a1 << 3;
 		break;
 	    default:
 		ovm_raise(except_type_mismatch);
 	}
-	glColorPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+	glColorPointer(alist->a0, type, stride, (oobject_t)offset);
     }
 }
 
@@ -3674,6 +3952,8 @@ native_IndexPointer(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
+    oword_t				 offset;
+    oword_t				 stride;
     oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
@@ -3682,7 +3962,40 @@ native_IndexPointer(oobject_t list, oint32_t ac)
     alist = (nat_i32_vec_t *)list;
     r0 = &thread_self->r0;
     r0->t = t_void;
-    if (alist->a1 == null) {
+    if (alist->a1 && (otype(alist->a1) & t_vector)) {
+	switch (otype(alist->a1)) {
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		stride = alist->a0;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a0 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a0 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a0 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a0 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glIndexPointer(type, stride, alist->a1->v.obj);
+    }
+    else {
+	if (alist->a1 == null)
+	    offset = 0;
+	else if (otype(alist->a1) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a1;
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
 	if (!glIsBuffer(buffer))
 	    ovm_raise(except_invalid_argument);
@@ -3693,40 +4006,23 @@ native_IndexPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
-	/* FIXME check it is a valid type */
-	type = vector[ARRAY_BUFFER_OFFSET];
-	glIndexPointer(type, alist->a0, null);
-    }
-    else {
-	CHECK_VECTOR(alist->a1);
-	switch (otype(alist->a1)) {
-	    case t_vector|t_uint8:
-		type = GL_UNSIGNED_BYTE;
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_UNSIGNED_BYTE:
+		stride = alist->a0;
 		break;
-	    case t_vector|t_int16:
-		type = GL_SHORT;
-		if (alist->a0 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_SHORT:
+		stride = alist->a0 << 1;
 		break;
-	    case t_vector|t_int32:
-		type = GL_INT;
-		if (alist->a0 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_INT:		case GL_FLOAT:
+		stride = alist->a0 << 2;
 		break;
-	    case t_vector|t_float32:
-		type = GL_FLOAT;
-		if (alist->a0 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float64:
-		type = GL_DOUBLE;
-		if (alist->a0 & 7)  /* stride & 7 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_DOUBLE:
+		stride = alist->a0 << 3;
 		break;
 	    default:
 		ovm_raise(except_type_mismatch);
 	}
-	glIndexPointer(type, alist->a0, alist->a1->v.obj);
+	glIndexPointer(type, alist->a0, (oobject_t)offset);
     }
 }
 
@@ -3742,6 +4038,8 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
+    oword_t				 offset;
+    oword_t				 stride;
     oint32_t				*vector;
 
     /* FIXME somehow keep track of vector length and cause
@@ -3751,7 +4049,38 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_void;
 
-    if (alist->a2 == null) {
+    if (alist->a2 && (otype(alist->a2) & t_vector)) {
+	if (alist->a0 < 2 || alist->a0 > 4)	    /* size */
+	    ovm_raise(except_invalid_argument);
+	switch (otype(alist->a2)) {
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a1 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a1 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a1 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glTexCoordPointer(alist->a0, type, stride, alist->a2->v.obj);
+    }
+    else {
+	if (alist->a2 == null)
+	    offset = 0;
+	else if (otype(alist->a2) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a2;
 	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
 	if (!glIsBuffer(buffer))
 	    ovm_raise(except_invalid_argument);
@@ -3762,39 +4091,20 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
 	if ((entry = oget_hashentry(buffer_table, &check)) == null)
 	    ovm_raise(except_invalid_argument);
 	vector = entry->vv.o;
-	/* FIXME check it is a valid type */
-	type = vector[ARRAY_BUFFER_OFFSET];
-	glTexCoordPointer(alist->a0, type, alist->a1, null);
-    }
-    else {
-	if (alist->a0 < 2 || alist->a0 > 4)	    /* size */
-	    ovm_raise(except_invalid_argument);
-	CHECK_VECTOR(alist->a2);
-	switch (otype(alist->a2)) {
-	    case t_vector|t_int16:
-		type = GL_SHORT;
-		if (alist->a1 & 1)  /* stride & 1 */
-		    ovm_raise(except_invalid_argument);
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_SHORT:
+		stride = alist->a1 << 1;
 		break;
-	    case t_vector|t_int32:
-		type = GL_INT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_INT:		case GL_FLOAT:
+		stride = alist->a1 << 2;
 		break;
-	    case t_vector|t_float32:
-		type = GL_FLOAT;
-		if (alist->a1 & 3)  /* stride & 3 */
-		    ovm_raise(except_invalid_argument);
-		break;
-	    case t_vector|t_float64:
-		type = GL_DOUBLE;
-		if (alist->a1 & 7)  /* stride & 7 */
-		    ovm_raise(except_invalid_argument);
+	    case GL_DOUBLE:
+		stride = alist->a1 << 3;
 		break;
 	    default:
-		ovm_raise(except_invalid_argument);
+		ovm_raise(except_type_mismatch);
 	}
-	glTexCoordPointer(alist->a0, type, alist->a1, alist->a2->v.obj);
+	glTexCoordPointer(alist->a0, type, alist->a1, (oobject_t)offset);
     }
 }
 
@@ -6673,19 +6983,19 @@ native_BufferData(oobject_t list, oint32_t ac)
     switch (alist->a0) {
 	case GL_ARRAY_BUFFER:
 	    vector[ARRAY_BUFFER_OFFSET] = type;
-	    vector[ARRAY_BUFFER_LENGTH] = size;
+	    vector[ARRAY_BUFFER_LENGTH] = alist->a1->length;
 	    break;
 	case GL_ELEMENT_ARRAY_BUFFER:
 	    vector[ELEMENT_ARRAY_BUFFER_OFFSET] = type;
-	    vector[ELEMENT_ARRAY_BUFFER_LENGTH] = size;
+	    vector[ELEMENT_ARRAY_BUFFER_LENGTH] = alist->a1->length;
 	    break;
 	case GL_PIXEL_PACK_BUFFER:
 	    vector[PIXEL_PACK_BUFFER_OFFSET] = type;
-	    vector[PIXEL_PACK_BUFFER_LENGTH] = size;
+	    vector[PIXEL_PACK_BUFFER_LENGTH] = alist->a1->length;
 	    break;
 	case GL_PIXEL_UNPACK_BUFFER:
 	    vector[PIXEL_UNPACK_BUFFER_OFFSET] = type;
-	    vector[PIXEL_UNPACK_BUFFER_LENGTH] = size;
+	    vector[PIXEL_UNPACK_BUFFER_LENGTH] = alist->a1->length;
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
@@ -6793,4 +7103,1126 @@ native_GetBufferParameterv(oobject_t list, oint32_t ac)
     CHECK_LENGTH(alist->a2, 1);
     r0->t = t_void;
     glGetBufferParameteriv(alist->a0, alist->a1, alist->a2->v.i32);
+}
+
+static void
+native_BlendEquationSeparate(oobject_t list, oint32_t ac)
+/* void BlendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+
+    alist = (nat_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glBlendEquationSeparate(alist->a0, alist->a1);
+}
+
+static void
+native_DrawBuffers(oobject_t list, oint32_t ac)
+/* void DrawBuffers(uint32_t bufs[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_vec_t				*alist;
+
+    alist = (nat_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_vector|t_uint32);
+    glDrawBuffers(alist->a0->length, alist->a0->v.u32);
+}
+
+static void
+native_StencilOpSeparate(oobject_t list, oint32_t ac)
+/* void StencilOpSeparate(uint32_t face, uint32_t sfail,
+			  uint32_t dpfail, uint32_t dppass); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_u32_u32_t		*alist;
+
+    alist = (nat_u32_u32_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glStencilOpSeparate(alist->a0, alist->a1, alist->a2, alist->a3);
+}
+
+static void
+native_StencilFuncSeparate(oobject_t list, oint32_t ac)
+/* void StencilFuncSeparate(uint32_t face, uint32_t func,
+			    uint32_t ref, uint32_t mask); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_u32_u32_t		*alist;
+
+    alist = (nat_u32_u32_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glStencilFuncSeparate(alist->a0, alist->a1, alist->a2, alist->a3);
+}
+
+static void
+native_StencilMaskSeparate(oobject_t list, oint32_t ac)
+/* void StencilMaskSeparate(uint32_t face, uint32_t mask); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+
+    alist = (nat_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glStencilMaskSeparate(alist->a0, alist->a1);
+}
+
+static void
+native_AttachShader(oobject_t list, oint32_t ac)
+/* void AttachShader(uint32_t program, uint32_t shader); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+
+    alist = (nat_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glAttachShader(alist->a0, alist->a1);
+}
+
+static void
+native_BindAttribLocation(oobject_t list, oint32_t ac)
+/* void BindAttribLocation(uint32_t program, uint32_t index, string_t name); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_string);
+    make_vec_text(alist->a2);
+    glBindAttribLocation(alist->a0, alist->a1, alist->a2->v.obj);
+}
+
+static void
+native_CompileShader(oobject_t list, oint32_t ac)
+/* void CompileShader(uint32_t type); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glCompileShader(alist->a0);
+}
+
+static void
+native_CreateProgram(oobject_t list, oint32_t ac)
+/* uint32_t CreateProgram(); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glCreateProgram();
+}
+
+static void
+native_CreateShader(oobject_t list, oint32_t ac)
+/* uint32_t CreateShader(uint32_t type); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glCreateShader(alist->a0);
+}
+
+static void
+native_DeleteProgram(oobject_t list, oint32_t ac)
+/* void DeleteProgram(uint32_t program); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDeleteProgram(alist->a0);
+}
+
+static void
+native_DeleteShader(oobject_t list, oint32_t ac)
+/* void DeleteShader(uint32_t shader); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDeleteShader(alist->a0);
+}
+
+static void
+native_DetachShader(oobject_t list, oint32_t ac)
+/* void DetachShader(uint32_t program, uint32_t shader); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_t			*alist;
+
+    alist = (nat_u32_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDetachShader(alist->a0, alist->a1);
+}
+
+static void
+native_DisableVertexAttribArray(oobject_t list, oint32_t ac)
+/* void DisableVertexAttribArray(uint32_t index); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glDisableVertexAttribArray(alist->a0);
+}
+
+static void
+native_EnableVertexAttribArray(oobject_t list, oint32_t ac)
+/* void EnableVertexAttribArray(uint32_t index); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glEnableVertexAttribArray(alist->a0);
+}
+
+static void
+native_GetActiveAttrib(oobject_t list, oint32_t ac)
+/* void GetActiveAttrib(uint32_t program, uint32_t index,
+			int32_t size[1], uint32_t type[1],
+			string_t name); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_vec_vec_t		*alist;
+    oint32_t				 length;
+    oint32_t				 size;
+    ouint32_t				 type;
+    char				 name[BUFSIZ];
+
+    alist = (nat_u32_u32_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_int32);
+    CHECK_LENGTH(alist->a2, 1);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_vector|t_uint32);
+    CHECK_LENGTH(alist->a3, 1);
+    CHECK_NULL(alist->a4);
+    CHECK_TYPE(alist->a4, t_string);
+    glGetActiveAttrib(alist->a0, alist->a1,
+		      BUFSIZ, &length, &size, &type, name);
+    alist->a2->v.i32[0] = size;
+    alist->a3->v.u32[0] = type;
+    orenew_vector(alist->a4, length);
+    memcpy(alist->a4->v.obj, name, length);
+}
+
+static void
+native_GetActiveUniform(oobject_t list, oint32_t ac)
+/* void GetActiveUniform(uint32_t program, uint32_t index,
+			int32_t length[1], int32_t size[1], uint32_t type[1],
+			string_t name); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_vec_vec_t		*alist;
+    oint32_t				 length;
+    oint32_t				 size;
+    ouint32_t				 type;
+    char				 name[BUFSIZ];
+
+    alist = (nat_u32_u32_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_int32);
+    CHECK_LENGTH(alist->a2, 1);
+    CHECK_NULL(alist->a3);
+    CHECK_TYPE(alist->a3, t_vector|t_uint32);
+    CHECK_LENGTH(alist->a3, 1);
+    CHECK_NULL(alist->a4);
+    CHECK_TYPE(alist->a4, t_string);
+    glGetActiveUniform(alist->a0, alist->a1,
+		       BUFSIZ, &length, &size, &type, name);
+    alist->a2->v.i32[0] = size;
+    alist->a3->v.u32[0] = type;
+    orenew_vector(alist->a4, length);
+    memcpy(alist->a4->v.obj, name, length);
+}
+
+static void
+native_GetAttachedShaders(oobject_t list, oint32_t ac)
+/* void GetAttachedShaders(uint32_t program, uint32_t shaders[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    oint32_t				 count;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_vector|t_uint32);
+    if (!glIsProgram(alist->a0))
+	ovm_raise(except_invalid_argument);
+    count = 0;
+    glGetProgramiv(alist->a0, GL_ATTACHED_SHADERS, &count);
+    orenew_vector(alist->a1, count);
+    glGetAttachedShaders(alist->a0, count, null, alist->a1->v.u32);
+}
+
+static void
+native_GetAttribLocation(oobject_t list, oint32_t ac)
+/* int32_t GetAttribLocation(uint32_t program, string_t name); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    make_vec_text(alist->a1);
+    r0->v.w = glGetAttribLocation(alist->a0, alist->a1->v.obj);
+}
+
+static void
+native_GetProgramv(oobject_t list, oint32_t ac)
+/* void GetProgramv(uint32_t shader, uint32_t pname, int32_t params[1]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_int32);
+    CHECK_LENGTH(alist->a2, 1);
+    r0->t = t_void;
+    switch (alist->a1) {
+	case GL_DELETE_STATUS:
+	case GL_LINK_STATUS:
+	case GL_VALIDATE_STATUS:
+	case GL_INFO_LOG_LENGTH:
+	case GL_ATTACHED_SHADERS:
+	case GL_ACTIVE_ATTRIBUTES:
+	case GL_ACTIVE_ATTRIBUTE_MAX_LENGTH:
+	case GL_ACTIVE_UNIFORMS:
+	case GL_ACTIVE_UNIFORM_MAX_LENGTH:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    glGetProgramiv(alist->a0, alist->a1, alist->a2->v.i32);
+}
+
+static void
+native_GetProgramInfoLog(oobject_t list, oint32_t ac)
+/* void GetProgramInfoLog(uint32_t shader, string_t msg[1]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    oint32_t				 length;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    if (!glIsProgram(alist->a0))
+	ovm_raise(except_invalid_argument);
+    glGetProgramiv(alist->a0, GL_INFO_LOG_LENGTH, &length);
+    orenew_vector(alist->a1, length - 1);
+    glGetProgramInfoLog(alist->a0, length - 1, NULL, alist->a1->v.obj);
+}
+
+static void
+native_GetShaderv(oobject_t list, oint32_t ac)
+/* void GetShaderv(uint32_t shader, uint32_t pname, int32_t params[1]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_u32_vec_t			*alist;
+
+    alist = (nat_u32_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_int32);
+    CHECK_LENGTH(alist->a2, 1);
+    r0->t = t_void;
+    switch (alist->a1) {
+	case GL_SHADER_TYPE:
+	case GL_DELETE_STATUS:
+	case GL_COMPILE_STATUS:
+	case GL_INFO_LOG_LENGTH:
+	case GL_SHADER_SOURCE_LENGTH:
+	    break;
+	default:
+	    ovm_raise(except_invalid_argument);
+    }
+    glGetShaderiv(alist->a0, alist->a1, alist->a2->v.i32);
+}
+
+static void
+native_GetShaderInfoLog(oobject_t list, oint32_t ac)
+/* void GetShaderInfoLog(uint32_t shader, string_t msg[1]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    oint32_t				 length;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    if (!glIsShader(alist->a0))
+	ovm_raise(except_invalid_argument);
+    glGetShaderiv(alist->a0, GL_INFO_LOG_LENGTH, &length);
+    orenew_vector(alist->a1, length - 1);
+    glGetShaderInfoLog(alist->a0, length - 1, NULL, alist->a1->v.obj);
+}
+
+static void
+native_GetShaderSource(oobject_t list, oint32_t ac)
+/* void GetShaderSource(uint32_t shader, string_t source); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    oint32_t				 length;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    if (!glIsShader(alist->a0))
+	ovm_raise(except_invalid_argument);
+    length = 0;
+    glGetShaderiv(alist->a0, GL_SHADER_SOURCE_LENGTH, &length);
+    orenew_vector(alist->a1, length);
+    glGetShaderSource(alist->a0, length, null, alist->a1->v.obj);
+}
+
+static void
+native_GetUniformLocation(oobject_t list, oint32_t ac)
+/* int32_t GetUniformLocation(uint32_t program, string_t name); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a1);
+    CHECK_TYPE(alist->a1, t_string);
+    make_vec_text(alist->a1);
+    r0->v.w = glGetUniformLocation(alist->a0, alist->a1->v.obj);
+}
+
+static void
+native_IsProgram(oobject_t list, oint32_t ac)
+/* uint8_t IsProgram(uint32_t shader); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glIsProgram(alist->a0);
+}
+
+static void
+native_IsShader(oobject_t list, oint32_t ac)
+/* uint8_t IsShader(uint32_t shader); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    r0->v.w = glIsShader(alist->a0);
+}
+
+static void
+native_LinkProgram(oobject_t list, oint32_t ac)
+/* uint32_t LinkProgram(uint32_t program); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glLinkProgram(alist->a0);
+}
+
+static void
+native_ShaderSource(oobject_t list, oint32_t ac)
+/* void ShaderSource(uint32_t shader, string_t string[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+    oword_t				 offset;
+    ovector_t				*string;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    if (alist->a1) {
+	CHECK_VECTOR(alist->a1);
+	offset = (alist->a1->length + 3) & -4;
+	if (int_vector == null) {
+	    onew_vector((oobject_t *)&int_vector, t_int32, offset);
+	    onew_vector((oobject_t *)&str_vector, t_word, offset);
+	}
+	else if (offset > int_vector->length) {
+	    orenew_vector(int_vector, offset);
+	    orenew_vector(str_vector, offset);
+	}
+	for (offset = alist->a1->length - 1; offset >= 0; --offset) {
+	    string = alist->a1->v.ptr[offset];
+	    CHECK_NULL(string);
+	    CHECK_TYPE(string, t_string);
+	    int_vector->v.i32[offset] = string->length;
+	    str_vector->v.w[offset] = (oword_t)string->v.obj;
+	}
+	glShaderSource(alist->a0, alist->a1->length,
+		       (const GLchar **)str_vector->v.obj,
+		       (const GLint *)int_vector->v.i32);
+    }
+}
+
+static void
+native_UseProgram(oobject_t list, oint32_t ac)
+/* void UseProgram(uint32_t type); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glUseProgram(alist->a0);
+}
+
+static void
+native_Uniform1(oobject_t list, oint32_t ac)
+/* void Uniform1(int32_t location, float32_t v0); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_f32_t			*alist;
+
+    alist = (nat_i32_f32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glUniform1f(alist->a0, alist->a1);
+}
+
+static void
+native_Uniform2(oobject_t list, oint32_t ac)
+/* void Uniform2(int32_t location, float32_t v0, float32_t v1); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_f32_f32_t			*alist;
+
+    alist = (nat_i32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glUniform2f(alist->a0, alist->a1, alist->a2);
+}
+
+static void
+native_Uniform3(oobject_t list, oint32_t ac)
+/* void Uniform3(int32_t location, float32_t v0, float32_t v1, float32_t v2); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_f32_f32_f32_t		*alist;
+
+    alist = (nat_i32_f32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glUniform3f(alist->a0, alist->a1, alist->a2, alist->a3);
+}
+
+static void
+native_Uniform4(oobject_t list, oint32_t ac)
+/* void Uniform4(int32_t location, float32_t v0, float32_t v1,
+		 float32_t v2, float32_t v3); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_f32_f32_f32_f32_t		*alist;
+
+    alist = (nat_i32_f32_f32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glUniform4f(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4);
+}
+
+static void
+native_Uniform1v(oobject_t list, oint32_t ac)
+/* void Uniform1v(int32_t location, (int32_t|float32_t) value[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    alist = (nat_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int32:
+	    glUniform1iv(alist->a0, alist->a1->length, alist->a1->v.i32);
+	    break;
+	case t_vector|t_float32:
+	    glUniform1fv(alist->a0, alist->a1->length, alist->a1->v.f32);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_Uniform2v(oobject_t list, oint32_t ac)
+/* void Uniform2v(int32_t location, (int32_t|float32_t) value[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    alist = (nat_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    if (alist->a1->length & 1)
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int32:
+	    glUniform2iv(alist->a0, alist->a1->length >> 1, alist->a1->v.i32);
+	    break;
+	case t_vector|t_float32:
+	    glUniform2fv(alist->a0, alist->a1->length >> 1, alist->a1->v.f32);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_Uniform3v(oobject_t list, oint32_t ac)
+/* void Uniform3v(int32_t location, (int32_t|float32_t) value[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    alist = (nat_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    if (alist->a1->length % 3)
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int32:
+	    glUniform3iv(alist->a0, alist->a1->length / 3, alist->a1->v.i32);
+	    break;
+	case t_vector|t_float32:
+	    glUniform3fv(alist->a0, alist->a1->length / 3, alist->a1->v.f32);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_Uniform4v(oobject_t list, oint32_t ac)
+/* void Uniform4v(int32_t location, (int32_t|float32_t) value[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_vec_t			*alist;
+
+    alist = (nat_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    if (alist->a1->length & 3)
+	ovm_raise(except_invalid_argument);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int32:
+	    glUniform4iv(alist->a0, alist->a1->length >> 2, alist->a1->v.i32);
+	    break;
+	case t_vector|t_float32:
+	    glUniform4fv(alist->a0, alist->a1->length >> 2, alist->a1->v.f32);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_UniformMatrix2v(oobject_t list, oint32_t ac)
+/* void UniformMatrix2v(int32_t location, uint8_t transpose, float32_t[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_u8_vec_t			*alist;
+
+    alist = (nat_i32_u8_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_float32);
+    if (alist->a2->length & 1)
+	ovm_raise(except_invalid_argument);
+    glUniformMatrix2fv(alist->a0, alist->a2->length >> 1,
+		       alist->a1, alist->a2->v.f32);
+}
+
+static void
+native_UniformMatrix3v(oobject_t list, oint32_t ac)
+/* void UniformMatrix3v(int32_t location, uint8_t transpose, float32_t[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_u8_vec_t			*alist;
+
+    alist = (nat_i32_u8_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_float32);
+    if (alist->a2->length % 3)
+	ovm_raise(except_invalid_argument);
+    glUniformMatrix3fv(alist->a0, alist->a2->length / 3,
+		       alist->a1, alist->a2->v.f32);
+}
+
+static void
+native_UniformMatrix4v(oobject_t list, oint32_t ac)
+/* void UniformMatrix4v(int32_t location, uint8_t transpose, float32_t[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_i32_u8_vec_t			*alist;
+
+    alist = (nat_i32_u8_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_vector|t_float32);
+    if (alist->a2->length & 3)
+	ovm_raise(except_invalid_argument);
+    glUniformMatrix4fv(alist->a0, alist->a2->length >> 2,
+		       alist->a1, alist->a2->v.f32);
+}
+
+
+static void
+native_ValidateProgram(oobject_t list, oint32_t ac)
+/* void ValidateProgram(uint32_t program); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_t				*alist;
+
+    alist = (nat_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glValidateProgram(alist->a0);
+}
+
+static void
+native_VertexAttrib1(oobject_t list, oint32_t ac)
+/* void VertexAttrib1(uint32_t index, float64_t x); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_f64_t			*alist;
+
+    alist = (nat_u32_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glVertexAttrib1d(alist->a0, alist->a1);
+}
+
+static void
+native_VertexAttrib2(oobject_t list, oint32_t ac)
+/* void VertexAttrib2(uint32_t index, float64_t x, float64_t y); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_f64_f64_t			*alist;
+
+    alist = (nat_u32_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glVertexAttrib2d(alist->a0, alist->a1, alist->a2);
+}
+
+static void
+native_VertexAttrib3(oobject_t list, oint32_t ac)
+/* void VertexAttrib3(uint32_t index, float64_t x, float64_t y, float64_t z); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_f64_f64_f64_t		*alist;
+
+    alist = (nat_u32_f64_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glVertexAttrib3d(alist->a0, alist->a1, alist->a2, alist->a3);
+}
+
+static void
+native_VertexAttrib4(oobject_t list, oint32_t ac)
+/* void VertexAttrib4(uint32_t index, float64_t x, float64_t y,
+		      float64_t z, float64_t w); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_f64_f64_f64_f64_t		*alist;
+
+    alist = (nat_u32_f64_f64_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    glVertexAttrib4d(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4);
+}
+
+static void
+native_VertexAttrib1v(oobject_t list, oint32_t ac)
+/* void VertexAttrib1v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 1);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int16:
+	    glVertexAttrib1sv(alist->a0, alist->a1->v.i16);
+	    break;
+	case t_vector|t_float32:
+	    glVertexAttrib1fv(alist->a0, alist->a1->v.f32);
+	    break;
+	case t_vector|t_float64:
+	    glVertexAttrib1dv(alist->a0, alist->a1->v.f64);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_VertexAttrib2v(oobject_t list, oint32_t ac)
+/* void VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 2);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int16:
+	    glVertexAttrib2sv(alist->a0, alist->a1->v.i16);
+	    break;
+	case t_vector|t_float32:
+	    glVertexAttrib2fv(alist->a0, alist->a1->v.f32);
+	    break;
+	case t_vector|t_float64:
+	    glVertexAttrib2dv(alist->a0, alist->a1->v.f64);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_VertexAttrib3v(oobject_t list, oint32_t ac)
+/* void VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 3);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int16:
+	    glVertexAttrib3sv(alist->a0, alist->a1->v.i16);
+	    break;
+	case t_vector|t_float32:
+	    glVertexAttrib3fv(alist->a0, alist->a1->v.f32);
+	    break;
+	case t_vector|t_float64:
+	    glVertexAttrib3dv(alist->a0, alist->a1->v.f64);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_VertexAttrib4v(oobject_t list, oint32_t ac)
+/* void VertexAttrib4v(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
+					int32_t|uint32_t|float32_t|float64_t)
+		       v[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 4);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int8:
+	    glVertexAttrib4bv(alist->a0, alist->a1->v.i8);
+	    break;
+	case t_vector|t_uint8:
+	    glVertexAttrib4ubv(alist->a0, alist->a1->v.u8);
+	    break;
+	case t_vector|t_int16:
+	    glVertexAttrib4sv(alist->a0, alist->a1->v.i16);
+	    break;
+	case t_vector|t_uint16:
+	    glVertexAttrib4usv(alist->a0, alist->a1->v.u16);
+	    break;
+	case t_vector|t_int32:
+	    glVertexAttrib4iv(alist->a0, alist->a1->v.i32);
+	    break;
+	case t_vector|t_uint32:
+	    glVertexAttrib4uiv(alist->a0, alist->a1->v.u32);
+	    break;
+	case t_vector|t_float32:
+	    glVertexAttrib4fv(alist->a0, alist->a1->v.f32);
+	    break;
+	case t_vector|t_float64:
+	    glVertexAttrib4dv(alist->a0, alist->a1->v.f64);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_VertexAttrib4Nv(oobject_t list, oint32_t ac)
+/* void VertexAttrib4Nv(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
+					 int32_t|uint32_t) v[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_u32_vec_t			*alist;
+
+    alist = (nat_u32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    CHECK_LENGTH(alist->a1, 4);
+    switch (otype(alist->a1)) {
+	case t_vector|t_int8:
+	    glVertexAttrib4Nbv(alist->a0, alist->a1->v.i8);
+	    break;
+	case t_vector|t_uint8:
+	    glVertexAttrib4Nubv(alist->a0, alist->a1->v.u8);
+	    break;
+	case t_vector|t_int16:
+	    glVertexAttrib4Nsv(alist->a0, alist->a1->v.i16);
+	    break;
+	case t_vector|t_uint16:
+	    glVertexAttrib4Nusv(alist->a0, alist->a1->v.u16);
+	    break;
+	case t_vector|t_int32:
+	    glVertexAttrib4Niv(alist->a0, alist->a1->v.i32);
+	    break;
+	case t_vector|t_uint32:
+	    glVertexAttrib4Nuiv(alist->a0, alist->a1->v.u32);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+    }
+}
+
+static void
+native_VertexAttribPointer(oobject_t list, oint32_t ac)
+/* void VertexAttribPointer(uint32_t index, int32_t size, int32_t stride,
+			    (int8_t|uint8_t|int16_t|uint16_t|
+			     int32_t|uint32_t|float32_t|float64_t)pointer[]); */
+{
+
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    oword_t				 type;
+    nat_u32_i32_i32_vec_t		*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oword_t				 offset;
+    oword_t				 stride;
+    oint32_t				 buffer;
+    oint32_t				*vector;
+
+    alist = (nat_u32_i32_i32_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+
+    if (alist->a3 && (otype(alist->a3) & t_vector)) {
+	switch (otype(alist->a3)) {
+	    case t_vector|t_int8:
+		type = GL_BYTE;
+		stride = alist->a2;
+		break;
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		stride = alist->a2;
+		break;
+	    case t_vector|t_int16:
+		type = GL_SHORT;
+		stride = alist->a2 << 1;
+		break;
+	    case t_vector|t_uint16:
+		type = GL_UNSIGNED_SHORT;
+		stride = alist->a2 << 1;
+		break;
+	    case t_vector|t_int32:
+		type = GL_INT;
+		stride = alist->a2 << 2;
+		break;
+	    case t_vector|t_uint32:
+		type = GL_UNSIGNED_INT;
+		stride = alist->a2 << 2;
+		break;
+	    case t_vector|t_float32:
+		type = GL_FLOAT;
+		stride = alist->a2 << 2;
+		break;
+	    case t_vector|t_float64:
+		type = GL_DOUBLE;
+		stride = alist->a2 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glVertexAttribPointer(alist->a0, alist->a1, type, 0,
+			      stride, alist->a3->v.obj);
+    }
+    else {
+	if (alist->a3 == null)
+	    offset = 0;
+	else if (otype(alist->a3) != t_word)
+	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a3;
+	if (offset < 0 || offset > (0x7fffffff >> 3))
+	    ovm_raise(except_invalid_argument);
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	switch ((type = vector[ARRAY_BUFFER_OFFSET])) {
+	    case GL_BYTE:		case GL_UNSIGNED_BYTE:
+		stride = alist->a2;
+		break;
+	    case GL_SHORT:		case GL_UNSIGNED_SHORT:
+		offset <<= 1;
+		stride = alist->a2 << 1;
+		break;
+	    case GL_INT:		case GL_UNSIGNED_INT:
+	    case GL_FLOAT:
+		offset <<= 2;
+		stride = alist->a2 << 2;
+		break;
+	    case GL_DOUBLE:
+		offset <<= 3;
+		stride = alist->a2 << 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glVertexAttribPointer(alist->a0, alist->a1, type, 0,
+			      stride, (oobject_t)offset);
+    }
 }
