@@ -844,14 +844,14 @@ oprint_mpr(ostream_t *stream, oformat_t *format, ompr_t floating)
 
     /* get number representation, plus one for sign and one for ending '\0' */
     if (count + 2 > sizeof(buffer)) {
-	if (stream == (ostream_t *)thread_self->vec) {
+	if (stream == (ostream_t *)thr_vec) {
 	    onew_object(&thread_self->obj, t_uint8, count + 2);
 	    src = thread_self->obj;	/* left for gc */
 	}
 	else {
-	    if (thread_self->vec->length < count + 2)
-		orenew_vector(thread_self->vec, count + 2);
-	    src = thread_self->vec->v.obj;
+	    if (thr_vec->length < count + 2)
+		orenew_vector(thr_vec, count + 2);
+	    src = thr_vec->v.obj;
 	}
     }
     else
@@ -1118,7 +1118,7 @@ oprint_cdd(ostream_t *stream, oformat_t *format, ocdd_t *dd)
     if (!print_check(stream, format))
 	return (eof);
 
-    buffer = (ostream_t *)thread_self->vec;
+    buffer = (ostream_t *)thr_vec;
     buffer->offset = 0;
     memcpy(&local, format, sizeof(oformat_t));
     if (local.radix == 256)
@@ -1173,7 +1173,7 @@ oprint_cqq(ostream_t *stream, oformat_t *format, ocqq_t qq)
     if (!print_check(stream, format))
 	return (eof);
 
-    buffer = (ostream_t *)thread_self->vec;
+    buffer = (ostream_t *)thr_vec;
     buffer->offset = 0;
     memcpy(&local, format, sizeof(oformat_t));
     if (local.radix == 256)
@@ -1230,7 +1230,7 @@ oprint_mpc(ostream_t *stream, oformat_t *format, ompc_t c)
     if (!print_check(stream, format))
 	return (eof);
 
-    buffer = (ostream_t *)thread_self->vec;
+    buffer = (ostream_t *)thr_vec;
     buffer->offset = 0;
     memcpy(&local, format, sizeof(oformat_t));
     if (local.radix == 256)

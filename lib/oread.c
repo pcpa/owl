@@ -808,8 +808,8 @@ scan_str(ostream_t *stream, onote_t *note)
 
     length = 0;
     r0 = &thread_self->r0;
-    string = r0->vec->v.u8;
-    size = r0->vec->length;
+    string = thr_vec->v.u8;
+    size = thr_vec->length;
 
     for (ch = getc_quoted(stream, note);
 	 ch != eof && ch != '"';
@@ -823,15 +823,15 @@ scan_str(ostream_t *stream, onote_t *note)
 		thread_self->xcpt = except_out_of_bounds;
 		return (eof);
 	    }
-	    orenew_vector(r0->vec, size);
-	    string = r0->vec->v.u8;
+	    orenew_vector(thr_vec, size);
+	    string = thr_vec->v.u8;
 	}
 	string[length++] = ch;
     }
     if (ch != eof) {
 	r0->t = t_string;
-	r0->v.o = r0->vec;
-	orenew_vector(r0->vec, length);
+	r0->v.o = thr_vec;
+	orenew_vector(thr_vec, length);
 	return (length);
     }
 
@@ -850,8 +850,8 @@ scan_str_set(ostream_t *stream, oint32_t *set, oword_t width)
 
     length = 0;
     r0 = &thread_self->r0;
-    string = r0->vec->v.u8;
-    size = r0->vec->length;
+    string = thr_vec->v.u8;
+    size = thr_vec->length;
 
     for (ch = ogetc(stream);
 	 ch != eof && (set[ch >> 5] & (1 << (ch & 31)));
@@ -863,8 +863,8 @@ scan_str_set(ostream_t *stream, oint32_t *set, oword_t width)
 		thread_self->xcpt = except_out_of_bounds;
 		goto done;
 	    }
-	    orenew_vector(r0->vec, size);
-	    string = r0->vec->v.u8;
+	    orenew_vector(thr_vec, size);
+	    string = thr_vec->v.u8;
 	}
 	string[length++] = ch;
 	if (width && !--width)
@@ -873,8 +873,8 @@ scan_str_set(ostream_t *stream, oint32_t *set, oword_t width)
 
     if (ch != eof) {
 	r0->t = t_string;
-	r0->v.o = r0->vec;
-	orenew_vector(r0->vec, length);
+	r0->v.o = thr_vec;
+	orenew_vector(thr_vec, length);
 	return (length);
     }
 
@@ -894,7 +894,7 @@ scan_num(ostream_t *stream, oint32_t radix, oint32_t ch, obool_t uppr)
     /* save offset as may need to rollback read state */
     offset = stream->offset;
     /* check for real number specification */
-    r0->vec->offset = 0;
+    thr_vec->offset = 0;
     if ((type = scan_num_real(stream, radix, ch, uppr)) == t_void) {
 	/* failed to read a number */
 	r0->t = t_void;
@@ -912,22 +912,20 @@ static otype_t
 scan_num_real(ostream_t *stream, oint32_t radix, oint32_t ch, obool_t uppr)
 {
     GET_THREAD_SELF()
-    oregister_t		*r0;
     ouint8_t		*ptr;
     oword_t		 offset;
 
-    r0 = &thread_self->r0;
     /* don't check bounds in up to 3 bytes */
-    if (r0->vec->length - r0->vec->offset <= 3)
-	orenew_vector(r0->vec, r0->vec->length + BUFSIZ);
-    ptr = r0->vec->v.u8;
-    offset = r0->vec->offset;
+    if (thr_vec->length - thr_vec->offset <= 3)
+	orenew_vector(thr_vec, thr_vec->length + BUFSIZ);
+    ptr = thr_vec->v.u8;
+    offset = thr_vec->offset;
 
     if (ch == '-' || ch == '+') {
-	ptr[r0->vec->offset++] = ch;
+	ptr[thr_vec->offset++] = ch;
 	/* if input ends in '-' or '+' */
 	if ((ch = ogetc(stream)) == eof) {
-	    oungetc(stream, ptr[r0->vec->offset - 1]);
+	    oungetc(stream, ptr[thr_vec->offset - 1]);
 	    return (t_void);
 	}
     }
@@ -946,10 +944,10 @@ scan_num_real(ostream_t *stream, oint32_t radix, oint32_t ch, obool_t uppr)
 		    break;
 		case '0'...'7':
 		    radix = 8;
-		    ptr[r0->vec->offset++] = ch;
+		    ptr[thr_vec->offset++] = ch;
 		    break;
 		default:
-		    ptr[r0->vec->offset++] = '0';
+		    ptr[thr_vec->offset++] = '0';
 		    oungetc(stream, ch);
 		    break;
 	    }
@@ -962,14 +960,14 @@ scan_num_real(ostream_t *stream, oint32_t radix, oint32_t ch, obool_t uppr)
 		    return (t_void);
 	    }
 	    else
-		ptr[r0->vec->offset++] = ch;
+		ptr[thr_vec->offset++] = ch;
 	}
     }
     else {
 	if (ch == '.')
 	    oungetc(stream, ch);
 	else
-	    ptr[r0->vec->offset++] = ch;
+	    ptr[thr_vec->offset++] = ch;
     }
 
     return (scan_num_radix(stream, radix, offset, uppr));
@@ -997,7 +995,7 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
     state = 0;
     done = false;
     type = t_void;
-    string = r0->vec->v.u8;
+    string = thr_vec->v.u8;
 
     for (ch = ogetc(stream); ch != eof; ch = ogetc(stream)) {
 	switch (ch) {
@@ -1022,9 +1020,9 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
 		done = (state & has_sign) || !(state & has_exponent);
 		if (!done) {
 		    state |= has_sign;
-		    if (string[r0->vec->offset - 1] != '@')
+		    if (string[thr_vec->offset - 1] != '@')
 			done = radix > 10 ||
-			       string[r0->vec->offset - 1] != 'e';
+			       string[thr_vec->offset - 1] != 'e';
 		}
 		break;
 	    case '0'...'1':				break;
@@ -1046,12 +1044,12 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
 		    oungetc(stream, ch);
 	    }
 	    if ((state & has_exponent) &&
-		string[r0->vec->offset - 1] == ech) {
+		string[thr_vec->offset - 1] == ech) {
 		oungetc(stream, ech);
 		state &= ~has_exponent;
 	    }
 	    else if ((state & has_dot) &&
-		     string[r0->vec->offset - 1] == '.') {
+		     string[thr_vec->offset - 1] == '.') {
 		/* allow trailing dot for floats */
 		if ((ch = ogetc(stream)) == '.') {
 		    /* two sequential dots should be ellipsis in case range */
@@ -1065,20 +1063,20 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
 	    break;
 	}
 
-	if (r0->vec->offset + 1 >= r0->vec->length) {
-	    length = r0->vec->length + BUFSIZ;
+	if (thr_vec->offset + 1 >= thr_vec->length) {
+	    length = thr_vec->length + BUFSIZ;
 	    length += BUFSIZ - (length % BUFSIZ);
-	    if (length < r0->vec->length) {
+	    if (length < thr_vec->length) {
 		thread_self->xcpt = except_out_of_bounds;
 		return (t_void);
 	    }
-	    orenew_vector(r0->vec, length);
-	    string = r0->vec->v.u8;
+	    orenew_vector(thr_vec, length);
+	    string = thr_vec->v.u8;
 	}
-	string[r0->vec->offset++] = ch;
+	string[thr_vec->offset++] = ch;
     }
 
-    string[r0->vec->offset] = '\0';
+    string[thr_vec->offset] = '\0';
     string += offset;
     if (string[0] == '+')
 	++string;
@@ -1095,7 +1093,7 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
 	    r0->v.d = mpfr_get_d(orr(r0), thr_rnd);
 	    break;
 	default:
-	    if (r0->vec->offset - offset) {
+	    if (thr_vec->offset - offset) {
 		errno = 0;
 		r0->v.w = strtol((char *)string, null, radix);
 		if (errno == ERANGE) {
@@ -1110,7 +1108,7 @@ scan_num_radix(ostream_t *stream, oint32_t radix, oword_t offset, obool_t uppr)
 
     /* could also check if is scanning a rational */
     if (state & has_modifier)
-	r0->vec->v.u8[r0->vec->offset++] = ch;
+	thr_vec->v.u8[thr_vec->offset++] = ch;
 
 #undef has_dot
 #undef has_exponent
@@ -1357,14 +1355,12 @@ static ovector_t *
 read_string(void)
 {
     GET_THREAD_SELF()
-    oregister_t		*r0;
     oword_t		 length;
 
     if ((length = scan_str(input->stream, &input_note)) < 0)
 	oread_error("expecting double quote");
-    r0 = &thread_self->r0;
 
-    return (oget_string(r0->vec->v.u8, length));
+    return (oget_string(thr_vec->v.u8, length));
 }
 
 static oobject_t
@@ -1675,7 +1671,7 @@ macro_date(oobject_t *pointer)
     if (macro_time != (time_t)-1 || errno == 0)
 	macro_tm = localtime(&macro_time);
 
-    stream = (ostream_t *)thread_main->vec;
+    stream = (ostream_t *)thr_vec;
     if (macro_tm) {
 	memset(&format, 0, sizeof(oformat_t));
 	format.width = 2;
@@ -1709,7 +1705,7 @@ macro_time(oobject_t *pointer)
     if (macro_time != (time_t)-1 || errno == 0)
 	macro_tm = localtime(&macro_time);
 
-    stream = (ostream_t *)thread_main->vec;
+    stream = (ostream_t *)thr_vec;
     if (macro_tm) {
 	memset(&format, 0, sizeof(oformat_t));
 	format.zero = 1;
@@ -1735,7 +1731,6 @@ static oobject_t
 macro_string(ovector_t *vector)
 {
     GET_THREAD_SELF()
-    oregister_t		*r0;
     obool_t		 first;
     oformat_t		 format;
     oobject_t		 object;
@@ -1743,14 +1738,13 @@ macro_string(ovector_t *vector)
     ostream_t		*stream;
     char		*string;
 
-    r0 = &thread_self->r0;
     first = true;
     memset(&format, 0, sizeof(oformat_t));
     format.read = 1;
     format.prec = 6;
     format.radix = 10;
-    r0->vec->offset = r0->vec->length = 0;
-    stream = (ostream_t *)r0->vec;
+    thr_vec->offset = thr_vec->length = 0;
+    stream = (ostream_t *)thr_vec;
 
     for (offset = 0; offset < vector->offset; offset++) {
 	object = vector->v.ptr[offset];
@@ -1807,7 +1801,7 @@ macro_string(ovector_t *vector)
 	}
     }
 
-    return (oget_string(r0->vec->v.obj, r0->vec->offset));
+    return (oget_string(thr_vec->v.obj, thr_vec->offset));
 }
 
 static void
@@ -2180,7 +2174,6 @@ static oobject_t
 macro_expand(omacro_t *macro)
 {
     GET_THREAD_SELF()
-    oregister_t		*r0;
     oword_t		 word;
     ovector_t		*alist;
     ovector_t		*final;
@@ -2195,7 +2188,6 @@ macro_expand(omacro_t *macro)
     osymbol_t		*symbol;
     oobject_t		*pointer;
 
-    r0 = &thread_self->r0;
     if (++macro_expand_level > 65536)
 	/* not really overflow but do not allow it */
 	oread_error("macro expansion depth overflow");
@@ -2378,7 +2370,7 @@ macro_expand(omacro_t *macro)
 		concat = expand->v.ptr[offset + 2];
 		if (concat == null)
 		    goto concat_fail;
-		vector = r0->vec;
+		vector = thr_vec;
 		vector->offset = vector->length = 0;
 
 		if (omacro_p(symbol))
@@ -2491,7 +2483,6 @@ macro_read(void)
     oobject_t		 p;
     oobject_t		 q;
     oint32_t		 ch;
-    oregister_t		*r0;
     obool_t		 same;
     omacro_t		*prev;
     omacro_t		*macro;
@@ -2499,7 +2490,6 @@ macro_read(void)
     ostream_t		*stream;
     oword_t		 offset;
 
-    r0 = &thread_self->r0;
     symbol = macro_ident();
     assert(osymbol_p(symbol));
     for (offset = 0; offset < osize(macros); offset++) {
@@ -2652,7 +2642,7 @@ macro_read(void)
 	    break;
 	case mac_error:
 	case mac_warning:
-	    stream = (ostream_t *)r0->vec;
+	    stream = (ostream_t *)thr_vec;
 	    stream->offset = stream->length = 0;
 	    ungetch(macro_skip());
 	    for (ch = getch(); ch != eof && ch != '\n'; ch = getch())
@@ -3608,9 +3598,9 @@ native_scan_impl(ostream_t *stream, ovector_t *format, ovector_t *vector)
 			    omutex_unlock(&stream->mutex);
 			othrow(except_invalid_argument);
 		    }
-		    onew_vector(&thread_self->obj, t_uint8, r0->vec->length);
+		    onew_vector(&thread_self->obj, t_uint8, thr_vec->length);
 		    string = thread_self->obj;
-		    memcpy(string->v.ptr, r0->vec->v.ptr, r0->vec->length);
+		    memcpy(string->v.ptr, thr_vec->v.ptr, thr_vec->length);
 		    r0->v.o = thread_self->obj;
 		}
 		switch (type) {

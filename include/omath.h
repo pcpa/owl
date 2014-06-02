@@ -33,6 +33,7 @@
 #define thr_rr				mpc_realref(thr_cc)
 #define thr_ri				mpc_imagref(thr_cc)
 #define thr_f				&thread_self->f
+#define thr_vec				thread_self->vec
 
 #define thr_prc				mpfr_get_default_prec()
 #ifdef MPFR_RNDN
