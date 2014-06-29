@@ -235,7 +235,9 @@ oprint_wrd(ostream_t *stream, oformat_t *format, oword_t word)
 	for (count = sizeof(oword_t); mask; mask >>= 8, count--, shift -= 8) {
 	    if (word & mask)
 		break;
-	}	    
+	}
+	if (word == 0)
+	    count = 1;
 
 	if (format->read) {
 	    ouword_t	rm;
@@ -264,11 +266,15 @@ oprint_wrd(ostream_t *stream, oformat_t *format, oword_t word)
 		    *ptr++ = '\\';
 		*ptr++ = chr;
 	    }
+	    if (word == 0)
+		*ptr++ = '\0';
 	    *ptr = '\'';
 	}
 	else {
 	    for (; mask; mask >>= 8, shift -= 8)
 		*ptr++ = (word & mask) >> shift;
+	    if (word == 0)
+		*ptr++ = '\0';
 	}
 
 	return (print_pad(stream, format->left, bytes, count));
