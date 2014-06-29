@@ -675,4 +675,19 @@ sdl.DestroyTexture(fg);
 sdl.DestroyTexture(bg);
 sdl.DestroyRenderer(ren);
 sdl.DestroyWindow(win);
+
+net.address_t address;
+net.address_t addresses[] = net.GetLocalAddresses();
+int32_t i;
+for (i = 0; i < sizeof(addresses); ++i) {
+    address = addresses[i];
+    print("%d: %d.%d.%d.%d - %s\n",
+	  i + 1,
+	  (address.host >>> 0) & 0xff,
+	  (address.host >>> 8) & 0xff,
+	  (address.host >>> 16) & 0xff,
+	  (address.host >>> 24) & 0xff,
+	  net.ResolveIP(address));
+}
+
 sdl.Quit();

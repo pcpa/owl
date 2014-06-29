@@ -707,6 +707,10 @@ gc(void)
 	otexture_t	*texture;
 	otimer_t	*timer;
 	owindow_t	*window;
+	osocket_set_t	*socket_set;
+	otcp_socket_t	*tcp_socket;
+	oudp_socket_t	*udp_socket;
+	oudp_packet_t	*udp_packet;
 	onurbs_t	*nurbs;
 	oquadric_t	*quadric;
 	otesselator_t	*tesselator;
@@ -836,6 +840,22 @@ gc(void)
 		case t_context:
 		    o.object = memory_to_object(oobject_t, memory);
 		    odestroy_context(o.context);
+		    break;
+		case t_socket_set:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_socket_set(o.socket_set);
+		    break;
+		case t_tcp_socket:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_tcp_socket(o.tcp_socket);
+		    break;
+		case t_udp_socket:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_udp_socket(o.udp_socket);
+		    break;
+		case t_udp_packet:
+		    o.object = memory_to_object(oobject_t, memory);
+		    odestroy_udp_packet(o.udp_packet);
 		    break;
 		case t_nurbs:
 		    o.object = memory_to_object(oobject_t, memory);

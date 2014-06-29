@@ -106,6 +106,17 @@ static char *mix[] = {
     "music_t",
     "audio_t",
 };
+static char *net[] = {
+    "address_t",
+    "socket_set_t",
+};
+static char *net_tcp[] = {
+    "socket_t",
+};
+static char *net_udp[] = {
+    "socket_t",
+    "packet_t",
+};
 static char *sdl_gl[] = {
     "context_t",
 };
@@ -148,11 +159,11 @@ init_tag(void)
     }
 
 #if SDL
-    /* Initialize sdl namespace and types here to use constant identifiers */
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"sdl", 3), null);
-    sdl_record = onew_namespace(symbol);
     record = current_record;
+
+    /* Initialize sdl namespace and types here to use constant identifiers */
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"sdl", 3), null);
+    sdl_record = onew_namespace(symbol);
     current_record = sdl_record;
     for (offset = 0; offset < osize(sdl); offset++) {
 	symbol = onew_identifier(oget_string((ouint8_t *)sdl[offset],
@@ -161,8 +172,7 @@ init_tag(void)
     }
 
     current_record = record;
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"ttf", 3), null);
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"ttf", 3), null);
     ttf_record = onew_namespace(symbol);
     current_record = ttf_record;
     for (offset = 0; offset < osize(ttf); offset++) {
@@ -172,8 +182,7 @@ init_tag(void)
     }
 
     current_record = record;
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"mix", 3), null);
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"mix", 3), null);
     mix_record = onew_namespace(symbol);
     current_record = mix_record;
     for (offset = 0; offset < osize(mix); offset++) {
@@ -182,10 +191,36 @@ init_tag(void)
 	onew_record(symbol);
     }
 
+    current_record = record;
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"net", 3), null);
+    net_record = onew_namespace(symbol);
+    current_record = net_record;
+    for (offset = 0; offset < osize(net); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)net[offset],
+					     strlen(net[offset])));
+	onew_record(symbol);
+    }
+    /* Also initialize net.* namespace and types */
+    symbol = onew_symbol(net_record, oget_string((ouint8_t *)"tcp", 3), null);
+    net_tcp_record = onew_namespace(symbol);
+    current_record = net_tcp_record;
+    for (offset = 0; offset < osize(net_tcp); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)net_tcp[offset],
+					     strlen(net_tcp[offset])));
+	onew_record(symbol);
+    }
+    symbol = onew_symbol(net_record, oget_string((ouint8_t *)"udp", 3), null);
+    net_udp_record = onew_namespace(symbol);
+    current_record = net_udp_record;
+    for (offset = 0; offset < osize(net_udp); offset++) {
+	symbol = onew_identifier(oget_string((ouint8_t *)net_udp[offset],
+					     strlen(net_udp[offset])));
+	onew_record(symbol);
+    }
+
     /* Also initialize sdl.gl namespace and types */
     current_record = sdl_record;
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"gl", 2), null);
+    symbol = onew_symbol(sdl_record, oget_string((ouint8_t *)"gl", 2), null);
     sdl_gl_record = onew_namespace(symbol);
     current_record = sdl_gl_record;
     for (offset = 0; offset < osize(sdl_gl); offset++) {
@@ -194,16 +229,14 @@ init_tag(void)
 	onew_record(symbol);
     }
 
-    current_record = record;
-
     /* Initialize top level gl namespace */
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"gl", 2), null);
+    current_record = record;
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"gl", 2), null);
     gl_record = onew_namespace(symbol);
 
     /* Initialize top level glu namespace */
-    symbol = onew_symbol(current_record,
-			 oget_string((ouint8_t *)"glu", 3), null);
+    current_record = record;
+    symbol = onew_symbol(record, oget_string((ouint8_t *)"glu", 3), null);
     glu_record = onew_namespace(symbol);
     current_record = glu_record;
     for (offset = 0; offset < osize(glu); offset++) {

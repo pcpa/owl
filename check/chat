@@ -1,0 +1,244 @@
+/* FIXME not yet providing a proper way to receive arguments */
+string_t argv[] = {
+    "check/chat",
+    "localhost",
+    "user"
+};
+
+#define INADDR_ANY		0x00000000
+#define INADDR_NONE		0xFFFFFFFF
+#define INADDR_LOOPBACK		0x7f000001
+#define INADDR_BROADCAST	0xFFFFFFFF
+
+#define MAKE_NUM(A, B, C, D)	(((A+B)<<8)|(C+D))
+#define CHAT_PORT		MAKE_NUM('C','H','A','T')
+#define CHAT_HELLO		0
+#define CHAT_ADD		1
+#define CHAT_DEL		2
+#define CHAT_BYE		255
+#define CHAT_MAXPEOPLE		10
+net.tcp.socket_t	tcpsock;
+net.udp.socket_t	udpsock;
+net.socket_set_t	socketset;
+net.udp.packet_t	send_packet;
+net.udp.packet_t	recv_packet;
+class people_t {
+    int32_t		active;
+    string_t		name;
+};
+people_t people[CHAT_MAXPEOPLE] = {};
+uint8_t			data_hel[1] = {};
+uint8_t			data_hdr[1] = {};
+uint8_t			data_hst[4] = {};
+uint8_t			data_prt[2] = {};
+uint8_t			data_get[256] = {};
+uint8_t			running;
+
+void cleanup(int32_t exitcode) {
+    /* Close the network connections */
+    if (tcpsock)
+        net.tcp.Close(tcpsock);
+    if (udpsock)
+	net.udp.Close(udpsock);
+    if (socketset)
+	net.FreeSocketSet(socketset);
+    sdl.Quit();
+    exit(exitcode);
+}
+
+void SendHello(string_t name) {
+    net.address_t	myip;
+    int32_t		i;
+
+    /* No people are active at first */
+    for (i = 0; i < CHAT_MAXPEOPLE; ++i)
+        people[i] = new people_t;
+
+    if (tcpsock) {
+	print("Using name '%s'\n", name);
+
+	/* Construct the packet */
+	myip = net.udp.GetPeerAddress(udpsock, -1);
+	printf(data_hel, "%c%c%c%c%s",
+	       CHAT_HELLO, myip.port & 0xff, (myip.port >>> 8) & 0xff,
+	       sizeof(name), name);
+	net.tcp.Send(tcpsock, data_hel);
+    }
+}
+
+void HandleInput() {
+    int32_t	i, len;
+    for (;;) {
+	/* Redraw the prompt and add a newline to the buffer */
+	gets(data_get);
+	if ((len = sizeof(data_get) - 1) > 0) {
+	    if (data_get == "quit\n") {
+		running = false;
+		break;
+	    }
+	    send_packet.data = new uint8_t[len];
+	    write(send_packet.data, data_get, len);
+	    /* Send the text to each of our active channels */
+	    for (i = 0; i < CHAT_MAXPEOPLE; ++i) {
+		if (people[i].active)
+		    net.udp.Send(udpsock, i, send_packet);
+	    }
+	}
+    }
+}
+
+void HandleServer() {
+    /* Has the connection been lost with the server? */
+    if (net.tcp.Recv(tcpsock, data_hdr, 1) != 1) {
+    fail:
+	net.tcp.DelSocket(socketset, tcpsock);
+        net.tcp.Close(tcpsock);
+        print("Connection with server lost!\n");
+        cleanup(1);
+    }
+
+    uint8_t	which, length;
+    switch (data_hdr[0]) {
+	case CHAT_ADD:
+	    net.address_t	newip;
+
+	    /* Figure out which channel we got */
+	    if (net.tcp.Recv(tcpsock, data_hdr, 1) != 1)
+		goto fail;
+	    which = data_hdr[0];
+	    if ((which >= CHAT_MAXPEOPLE) || people[which].active)
+		/* Invalid channel?? */
+		break;
+
+	    /* Get the client IP address */
+	    if (net.tcp.Recv(tcpsock, data_hst, 4) != 4 ||
+		net.tcp.Recv(tcpsock, data_prt, 2) != 2)
+		goto fail;
+	    newip = {
+		host:	((data_hst[0] <<<  0) | (data_hst[1] <<<  8) |
+			 (data_hst[2] <<< 16) | (data_hst[3] <<< 24)),
+		port:	((data_prt[0] <<<  0) | (data_prt[1] <<<  8))
+	    };
+	    if (net.tcp.Recv(tcpsock, data_hdr, 1) != 1)
+		goto fail;
+	    length = data_hdr[0];
+	    people[which].name = new uint8_t[length];
+	    if (net.tcp.Recv(tcpsock, people[which].name, length) != length)
+		goto fail;
+	    people[which].active = 1;
+
+	    /* Let the user know what happened */
+	    print("* New client on %d from %d.%d.%d.%d:%d (%s)\n", which,
+		  newip.host & 0xff, (newip.host >>> 8) & 0xff,
+		  (newip.host >>> 16) & 0xff, (newip.host >>> 24) & 0xff,
+		  newip.port, people[which].name);
+
+		/* Bind the address to the UDP socket */
+	    net.udp.Bind(udpsock, which, newip);
+	    break;
+	case CHAT_DEL:
+	    /* Figure out which channel we lost */
+	    if (net.tcp.Recv(tcpsock, data_hdr, 1) != 1)
+		goto fail;
+	    which = data_hdr[0];
+	    if ((which >= CHAT_MAXPEOPLE) || !people[which].active)
+		/* Invalid channel?? */
+		break;
+	    people[which].active = 0;
+
+            /* Let the user know what happened */
+	    print("* Lost client on %d (%s)\n", which, people[which].name);
+
+	    /* Unbind the address on the UDP socket */
+	    net.udp.Unbind(udpsock, which);
+	    break;
+	case CHAT_BYE:
+	    print("* Chat server full\n");
+	    break;
+	default:
+	    /* Unknown packet type?? */
+	    break;
+    }
+}
+
+void HandleClient() {
+    if (net.udp.Recv(udpsock, recv_packet, 256) >= 0 &&
+	recv_packet.channel >= 0)
+	print("[%s] %s\n", people[recv_packet.channel].name, recv_packet.data);
+}
+
+void main() {
+    int32_t		i;
+    string_t		server;
+    net.address_t	serverIP = {};
+
+    /* Check command line arguments */
+    if ( argv[1] == null ) {
+	print("Usage: %s <server>\n", argv[0]);
+	exit(1);
+    }
+
+    /* Initialize SDL */
+    if (sdl.Init() < 0 ) {
+	print("Couldn't initialize SDL: %s\n", sdl.GetError());
+	cleanup(1);
+    }
+
+    send_packet = { data: new uint8_t[32] };
+    recv_packet = { data: new uint8_t[32] };
+
+    /* Connect to remote host and create UDP endpoint */
+    server = argv[1];
+    print("Connecting to %s ... ", server);
+
+    net.ResolveHost(serverIP, server, CHAT_PORT);
+    if (serverIP.host == INADDR_NONE)
+	print("Couldn't resolve hostname\n");
+    else {
+	/* If we fail, it's okay, the GUI shows the problem */
+        tcpsock = net.tcp.Open(serverIP);
+	if (tcpsock == null) {
+	    print("Connect failed\n");
+	    cleanup(1);
+	}
+	else
+	    print("Connected\n");
+    }
+    /* Try ports in the range {CHAT_PORT - CHAT_PORT+10} */
+    for (i = 0; (udpsock == null) && i < 10; ++i)
+        udpsock = net.udp.Open(CHAT_PORT + i);
+
+    if (udpsock == null) {
+        net.tcp.Close(tcpsock);
+        tcpsock = null;
+	print("Couldn't create UDP endpoint\n");
+	cleanup(2);
+    }
+
+    /* Allocate the socket set for polling the network */
+    socketset = net.AllocSocketSet(2);
+    if (socketset == null) {
+	print("Couldn't create socket set: %s\n", sdl.GetError());
+	cleanup(3);
+    }
+
+    net.tcp.AddSocket(socketset, tcpsock);
+    net.udp.AddSocket(socketset, udpsock);
+
+    print("Type 'quit' to exit\n");
+    running = true;
+    thread(HandleInput());
+
+    /* Run the GUI, handling network data */
+    SendHello(argv[2]);
+
+    while (running) {
+	net.CheckSockets(socketset, 0);
+	if (net.SocketReady(tcpsock))
+	    HandleServer();
+	if (net.SocketReady(udpsock))
+	    HandleClient();
+    }
+    cleanup(0);
+}
+main();

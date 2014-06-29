@@ -72,16 +72,26 @@ typedef struct opoint		opoint_t;
 typedef struct orect		orect_t;
 typedef struct ocolor		ocolor_t;
 typedef struct owindow		owindow_t;
-typedef struct osurface		osurface_t;
 typedef struct orenderer	orenderer_t;
+typedef struct osurface		osurface_t;
 typedef struct otexture		otexture_t;
+typedef struct otimer		otimer_t;
+typedef struct oevent		oevent_t;
+/* ttf */
 typedef struct ofont		ofont_t;
 typedef struct oglyph		oglyph_t;
-typedef struct otimer		otimer_t;
+/* mix */
 typedef struct ochunk		ochunk_t;
 typedef struct omusic		omusic_t;
 typedef struct oaudio		oaudio_t;
-typedef struct oevent		oevent_t;
+/* net */
+typedef struct onet_address	onet_address_t;
+typedef struct osocket_set	osocket_set_t;
+/* net.tcp */
+typedef struct otcp_socket	otcp_socket_t;
+/* net.udp */
+typedef struct oudp_socket	oudp_socket_t;
+typedef struct oudp_packet	oudp_packet_t;
 /* sdl.gl */
 typedef struct ocontext		ocontext_t;
 /* glu */

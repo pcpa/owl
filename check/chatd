@@ -1,0 +1,213 @@
+#define DEBUG			1
+#define MAKE_NUM(A, B, C, D)	(((A+B)<<8)|(C+D))
+#define CHAT_PORT		MAKE_NUM('C','H','A','T')
+#define CHAT_HELLO		0
+#define CHAT_ADD		1
+#define CHAT_DEL		2
+#define CHAT_BYE		255
+#define CHAT_MAXPEOPLE		10
+class people_t {
+    int32_t		active;
+    net.tcp.socket_t	sock;
+    net.address_t	peer;
+    string_t		name;
+};
+people_t		people[CHAT_MAXPEOPLE] = {};
+net.tcp.socket_t	servsock;
+net.socket_set_t	socketset;
+uint8_t			data_new[8] = {};
+uint8_t			data_siz[1] = {};
+uint8_t			data_bye[1] = { CHAT_BYE };
+uint8_t			data_del[2] = { CHAT_DEL };
+uint8_t			data_hdr[4] = {};
+uint8_t			data_get[5] = {};
+uint8_t			data_nam[254] = {};
+
+void HandleServer() {
+    net.tcp.socket_t	newsock;
+    int32_t		which;
+    uint8_t		data[1] = {};
+
+     if ((newsock = net.tcp.Accept(servsock)) == null)
+	return;
+
+    /* Look for unconnected person slot */
+    for (which = 0; which < CHAT_MAXPEOPLE; ++which)
+	if (!people[which].sock)
+	    break;
+    if (which == CHAT_MAXPEOPLE) {
+	/* Look for inactive person slot */
+	for (which = 0; which < CHAT_MAXPEOPLE; ++which) {
+	    if (people[which].sock && !people[which].active) {
+		/* Kick them out.. */
+		net.tcp.Send(people[which].sock, data_bye);
+		net.DelSocket(socketset, people[which].sock);
+		net.tcp.Close(people[which].sock);
+#if DEBUG
+		print("Killed inactive socket %d\n", which);
+#endif
+		break;
+	    }
+	}
+    }
+    if (which == CHAT_MAXPEOPLE) {
+	/* No more room... */
+	net.tcp.Send(newsock, data_bye);
+	net.tcp.Close(newsock);
+#ifdef DEBUG
+	print("Connection refused -- chat room full\n");
+#endif
+    }
+    else {
+	/* Add socket as an inactive person */
+	people[which].sock = newsock;
+	people[which].peer = net.tcp.GetPeerAddress(newsock);
+	net.tcp.AddSocket(socketset, newsock);
+#ifdef DEBUG
+	print("New inactive socket %d\n", which);
+#endif
+    }
+}
+
+/* Send a "new client" notification */
+void SendNew(int32_t about, int32_t to) {
+    uint32_t	host;
+    uint16_t	port;
+    string_t	name;
+    host = people[about].peer.host;
+    port = people[about].peer.port;
+    name = people[about].name;
+    printf(data_new, "%c%c%c%c%c%c%c%c%c%s",
+	   CHAT_ADD, about,
+	   host          & 0xff,
+	   (host >>>  8) & 0xff,
+	   (host >>> 16) & 0xff,
+	   (host >>> 24) & 0xff,
+	   port          & 0xff,
+	   (port >>> 8)  & 0xff,
+	   sizeof(name), name);
+    net.tcp.Send(people[to].sock, data_new);
+}
+
+void HandleClient(int32_t which) {
+    int32_t	i, len;
+
+    /* Has the connection been closed? */
+    if (net.tcp.Recv(people[which].sock, data_hdr, 4) != 4) {
+fail:
+#ifdef DEBUG
+	print("Closing socket %d (was%s active)\n",
+	      which, people[which].active ? "" : " not");
+#endif
+	/* Notify all active clients */
+	if (people[which].active) {
+	    people[which].active = 0;
+            data_del[1] = which;
+            for (i = 0; i < CHAT_MAXPEOPLE; ++i) {
+		if (people[i].active)
+                    net.tcp.Send(people[i].sock, data_del);
+	    }
+        }
+        net.DelSocket(socketset, people[which].sock);
+	net.tcp.Close(people[which].sock);
+	people[which].sock = null;
+    }
+    else {
+	switch (data_hdr[0]) {
+	    case CHAT_HELLO:
+		/* Yay!  An active connection */
+		people[which].peer.port = data_hdr[1] | (data_hdr[2] <<< 8);
+		len = data_hdr[3];
+		if (net.tcp.Recv(people[which].sock, data_nam, len) != len)
+		    goto fail;
+		people[which].name = new uint8_t[len];
+		write(people[which].name, data_nam, len);
+#ifdef DEBUG
+		print("Activating socket %d (%s)\n", which, people[which].name);
+#endif
+		/* Notify all active clients */
+		for (i = 0; i < CHAT_MAXPEOPLE; ++i)
+		    if (people[i].active)
+			SendNew(which, i);
+
+		/* Notify about all active clients */
+		people[which].active = 1;
+		for (i = 0; i < CHAT_MAXPEOPLE; ++i)
+		    if (people[i].active)
+			SendNew(i, which);
+		break;
+	    default:
+		/* Unknown packet type?? */
+		break;
+	}
+    }
+}
+
+void cleanup(int32_t exitcode) {
+    if (servsock)
+	net.tcp.Close(servsock);
+    if (socketset)
+	net.FreeSocketSet(socketset);
+    sdl.Quit();
+    exit(exitcode);
+}
+
+void HandleInput() {
+    for (;;) {
+	gets(data_get);
+	if (sizeof(data_get) == 5 && data_get == "quit\n")
+	    cleanup(0);
+    }
+}
+
+void main() {
+    int32_t		i;
+    net.address_t	serverIP = {};
+
+    /* Initialize SDL */
+    if (sdl.Init() < 0) {
+	print("Couldn't initialize SDL: %s\n", sdl.GetError());
+	cleanup(1);
+    }
+
+    /* Initialize the channels */
+    for (i = 0; i < CHAT_MAXPEOPLE; ++i)
+	people[i] = new people_t;
+
+    /* Allocate the socket set */
+    socketset = net.AllocSocketSet(CHAT_MAXPEOPLE + 1);
+    if (socketset == null) {
+        print("Couldn't create socket set: %s\n", sdl.GetError());
+	cleanup(2);
+    }
+
+    /* Create the server socket */
+    net.ResolveHost(serverIP, null, CHAT_PORT);
+    print("Server IP: %x, %d\n", serverIP.host, serverIP.port);
+    servsock = net.tcp.Open(serverIP);
+    if (servsock == null) {
+        print("Couldn't create server socket: %s\n", sdl.GetError());
+	cleanup(2);
+    }
+    net.tcp.AddSocket(socketset, servsock);
+
+    print("Type 'quit' to exit\n");
+    thread(HandleInput());
+
+    /* Loop, waiting for network events */
+    for (;;) {
+	/* Wait for events */
+	net.CheckSockets(socketset, ~0);
+
+	/* Check for new connections */
+	if (net.SocketReady(servsock))
+            HandleServer();
+
+        /* Check for events on existing clients */
+	for (i = 0; i < CHAT_MAXPEOPLE; ++i)
+	    if (people[i].sock && net.SocketReady(people[i].sock))
+		HandleClient(i);
+    }
+    cleanup(0);
+}
+main();

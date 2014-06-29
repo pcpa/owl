@@ -131,6 +131,17 @@ enum otype {
     t_music,
     t_audio,
 
+    t_net,		/* net namespace */
+    t_net_address,
+    t_socket_set,
+
+    t_net_tcp,		/* net.tcp namespace */
+    t_tcp_socket,
+
+    t_net_udp,		/* net.udp namespace */
+    t_udp_socket,
+    t_udp_packet,
+
     t_sdl_gl,		/* sdl.gl namespace */
     t_context,
 

@@ -282,6 +282,32 @@ struct oevent {
     otimer_t		*timer;			/* timer event information */
 };
 
+struct onet_address {
+    ouint32_t		host;
+    ouint16_t		port;
+};
+
+struct osocket_set {
+    SDLNet_SocketSet	__set;
+};
+
+struct otcp_socket {
+    TCPsocket		__socket;
+};
+
+struct oudp_socket {
+    UDPsocket		__socket;
+};
+
+struct oudp_packet {
+    UDPpacket		*__packet;
+    oint32_t		 channel;
+    ovector_t		*data;
+    oint32_t		 status;
+    ouint32_t		 host;
+    ouint16_t		 port;
+};
+
 struct ocontext {
     SDL_GLContext	__context;
 };
@@ -322,12 +348,27 @@ odestroy_music(omusic_t *music);
 extern oint32_t
 odestroy_timer(otimer_t *timer);
 
+extern void
+odestroy_socket_set(osocket_set_t *set);
+
+extern void
+odestroy_tcp_socket(otcp_socket_t *socket);
+
+extern void
+odestroy_udp_socket(oudp_socket_t *socket);
+
+extern void
+odestroy_udp_packet(oudp_packet_t *packet);
+
 /*
  * Externs
  */
 extern orecord_t	*sdl_record;
 extern orecord_t	*ttf_record;
 extern orecord_t	*mix_record;
+extern orecord_t	*net_record;
+extern orecord_t	*net_tcp_record;
+extern orecord_t	*net_udp_record;
 extern orecord_t	*sdl_gl_record;
 
 #endif /* _osdl_h */

@@ -20,44 +20,54 @@
 
 #include "otypes.h"
 
-#define define_builtin0(TYPE, NAME)					\
+#define define_nsbuiltin0(TYPE, NS, NAME)				\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin1(TYPE, NAME, A0)					\
+#define define_builtin0(TYPE, NAME)					\
+    define_nsbuiltin0(TYPE, , NAME)
+#define define_nsbuiltin1(TYPE, NS, NAME, A0)				\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin2(TYPE, NAME, A0, A1)				\
+#define define_builtin1(TYPE, NAME, A0)					\
+    define_nsbuiltin1(TYPE, , NAME, A0)
+#define define_nsbuiltin2(TYPE, NS, NAME, A0, A1)			\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin3(TYPE, NAME, A0, A1, A2)				\
+#define define_builtin2(TYPE, NAME, A0, A1)				\
+    define_nsbuiltin2(TYPE, , NAME, A0, A1)
+#define define_nsbuiltin3(TYPE, NS, NAME, A0, A1, A2)			\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin4(TYPE, NAME, A0, A1, A2, A3)			\
+#define define_builtin3(TYPE, NAME, A0, A1, A2)				\
+    define_nsbuiltin3(TYPE, , NAME, A0, A1, A2)
+#define define_nsbuiltin4(TYPE, NS, NAME, A0, A1, A2, A3)		\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
 	onew_argument(builtin, A3);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin5(TYPE, NAME, A0, A1, A2, A3, A4)			\
+#define define_builtin4(TYPE, NAME, A0, A1, A2, A3)			\
+    define_nsbuiltin4(TYPE, , NAME, A0, A1, A2, A3)
+#define define_nsbuiltin5(TYPE, NS, NAME, A0, A1, A2, A3, A4)		\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -65,9 +75,11 @@
 	onew_argument(builtin, A4);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin6(TYPE, NAME, A0, A1, A2, A3, A4, A5)		\
+#define define_builtin5(TYPE, NAME, A0, A1, A2, A3, A4)			\
+    define_nsbuiltin5(TYPE, , NAME, A0, A1, A2, A3, A4)
+#define define_nsbuiltin6(TYPE, NS, NAME, A0, A1, A2, A3, A4, A5)	\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -76,9 +88,11 @@
 	onew_argument(builtin, A5);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin7(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6)		\
+#define define_builtin6(TYPE, NAME, A0, A1, A2, A3, A4, A5)		\
+    define_nsbuiltin6(TYPE, , NAME, A0, A1, A2, A3, A4, A5)
+#define define_nsbuiltin7(TYPE, NS, NAME, A0, A1, A2, A3, A4, A5, A6)	\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -88,9 +102,11 @@
 	onew_argument(builtin, A6);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin8(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7)	\
+#define define_builtin7(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6)		\
+    define_nsbuiltin7(TYPE, , NAME, A0, A1, A2, A3, A4, A5, A6)
+#define define_nsbuiltin8(TYPE, NS, NAME, A0,A1,A2,A3,A4,A5,A6,A7)	\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -101,9 +117,11 @@
 	onew_argument(builtin, A7);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin9(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7, A8)	\
+#define define_builtin8(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7)	\
+    define_nsbuiltin8(TYPE, , NAME, A0, A1, A2, A3, A4, A5, A6, A7)
+#define define_nsbuiltin9(TYPE, NS, NAME, A0,A1,A2,A3,A4,A5,A6,A7,A8)	\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -115,9 +133,11 @@
 	onew_argument(builtin, A8);					\
 	oend_builtin(builtin);						\
     } while (0)
-#define define_builtin10(TYPE,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)	\
+#define define_builtin9(TYPE, NAME, A0, A1, A2, A3, A4, A5, A6, A7, A8)	\
+    define_nsbuiltin9(TYPE, , NAME, A0, A1, A2, A3, A4, A5, A6, A7, A8)
+#define define_nsbuiltin10(TYPE,NS,NAME, A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)	\
     do {								\
-	builtin = onew_builtin(#NAME, native_##NAME, TYPE, false);	\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
 	onew_argument(builtin, A0);					\
 	onew_argument(builtin, A1);					\
 	onew_argument(builtin, A2);					\
@@ -130,6 +150,8 @@
 	onew_argument(builtin, A9);					\
 	oend_builtin(builtin);						\
     } while (0)
+#define define_builtin10(TYPE,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)	\
+    define_nsbuiltin10(TYPE, ,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)
 
 #define CHECK_NULL(A)							\
     do {								\
@@ -172,6 +194,7 @@ typedef struct {							\
 TYPE1(oint8_t,		i8);
 TYPE1(ouint8_t,		u8);
 TYPE1(oint16_t,		i16);
+TYPE1(ouint16_t,	u16);
 TYPE1(oint32_t,		i32);
 TYPE1(ouint32_t,	u32);
 TYPE1(ofloat32_t,	f32);
@@ -191,6 +214,10 @@ TYPE1(otesselator_t*,	tes);
 TYPE1(otexture_t*,	tex);
 TYPE1(otimer_t*,	tmr);
 TYPE1(owindow_t*,	win);
+TYPE1(osocket_set_t*,	set);
+TYPE1(onet_address_t*,	adr);
+TYPE1(otcp_socket_t*,	tso);
+TYPE1(oudp_socket_t*,	uso);
 #endif
 #undef TYPE1
 
@@ -258,6 +285,16 @@ TYPE2(otesselator_t*,ovector_t*,
       tes_vec);
 TYPE2(owindow_t*,ocontext_t*,
       win_ctx);
+TYPE2(osocket_set_t*,ouint32_t,
+      set_u32);
+TYPE2(osocket_set_t*,otcp_socket_t*,
+      set_tso);
+TYPE2(otcp_socket_t*,ovector_t*,
+      tso_vec);
+TYPE2(oudp_socket_t*,oint32_t,
+      uso_i32);
+TYPE2(oudp_socket_t*,oudp_packet_t*,
+      uso_pkt);
 #endif
 #undef TYPE2
 
@@ -344,6 +381,16 @@ TYPE3(otesselator_t*,ouint32_t,ovector_t*,
       tes_u32_vec);
 TYPE3(owindow_t*,oint32_t,ouint32_t,
       win_i32_u32);
+TYPE3(onet_address_t*,ovector_t*,ouint16_t,
+      adr_vec_u16);
+TYPE3(otcp_socket_t*,ovector_t*,oint32_t,
+      tso_vec_i32);
+TYPE3(oudp_socket_t*,oint32_t,onet_address_t*,
+      uso_i32_adr);
+TYPE3(oudp_socket_t*,oint32_t,oudp_packet_t*,
+      uso_i32_pkt);
+TYPE3(oudp_socket_t*,oudp_packet_t*,oint32_t,
+      uso_pkt_i32);
 #endif
 #undef TYPE3
 

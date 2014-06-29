@@ -168,6 +168,36 @@ static void native_SetMusicPosition(oobject_t list, oint32_t ac);
 static void native_HaltMusic(oobject_t list, oint32_t ac);
 static void native_FreeMusic(oobject_t list, oint32_t ac);
 static void native_CloseAudio(oobject_t list, oint32_t ac);
+/* net */
+static void native_ResolveHost(oobject_t list, oint32_t ac);
+static void native_ResolveIP(oobject_t list, oint32_t ac);
+static void native_GetLocalAddresses(oobject_t list, oint32_t ac);
+static void native_AllocSocketSet(oobject_t list, oint32_t ac);
+static void native_AddSocket(oobject_t list, oint32_t ac);
+static void native_DelSocket(oobject_t list, oint32_t ac);
+static void native_CheckSockets(oobject_t list, oint32_t ac);
+static void native_SocketReady(oobject_t list, oint32_t ac);
+static void native_FreeSocketSet(oobject_t list, oint32_t ac);
+/* net.tcp */
+static void native_tcp_Open(oobject_t list, oint32_t ac);
+static void native_tcp_Accept(oobject_t list, oint32_t ac);
+static void native_tcp_GetPeerAddress(oobject_t list, oint32_t ac);
+static void native_tcp_Send(oobject_t list, oint32_t ac);
+static void native_tcp_Recv(oobject_t list, oint32_t ac);
+static void native_tcp_Close(oobject_t list, oint32_t ac);
+static void native_tcp_AddSocket(oobject_t list, oint32_t ac);
+static void native_tcp_DelSocket(oobject_t list, oint32_t ac);
+/* net.udp */
+static void native_udp_Open(oobject_t list, oint32_t ac);
+static void native_udp_SetPacketLoss(oobject_t list, oint32_t ac);
+static void native_udp_Bind(oobject_t list, oint32_t ac);
+static void native_udp_Unbind(oobject_t list, oint32_t ac);
+static void native_udp_GetPeerAddress(oobject_t list, oint32_t ac);
+static void native_udp_Send(oobject_t list, oint32_t ac);
+static void native_udp_Recv(oobject_t list, oint32_t ac);
+static void native_udp_Close(oobject_t list, oint32_t ac);
+static void native_udp_AddSocket(oobject_t list, oint32_t ac);
+static void native_udp_DelSocket(oobject_t list, oint32_t ac);
 /* sdl.gl */
 static void native_ResetAttributes(oobject_t list, oint32_t ac);
 static void native_SetAttribute(oobject_t list, oint32_t ac);
@@ -204,6 +234,9 @@ static void ret_u32(oregister_t *r, ouint32_t v);
 orecord_t	*sdl_record;
 orecord_t	*ttf_record;
 orecord_t	*mix_record;
+orecord_t	*net_record;
+orecord_t	*net_tcp_record;
+orecord_t	*net_udp_record;
 orecord_t	*sdl_gl_record;
 
 static struct {
@@ -678,6 +711,7 @@ static struct {
 };
 static ovector_t		*error_vector;
 static ovector_t		*timer_vector;
+static ovector_t		*address_vector;
 static ohashtable_t		*window_table;
 /* No need to create hash tables for queries */
 static owindow_t		*current_window;
@@ -700,6 +734,7 @@ init_sdl(void)
 
     oadd_root((oobject_t *)&error_vector);
     oadd_root((oobject_t *)&timer_vector);
+    oadd_root((oobject_t *)&address_vector);
     oadd_root((oobject_t *)&window_table);
     onew_hashtable(&window_table, 4);
     for (offset = 0; offset < osize(sdl); ++offset) {
@@ -1010,6 +1045,38 @@ init_sdl(void)
     add_field("int32_t",	"advance");
     oend_record(record);
 
+    /* net */
+    this_record = net_record;
+    record = type_vector->v.ptr[t_net_address];
+    add_field("uint32_t",	"host");
+    add_field("uint16_t",	"port");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_socket_set];
+    add_field(pointer_string,	"*set*");
+    oend_record(record);
+
+    /* net.tcp */
+    this_record = net_tcp_record;
+    record = type_vector->v.ptr[t_tcp_socket];
+    add_field(pointer_string,	"*socket*");
+    oend_record(record);
+
+    /* net.udp */
+    this_record = net_udp_record;
+    record = type_vector->v.ptr[t_udp_socket];
+    add_field(pointer_string,	"*socket*");
+    oend_record(record);
+
+    record = type_vector->v.ptr[t_udp_packet];
+    add_field(pointer_string,	"*packet*");
+    add_field("int32_t",	"channel");
+    add_field("string_t",	"data");
+    add_field("int32_t",	"status");
+    add_field("uint32_t",	"host");
+    add_field("uint16_t",	"port");
+    oend_record(record);
+
     /* mix */
     this_record = mix_record;
     record = type_vector->v.ptr[t_chunk];
@@ -1185,6 +1252,42 @@ init_sdl(void)
     define_builtin1(t_void,  FreeMusic, t_music);
     define_builtin0(t_void,  CloseAudio);
 
+    current_record = net_record;
+    define_builtin3(t_int32,   ResolveHost, t_net_address, t_string, t_uint16);
+    define_builtin1(t_string,  ResolveIP, t_net_address);
+    define_builtin0(t_vector|t_net_address, GetLocalAddresses);
+    define_builtin1(t_socket_set, AllocSocketSet, t_int32);
+    define_builtin2(t_int32, AddSocket, t_socket_set, t_void);
+    define_builtin2(t_int32, DelSocket, t_socket_set, t_void);
+    define_builtin2(t_int32, CheckSockets, t_socket_set, t_uint32);
+    define_builtin1(t_int32, SocketReady, t_void);
+    define_builtin1(t_void, FreeSocketSet, t_void);
+
+    current_record = net_tcp_record;
+    define_nsbuiltin1(t_tcp_socket, tcp_, Open, t_net_address);
+    define_nsbuiltin1(t_tcp_socket, tcp_, Accept, t_net_address);
+    define_nsbuiltin1(t_net_address, tcp_, GetPeerAddress, t_tcp_socket);
+    define_nsbuiltin2(t_int32, tcp_, Send, t_tcp_socket, t_vector);
+    define_nsbuiltin3(t_int32, tcp_, Recv, t_tcp_socket, t_vector, t_int32);
+    define_nsbuiltin1(t_void,  tcp_, Close, t_tcp_socket);
+    define_nsbuiltin2(t_int32, tcp_, AddSocket, t_socket_set, t_tcp_socket);
+    define_nsbuiltin2(t_int32, tcp_, DelSocket, t_socket_set, t_tcp_socket);
+
+    current_record = net_udp_record;
+    define_nsbuiltin1(t_udp_socket, udp_, Open, t_uint16);
+    define_nsbuiltin2(t_void,  udp_, SetPacketLoss, t_udp_socket, t_int32);
+    define_nsbuiltin3(t_int32, udp_, Bind,
+		      t_udp_socket, t_int32, t_net_address);
+    define_nsbuiltin2(t_int32, udp_, Unbind, t_udp_socket, t_int32);
+    define_nsbuiltin2(t_net_address, udp_, GetPeerAddress,
+		      t_udp_socket, t_int32);
+    define_nsbuiltin3(t_int32, udp_, Send,
+		      t_udp_socket, t_int32, t_udp_packet);
+    define_nsbuiltin3(t_int32, udp_, Recv, t_udp_socket, t_udp_packet, t_int32);
+    define_nsbuiltin1(t_void, udp_, Close, t_udp_socket);
+    define_nsbuiltin2(t_int32, udp_, AddSocket, t_socket_set, t_udp_socket);
+    define_nsbuiltin2(t_int32, udp_, DelSocket, t_socket_set, t_udp_socket);
+
     current_record = sdl_gl_record;
 
     define_builtin0(t_void,    ResetAttributes);
@@ -1220,6 +1323,7 @@ finish_sdl(void)
     window_table = null;
     orem_root((oobject_t *)&timer_vector);
     orem_root((oobject_t *)&error_vector);
+    orem_root((oobject_t *)&address_vector);
 }
 
 void
@@ -1336,6 +1440,46 @@ odestroy_timer(otimer_t *timer)
     return (result);
 }
 
+void
+odestroy_socket_set(osocket_set_t *set)
+{
+    if (set->__set) {
+	if (sdl_active)
+	    SDLNet_FreeSocketSet(set->__set);
+	set->__set = null;
+    }
+}
+
+void
+odestroy_tcp_socket(otcp_socket_t *socket)
+{
+    if (socket->__socket) {
+	if (sdl_active)
+	    SDLNet_TCP_Close(socket->__socket);
+	socket->__socket = null;
+    }
+}
+
+void
+odestroy_udp_socket(oudp_socket_t *socket)
+{
+    if (socket->__socket) {
+	if (sdl_active)
+	    SDLNet_UDP_Close(socket->__socket);
+	socket->__socket = null;
+    }
+}
+
+void
+odestroy_udp_packet(oudp_packet_t *packet)
+{
+    if (packet->__packet) {
+	if (sdl_active)
+	    SDLNet_FreePacket(packet->__packet);
+	packet->__packet = null;
+    }
+}
+
 static void
 native_Init(oobject_t list, oint32_t ac)
 /* int32_t Init(); */
@@ -1355,6 +1499,7 @@ native_Init(oobject_t list, oint32_t ac)
 			     MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
 	Mix_HookMusicFinished(music_callback);
 	Mix_ChannelFinished(channel_callback);
+	r0->v.w |= SDLNet_Init();
 	sdl_active = true;
     }
     else
@@ -1411,6 +1556,7 @@ native_Quit(oobject_t list, oint32_t ac)
 	IMG_Quit();
 	SDL_Quit();
 	Mix_Quit();
+	SDLNet_Quit();
 	sdl_active = false;
     }
 }
@@ -4419,6 +4565,679 @@ ret_u32(oregister_t *r, ouint32_t v)
     }
 }
 #endif
+
+static void
+native_ResolveHost(oobject_t list, oint32_t ac)
+/* int32_t ResolveHost(net.address_t addr, string_t host, uint16_t port); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_adr_vec_u16_t			*alist;
+
+    alist = (nat_adr_vec_u16_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_net_address);
+    if (alist->a1) {
+	CHECK_TYPE(alist->a1, t_string);
+	make_vec_text(alist->a1);
+	r0->v.w = SDLNet_ResolveHost((IPaddress *)alist->a0,
+				     alist->a1->v.obj, alist->a2);
+    }
+    else
+	r0->v.w = SDLNet_ResolveHost((IPaddress *)alist->a0, null, alist->a2);
+}
+
+static void
+native_ResolveIP(oobject_t list, oint32_t ac)
+/* string_t ResolveIP(ipaddress_t addr); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_adr_t				*alist;
+    oword_t				 length;
+    const char				*address;
+
+    alist = (nat_adr_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_net_address);
+    if ((address = SDLNet_ResolveIP((IPaddress *)alist->a0))) {
+	length = strlen(address);
+	if (address_vector == null)
+	    onew_vector((oobject_t *)&address_vector, t_uint8, length);
+	else if (length != address_vector->length)
+	    orenew_vector(address_vector, length);
+	memcpy(address_vector->v.ptr, address, length);
+	r0->t = t_string;
+	r0->v.o = address_vector;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_GetLocalAddresses(oobject_t list, oint32_t ac)
+/* sdl.address_t GetLocalAddresses()[]; */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    int					 length;
+    int					 offset;
+    ovector_t				*vector;
+    onet_address_t			*address;
+    IPaddress				 addresses[256];
+
+    r0 = &thread_self->r0;
+    if ((length = SDLNet_GetLocalAddresses(addresses, 256))) {
+	onew_vector(&thread_self->obj, t_net_address, length);
+	vector = thread_self->obj;
+	for (offset = 0; offset < length; offset++) {
+	    onew_object(vector->v.ptr + offset,
+			t_net_address, sizeof(onet_address_t));
+	    address = vector->v.ptr[offset];
+	    address->host = addresses[offset].host;
+	    address->port = addresses[offset].port;
+	}
+	r0->v.o = vector;
+	r0->t = t_vector|t_net_address;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_AllocSocketSet(oobject_t list, oint32_t ac)
+/* net.socket_set_t net.AllocSocketSet(int32_t maxsockets); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    osocket_set_t			*os;
+    SDLNet_SocketSet			 ss;
+    nat_i32_t				*alist;
+
+    alist = (nat_i32_t *)list;
+    r0 = &thread_self->r0;
+    if ((ss = SDLNet_AllocSocketSet(alist->a0))) {
+	onew_object(&thread_self->obj, t_socket_set, sizeof(osocket_set_t));
+	os = thread_self->obj;
+	os->__set = ss;
+	r0->v.o = os;
+	r0->t = t_socket_set;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_AddSocket(oobject_t list, oint32_t ac)
+/* int32_t net.AddSocket(net.socket_set_t set,
+			 (net.tcp.socket_t|net.udp.socket_t) sock); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_set_tso_t			*alist;
+
+    alist = (nat_set_tso_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_socket_set);
+    CHECK_NULL(alist->a0->__set);
+    CHECK_NULL(alist->a1);
+    switch (otype(alist->a1)) {
+	case t_tcp_socket:
+	case t_udp_socket:
+	    CHECK_NULL(alist->a1->__socket);
+	    r0->v.w = SDLNet_AddSocket(alist->a0->__set,
+				       (SDLNet_GenericSocket)
+				       alist->a1->__socket);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+	    break;
+    }
+}
+
+static void
+native_DelSocket(oobject_t list, oint32_t ac)
+/* int32_t net.DelSocket(net.socket_set_t set,
+			 (net.tcp.socket_t|net.udp.socket_t) sock); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_set_tso_t			*alist;
+
+    alist = (nat_set_tso_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_socket_set);
+    CHECK_NULL(alist->a0->__set);
+    CHECK_NULL(alist->a1);
+    switch (otype(alist->a1)) {
+	case t_tcp_socket:
+	case t_udp_socket:
+	    CHECK_NULL(alist->a1->__socket);
+	    r0->v.w = SDLNet_DelSocket(alist->a0->__set,
+				       (SDLNet_GenericSocket)
+				       alist->a1->__socket);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+	    break;
+    }
+}
+
+static void
+native_CheckSockets(oobject_t list, oint32_t ac)
+/* int32_t net.CheckSockets(net.socket_set_t set, uint32_t timeout); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_set_u32_t			*alist;
+
+    alist = (nat_set_u32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_socket_set);
+    CHECK_NULL(alist->a0->__set);
+    r0->v.w = SDLNet_CheckSockets(alist->a0->__set, alist->a1);
+}
+
+static void
+native_SocketReady(oobject_t list, oint32_t ac)
+/* int32_t net.SocketReady((net.tcp.socket_t|net.udp.socket_t) sock); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_tso_t				*alist;
+
+    alist = (nat_tso_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    switch (otype(alist->a0)) {
+	case t_tcp_socket:
+	case t_udp_socket:
+	    CHECK_NULL(alist->a0->__socket);
+	    r0->v.w = SDLNet_SocketReady((SDLNet_GenericSocket)
+					 alist->a0->__socket);
+	    break;
+	default:
+	    ovm_raise(except_type_mismatch);
+	    break;
+    }
+}
+
+static void
+native_FreeSocketSet(oobject_t list, oint32_t ac)
+/* void net.FreeSocketSet(net.socket_set_t set); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_set_t				*alist;
+
+    alist = (nat_set_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_socket_set);
+    odestroy_socket_set(alist->a0);
+}
+
+static void
+native_tcp_Open(oobject_t list, oint32_t ac)
+/* net.tcp.socket_t net.tcp.Open(net.address_t ip); */
+{
+    GET_THREAD_SELF()
+    TCPsocket				 ss;
+    otcp_socket_t			*os;
+    oregister_t				*r0;
+    nat_adr_t				*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_adr_t *)list;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_net_address);
+    if ((ss = SDLNet_TCP_Open((IPaddress *)alist->a0))) {
+	onew_object(&thread_self->obj, t_tcp_socket, sizeof(otcp_socket_t));
+	os = (otcp_socket_t *)thread_self->obj;
+	os->__socket = ss;
+	r0->t = t_tcp_socket;
+	r0->v.o = os;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_tcp_Accept(oobject_t list, oint32_t ac)
+/* net.tcp.socket_t net.tcp.Accept(net.tcp.socket_t server); */
+{
+    GET_THREAD_SELF()
+    TCPsocket				 ss;
+    otcp_socket_t			*os;
+    oregister_t				*r0;
+    nat_tso_t				*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_tso_t *)list;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_tcp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    if ((ss = SDLNet_TCP_Accept(alist->a0->__socket))) {
+	onew_object(&thread_self->obj, t_tcp_socket, sizeof(otcp_socket_t));
+	os = (otcp_socket_t *)thread_self->obj;
+	os->__socket = ss;
+	r0->t = t_tcp_socket;
+	r0->v.o = os;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_tcp_GetPeerAddress(oobject_t list, oint32_t ac)
+/* net.address_t net.tcp.GetPeerAddress(net.tcp.socket_t socket); */
+{
+    GET_THREAD_SELF()
+    IPaddress				*si;
+    onet_address_t			*oi;
+    oregister_t				*r0;
+    nat_tso_t				*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_tso_t *)list;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_tcp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    if ((si = SDLNet_TCP_GetPeerAddress(alist->a0->__socket))) {
+	onew_object(&thread_self->obj, t_net_address, sizeof(onet_address_t));
+	oi = (onet_address_t *)thread_self->obj;
+	oi->host = si->host;
+	oi->port = si->port;
+	r0->t = t_net_address;
+	r0->v.o = oi;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_tcp_Send(oobject_t list, oint32_t ac)
+/* int32_t net.tcp.Send(net.tcp.socket_t sock, data[]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_tso_vec_t		*alist;
+    oword_t			 offset;
+    oword_t			 length;
+
+    alist = (nat_tso_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_tcp_socket);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    switch (otype(alist->a1) & ~t_vector) {
+	case t_int8:		case t_uint8:
+	    r0->v.w = SDLNet_TCP_Send(alist->a0->__socket,
+				      alist->a1->v.obj, alist->a1->length);
+	    break;
+	case t_int16:		case t_uint16:
+	    length = alist->a1->length << 1;
+	    if (thr_vec->length < length)
+		orenew_vector(thr_vec, length);
+	    for (offset = 0; offset < alist->a1->length; offset++)
+		SDLNet_Write16(alist->a1->v.u16[offset],
+			       thr_vec->v.u16 + offset);
+	    r0->v.w = SDLNet_TCP_Send(alist->a0->__socket,
+				      thr_vec->v.obj, length) >> 1;
+	    break;
+	case t_int32:		case t_uint32:
+	    length = alist->a1->length << 2;
+	    if (thr_vec->length < length)
+		orenew_vector(thr_vec, length);
+	    for (offset = 0; offset < alist->a1->length; offset++)
+		SDLNet_Write32(alist->a1->v.u32[offset],
+			       thr_vec->v.u32 + offset);
+	    r0->v.w = SDLNet_TCP_Send(alist->a0->__socket,
+				      thr_vec->v.obj, length) >> 2;
+	    break;
+	default:
+	    othrow(except_type_mismatch);
+	    break;
+    }
+}
+
+static void
+native_tcp_Recv(oobject_t list, oint32_t ac)
+/* int32_t net.tcp.Recv(net.tcp.socket_t sock, data[], int32_t length); */
+{
+
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_tso_vec_i32_t		*alist;
+    oword_t			 offset;
+    oword_t			 length;
+
+    alist = (nat_tso_vec_i32_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_tcp_socket);
+    CHECK_NULL(alist->a1);
+    CHECK_VECTOR(alist->a1);
+    switch (otype(alist->a1) & ~t_vector) {
+	case t_int8:		case t_uint8:
+	    length = alist->a2;
+	    if (thr_vec->length < length)
+		orenew_vector(thr_vec, length);
+	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
+					  thr_vec->v.obj,
+					  alist->a2)) >= 0) {
+		if (alist->a1->length != length)
+		    orenew_vector(alist->a1, length);
+		memcpy(alist->a1->v.obj, thr_vec->v.obj, length);
+	    }
+	    else
+		orenew_vector(alist->a1, 0);
+	    break;
+	case t_int16:		case t_uint16:
+	    length = alist->a2 << 1;
+	    if (thr_vec->length < length)
+		orenew_vector(thr_vec, length);
+	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
+					  thr_vec->v.obj,
+					  length) << 1) >= 0) {
+		if (alist->a1->length != length)
+		    orenew_vector(alist->a1, length);
+		for (offset = 0; offset < length; offset++)
+		    alist->a1->v.u16[offset] =
+			SDLNet_Read16(thr_vec->v.u16 + offset);
+	    }
+	    break;
+	case t_int32:		case t_uint32:
+	    length = alist->a2 << 2;
+	    if (thr_vec->length < length)
+		orenew_vector(thr_vec, length);
+	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
+					  thr_vec->v.obj,
+					  alist->a2) << 2) >= 0) {
+		if (alist->a1->length != length)
+		    orenew_vector(alist->a1, length);
+		for (offset = 0; offset < r0->v.w; offset++)
+		    alist->a1->v.u32[offset] =
+			SDLNet_Read32(thr_vec->v.u32 + offset);
+	    }
+	    break;
+	default:
+	    othrow(except_type_mismatch);
+	    break;
+    }
+    r0->v.w = length;
+}
+
+static void
+native_tcp_Close(oobject_t list, oint32_t ac)
+/*void net.tcp.Close(net.tcp.socket_t sock); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_tso_t				*alist;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    alist = (nat_tso_t *)list;
+    if (alist->a0) {
+	CHECK_TYPE(alist->a0, t_tcp_socket);
+	odestroy_tcp_socket(alist->a0);
+    }
+}
+
+static void
+native_tcp_AddSocket(oobject_t list, oint32_t ac)
+/* int32_t net.tcp.AddSocket(net.socket_set_t set, net.tcp.socket_t sock); */
+{
+    native_AddSocket(list, ac);
+}
+
+static void
+native_tcp_DelSocket(oobject_t list, oint32_t ac)
+/* int32_t net.tcp.DelSocket(net.socket_set_t set, net.tcp.socket_t sock); */
+{
+    native_DelSocket(list, ac);
+}
+
+static void
+native_udp_Open(oobject_t list, oint32_t ac)
+/* net.udp.socket_t net.udp.Open(uint16_t port); */
+{
+    GET_THREAD_SELF()
+    UDPsocket				 ss;
+    oudp_socket_t			*os;
+    oregister_t				*r0;
+    nat_u16_t				*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_u16_t *)list;
+    if ((ss = SDLNet_UDP_Open(alist->a0))) {
+	onew_object(&thread_self->obj, t_udp_socket, sizeof(oudp_socket_t));
+	os = (oudp_socket_t *)thread_self->obj;
+	os->__socket = ss;
+	r0->t = t_udp_socket;
+	r0->v.o = os;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_udp_SetPacketLoss(oobject_t list, oint32_t ac)
+/* void net.udp.SetPacketLoss(udp.socket_t sock, int32_t percent); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_uso_i32_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_i32_t *)list;
+    r0->t = t_void;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    SDLNet_UDP_SetPacketLoss(alist->a0->__socket, alist->a1);
+}
+
+static void
+native_udp_Bind(oobject_t list, oint32_t ac)
+/* int32_t net.udp.Bind(net.udp.socket_t sock,
+			int32_t channel, net.address_t address); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_uso_i32_adr_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_i32_adr_t *)list;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    CHECK_NULL(alist->a2);
+    CHECK_TYPE(alist->a2, t_net_address);
+    SDLNet_UDP_Bind(alist->a0->__socket, alist->a1,
+		    (const IPaddress *)alist->a2);
+}
+
+static void
+native_udp_Unbind(oobject_t list, oint32_t ac)
+/* int32_t net.udp.Unbind(net.udp.socket_t sock, int32_t channel); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_uso_i32_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_i32_t *)list;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    SDLNet_UDP_Unbind(alist->a0->__socket, alist->a1);
+}
+
+static void
+native_udp_GetPeerAddress(oobject_t list, oint32_t ac)
+/* net.address_t net.udp.GetPeerAddress(net.udp.socket_t socket,
+					int32_t channel); */
+{
+    GET_THREAD_SELF()
+    IPaddress				*sa;
+    onet_address_t			*oa;
+    oregister_t				*r0;
+    nat_uso_i32_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_i32_t *)list;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    if ((sa = SDLNet_UDP_GetPeerAddress(alist->a0->__socket, alist->a1))) {
+	onew_object(&thread_self->obj, t_net_address, sizeof(onet_address_t));
+	oa = (onet_address_t *)thread_self->obj;
+	oa->host = sa->host;
+	oa->port = sa->port;
+	r0->t = t_net_address;
+	r0->v.o = oa;
+    }
+    else
+	r0->t = t_void;
+}
+
+static void
+native_udp_Send(oobject_t list, oint32_t ac)
+/* int32_t net.udp.Send(net.udp.socket_t socket,
+			int32_t channel, net.udp.packet_t packet); */
+{
+    GET_THREAD_SELF()
+    UDPpacket				*sp;
+    oudp_packet_t			*op;
+    oregister_t				*r0;
+    nat_uso_i32_pkt_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_i32_pkt_t *)list;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    op = alist->a2;
+    CHECK_NULL(op);
+    CHECK_TYPE(op, t_udp_packet);
+    /* only accept string buffers; so, does not byte swap, etc */
+    CHECK_NULL(op->data);
+    CHECK_TYPE(op->data, t_string);
+    if ((sp = op->__packet) == null) {
+	sp = op->__packet = SDLNet_AllocPacket((op->data->length + 15) & -16);
+	if (sp == null)
+	    ovm_raise(except_null_dereference);
+    }
+    else if (sp->maxlen < op->data->length) {
+	SDLNet_ResizePacket(sp, (op->data->length + 15) & -16);
+	if (sp->maxlen < op->data->length)
+	    ovm_raise(except_out_of_bounds);
+    }
+    sp->channel = op->channel;
+    memcpy(sp->data, op->data->v.obj, op->data->length);
+    sp->address.host = op->host;
+    sp->address.port = op->port;
+    sp->len = op->data->length;
+    r0->v.w = SDLNet_UDP_Send(alist->a0->__socket, alist->a1, sp);
+    op->status = sp->status;
+}
+
+static void
+native_udp_Recv(oobject_t list, oint32_t ac)
+/* int32_t net.udp.Recv(net.udp.socket_t socket,
+			net.udp.packet_t packet, int32_t length); */
+{
+    GET_THREAD_SELF()
+    UDPpacket				*sp;
+    oudp_packet_t			*op;
+    oregister_t				*r0;
+    nat_uso_pkt_i32_t			*alist;
+
+    r0 = &thread_self->r0;
+    alist = (nat_uso_pkt_i32_t *)list;
+    r0->t = t_word;
+    CHECK_NULL(alist->a0);
+    CHECK_TYPE(alist->a0, t_udp_socket);
+    CHECK_NULL(alist->a0->__socket);
+    op = alist->a1;
+    CHECK_NULL(op);
+    CHECK_TYPE(op, t_udp_packet);
+    /* only accept string buffers; so, does not byte swap, etc */
+    CHECK_NULL(op->data);
+    CHECK_TYPE(op->data, t_string);
+    if (alist->a2 > op->data->length)
+	orenew_vector(op->data, alist->a2);
+    if ((sp = op->__packet) == null) {
+	sp = op->__packet = SDLNet_AllocPacket((op->data->length + 15) & -16);
+	if (sp == null)
+	    ovm_raise(except_null_dereference);
+    }
+    else if (sp->maxlen < op->data->length) {
+	SDLNet_ResizePacket(sp, (op->data->length + 15) & -16);
+	if (sp->maxlen < op->data->length)
+	    ovm_raise(except_out_of_bounds);
+    }
+    sp->channel = op->channel;
+    sp->address.host = op->host;
+    sp->address.port = op->port;
+    r0->v.w = SDLNet_UDP_Recv(alist->a0->__socket, sp);
+    op->channel = sp->channel;
+    if (sp->len > 0)
+	memcpy(op->data->v.obj, sp->data, sp->len);
+    if (op->data->length != sp->len)
+	orenew_vector(op->data, sp->len);
+    op->status = sp->status;
+}
+
+static void
+native_udp_Close(oobject_t list, oint32_t ac)
+/* void net.udp.Close(net.udp.socket_t socket); */
+{
+    GET_THREAD_SELF()
+    oregister_t				*r0;
+    nat_uso_t				*alist;
+
+    r0 = &thread_self->r0;
+    r0->t = t_void;
+    alist = (nat_uso_t *)list;
+    if (alist->a0) {
+	CHECK_TYPE(alist->a0, t_udp_socket);
+	odestroy_udp_socket(alist->a0);
+    }
+}
+
+static void
+native_udp_AddSocket(oobject_t list, oint32_t ac)
+/* int32_t net.udp.AddSocket(net.socket_set_t set, net.udp.socket_t sock); */
+{
+    native_AddSocket(list, ac);
+}
+
+static void
+native_udp_DelSocket(oobject_t list, oint32_t ac)
+/* int32_t net.udp.DelSocket(net.socket_set_t set, net.udp.socket_t sock); */
+{
+    native_DelSocket(list, ac);
+}
 
 static void
 native_ResetAttributes(oobject_t list, oint32_t ac)

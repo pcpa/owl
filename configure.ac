@@ -169,6 +169,10 @@ if test "x$SDL" != "xno"; then
     if test x"$HAVE_SDL_mixer" = "xno"; then
 	AC_MSG_ERROR([SDL2_mixer not found, see http://www.libsdl.org/])
     fi
+    AC_CHECK_LIB(SDL2_net, SDLNet_Init, , [HAVE_SDL_net="no"])
+    if test x"$HAVE_SDL_net" = "xno"; then
+	AC_MSG_ERROR([SDL2_net not found, see http://www.libsdl.org/])
+    fi
     AC_CHECK_LIB(GL, glBegin, , [HAVE_GL="no"])
     if test x"$HAVE_GL" = "xno"; then
 	AC_MSG_ERROR([GL not found, see http://www.opengl.org/])

@@ -39,6 +39,7 @@
 #  include <SDL_image.h>
 #  include <SDL_ttf.h>
 #  include <SDL_mixer.h>
+#  include <SDL_net.h>
 #  define GL_GLEXT_PROTOTYPES
 #  include <SDL_opengl.h>
 #  include <GL/glu.h>
