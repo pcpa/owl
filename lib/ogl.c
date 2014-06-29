@@ -1656,7 +1656,7 @@ finish_gl(void)
 
 static void
 native_ClearIndex(oobject_t list, oint32_t ac)
-/* void ClearIndex(float32_t c); */
+/* void gl.ClearIndex(float32_t c); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1670,7 +1670,7 @@ native_ClearIndex(oobject_t list, oint32_t ac)
 
 static void
 native_ClearColor(oobject_t list, oint32_t ac)
-/* void ClearColor(float32_t r, float32_t g, float32_t b, float32_t a); */
+/* void gl.ClearColor(float32_t r, float32_t g, float32_t b, float32_t a); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1684,7 +1684,7 @@ native_ClearColor(oobject_t list, oint32_t ac)
 
 static void
 native_Clear(oobject_t list, oint32_t ac)
-/* void Clear(uint32_t mask); */
+/* void gl.Clear(uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1698,7 +1698,7 @@ native_Clear(oobject_t list, oint32_t ac)
 
 static void
 native_IndexMask(oobject_t list, oint32_t ac)
-/* void IndexMask(uint32_t mask); */
+/* void gl.IndexMask(uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1712,7 +1712,7 @@ native_IndexMask(oobject_t list, oint32_t ac)
 
 static void
 native_ColorMask(oobject_t list, oint32_t ac)
-/* void ColorMask(uint8_t r, uint8_t g, uint8_t b, uint8_t a); */
+/* void gl.ColorMask(uint8_t r, uint8_t g, uint8_t b, uint8_t a); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1726,7 +1726,7 @@ native_ColorMask(oobject_t list, oint32_t ac)
 
 static void
 native_AlphaFunc(oobject_t list, oint32_t ac)
-/* void AlphaFunc(uint32_t func, float32_t ref); */
+/* void gl.AlphaFunc(uint32_t func, float32_t ref); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1740,7 +1740,7 @@ native_AlphaFunc(oobject_t list, oint32_t ac)
 
 static void
 native_BlendFunc(oobject_t list, oint32_t ac)
-/* void BlendFunc(uint32_t func, uint32_t dfactor); */
+/* void gl.BlendFunc(uint32_t func, uint32_t dfactor); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1754,7 +1754,7 @@ native_BlendFunc(oobject_t list, oint32_t ac)
 
 static void
 native_LogicOp(oobject_t list, oint32_t ac)
-/* void LogicOp(uint32_t opcode); */
+/* void gl.LogicOp(uint32_t opcode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1768,7 +1768,7 @@ native_LogicOp(oobject_t list, oint32_t ac)
 
 static void
 native_CullFace(oobject_t list, oint32_t ac)
-/* void CullFace(uint32_t mode); */
+/* void gl.CullFace(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1782,7 +1782,7 @@ native_CullFace(oobject_t list, oint32_t ac)
 
 static void
 native_FrontFace(oobject_t list, oint32_t ac)
-/* void FrontFace(uint32_t mode); */
+/* void gl.FrontFace(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1796,7 +1796,7 @@ native_FrontFace(oobject_t list, oint32_t ac)
 
 static void
 native_PointSize(oobject_t list, oint32_t ac)
-/* void PointSize(float32_t size); */
+/* void gl.PointSize(float32_t size); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1810,7 +1810,7 @@ native_PointSize(oobject_t list, oint32_t ac)
 
 static void
 native_LineWidth(oobject_t list, oint32_t ac)
-/* void LineWidth(float32_t width); */
+/* void gl.LineWidth(float32_t width); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1824,7 +1824,7 @@ native_LineWidth(oobject_t list, oint32_t ac)
 
 static void
 native_LineStipple(oobject_t list, oint32_t ac)
-/* void LineStipple(int32_t factor, uint16_t pattern); */
+/* void gl.LineStipple(int32_t factor, uint16_t pattern); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1838,7 +1838,7 @@ native_LineStipple(oobject_t list, oint32_t ac)
 
 static void
 native_PolygonMode(oobject_t list, oint32_t ac)
-/* void PolygonMode(uint32_t face, uint32_t mode); */
+/* void gl.PolygonMode(uint32_t face, uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1852,7 +1852,7 @@ native_PolygonMode(oobject_t list, oint32_t ac)
 
 static void
 native_PolygonOffset(oobject_t list, oint32_t ac)
-/* void PolygonOffset(float32_t factor, float32_t units); */
+/* void gl.PolygonOffset(float32_t factor, float32_t units); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1866,7 +1866,7 @@ native_PolygonOffset(oobject_t list, oint32_t ac)
 
 static void
 native_PolygonStipple(oobject_t list, oint32_t ac)
-/* void PolygonStipple(uint8_t mask[128]); */
+/* void gl.PolygonStipple(uint8_t mask[128]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1883,7 +1883,7 @@ native_PolygonStipple(oobject_t list, oint32_t ac)
 
 static void
 native_GetPolygonStipple(oobject_t list, oint32_t ac)
-/* void GetPolygonStipple(uint8_t mask[128]); */
+/* void gl.GetPolygonStipple(uint8_t mask[128]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1901,7 +1901,7 @@ native_GetPolygonStipple(oobject_t list, oint32_t ac)
 
 static void
 native_EdgeFlag(oobject_t list, oint32_t ac)
-/* void EdgeFlag(uint8_t flag); */
+/* void gl.EdgeFlag(uint8_t flag); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1915,7 +1915,7 @@ native_EdgeFlag(oobject_t list, oint32_t ac)
 
 static void
 native_Scissor(oobject_t list, oint32_t ac)
-/* void Scissor(int32_t x, int32_t y, int32_t width, int32_t height) */
+/* void gl.Scissor(int32_t x, int32_t y, int32_t width, int32_t height) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1929,7 +1929,7 @@ native_Scissor(oobject_t list, oint32_t ac)
 
 static void
 native_ClipPlane(oobject_t list, oint32_t ac)
-/* void ClipPlane(uint32_t plane, float64_t equation[4]) */
+/* void gl.ClipPlane(uint32_t plane, float64_t equation[4]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1946,7 +1946,7 @@ native_ClipPlane(oobject_t list, oint32_t ac)
 
 static void
 native_GetClipPlane(oobject_t list, oint32_t ac)
-/* void GetClipPlane(uint32_t plane, float64_t equation[4]) */
+/* void gl.GetClipPlane(uint32_t plane, float64_t equation[4]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1964,7 +1964,7 @@ native_GetClipPlane(oobject_t list, oint32_t ac)
 
 static void
 native_DrawBuffer(oobject_t list, oint32_t ac)
-/* void DrawBuffer(uint32_t mode) */
+/* void gl.DrawBuffer(uint32_t mode) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1978,7 +1978,7 @@ native_DrawBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_ReadBuffer(oobject_t list, oint32_t ac)
-/* void ReadBuffer(uint32_t mode) */
+/* void gl.ReadBuffer(uint32_t mode) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1992,7 +1992,7 @@ native_ReadBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_Enable(oobject_t list, oint32_t ac)
-/* void Enable(uint32_t cap) */
+/* void gl.Enable(uint32_t cap) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2006,7 +2006,7 @@ native_Enable(oobject_t list, oint32_t ac)
 
 static void
 native_Disable(oobject_t list, oint32_t ac)
-/* void Disable(uint32_t cap) */
+/* void gl.Disable(uint32_t cap) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2020,7 +2020,7 @@ native_Disable(oobject_t list, oint32_t ac)
 
 static void
 native_IsEnabled(oobject_t list, oint32_t ac)
-/* uint8_t IsEnabled(uint32_t cap) */
+/* uint8_t gl.IsEnabled(uint32_t cap) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2034,7 +2034,7 @@ native_IsEnabled(oobject_t list, oint32_t ac)
 
 static void
 native_EnableClientState(oobject_t list, oint32_t ac)
-/* void EnableClientState(uint32_t cap) */
+/* void gl.EnableClientState(uint32_t cap) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2048,7 +2048,7 @@ native_EnableClientState(oobject_t list, oint32_t ac)
 
 static void
 native_DisableClientState(oobject_t list, oint32_t ac)
-/* void DisableClientState(uint32_t cap) */
+/* void gl.DisableClientState(uint32_t cap) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2062,7 +2062,7 @@ native_DisableClientState(oobject_t list, oint32_t ac)
 
 static void
 native_GetBooleanv(oobject_t list, oint32_t ac)
-/* void GetBooleanv(uint32_t pname, uint8_t params[]) */
+/* void gl.GetBooleanv(uint32_t pname, uint8_t params[]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2190,7 +2190,7 @@ native_GetBooleanv(oobject_t list, oint32_t ac)
 
 static void
 native_GetDoublev(oobject_t list, oint32_t ac)
-/* void GetDoublev(uint32_t pname, float64_t params[]) */
+/* void gl.GetDoublev(uint32_t pname, float64_t params[]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2236,7 +2236,7 @@ native_GetDoublev(oobject_t list, oint32_t ac)
 
 static void
 native_GetFloatv(oobject_t list, oint32_t ac)
-/* void GetFloatv(uint32_t pname, float32_t params[]) */
+/* void gl.GetFloatv(uint32_t pname, float32_t params[]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2301,7 +2301,7 @@ native_GetFloatv(oobject_t list, oint32_t ac)
 
 static void
 native_GetIntegerv(oobject_t list, oint32_t ac)
-/* void GetIntegerv(uint32_t pname, int32_t params[]) */
+/* void gl.GetIntegerv(uint32_t pname, int32_t params[]) */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2448,7 +2448,7 @@ native_GetIntegerv(oobject_t list, oint32_t ac)
 
 static void
 native_PushAttrib(oobject_t list, oint32_t ac)
-/* void PushAttrib(uint32_t mask); */
+/* void gl.PushAttrib(uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2462,7 +2462,7 @@ native_PushAttrib(oobject_t list, oint32_t ac)
 
 static void
 native_PopAttrib(oobject_t list, oint32_t ac)
-/* void PopAttrib(); */
+/* void gl.PopAttrib(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2474,7 +2474,7 @@ native_PopAttrib(oobject_t list, oint32_t ac)
 
 static void
 native_PushClientAttrib(oobject_t list, oint32_t ac)
-/* void PushClientAttrib(uint32_t mask); */
+/* void gl.PushClientAttrib(uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2488,7 +2488,7 @@ native_PushClientAttrib(oobject_t list, oint32_t ac)
 
 static void
 native_PopClientAttrib(oobject_t list, oint32_t ac)
-/* void PopClientAttrib(); */
+/* void gl.PopClientAttrib(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2500,7 +2500,7 @@ native_PopClientAttrib(oobject_t list, oint32_t ac)
 
 static void
 native_RenderMode(oobject_t list, oint32_t ac)
-/* int32_t RenderMode(uint32_t mode); */
+/* int32_t gl.RenderMode(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2514,7 +2514,7 @@ native_RenderMode(oobject_t list, oint32_t ac)
 
 static void
 native_GetError(oobject_t list, oint32_t ac)
-/* uint32_t GetError(); */
+/* uint32_t gl.GetError(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2526,7 +2526,7 @@ native_GetError(oobject_t list, oint32_t ac)
 
 static void
 native_GetString(oobject_t list, oint32_t ac)
-/* string_t GetString(uint32_t name); */
+/* string_t gl.GetString(uint32_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2549,7 +2549,7 @@ native_GetString(oobject_t list, oint32_t ac)
 
 static void
 native_Finish(oobject_t list, oint32_t ac)
-/* void Finish(); */
+/* void gl.Finish(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2561,7 +2561,7 @@ native_Finish(oobject_t list, oint32_t ac)
 
 static void
 native_Flush(oobject_t list, oint32_t ac)
-/* void Flush(); */
+/* void gl.Flush(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2573,7 +2573,7 @@ native_Flush(oobject_t list, oint32_t ac)
 
 static void
 native_Hint(oobject_t list, oint32_t ac)
-/* void Hint(uint32_t target, uint32_t mode); */
+/* void gl.Hint(uint32_t target, uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2587,7 +2587,7 @@ native_Hint(oobject_t list, oint32_t ac)
 
 static void
 native_ClearDepth(oobject_t list, oint32_t ac)
-/* void ClearDepth(float64_t depth); */
+/* void gl.ClearDepth(float64_t depth); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2601,7 +2601,7 @@ native_ClearDepth(oobject_t list, oint32_t ac)
 
 static void
 native_DepthFunc(oobject_t list, oint32_t ac)
-/* void DepthFunc(uint32_t func); */
+/* void gl.DepthFunc(uint32_t func); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2615,7 +2615,7 @@ native_DepthFunc(oobject_t list, oint32_t ac)
 
 static void
 native_DepthMask(oobject_t list, oint32_t ac)
-/* void DepthMask(uint8_t mask); */
+/* void gl.DepthMask(uint8_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2629,7 +2629,7 @@ native_DepthMask(oobject_t list, oint32_t ac)
 
 static void
 native_DepthRange(oobject_t list, oint32_t ac)
-/* void DepthRange(float64_t near_val, float64_t far_val); */
+/* void gl.DepthRange(float64_t near_val, float64_t far_val); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2643,7 +2643,7 @@ native_DepthRange(oobject_t list, oint32_t ac)
 
 static void
 native_ClearAccum(oobject_t list, oint32_t ac)
-/* void ClearAccum(float32_t r, float32_t g, float32_t b, float32_t a); */
+/* void gl.ClearAccum(float32_t r, float32_t g, float32_t b, float32_t a); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2657,7 +2657,7 @@ native_ClearAccum(oobject_t list, oint32_t ac)
 
 static void
 native_Accum(oobject_t list, oint32_t ac)
-/* void Accum(uint32_t op, float32_t value); */
+/* void gl.Accum(uint32_t op, float32_t value); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2672,7 +2672,7 @@ native_Accum(oobject_t list, oint32_t ac)
 
 static void
 native_MatrixMode(oobject_t list, oint32_t ac)
-/* void MatrixMode(uint32_t mode); */
+/* void gl.MatrixMode(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2686,9 +2686,9 @@ native_MatrixMode(oobject_t list, oint32_t ac)
 
 static void
 native_Ortho(oobject_t list, oint32_t ac)
-/* void Ortho(float64_t left, float64_t right,
-	      float64_t bottom, float64_t top,
-	      float64_t near_val, float64_t far_val); */
+/* void gl.Ortho(float64_t left, float64_t right,
+		 float64_t bottom, float64_t top,
+		 float64_t near_val, float64_t far_val); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2702,9 +2702,9 @@ native_Ortho(oobject_t list, oint32_t ac)
 
 static void
 native_Frustum(oobject_t list, oint32_t ac)
-/* void Frustum(float64_t left, float64_t right,
-		float64_t bottom, float64_t top,
-		float64_t near_val, float64_t far_val); */
+/* void gl.Frustum(float64_t left, float64_t right,
+		   float64_t bottom, float64_t top,
+		   float64_t near_val, float64_t far_val); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2718,7 +2718,7 @@ native_Frustum(oobject_t list, oint32_t ac)
 
 static void
 native_Viewport(oobject_t list, oint32_t ac)
-/* void Viewport(int32_t, int32_t y, int32_t width, int32_t height); */
+/* void gl.Viewport(int32_t, int32_t y, int32_t width, int32_t height); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2732,7 +2732,7 @@ native_Viewport(oobject_t list, oint32_t ac)
 
 static void
 native_PushMatrix(oobject_t list, oint32_t ac)
-/* void PushMatrix(); */
+/* void gl.PushMatrix(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2744,7 +2744,7 @@ native_PushMatrix(oobject_t list, oint32_t ac)
 
 static void
 native_PopMatrix(oobject_t list, oint32_t ac)
-/* void PopMatrix(); */
+/* void gl.PopMatrix(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2756,7 +2756,7 @@ native_PopMatrix(oobject_t list, oint32_t ac)
 
 static void
 native_LoadIdentity(oobject_t list, oint32_t ac)
-/* void LoadIdentity(); */
+/* void gl.LoadIdentity(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2768,7 +2768,7 @@ native_LoadIdentity(oobject_t list, oint32_t ac)
 
 static void
 native_LoadMatrix(oobject_t list, oint32_t ac)
-/* void LoadMatrix((float64_t|float64_t) m[16]); */
+/* void gl.LoadMatrix((float64_t|float64_t) m[16]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2795,7 +2795,7 @@ native_LoadMatrix(oobject_t list, oint32_t ac)
 
 static void
 native_MultMatrix(oobject_t list, oint32_t ac)
-/* void MultMatrix((float64_t|float64_t) m[16]); */
+/* void gl.MultMatrix((float64_t|float64_t) m[16]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2822,7 +2822,7 @@ native_MultMatrix(oobject_t list, oint32_t ac)
 
 static void
 native_Rotate(oobject_t list, oint32_t ac)
-/* void Rotate(float64_t angle, float64_t x, float64_t y, float64_t z); */
+/* void gl.Rotate(float64_t angle, float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2836,7 +2836,7 @@ native_Rotate(oobject_t list, oint32_t ac)
 
 static void
 native_Scale(oobject_t list, oint32_t ac)
-/* void Scale(float64_t x, float64_t y, float64_t z); */
+/* void gl.Scale(float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2850,7 +2850,7 @@ native_Scale(oobject_t list, oint32_t ac)
 
 static void
 native_Translate(oobject_t list, oint32_t ac)
-/* void Translate(float64_t x, float64_t y, float64_t z); */
+/* void gl.Translate(float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2864,7 +2864,7 @@ native_Translate(oobject_t list, oint32_t ac)
 
 static void
 native_IsList(oobject_t list, oint32_t ac)
-/* uint8_t IsList(uint32_t list); */
+/* uint8_t gl.IsList(uint32_t list); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2878,7 +2878,7 @@ native_IsList(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteLists(oobject_t list, oint32_t ac)
-/* void DeleteLists(uint32_t list, int32_t range); */
+/* void gl.DeleteLists(uint32_t list, int32_t range); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2892,7 +2892,7 @@ native_DeleteLists(oobject_t list, oint32_t ac)
 
 static void
 native_GenLists(oobject_t list, oint32_t ac)
-/* uint32_t GenLists(int32_t range); */
+/* uint32_t gl.GenLists(int32_t range); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2906,7 +2906,7 @@ native_GenLists(oobject_t list, oint32_t ac)
 
 static void
 native_NewList(oobject_t list, oint32_t ac)
-/* void NewList(uint32_t list, uint32_t mode); */
+/* void gl.NewList(uint32_t list, uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2920,7 +2920,7 @@ native_NewList(oobject_t list, oint32_t ac)
 
 static void
 native_EndList(oobject_t list, oint32_t ac)
-/* void EndList(); */
+/* void gl.EndList(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2932,7 +2932,7 @@ native_EndList(oobject_t list, oint32_t ac)
 
 static void
 native_CallList(oobject_t list, oint32_t ac)
-/* void CallList(uint32_t list); */
+/* void gl.CallList(uint32_t list); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2946,7 +2946,7 @@ native_CallList(oobject_t list, oint32_t ac)
 
 static void
 native_CallLists(oobject_t list, oint32_t ac)
-/* void CallLists((uint8_t|uint16_t|uint32_t) lists[]); */
+/* void gl.CallLists((uint8_t|uint16_t|uint32_t) lists[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2975,7 +2975,7 @@ native_CallLists(oobject_t list, oint32_t ac)
 
 static void
 native_ListBase(oobject_t list, oint32_t ac)
-/* void ListBase(uint32_t base); */
+/* void gl.ListBase(uint32_t base); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2989,7 +2989,7 @@ native_ListBase(oobject_t list, oint32_t ac)
 
 static void
 native_Begin(oobject_t list, oint32_t ac)
-/* void Begin(uint32_t mode); */
+/* void gl.Begin(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3003,7 +3003,7 @@ native_Begin(oobject_t list, oint32_t ac)
 
 static void
 native_End(oobject_t list, oint32_t ac)
-/* void End(); */
+/* void gl.End(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3015,7 +3015,7 @@ native_End(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex2(oobject_t list, oint32_t ac)
-/* void Vertex2(float64_t x, float64_t y); */
+/* void gl.Vertex2(float64_t x, float64_t y); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3029,7 +3029,7 @@ native_Vertex2(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex3(oobject_t list, oint32_t ac)
-/* void Vertex3(float64_t x, float64_t y, float64_t z); */
+/* void gl.Vertex3(float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3043,7 +3043,7 @@ native_Vertex3(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex4(oobject_t list, oint32_t ac)
-/* void Vertex4(float64_t x, float64_t y, float64_t z, float64_t w); */
+/* void gl.Vertex4(float64_t x, float64_t y, float64_t z, float64_t w); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3057,7 +3057,7 @@ native_Vertex4(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex2v(oobject_t list, oint32_t ac)
-/* void Vertex2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.Vertex2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3089,7 +3089,7 @@ native_Vertex2v(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex3v(oobject_t list, oint32_t ac)
-/* void Vertex3v((int16_t|int32_t|float32_t|float64_t) v[3]); */
+/* void gl.Vertex3v((int16_t|int32_t|float32_t|float64_t) v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3121,7 +3121,7 @@ native_Vertex3v(oobject_t list, oint32_t ac)
 
 static void
 native_Vertex4v(oobject_t list, oint32_t ac)
-/* void Vertex4v((int16_t|int32_t|float32_t|float64_t) v[4]); */
+/* void gl.Vertex4v((int16_t|int32_t|float32_t|float64_t) v[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3153,7 +3153,7 @@ native_Vertex4v(oobject_t list, oint32_t ac)
 
 static void
 native_Normal3(oobject_t list, oint32_t ac)
-/* void Normal3(float64_t nx, float64_t ny, float64_t nz); */
+/* void gl.Normal3(float64_t nx, float64_t ny, float64_t nz); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3167,7 +3167,7 @@ native_Normal3(oobject_t list, oint32_t ac)
 
 static void
 native_Normal3v(oobject_t list, oint32_t ac)
-/* void Normal3v((int8_t|int16_t|int32_t|float32_t|float64_t) v[3]); */
+/* void gl.Normal3v((int8_t|int16_t|int32_t|float32_t|float64_t) v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3202,7 +3202,7 @@ native_Normal3v(oobject_t list, oint32_t ac)
 
 static void
 native_Index(oobject_t list, oint32_t ac)
-/* void Index(int32_t c); */
+/* void gl.Index(int32_t c); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3216,7 +3216,7 @@ native_Index(oobject_t list, oint32_t ac)
 
 static void
 native_Color3(oobject_t list, oint32_t ac)
-/* void Color3(float32_t r, float32_t g, float32_t b); */
+/* void gl.Color3(float32_t r, float32_t g, float32_t b); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3230,7 +3230,7 @@ native_Color3(oobject_t list, oint32_t ac)
 
 static void
 native_Color4(oobject_t list, oint32_t ac)
-/* void Color4(float32_t r, float32_t g, float32_t b, float32_t a); */
+/* void gl.Color4(float32_t r, float32_t g, float32_t b, float32_t a); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3244,8 +3244,8 @@ native_Color4(oobject_t list, oint32_t ac)
 
 static void
 native_Color3v(oobject_t list, oint32_t ac)
-/* void Color3v((int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|
-		 float32_t|float64_t) v[3]); */
+/* void gl.Color3v((int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|
+		    float32_t|float64_t) v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3289,8 +3289,8 @@ native_Color3v(oobject_t list, oint32_t ac)
 
 static void
 native_Color4v(oobject_t list, oint32_t ac)
-/* void Color4v((int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|
-		 float32_t|float64_t) v[3]); */
+/* void gl.Color4v((int8_t|uint8_t|int16_t|uint16_t|int32_t|uint32_t|
+		    float32_t|float64_t) v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3334,7 +3334,7 @@ native_Color4v(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord1(oobject_t list, oint32_t ac)
-/* void TexCoord1(float64_t s); */
+/* void gl.TexCoord1(float64_t s); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3348,7 +3348,7 @@ native_TexCoord1(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord2(oobject_t list, oint32_t ac)
-/* void TexCoord2(float64_t s, float64_t t); */
+/* void gl.TexCoord2(float64_t s, float64_t t); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3362,7 +3362,7 @@ native_TexCoord2(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord3(oobject_t list, oint32_t ac)
-/* void TexCoord3(float64_t s, float64_t t, float64_t r); */
+/* void gl.TexCoord3(float64_t s, float64_t t, float64_t r); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3376,7 +3376,7 @@ native_TexCoord3(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord4(oobject_t list, oint32_t ac)
-/* void TexCoord4(float64_t s, float64_t t, float64_t r, float64_t q); */
+/* void gl.TexCoord4(float64_t s, float64_t t, float64_t r, float64_t q); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3390,7 +3390,7 @@ native_TexCoord4(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord2v(oobject_t list, oint32_t ac)
-/* void TexCoord2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.TexCoord2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3422,7 +3422,7 @@ native_TexCoord2v(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord3v(oobject_t list, oint32_t ac)
-/* void TexCoord3v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.TexCoord3v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3454,7 +3454,7 @@ native_TexCoord3v(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoord4v(oobject_t list, oint32_t ac)
-/* void TexCoord4v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.TexCoord4v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3486,7 +3486,7 @@ native_TexCoord4v(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos2(oobject_t list, oint32_t ac)
-/* void RasterPos2(float64_t x, float64_t y); */
+/* void gl.RasterPos2(float64_t x, float64_t y); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3500,7 +3500,7 @@ native_RasterPos2(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos3(oobject_t list, oint32_t ac)
-/* void RasterPos3(float64_t x, float64_t y, float64_t z); */
+/* void gl.RasterPos3(float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3514,7 +3514,7 @@ native_RasterPos3(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos4(oobject_t list, oint32_t ac)
-/* void RasterPos3(float64_t x, float64_t y, float64_t z, float64_t w); */
+/* void gl.RasterPos3(float64_t x, float64_t y, float64_t z, float64_t w); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3528,7 +3528,7 @@ native_RasterPos4(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos2v(oobject_t list, oint32_t ac)
-/* void RasterPos2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.RasterPos2v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3560,7 +3560,7 @@ native_RasterPos2v(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos3v(oobject_t list, oint32_t ac)
-/* void RasterPos3v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.RasterPos3v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3592,7 +3592,7 @@ native_RasterPos3v(oobject_t list, oint32_t ac)
 
 static void
 native_RasterPos4v(oobject_t list, oint32_t ac)
-/* void RasterPos4v((int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.RasterPos4v((int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3624,7 +3624,7 @@ native_RasterPos4v(oobject_t list, oint32_t ac)
 
 static void
 native_Rect(oobject_t list, oint32_t ac)
-/* void Rect(float64_t x1, float64_t y1, float64_t x2, float64_t y2); */
+/* void gl.Rect(float64_t x1, float64_t y1, float64_t x2, float64_t y2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3638,7 +3638,7 @@ native_Rect(oobject_t list, oint32_t ac)
 
 static void
 native_Rectv(oobject_t list, oint32_t ac)
-/* void Rectv((int16_t|int32_t|float32_t|float64_t) v[4]); */
+/* void gl.Rectv((int16_t|int32_t|float32_t|float64_t) v[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3670,8 +3670,8 @@ native_Rectv(oobject_t list, oint32_t ac)
 
 static void
 native_VertexPointer(oobject_t list, oint32_t ac)
-/* void VertexPointer(int32_t size, int32_t stride,
-		      (int16_t|int32_t|float32_t|float64_t) ptr[]); */
+/* void gl.VertexPointer(int32_t size, int32_t stride,
+			 (int16_t|int32_t|float32_t|float64_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3752,8 +3752,8 @@ native_VertexPointer(oobject_t list, oint32_t ac)
 
 static void
 native_NormalPointer(oobject_t list, oint32_t ac)
-/* void NormalPointer(int32_t stride,
-		      (int8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
+/* void gl.NormalPointer(int32_t stride,
+			 (int8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3839,9 +3839,9 @@ native_NormalPointer(oobject_t list, oint32_t ac)
 
 static void
 native_ColorPointer(oobject_t list, oint32_t ac)
-/* void ColorPointer(int32_t size, int32_t stride,
-		     (int8_t|uint8_t|int16_t|t_uint16_t|int32_t|t_uint32_t|
-		      float32_t|float64_t) ptr[]); */
+/* void gl.ColorPointer(int32_t size, int32_t stride,
+			(int8_t|uint8_t|int16_t|t_uint16_t|int32_t|t_uint32_t|
+			 float32_t|float64_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -3942,8 +3942,8 @@ native_ColorPointer(oobject_t list, oint32_t ac)
 
 static void
 native_IndexPointer(oobject_t list, oint32_t ac)
-/* void IndexPointer(int32_t stride,
-		     (uint8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
+/* void gl.IndexPointer(int32_t stride,
+			(uint8_t|int16_t|int32_t|float32_t|float64_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4028,8 +4028,9 @@ native_IndexPointer(oobject_t list, oint32_t ac)
 
 static void
 native_TexCoordPointer(oobject_t list, oint32_t ac)
-/* void TexCoordPointer(int32_t size, int32_t stride,
-			(int16_t|t_uint16_t|int32_t|float32_t|float64_t) ptr[]); */
+/* void gl.TexCoordPointer(int32_t size, int32_t stride,
+			   (int16_t|t_uint16_t|int32_t|
+			    float32_t|float64_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4110,7 +4111,7 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
 
 static void
 native_EdgeFlagPointer(oobject_t list, oint32_t ac)
-/* void EdgeFlagPointer(int32_t stride, uint8_t ptr[]); */
+/* void gl.EdgeFlagPointer(int32_t stride, uint8_t ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4145,7 +4146,7 @@ native_EdgeFlagPointer(oobject_t list, oint32_t ac)
 
 static void
 native_ArrayElement(oobject_t list, oint32_t ac)
-/* void ArrayElement(int32_t i); */
+/* void gl.ArrayElement(int32_t i); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4159,7 +4160,7 @@ native_ArrayElement(oobject_t list, oint32_t ac)
 
 static void
 native_DrawArrays(oobject_t list, oint32_t ac)
-/* void DrawArrays(uint32_t mode, int32_t first, int32_t count); */
+/* void gl.DrawArrays(uint32_t mode, int32_t first, int32_t count); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4173,7 +4174,7 @@ native_DrawArrays(oobject_t list, oint32_t ac)
 
 static void
 native_DrawElements(oobject_t list, oint32_t ac)
-/* void DrawElements(uint32_t mode, (uint8_t|t_uint16_t|uint32_t) ptr[]); */
+/* void gl.DrawElements(uint32_t mode, (uint8_t|t_uint16_t|uint32_t) ptr[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4206,7 +4207,7 @@ native_DrawElements(oobject_t list, oint32_t ac)
 
 static void
 native_ShadeModel(oobject_t list, oint32_t ac)
-/* void ShadeModel(uint32_t mode); */
+/* void gl.ShadeModel(uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4220,7 +4221,7 @@ native_ShadeModel(oobject_t list, oint32_t ac)
 
 static void
 native_Light(oobject_t list, oint32_t ac)
-/* void Light(uint32_t light, uint32_t pname, float32_t param); */
+/* void gl.Light(uint32_t light, uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4234,7 +4235,8 @@ native_Light(oobject_t list, oint32_t ac)
 
 static void
 native_Lightv(oobject_t list, oint32_t ac)
-/* void Lightv(uint32_t light, uint32_t pname, (int32_t|float32_t) params[]); */
+/* void gl.Lightv(uint32_t light, uint32_t pname,
+		  (int32_t|float32_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4281,8 +4283,8 @@ native_Lightv(oobject_t list, oint32_t ac)
 
 static void
 native_GetLightv(oobject_t list, oint32_t ac)
-/* void GetLightv(uint32_t light, uint32_t pname,
-		  (int32_t|float32_t) params[]); */
+/* void gl.GetLightv(uint32_t light, uint32_t pname,
+		     (int32_t|float32_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4332,7 +4334,7 @@ native_GetLightv(oobject_t list, oint32_t ac)
 
 static void
 native_LightModel(oobject_t list, oint32_t ac)
-/* void LightModel(uint32_t pname, float32_t param); */
+/* void gl.LightModel(uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4346,7 +4348,7 @@ native_LightModel(oobject_t list, oint32_t ac)
 
 static void
 native_LightModelv(oobject_t list, oint32_t ac)
-/* void LightModelv(uint32_t pname, (int32_t|float32_t) params[]); */
+/* void gl.LightModelv(uint32_t pname, (int32_t|float32_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4384,7 +4386,7 @@ native_LightModelv(oobject_t list, oint32_t ac)
 
 static void
 native_Material(oobject_t list, oint32_t ac)
-/* void Material(uint32_t face, uint32_t pname, float32_t param); */
+/* void gl.Material(uint32_t face, uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4398,8 +4400,8 @@ native_Material(oobject_t list, oint32_t ac)
 
 static void
 native_Materialv(oobject_t list, oint32_t ac)
-/* void Materialv(uint32_t face, uint32_t pname,
-		  (int32_t|float32_t) paramm[]); */
+/* void gl.Materialv(uint32_t face, uint32_t pname,
+		     (int32_t|float32_t) paramm[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4443,8 +4445,8 @@ native_Materialv(oobject_t list, oint32_t ac)
 
 static void
 native_GetMaterialv(oobject_t list, oint32_t ac)
-/* void GetMaterialv(uint32_t face, uint32_t pname,
-		     (int32_t|float32_t) paramm[]); */
+/* void gl.GetMaterialv(uint32_t face, uint32_t pname,
+			(int32_t|float32_t) paramm[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4491,7 +4493,7 @@ native_GetMaterialv(oobject_t list, oint32_t ac)
 
 static void
 native_ColorMaterial(oobject_t list, oint32_t ac)
-/* void ColorMaterial(uint32_t face, uint32_t mode); */
+/* void gl.ColorMaterial(uint32_t face, uint32_t mode); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4505,7 +4507,7 @@ native_ColorMaterial(oobject_t list, oint32_t ac)
 
 static void
 native_PixelZoom(oobject_t list, oint32_t ac)
-/* void PixelZoom(float32_t xfactor, float32_t yfactor); */
+/* void gl.PixelZoom(float32_t xfactor, float32_t yfactor); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4519,7 +4521,7 @@ native_PixelZoom(oobject_t list, oint32_t ac)
 
 static void
 native_PixelStore(oobject_t list, oint32_t ac)
-/* void PixelStore(uint32_t pname, int32_t param); */
+/* void gl.PixelStore(uint32_t pname, int32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4533,7 +4535,7 @@ native_PixelStore(oobject_t list, oint32_t ac)
 
 static void
 native_PixelTransfer(oobject_t list, oint32_t ac)
-/* void PixelTransfer(uint32_t pname, float32_t param); */
+/* void gl.PixelTransfer(uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4585,7 +4587,7 @@ native_PixelTransfer(oobject_t list, oint32_t ac)
 
 static void
 native_PixelMapv(oobject_t list, oint32_t ac)
-/* void PixelMapfv(uint32_t map, (uint16_t|uint32_t|float32_t) values[]); */
+/* void gl.PixelMapfv(uint32_t map, (uint16_t|uint32_t|float32_t) values[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4630,7 +4632,8 @@ native_PixelMapv(oobject_t list, oint32_t ac)
 
 static void
 native_GetPixelMapv(oobject_t list, oint32_t ac)
-/* void GetPixelMapv(uint32_t map, (uint16_t|uint32_t|float32_t) values[]); */
+/* void gl.GetPixelMapv(uint32_t map,
+			(uint16_t|uint32_t|float32_t) values[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4683,10 +4686,10 @@ native_GetPixelMapv(oobject_t list, oint32_t ac)
 
 static void
 native_Bitmap(oobject_t list, oint32_t ac)
-/* void Bitmap(int32_t width, int32_t height,
-	       float32_t xorig, float32_t yorig,
-	       float32_t xmove, float32_t ymove,
-	       uint8_t bitmap[]); */
+/* void gl.Bitmap(int32_t width, int32_t height,
+		  float32_t xorig, float32_t yorig,
+		  float32_t xmove, float32_t ymove,
+		  uint8_t bitmap[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4708,8 +4711,8 @@ native_Bitmap(oobject_t list, oint32_t ac)
 
 static void
 native_ReadPixels(oobject_t list, oint32_t ac)
-/* void ReadPixels(int32_t x, int32_t y, int32_t width, int32_t height,
-		   uint32_t format, uint8_t pixels[]); */
+/* void gl.ReadPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+		      uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4745,8 +4748,8 @@ native_ReadPixels(oobject_t list, oint32_t ac)
 
 static void
 native_ReadBitmap(oobject_t list, oint32_t ac)
-/* void ReadBitmap(int32_t x, int32_t y, int32_t width, int32_t height,
-		   uint32_t format, uint8_t bitmap[]); */
+/* void gl.ReadBitmap(int32_t x, int32_t y, int32_t width, int32_t height,
+		      uint32_t format, uint8_t bitmap[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4769,8 +4772,8 @@ native_ReadBitmap(oobject_t list, oint32_t ac)
 
 static void
 native_DrawPixels(oobject_t list, oint32_t ac)
-/* void DrawPixels(int32_t width, int32_t height,
-		   uint32_t format, uint8_t pixels[]); */
+/* void gl.DrawPixels(int32_t width, int32_t height,
+		      uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4805,8 +4808,8 @@ native_DrawPixels(oobject_t list, oint32_t ac)
 
 static void
 native_DrawBitmap(oobject_t list, oint32_t ac)
-/* void DrawBitmap(int32_t width, int32_t height,
-		   uint32_t format, uint8_t bitmap[]); */
+/* void gl.DrawBitmap(int32_t width, int32_t height,
+		      uint32_t format, uint8_t bitmap[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4829,8 +4832,8 @@ native_DrawBitmap(oobject_t list, oint32_t ac)
 
 static void
 native_CopyPixels(oobject_t list, oint32_t ac)
-/* void CopyPixels(int32_t x, int32_t y,
-		   int32_t width, int32_t height, uint32_t type); */
+/* void gl.CopyPixels(int32_t x, int32_t y,
+		      int32_t width, int32_t height, uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4845,7 +4848,7 @@ native_CopyPixels(oobject_t list, oint32_t ac)
 
 static void
 native_StencilFunc(oobject_t list, oint32_t ac)
-/* void StencilFunc(uint32_t func, int32_t ref, uint32_t mask); */
+/* void gl.StencilFunc(uint32_t func, int32_t ref, uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4859,7 +4862,7 @@ native_StencilFunc(oobject_t list, oint32_t ac)
 
 static void
 native_StencilMask(oobject_t list, oint32_t ac)
-/* void StencilMask(uint32_t mask); */
+/* void gl.StencilMask(uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4873,7 +4876,7 @@ native_StencilMask(oobject_t list, oint32_t ac)
 
 static void
 native_StencilOp(oobject_t list, oint32_t ac)
-/* void StencilOp(uint32_t fail uint32_t zfail, uint32_t zpass); */
+/* void gl.StencilOp(uint32_t fail uint32_t zfail, uint32_t zpass); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4887,7 +4890,7 @@ native_StencilOp(oobject_t list, oint32_t ac)
 
 static void
 native_ClearStencil(oobject_t list, oint32_t ac)
-/* void ClearStencil(int32_t s); */
+/* void gl.ClearStencil(int32_t s); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4901,7 +4904,7 @@ native_ClearStencil(oobject_t list, oint32_t ac)
 
 static void
 native_TexGen(oobject_t list, oint32_t ac)
-/* void TexGen(uint32_t coord, uint32_t pname, float64_t param); */
+/* void gl.TexGen(uint32_t coord, uint32_t pname, float64_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4915,8 +4918,8 @@ native_TexGen(oobject_t list, oint32_t ac)
 
 static void
 native_TexGenv(oobject_t list, oint32_t ac)
-/* void TexGenv(uint32_t coord, uint32_t pname,
-		(int32_t|float32_t|float64_t) params[]); */
+/* void gl.TexGenv(uint32_t coord, uint32_t pname,
+		   (int32_t|float32_t|float64_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4957,7 +4960,7 @@ native_TexGenv(oobject_t list, oint32_t ac)
 
 static void
 native_GetTexGenv(oobject_t list, oint32_t ac)
-/* void GetTexGenv(uint32_t coord, uint32_t pname, float64_t params[]); */
+/* void gl.GetTexGenv(uint32_t coord, uint32_t pname, float64_t params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5003,7 +5006,7 @@ native_GetTexGenv(oobject_t list, oint32_t ac)
 
 static void
 native_TexEnv(oobject_t list, oint32_t ac)
-/* void TexEnv(uint32_t target, uint32_t pname, float32_t param); */
+/* void gl.TexEnv(uint32_t target, uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5043,8 +5046,8 @@ native_TexEnv(oobject_t list, oint32_t ac)
 
 static void
 native_TexEnvv(oobject_t list, oint32_t ac)
-/* void TexEnvv(uint32_t target, uint32_t pname,
-		(int32_t|float32_t) param[]); */
+/* void gl.TexEnvv(uint32_t target, uint32_t pname,
+		   (int32_t|float32_t) param[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5102,8 +5105,8 @@ native_TexEnvv(oobject_t list, oint32_t ac)
 
 static void
 native_GetTexEnvv(oobject_t list, oint32_t ac)
-/* void GetTexEnvv(uint32_t target, uint32_t pname,
-		   (int32_t|float32_t) param[4]); */
+/* void gl.GetTexEnvv(uint32_t target, uint32_t pname,
+		      (int32_t|float32_t) param[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5164,7 +5167,7 @@ native_GetTexEnvv(oobject_t list, oint32_t ac)
 
 static void
 native_TexParameter(oobject_t list, oint32_t ac)
-/* void TexParameter(uint32_t target, uint32_t pname, float32_t param); */
+/* void gl.TexParameter(uint32_t target, uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5199,8 +5202,8 @@ native_TexParameter(oobject_t list, oint32_t ac)
 
 static void
 native_TexParameterv(oobject_t list, oint32_t ac)
-/* void TexParameterv(uint32_t target, uint32_t pname,
-		      (int32_t|float32_t) params[]); */
+/* void gl.TexParameterv(uint32_t target, uint32_t pname,
+			 (int32_t|float32_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5253,8 +5256,8 @@ native_TexParameterv(oobject_t list, oint32_t ac)
 
 static void
 native_GetTexParameterv(oobject_t list, oint32_t ac)
-/* void GetTexParameterv(uint32_t target, uint32_t pname,
-			 (int32_t|float32_t) params[]); */
+/* void gl.GetTexParameterv(uint32_t target, uint32_t pname,
+			    (int32_t|float32_t) params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5310,8 +5313,8 @@ native_GetTexParameterv(oobject_t list, oint32_t ac)
 
 static void
 native_GetTexLevelParameter(oobject_t list, oint32_t ac)
-/* int32_t GetTexLevelParameter(uint32_t target,
-				int32_t level, uint32_t pname); */
+/* int32_t gl.GetTexLevelParameter(uint32_t target,
+				   int32_t level, uint32_t pname); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5327,9 +5330,9 @@ native_GetTexLevelParameter(oobject_t list, oint32_t ac)
 
 static void
 native_TexImage1D(oobject_t list, oint32_t ac)
-/* void TexImage1D(uint32_t target, int32_t level,
-		   int32_t width, int32_t border, uint32_t format,
-		   uint8_t pixels[]); */
+/* void gl.TexImage1D(uint32_t target, int32_t level,
+		      int32_t width, int32_t border, uint32_t format,
+		      uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5381,9 +5384,9 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_TexImage2D(oobject_t list, oint32_t ac)
-/* void TexImage2D(uint32_t target, int32_t level,
-		   int32_t width, int32_t height, int32_t border,
-		   uint32_t format, uint8_t pixels[]); */
+/* void gl.TexImage2D(uint32_t target, int32_t level,
+		      int32_t width, int32_t height, int32_t border,
+		      uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5440,8 +5443,8 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_GetTexImage(oobject_t list, oint32_t ac)
-/* void GetTexImage(uint32_t target, int32_t level, uint32_t format,
-		    uint8_t pixels[]); */
+/* void gl.GetTexImage(uint32_t target, int32_t level, uint32_t format,
+		       uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5511,7 +5514,7 @@ native_GetTexImage(oobject_t list, oint32_t ac)
 
 static void
 native_GenTextures(oobject_t list, oint32_t ac)
-/* void GenTextures(uint32_t textures[]); */
+/* void gl.GenTextures(uint32_t textures[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5527,7 +5530,7 @@ native_GenTextures(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteTextures(oobject_t list, oint32_t ac)
-/* void DeleteTextures(uint32_t textures[]); */
+/* void gl.DeleteTextures(uint32_t textures[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5543,7 +5546,7 @@ native_DeleteTextures(oobject_t list, oint32_t ac)
 
 static void
 native_BindTexture(oobject_t list, oint32_t ac)
-/* void BindTexture(uint32_t target, uint32_t texture); */
+/* void gl.BindTexture(uint32_t target, uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5557,7 +5560,7 @@ native_BindTexture(oobject_t list, oint32_t ac)
 
 static void
 native_PrioritizeTextures(oobject_t list, oint32_t ac)
-/* void PrioritizeTextures(uint32_t textures[], float32_t priorities[]); */
+/* void gl.PrioritizeTextures(uint32_t textures[], float32_t priorities[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5576,7 +5579,7 @@ native_PrioritizeTextures(oobject_t list, oint32_t ac)
 
 static void
 native_AreTexturesResident(oobject_t list, oint32_t ac)
-/* void AreTexturesResident(uint32_t textures[], uint8_t residences[]); */
+/* void gl.AreTexturesResident(uint32_t textures[], uint8_t residences[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5595,7 +5598,7 @@ native_AreTexturesResident(oobject_t list, oint32_t ac)
 
 static void
 native_IsTexture(oobject_t list, oint32_t ac)
-/* uint8_t IsTexture(uint32_t texture); */
+/* uint8_t gl.IsTexture(uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5609,8 +5612,8 @@ native_IsTexture(oobject_t list, oint32_t ac)
 
 static void
 native_TexSubImage1D(oobject_t list, oint32_t ac)
-/* void TexSubImage1D(uint32_t target, int32_t level, int32_t xoffset,
-		      int32_t width, uint32_t format, uint8_t pixels[]); */
+/* void gl.TexSubImage1D(uint32_t target, int32_t level, int32_t xoffset,
+			 int32_t width, uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5657,9 +5660,9 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_TexSubImage2D(oobject_t list, oint32_t ac)
-/* void TexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
-		      int32_t yoffset, int32_t width, int32_t height,
-		      uint32_t format, uint8_t pixels[]); */
+/* void gl.TexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
+			 int32_t yoffset, int32_t width, int32_t height,
+			 uint32_t format, uint8_t pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5707,8 +5710,9 @@ native_TexSubImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexImage1D(oobject_t list, oint32_t ac)
-/* void CopyTexImage1D(uint32_t target, int32_t level, int32_t format,
-		       int32_t x, int32_t y, int32_t width, int32_t border); */
+/* void gl.CopyTexImage1D(uint32_t target, int32_t level, int32_t format,
+			  int32_t x, int32_t y, int32_t width,
+			  int32_t border); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5723,9 +5727,9 @@ native_CopyTexImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexImage2D(oobject_t list, oint32_t ac)
-/* void CopyTexImage2D(uint32_t target, int32_t level, int32_t format,
-		       int32_t x, int32_t y, int32_t width, int32_t height,
-		       int32_t border); */
+/* void gl.CopyTexImage2D(uint32_t target, int32_t level, int32_t format,
+			  int32_t x, int32_t y, int32_t width, int32_t height,
+			  int32_t border); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5740,8 +5744,8 @@ native_CopyTexImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexSubImage1D(oobject_t list, oint32_t ac)
-/* void CopyTexSubImage1D(uint32_t target, int32_t level, int32_t xoffset,
-			  int32_t x, int32_t y, int32_t width); */
+/* void gl.CopyTexSubImage1D(uint32_t target, int32_t level, int32_t xoffset,
+			     int32_t x, int32_t y, int32_t width); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5756,9 +5760,9 @@ native_CopyTexSubImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_CopyTexSubImage2D(oobject_t list, oint32_t ac)
-/* void CopyTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
-		          int32_t yoffset, int32_t x, int32_t y,
-			  int32_t width, int32_t height); */
+/* void gl.CopyTexSubImage2D(uint32_t target, int32_t level, int32_t xoffset,
+			     int32_t yoffset, int32_t x, int32_t y,
+			     int32_t width, int32_t height); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5773,8 +5777,8 @@ native_CopyTexSubImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_Map1(oobject_t list, oint32_t ac)
-/* void Map1(uint32_t target, float64_t u1, float64_t u2,
-	     int32_t order, (float32_t|float64_t) points[]); */
+/* void gl.Map1(uint32_t target, float64_t u1, float64_t u2,
+		int32_t order, (float32_t|float64_t) points[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5827,10 +5831,10 @@ native_Map1(oobject_t list, oint32_t ac)
 
 static void
 native_Map2(oobject_t list, oint32_t ac)
-/* void Map2(uint32_t target,
-	     float64_t u1, float64_t u2, int32_t uorder,
-	     float64_t v1, float64_t v2, int32_t vorder,
-	     (float32_t|float64_t) points[]); */
+/* void gl.Map2(uint32_t target,
+		float64_t u1, float64_t u2, int32_t uorder,
+		float64_t v1, float64_t v2, int32_t vorder,
+		(float32_t|float64_t) points[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6072,8 +6076,8 @@ GetMapDomain(uint32_t target, ovector_t *v)
 
 static void
 native_GetMapv(oobject_t list, oint32_t ac)
-/* void GetMapv(uint32_t target, uint32_t query,
-		(int32_t|float32_t|float64_t) v[]); */
+/* void gl.GetMapv(uint32_t target, uint32_t query,
+		   (int32_t|float32_t|float64_t) v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6101,7 +6105,7 @@ native_GetMapv(oobject_t list, oint32_t ac)
 
 static void
 native_EvalCoord1(oobject_t list, oint32_t ac)
-/* void EvalCoord1(float64_t u); */
+/* void gl.EvalCoord1(float64_t u); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6115,7 +6119,7 @@ native_EvalCoord1(oobject_t list, oint32_t ac)
 
 static void
 native_EvalCoord2(oobject_t list, oint32_t ac)
-/* void EvalCoord2(float64_t u, float64_t v); */
+/* void gl.EvalCoord2(float64_t u, float64_t v); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6129,7 +6133,7 @@ native_EvalCoord2(oobject_t list, oint32_t ac)
 
 static void
 native_MapGrid1(oobject_t list, oint32_t ac)
-/* void MapGrid1(int32_t un, float64_t u1, float64_t u2); */
+/* void gl.MapGrid1(int32_t un, float64_t u1, float64_t u2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6143,8 +6147,8 @@ native_MapGrid1(oobject_t list, oint32_t ac)
 
 static void
 native_MapGrid2(oobject_t list, oint32_t ac)
-/* void MapGrid2(int32_t un, float64_t u1, float64_t u2,
-		 int32_t vn, float64_t v1, float64_t v2); */
+/* void gl.MapGrid2(int32_t un, float64_t u1, float64_t u2,
+		    int32_t vn, float64_t v1, float64_t v2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6159,7 +6163,7 @@ native_MapGrid2(oobject_t list, oint32_t ac)
 
 static void
 native_EvalPoint1(oobject_t list, oint32_t ac)
-/* void EvalPoint1(int32_t i); */
+/* void gl.EvalPoint1(int32_t i); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6173,7 +6177,7 @@ native_EvalPoint1(oobject_t list, oint32_t ac)
 
 static void
 native_EvalPoint2(oobject_t list, oint32_t ac)
-/* void EvalPoint2(int32_t i, int32_t j); */
+/* void gl.EvalPoint2(int32_t i, int32_t j); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6187,7 +6191,7 @@ native_EvalPoint2(oobject_t list, oint32_t ac)
 
 static void
 native_EvalMesh1(oobject_t list, oint32_t ac)
-/* void EvalMesh1(uint32_t mode, int32_t i1, int32_t i2); */
+/* void gl.EvalMesh1(uint32_t mode, int32_t i1, int32_t i2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6201,8 +6205,8 @@ native_EvalMesh1(oobject_t list, oint32_t ac)
 
 static void
 native_EvalMesh2(oobject_t list, oint32_t ac)
-/* void EvalMesh2(uint32_t mode, int32_t i1, int32_t i2,
-		  int32_t j1, int32_t j2); */
+/* void gl.EvalMesh2(uint32_t mode, int32_t i1, int32_t i2,
+		     int32_t j1, int32_t j2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6214,10 +6218,9 @@ native_EvalMesh2(oobject_t list, oint32_t ac)
     glEvalMesh2(alist->a0, alist->a1, alist->a2, alist->a3, alist->a4);
 }
 
-/* Fog */
 static void
 native_Fog(oobject_t list, oint32_t ac)
-/* void Fog(uint32_t pname, float32_t param); */
+/* void gl.Fog(uint32_t pname, float32_t param); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6243,7 +6246,7 @@ native_Fog(oobject_t list, oint32_t ac)
 
 static void
 native_Fogv(oobject_t list, oint32_t ac)
-/* void Fogv(uint32_t pname, (int32_t|float32_t) param[4]); */
+/* void gl.Fogv(uint32_t pname, (int32_t|float32_t) param[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6286,7 +6289,7 @@ native_Fogv(oobject_t list, oint32_t ac)
 
 static void
 native_FeedbackBuffer(oobject_t list, oint32_t ac)
-/* void FeedbackBuffer(uint32_t type, float32_t buffer[]); */
+/* void gl.FeedbackBuffer(uint32_t type, float32_t buffer[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6302,7 +6305,7 @@ native_FeedbackBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_PassThrough(oobject_t list, oint32_t ac)
-/* void PassThrough(float32_t token); */
+/* void gl.PassThrough(float32_t token); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6316,7 +6319,7 @@ native_PassThrough(oobject_t list, oint32_t ac)
 
 static void
 native_SelectBuffer(oobject_t list, oint32_t ac)
-/* void SelectBuffer(uint32_t buffer[]); */
+/* void gl.SelectBuffer(uint32_t buffer[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6332,7 +6335,7 @@ native_SelectBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_InitNames(oobject_t list, oint32_t ac)
-/* void InitNames(); */
+/* void gl.InitNames(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6344,7 +6347,7 @@ native_InitNames(oobject_t list, oint32_t ac)
 
 static void
 native_LoadName(oobject_t list, oint32_t ac)
-/* void LoadName(uint32_t name); */
+/* void gl.LoadName(uint32_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6358,7 +6361,7 @@ native_LoadName(oobject_t list, oint32_t ac)
 
 static void
 native_PushName(oobject_t list, oint32_t ac)
-/* void PushName(uint32_t name); */
+/* void gl.PushName(uint32_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6372,7 +6375,7 @@ native_PushName(oobject_t list, oint32_t ac)
 
 static void
 native_PopName(oobject_t list, oint32_t ac)
-/* void PopName(); */
+/* void gl.PopName(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6384,7 +6387,7 @@ native_PopName(oobject_t list, oint32_t ac)
 
 static void
 native_ActiveTexture(oobject_t list, oint32_t ac)
-/* void ActiveTexture(uint32_t texture); */
+/* void gl.ActiveTexture(uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6398,7 +6401,7 @@ native_ActiveTexture(oobject_t list, oint32_t ac)
 
 static void
 native_ClientActiveTexture(oobject_t list, oint32_t ac)
-/* void ClientActiveTexture(uint32_t texture); */
+/* void gl.ClientActiveTexture(uint32_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6412,7 +6415,7 @@ native_ClientActiveTexture(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord1(oobject_t list, oint32_t ac)
-/* void MultiTexCoord1(uint32_t target, float64_t s); */
+/* void gl.MultiTexCoord1(uint32_t target, float64_t s); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6426,8 +6429,8 @@ native_MultiTexCoord1(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord1v(oobject_t list, oint32_t ac)
-/* void MultiTexCoord1v(uint32_t target,
-			(int16_t|int32_t|float32_t|float64_t) v[1]); */
+/* void gl.MultiTexCoord1v(uint32_t target,
+			   (int16_t|int32_t|float32_t|float64_t) v[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6459,7 +6462,7 @@ native_MultiTexCoord1v(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord2(oobject_t list, oint32_t ac)
-/* void MultiTexCoord2(uint32_t target, float64_t s, float64_t t); */
+/* void gl.MultiTexCoord2(uint32_t target, float64_t s, float64_t t); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6473,8 +6476,8 @@ native_MultiTexCoord2(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord2v(oobject_t list, oint32_t ac)
-/* void MultiTexCoord2v(uint32_t target,
-			(int16_t|int32_t|float32_t|float64_t) v[2]); */
+/* void gl.MultiTexCoord2v(uint32_t target,
+			   (int16_t|int32_t|float32_t|float64_t) v[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6506,8 +6509,8 @@ native_MultiTexCoord2v(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord3(oobject_t list, oint32_t ac)
-/* void MultiTexCoord3(uint32_t target, float64_t s,
-		       float64_t t, float64_t r); */
+/* void gl.MultiTexCoord3(uint32_t target, float64_t s,
+			  float64_t t, float64_t r); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6521,8 +6524,8 @@ native_MultiTexCoord3(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord3v(oobject_t list, oint32_t ac)
-/* void MultiTexCoord3v(uint32_t target,
-			(int16_t|int32_t|float32_t|float64_t) v[3]); */
+/* void gl.MultiTexCoord3v(uint32_t target,
+			   (int16_t|int32_t|float32_t|float64_t) v[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6554,8 +6557,8 @@ native_MultiTexCoord3v(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord4(oobject_t list, oint32_t ac)
-/* void MultiTexCoord4(uint32_t target, float64_t s,
-		       float64_t t, float64_t r, float64_t q); */
+/* void gl.MultiTexCoord4(uint32_t target, float64_t s,
+			  float64_t t, float64_t r, float64_t q); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6569,8 +6572,8 @@ native_MultiTexCoord4(oobject_t list, oint32_t ac)
 
 static void
 native_MultiTexCoord4v(oobject_t list, oint32_t ac)
-/* void MultiTexCoord4v(uint32_t target,
-			(int16_t|int32_t|float32_t|float64_t) v[4]); */
+/* void gl.MultiTexCoord4v(uint32_t target,
+			   (int16_t|int32_t|float32_t|float64_t) v[4]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6602,7 +6605,7 @@ native_MultiTexCoord4v(oobject_t list, oint32_t ac)
 
 static void
 native_FogCoord(oobject_t list, oint32_t ac)
-/* void FogCoord(float64_t coord); */
+/* void gl.FogCoord(float64_t coord); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6616,7 +6619,7 @@ native_FogCoord(oobject_t list, oint32_t ac)
 
 static void
 native_WindowPos2(oobject_t list, oint32_t ac)
-/* void WindowPos2(float64_t x, float64_t y); */
+/* void gl.WindowPos2(float64_t x, float64_t y); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6630,7 +6633,7 @@ native_WindowPos2(oobject_t list, oint32_t ac)
 
 static void
 native_WindowPos2v(oobject_t list, oint32_t ac)
-/* void WindowPos2v((int16_t|int32_t|float32_t|float64_t) xy[2]); */
+/* void gl.WindowPos2v((int16_t|int32_t|float32_t|float64_t) xy[2]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6663,7 +6666,7 @@ native_WindowPos2v(oobject_t list, oint32_t ac)
 
 static void
 native_WindowPos3(oobject_t list, oint32_t ac)
-/* void WindowPos3(float64_t x, float64_t y, float64_t z); */
+/* void gl.WindowPos3(float64_t x, float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6677,7 +6680,7 @@ native_WindowPos3(oobject_t list, oint32_t ac)
 
 static void
 native_WindowPos3v(oobject_t list, oint32_t ac)
-/* void WindowPos3v((int16_t|int32_t|float32_t|float64_t) xy[3]); */
+/* void gl.WindowPos3v((int16_t|int32_t|float32_t|float64_t) xy[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6709,7 +6712,7 @@ native_WindowPos3v(oobject_t list, oint32_t ac)
 
 static void
 native_GenQueries(oobject_t list, oint32_t ac)
-/* void GenQueries(uint32_t ids[]); */
+/* void gl.GenQueries(uint32_t ids[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6725,7 +6728,7 @@ native_GenQueries(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteQueries(oobject_t list, oint32_t ac)
-/* void DeleteQueries(uint32_t ids[]); */
+/* void gl.DeleteQueries(uint32_t ids[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6741,7 +6744,7 @@ native_DeleteQueries(oobject_t list, oint32_t ac)
 
 static void
 native_IsQuery(oobject_t list, oint32_t ac)
-/* uint8_t IsQuery(uint32_t id); */
+/* uint8_t gl.IsQuery(uint32_t id); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6755,7 +6758,7 @@ native_IsQuery(oobject_t list, oint32_t ac)
 
 static void
 native_BeginQuery(oobject_t list, oint32_t ac)
-/* void BeginQuery(uint32_t target, uint32_t id); */
+/* void gl.BeginQuery(uint32_t target, uint32_t id); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6769,7 +6772,7 @@ native_BeginQuery(oobject_t list, oint32_t ac)
 
 static void
 native_EndQuery(oobject_t list, oint32_t ac)
-/* void EndQuery(uint32_t target); */
+/* void gl.EndQuery(uint32_t target); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6783,7 +6786,7 @@ native_EndQuery(oobject_t list, oint32_t ac)
 
 static void
 native_GetQueryv(oobject_t list, oint32_t ac)
-/* void GetQueryv(uint32_t target, uint32_t pname, int32_t params[]); */
+/* void gl.GetQueryv(uint32_t target, uint32_t pname, int32_t params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6800,7 +6803,8 @@ native_GetQueryv(oobject_t list, oint32_t ac)
 
 static void
 native_GetQueryObjectv(oobject_t list, oint32_t ac)
-/* void GetQueryObjectv(uint32_t target, uint32_t pname, int32_t params[]); */
+/* void gl.GetQueryObjectv(uint32_t target, uint32_t pname,
+			   int32_t params[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6826,7 +6830,7 @@ native_GetQueryObjectv(oobject_t list, oint32_t ac)
 
 static void
 native_BindBuffer(oobject_t list, oint32_t ac)
-/* void BindBuffer(uint32_t target, uint32_t buffer); */
+/* void gl.BindBuffer(uint32_t target, uint32_t buffer); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6857,7 +6861,7 @@ native_BindBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_GenBuffers(oobject_t list, oint32_t ac)
-/* void GenBuffers(uint32_t ids[]); */
+/* void gl.GenBuffers(uint32_t ids[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6873,7 +6877,7 @@ native_GenBuffers(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteBuffers(oobject_t list, oint32_t ac)
-/* void DeleteBuffers(uint32_t ids[]); */
+/* void gl.DeleteBuffers(uint32_t ids[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6899,7 +6903,7 @@ native_DeleteBuffers(oobject_t list, oint32_t ac)
 
 static void
 native_IsBuffer(oobject_t list, oint32_t ac)
-/* uint8_t IsBuffer(uint32_t id); */
+/* uint8_t gl.IsBuffer(uint32_t id); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -6913,9 +6917,9 @@ native_IsBuffer(oobject_t list, oint32_t ac)
 
 static void
 native_BufferData(oobject_t list, oint32_t ac)
-/* void BufferData(uint32_t target, (int8_t|uint8_t|int16_t|uint16_t|int32_t|
-				     uint32_t|float32_t|float64_t) data[],
-		   uint32_t usage); */
+/* void gl.BufferData(uint32_t target, (int8_t|uint8_t|int16_t|uint16_t|int32_t|
+					uint32_t|float32_t|float64_t) data[],
+		      uint32_t usage); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7006,9 +7010,9 @@ native_BufferData(oobject_t list, oint32_t ac)
 
 static void
 native_BufferSubData(oobject_t list, oint32_t ac)
-/* void BufferSubData(uint32_t target, word_t offset,
-		      (int8_t|uint8_t|int16_t|uint16_t|int32_t|
-		       uint32_t|float32_t|float64_t) data[]); */
+/* void gl.BufferSubData(uint32_t target, word_t offset,
+			 (int8_t|uint8_t|int16_t|uint16_t|int32_t|
+			  uint32_t|float32_t|float64_t) data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7048,9 +7052,9 @@ native_BufferSubData(oobject_t list, oint32_t ac)
 
 static void
 native_GetBufferSubData(oobject_t list, oint32_t ac)
-/* void GetBufferSubData(uint32_t target, word_t offset,
-			 (int8_t|uint8_t|int16_t|uint16_t|int32_t|
-			  uint32_t|float32_t|float64_t) data[]); */
+/* void gl.GetBufferSubData(uint32_t target, word_t offset,
+			    (int8_t|uint8_t|int16_t|uint16_t|int32_t|
+			     uint32_t|float32_t|float64_t) data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7090,7 +7094,8 @@ native_GetBufferSubData(oobject_t list, oint32_t ac)
 
 static void
 native_GetBufferParameterv(oobject_t list, oint32_t ac)
-/* void GetBufferParameterv(uint32_t target, uint32_t value, int32_t data[]); */
+/* void gl.GetBufferParameterv(uint32_t target,
+			       uint32_t value, int32_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7107,7 +7112,7 @@ native_GetBufferParameterv(oobject_t list, oint32_t ac)
 
 static void
 native_BlendEquationSeparate(oobject_t list, oint32_t ac)
-/* void BlendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha); */
+/* void gl.BlendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7121,7 +7126,7 @@ native_BlendEquationSeparate(oobject_t list, oint32_t ac)
 
 static void
 native_DrawBuffers(oobject_t list, oint32_t ac)
-/* void DrawBuffers(uint32_t bufs[]); */
+/* void gl.DrawBuffers(uint32_t bufs[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7137,8 +7142,8 @@ native_DrawBuffers(oobject_t list, oint32_t ac)
 
 static void
 native_StencilOpSeparate(oobject_t list, oint32_t ac)
-/* void StencilOpSeparate(uint32_t face, uint32_t sfail,
-			  uint32_t dpfail, uint32_t dppass); */
+/* void gl.StencilOpSeparate(uint32_t face, uint32_t sfail,
+			     uint32_t dpfail, uint32_t dppass); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7152,8 +7157,8 @@ native_StencilOpSeparate(oobject_t list, oint32_t ac)
 
 static void
 native_StencilFuncSeparate(oobject_t list, oint32_t ac)
-/* void StencilFuncSeparate(uint32_t face, uint32_t func,
-			    uint32_t ref, uint32_t mask); */
+/* void gl.StencilFuncSeparate(uint32_t face, uint32_t func,
+			       uint32_t ref, uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7167,7 +7172,7 @@ native_StencilFuncSeparate(oobject_t list, oint32_t ac)
 
 static void
 native_StencilMaskSeparate(oobject_t list, oint32_t ac)
-/* void StencilMaskSeparate(uint32_t face, uint32_t mask); */
+/* void gl.StencilMaskSeparate(uint32_t face, uint32_t mask); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7181,7 +7186,7 @@ native_StencilMaskSeparate(oobject_t list, oint32_t ac)
 
 static void
 native_AttachShader(oobject_t list, oint32_t ac)
-/* void AttachShader(uint32_t program, uint32_t shader); */
+/* void gl.AttachShader(uint32_t program, uint32_t shader); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7195,7 +7200,8 @@ native_AttachShader(oobject_t list, oint32_t ac)
 
 static void
 native_BindAttribLocation(oobject_t list, oint32_t ac)
-/* void BindAttribLocation(uint32_t program, uint32_t index, string_t name); */
+/* void gl.BindAttribLocation(uint32_t program,
+			      uint32_t index, string_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7212,7 +7218,7 @@ native_BindAttribLocation(oobject_t list, oint32_t ac)
 
 static void
 native_CompileShader(oobject_t list, oint32_t ac)
-/* void CompileShader(uint32_t type); */
+/* void gl.CompileShader(uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7226,7 +7232,7 @@ native_CompileShader(oobject_t list, oint32_t ac)
 
 static void
 native_CreateProgram(oobject_t list, oint32_t ac)
-/* uint32_t CreateProgram(); */
+/* uint32_t gl.CreateProgram(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7238,7 +7244,7 @@ native_CreateProgram(oobject_t list, oint32_t ac)
 
 static void
 native_CreateShader(oobject_t list, oint32_t ac)
-/* uint32_t CreateShader(uint32_t type); */
+/* uint32_t gl.CreateShader(uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7252,7 +7258,7 @@ native_CreateShader(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteProgram(oobject_t list, oint32_t ac)
-/* void DeleteProgram(uint32_t program); */
+/* void gl.DeleteProgram(uint32_t program); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7266,7 +7272,7 @@ native_DeleteProgram(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteShader(oobject_t list, oint32_t ac)
-/* void DeleteShader(uint32_t shader); */
+/* void gl.DeleteShader(uint32_t shader); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7280,7 +7286,7 @@ native_DeleteShader(oobject_t list, oint32_t ac)
 
 static void
 native_DetachShader(oobject_t list, oint32_t ac)
-/* void DetachShader(uint32_t program, uint32_t shader); */
+/* void gl.DetachShader(uint32_t program, uint32_t shader); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7294,7 +7300,7 @@ native_DetachShader(oobject_t list, oint32_t ac)
 
 static void
 native_DisableVertexAttribArray(oobject_t list, oint32_t ac)
-/* void DisableVertexAttribArray(uint32_t index); */
+/* void gl.DisableVertexAttribArray(uint32_t index); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7308,7 +7314,7 @@ native_DisableVertexAttribArray(oobject_t list, oint32_t ac)
 
 static void
 native_EnableVertexAttribArray(oobject_t list, oint32_t ac)
-/* void EnableVertexAttribArray(uint32_t index); */
+/* void gl.EnableVertexAttribArray(uint32_t index); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7322,9 +7328,9 @@ native_EnableVertexAttribArray(oobject_t list, oint32_t ac)
 
 static void
 native_GetActiveAttrib(oobject_t list, oint32_t ac)
-/* void GetActiveAttrib(uint32_t program, uint32_t index,
-			int32_t size[1], uint32_t type[1],
-			string_t name); */
+/* void gl.GetActiveAttrib(uint32_t program, uint32_t index,
+			   int32_t size[1], uint32_t type[1],
+			   string_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7355,9 +7361,9 @@ native_GetActiveAttrib(oobject_t list, oint32_t ac)
 
 static void
 native_GetActiveUniform(oobject_t list, oint32_t ac)
-/* void GetActiveUniform(uint32_t program, uint32_t index,
-			int32_t length[1], int32_t size[1], uint32_t type[1],
-			string_t name); */
+/* void gl.GetActiveUniform(uint32_t program, uint32_t index,
+			    int32_t length[1], int32_t size[1],
+			    uint32_t type[1], string_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7388,7 +7394,7 @@ native_GetActiveUniform(oobject_t list, oint32_t ac)
 
 static void
 native_GetAttachedShaders(oobject_t list, oint32_t ac)
-/* void GetAttachedShaders(uint32_t program, uint32_t shaders[]); */
+/* void gl.GetAttachedShaders(uint32_t program, uint32_t shaders[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7410,7 +7416,7 @@ native_GetAttachedShaders(oobject_t list, oint32_t ac)
 
 static void
 native_GetAttribLocation(oobject_t list, oint32_t ac)
-/* int32_t GetAttribLocation(uint32_t program, string_t name); */
+/* int32_t gl.GetAttribLocation(uint32_t program, string_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7427,7 +7433,7 @@ native_GetAttribLocation(oobject_t list, oint32_t ac)
 
 static void
 native_GetProgramv(oobject_t list, oint32_t ac)
-/* void GetProgramv(uint32_t shader, uint32_t pname, int32_t params[1]); */
+/* void gl.GetProgramv(uint32_t shader, uint32_t pname, int32_t params[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7458,7 +7464,7 @@ native_GetProgramv(oobject_t list, oint32_t ac)
 
 static void
 native_GetProgramInfoLog(oobject_t list, oint32_t ac)
-/* void GetProgramInfoLog(uint32_t shader, string_t msg[1]); */
+/* void gl.GetProgramInfoLog(uint32_t shader, string_t msg[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7479,7 +7485,7 @@ native_GetProgramInfoLog(oobject_t list, oint32_t ac)
 
 static void
 native_GetShaderv(oobject_t list, oint32_t ac)
-/* void GetShaderv(uint32_t shader, uint32_t pname, int32_t params[1]); */
+/* void gl.GetShaderv(uint32_t shader, uint32_t pname, int32_t params[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7506,7 +7512,7 @@ native_GetShaderv(oobject_t list, oint32_t ac)
 
 static void
 native_GetShaderInfoLog(oobject_t list, oint32_t ac)
-/* void GetShaderInfoLog(uint32_t shader, string_t msg[1]); */
+/* void gl.GetShaderInfoLog(uint32_t shader, string_t msg[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7527,7 +7533,7 @@ native_GetShaderInfoLog(oobject_t list, oint32_t ac)
 
 static void
 native_GetShaderSource(oobject_t list, oint32_t ac)
-/* void GetShaderSource(uint32_t shader, string_t source); */
+/* void gl.GetShaderSource(uint32_t shader, string_t source); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7549,7 +7555,7 @@ native_GetShaderSource(oobject_t list, oint32_t ac)
 
 static void
 native_GetUniformLocation(oobject_t list, oint32_t ac)
-/* int32_t GetUniformLocation(uint32_t program, string_t name); */
+/* int32_t gl.GetUniformLocation(uint32_t program, string_t name); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7566,7 +7572,7 @@ native_GetUniformLocation(oobject_t list, oint32_t ac)
 
 static void
 native_IsProgram(oobject_t list, oint32_t ac)
-/* uint8_t IsProgram(uint32_t shader); */
+/* uint8_t gl.IsProgram(uint32_t shader); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7580,7 +7586,7 @@ native_IsProgram(oobject_t list, oint32_t ac)
 
 static void
 native_IsShader(oobject_t list, oint32_t ac)
-/* uint8_t IsShader(uint32_t shader); */
+/* uint8_t gl.IsShader(uint32_t shader); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7594,7 +7600,7 @@ native_IsShader(oobject_t list, oint32_t ac)
 
 static void
 native_LinkProgram(oobject_t list, oint32_t ac)
-/* uint32_t LinkProgram(uint32_t program); */
+/* uint32_t gl.LinkProgram(uint32_t program); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7608,7 +7614,7 @@ native_LinkProgram(oobject_t list, oint32_t ac)
 
 static void
 native_ShaderSource(oobject_t list, oint32_t ac)
-/* void ShaderSource(uint32_t shader, string_t string[]); */
+/* void gl.ShaderSource(uint32_t shader, string_t string[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7645,7 +7651,7 @@ native_ShaderSource(oobject_t list, oint32_t ac)
 
 static void
 native_UseProgram(oobject_t list, oint32_t ac)
-/* void UseProgram(uint32_t type); */
+/* void gl.UseProgram(uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7659,7 +7665,7 @@ native_UseProgram(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform1(oobject_t list, oint32_t ac)
-/* void Uniform1(int32_t location, float32_t v0); */
+/* void gl.Uniform1(int32_t location, float32_t v0); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7673,7 +7679,7 @@ native_Uniform1(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform2(oobject_t list, oint32_t ac)
-/* void Uniform2(int32_t location, float32_t v0, float32_t v1); */
+/* void gl.Uniform2(int32_t location, float32_t v0, float32_t v1); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7687,7 +7693,8 @@ native_Uniform2(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform3(oobject_t list, oint32_t ac)
-/* void Uniform3(int32_t location, float32_t v0, float32_t v1, float32_t v2); */
+/* void gl.Uniform3(int32_t location, float32_t v0,
+		    float32_t v1, float32_t v2); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7701,8 +7708,8 @@ native_Uniform3(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform4(oobject_t list, oint32_t ac)
-/* void Uniform4(int32_t location, float32_t v0, float32_t v1,
-		 float32_t v2, float32_t v3); */
+/* void gl.Uniform4(int32_t location, float32_t v0, float32_t v1,
+		    float32_t v2, float32_t v3); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7716,7 +7723,7 @@ native_Uniform4(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform1v(oobject_t list, oint32_t ac)
-/* void Uniform1v(int32_t location, (int32_t|float32_t) value[]); */
+/* void gl.Uniform1v(int32_t location, (int32_t|float32_t) value[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7741,7 +7748,7 @@ native_Uniform1v(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform2v(oobject_t list, oint32_t ac)
-/* void Uniform2v(int32_t location, (int32_t|float32_t) value[]); */
+/* void gl.Uniform2v(int32_t location, (int32_t|float32_t) value[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7768,7 +7775,7 @@ native_Uniform2v(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform3v(oobject_t list, oint32_t ac)
-/* void Uniform3v(int32_t location, (int32_t|float32_t) value[]); */
+/* void gl.Uniform3v(int32_t location, (int32_t|float32_t) value[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7795,7 +7802,7 @@ native_Uniform3v(oobject_t list, oint32_t ac)
 
 static void
 native_Uniform4v(oobject_t list, oint32_t ac)
-/* void Uniform4v(int32_t location, (int32_t|float32_t) value[]); */
+/* void gl.Uniform4v(int32_t location, (int32_t|float32_t) value[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7822,7 +7829,7 @@ native_Uniform4v(oobject_t list, oint32_t ac)
 
 static void
 native_UniformMatrix2v(oobject_t list, oint32_t ac)
-/* void UniformMatrix2v(int32_t location, uint8_t transpose, float32_t[]); */
+/* void gl.UniformMatrix2v(int32_t location, uint8_t transpose, float32_t[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7841,7 +7848,7 @@ native_UniformMatrix2v(oobject_t list, oint32_t ac)
 
 static void
 native_UniformMatrix3v(oobject_t list, oint32_t ac)
-/* void UniformMatrix3v(int32_t location, uint8_t transpose, float32_t[]); */
+/* void gl.UniformMatrix3v(int32_t location, uint8_t transpose, float32_t[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7860,7 +7867,7 @@ native_UniformMatrix3v(oobject_t list, oint32_t ac)
 
 static void
 native_UniformMatrix4v(oobject_t list, oint32_t ac)
-/* void UniformMatrix4v(int32_t location, uint8_t transpose, float32_t[]); */
+/* void gl.UniformMatrix4v(int32_t location, uint8_t transpose, float32_t[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7877,10 +7884,9 @@ native_UniformMatrix4v(oobject_t list, oint32_t ac)
 		       alist->a1, alist->a2->v.f32);
 }
 
-
 static void
 native_ValidateProgram(oobject_t list, oint32_t ac)
-/* void ValidateProgram(uint32_t program); */
+/* void gl.ValidateProgram(uint32_t program); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7894,7 +7900,7 @@ native_ValidateProgram(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib1(oobject_t list, oint32_t ac)
-/* void VertexAttrib1(uint32_t index, float64_t x); */
+/* void gl.VertexAttrib1(uint32_t index, float64_t x); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7908,7 +7914,7 @@ native_VertexAttrib1(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib2(oobject_t list, oint32_t ac)
-/* void VertexAttrib2(uint32_t index, float64_t x, float64_t y); */
+/* void gl.VertexAttrib2(uint32_t index, float64_t x, float64_t y); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7922,7 +7928,8 @@ native_VertexAttrib2(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib3(oobject_t list, oint32_t ac)
-/* void VertexAttrib3(uint32_t index, float64_t x, float64_t y, float64_t z); */
+/* void gl.VertexAttrib3(uint32_t index, float64_t x,
+			 float64_t y, float64_t z); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7936,8 +7943,8 @@ native_VertexAttrib3(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib4(oobject_t list, oint32_t ac)
-/* void VertexAttrib4(uint32_t index, float64_t x, float64_t y,
-		      float64_t z, float64_t w); */
+/* void gl.VertexAttrib4(uint32_t index, float64_t x, float64_t y,
+			 float64_t z, float64_t w); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7951,7 +7958,7 @@ native_VertexAttrib4(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib1v(oobject_t list, oint32_t ac)
-/* void VertexAttrib1v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+/* void gl.VertexAttrib1v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -7980,7 +7987,7 @@ native_VertexAttrib1v(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib2v(oobject_t list, oint32_t ac)
-/* void VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+/* void gl.VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -8009,7 +8016,7 @@ native_VertexAttrib2v(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib3v(oobject_t list, oint32_t ac)
-/* void VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
+/* void gl.VertexAttrib2v(uint32_t index, (int16_t|float32_t|float64_t) v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -8038,9 +8045,9 @@ native_VertexAttrib3v(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib4v(oobject_t list, oint32_t ac)
-/* void VertexAttrib4v(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
-					int32_t|uint32_t|float32_t|float64_t)
-		       v[]); */
+/* void gl.VertexAttrib4v(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
+					   int32_t|uint32_t|float32_t|float64_t)
+			  v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -8084,8 +8091,8 @@ native_VertexAttrib4v(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttrib4Nv(oobject_t list, oint32_t ac)
-/* void VertexAttrib4Nv(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
-					 int32_t|uint32_t) v[]); */
+/* void gl.VertexAttrib4Nv(uint32_t index, (int8_t|uint8_t|int16_t|uint16_t|
+					    int32_t|uint32_t) v[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -8123,9 +8130,9 @@ native_VertexAttrib4Nv(oobject_t list, oint32_t ac)
 
 static void
 native_VertexAttribPointer(oobject_t list, oint32_t ac)
-/* void VertexAttribPointer(uint32_t index, int32_t size, int32_t stride,
-			    (int8_t|uint8_t|int16_t|uint16_t|
-			     int32_t|uint32_t|float32_t|float64_t)pointer[]); */
+/* void gl.VertexAttribPointer(uint32_t index, int32_t size, int32_t stride,
+			       (int8_t|uint8_t|int16_t|uint16_t|int32_t|
+				uint32_t|float32_t|float64_t)pointer[]); */
 {
 
     GET_THREAD_SELF()

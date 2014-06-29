@@ -1508,7 +1508,7 @@ native_Init(oobject_t list, oint32_t ac)
 
 static void
 native_GetError(oobject_t list, oint32_t ac)
-/* string_t GetError(); */
+/* string_t sdl.GetError(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1532,7 +1532,7 @@ native_GetError(oobject_t list, oint32_t ac)
 
 static void
 native_ClearError(oobject_t list, oint32_t ac)
-/* void ClearError(); */
+/* void sdl.ClearError(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1544,7 +1544,7 @@ native_ClearError(oobject_t list, oint32_t ac)
 
 static void
 native_Quit(oobject_t list, oint32_t ac)
-/* void Quit(); */
+/* void sdl.Quit(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1563,9 +1563,9 @@ native_Quit(oobject_t list, oint32_t ac)
 
 static void
 native_CreateWindow(oobject_t list, oint32_t ac)
-/* window_t CreateWindow(string_t title,
-			 int32_t x, int32_t y, int32_t w, int32_t h,
-			 uint32_t flags); */
+/* window_t sdl.CreateWindow(string_t title,
+			     int32_t x, int32_t y, int32_t w, int32_t h,
+			     uint32_t flags); */
 {
     GET_THREAD_SELF()
     SDL_Window				*sw;
@@ -1647,7 +1647,7 @@ native_CreateWindow(oobject_t list, oint32_t ac)
 
 static void
 native_ChangeWindow(oobject_t list, oint32_t ac)
-/* int32_t ChangeWindow(window_t window); */
+/* int32_t sdl.ChangeWindow(sdl.window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1768,7 +1768,7 @@ native_ChangeWindow(oobject_t list, oint32_t ac)
 
 static void
 native_GetWindowRenderer(oobject_t list, oint32_t ac)
-/* renderer_t GetWindowRenderer(window_t window); */
+/* sdl.renderer_t sdl.GetWindowRenderer(sdl.window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1787,7 +1787,7 @@ native_GetWindowRenderer(oobject_t list, oint32_t ac)
 
 static void
 native_DestroyWindow(oobject_t list, oint32_t ac)
-/* void DestroyWindow(window_t window); */
+/* void sdl.DestroyWindow(sdl.window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1845,7 +1845,8 @@ query_renderer(orenderer_t *or)
 
 static void
 native_CreateRenderer(oobject_t list, oint32_t ac)
-/* renderer_t CreateRenderer(window_t win, int32_t index, uint32_t flags); */
+/* sdl.renderer_t CreateRenderer(sdl.window_t win,
+				 int32_t index, uint32_t flags); */
 {
     GET_THREAD_SELF()
     orenderer_t			*or;
@@ -1894,7 +1895,7 @@ native_CreateRenderer(oobject_t list, oint32_t ac)
 
 static void
 native_ChangeRenderer(oobject_t list, oint32_t ac)
-/* int32_t ChangeRenderer(renderer_t ren); */
+/* int32_t sdl.ChangeRenderer(sdl.renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1946,7 +1947,7 @@ native_ChangeRenderer(oobject_t list, oint32_t ac)
 
 static void
 native_GetRendererWindow(oobject_t list, oint32_t ac)
-/* window_t GetRendererWindow(renderer_t ren); */
+/* sdl.window_t sdl.GetRendererWindow(sdl.renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1965,7 +1966,7 @@ native_GetRendererWindow(oobject_t list, oint32_t ac)
 
 static void
 native_RenderClear(oobject_t list, oint32_t ac)
-/* void RenderClear(renderer_t ren); */
+/* void sdl.RenderClear(sdl.renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1982,7 +1983,7 @@ native_RenderClear(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawPoint(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawPoint(renderer_t ren, int32_t, int32_t y); */
+/* int32_t sdl.RenderDrawPoint(sdl.renderer_t ren, int32_t, int32_t y); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2000,7 +2001,7 @@ native_RenderDrawPoint(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawPoints(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawPoints(renderer_t ren, int32_t points[]); */
+/* int32_t sdl.RenderDrawPoints(sdl.renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2023,8 +2024,8 @@ native_RenderDrawPoints(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawLine(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawPoint(renderer_t ren, int32_t x1, int32_t y1,
-			   int32_t x2, int32_t y2); */
+/* int32_t sdl.RenderDrawPoint(sdl.renderer_t ren, int32_t x1, int32_t y1,
+			       int32_t x2, int32_t y2); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2043,7 +2044,7 @@ native_RenderDrawLine(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawLines(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawLines(renderer_t ren, int32_t points[]); */
+/* int32_t sdl.RenderDrawLines(sdl.renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2066,8 +2067,8 @@ native_RenderDrawLines(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawRect(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawRect(renderer_t ren, int32_t x, int32_t y,
-			  int32_t w, int32_t h); */
+/* int32_t sdl.RenderDrawRect(sdl.renderer_t ren, int32_t x, int32_t y,
+			      int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2085,7 +2086,7 @@ native_RenderDrawRect(oobject_t list, oint32_t ac)
 
 static void
 native_RenderDrawRects(oobject_t list, oint32_t ac)
-/* int32_t RenderDrawRects(renderer_t ren, int32_t points[]); */
+/* int32_t sdl.RenderDrawRects(sdl.renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2108,8 +2109,8 @@ native_RenderDrawRects(oobject_t list, oint32_t ac)
 
 static void
 native_RenderFillRect(oobject_t list, oint32_t ac)
-/* int32_t RenderFillRect(renderer_t ren, int32_t x, int32_t y,
-			  int32_t w, int32_t h); */
+/* int32_t sdl.RenderFillRect(sdl.renderer_t ren, int32_t x, int32_t y,
+			      int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2127,7 +2128,7 @@ native_RenderFillRect(oobject_t list, oint32_t ac)
 
 static void
 native_RenderFillRects(oobject_t list, oint32_t ac)
-/* int32_t RenderFillRects(renderer_t ren, int32_t points[]); */
+/* int32_t sdl.RenderFillRects(sdl.renderer_t ren, int32_t points[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2150,8 +2151,8 @@ native_RenderFillRects(oobject_t list, oint32_t ac)
 
 static void
 native_RenderCopy(oobject_t list, oint32_t ac)
-/* int32_t RenderCopy(renderer_t ren, texture_t tex,
-		      rect_t src, rect_t dst); */
+/* int32_t sdl.RenderCopy(sdl.renderer_t ren, sdl.texture_t tex,
+			  sdl.rect_t src, sdl.rect_t dst); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2174,10 +2175,10 @@ native_RenderCopy(oobject_t list, oint32_t ac)
 
 static void
 native_RenderCopyEx(oobject_t list, oint32_t ac)
-/* int32_t RenderCopyEx(renderer_t ren, texture_t tex,
-		        rect_t src, rect_t dst,
-                        float64_t angle, point_t center,
-			int32_t flip); */
+/* int32_t sdl.RenderCopyEx(sdl.renderer_t ren, sdl.texture_t tex,
+			    sdl.rect_t src, sdl.rect_t dst,
+			    float64_t angle, sdl.point_t center,
+			    int32_t flip); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -2202,7 +2203,7 @@ native_RenderCopyEx(oobject_t list, oint32_t ac)
 
 static void
 native_RenderPresent(oobject_t list, oint32_t ac)
-/* void RenderPresent(renderer_t ren); */
+/* void sdl.RenderPresent(sdl.renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2219,7 +2220,7 @@ native_RenderPresent(oobject_t list, oint32_t ac)
 
 static void
 native_DestroyRenderer(oobject_t list, oint32_t ac)
-/* void DestroyRenderer(renderer_t ren); */
+/* void sdl.DestroyRenderer(sdl.renderer_t ren); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2268,7 +2269,7 @@ query_surface(osurface_t *os)
 
 static void
 native_LoadSurface(oobject_t list, oint32_t ac)
-/* surface_t LoadSurface(string_t path); */
+/* sdl.surface_t sdl.LoadSurface(string_t path); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2299,7 +2300,7 @@ native_LoadSurface(oobject_t list, oint32_t ac)
 
 static void
 native_CreateRGBSurface(oobject_t list, oint32_t ac)
-/* surface_t CreateRGBSurface(int32_t w, int32_t h); */
+/* sdl.surface_t sdl.CreateRGBSurface(int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2324,7 +2325,7 @@ native_CreateRGBSurface(oobject_t list, oint32_t ac)
 
 static void
 native_CreateRGBASurface(oobject_t list, oint32_t ac)
-/* surface_t CreateRGBASurface(int32_t w, int32_t h); */
+/* sdl.surface_t sdl.CreateRGBASurface(int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2349,7 +2350,7 @@ native_CreateRGBASurface(oobject_t list, oint32_t ac)
 
 static void
 native_ConvertSurface(oobject_t list, oint32_t ac)
-/* surface_t ConvertSurface(surface_t surf, uint32_t format); */
+/* sdl.surface_t sdl.ConvertSurface(sdl.surface_t surf, uint32_t format); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2377,7 +2378,7 @@ native_ConvertSurface(oobject_t list, oint32_t ac)
 
 static void
 native_ChangeSurface(oobject_t list, oint32_t ac)
-/* int32_t ChangeSurface(surface_t surf); */
+/* int32_t sdl.ChangeSurface(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2406,7 +2407,7 @@ native_ChangeSurface(oobject_t list, oint32_t ac)
 
 static void
 native_PullSurface(oobject_t list, oint32_t ac)
-/* int32_t PullSurface(renderer_t ren); */
+/* int32_t sdl.PullSurface(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2443,7 +2444,7 @@ native_PullSurface(oobject_t list, oint32_t ac)
 
 static void
 native_PushSurface(oobject_t list, oint32_t ac)
-/* int32_t PushSurface(renderer_t ren); */
+/* int32_t sdl.PushSurface(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Surface			*ss;
@@ -2477,8 +2478,8 @@ native_PushSurface(oobject_t list, oint32_t ac)
 
 static void
 native_BlitSurface(oobject_t list, oint32_t ac)
-/* int32_t BlitSurface(surface_t src, rect_t src_rect,
-		       surface_t dst, rect_t dst_rect); */
+/* int32_t sdl.BlitSurface(sdl.surface_t src, sdl.rect_t src_rect,
+			   sdl.surface_t dst, sdl.rect_t dst_rect); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2501,8 +2502,8 @@ native_BlitSurface(oobject_t list, oint32_t ac)
 
 static void
 native_ScaleSurface(oobject_t list, oint32_t ac)
-/* int32_t ScaleSurface(surface_t src, rect_t src_rect,
-			surface_t dst, rect_t dst_rect); */
+/* int32_t sdl.ScaleSurface(sdl.surface_t src, sdl.rect_t src_rect,
+			    sdl.surface_t dst, sdl.rect_t dst_rect); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2525,7 +2526,7 @@ native_ScaleSurface(oobject_t list, oint32_t ac)
 
 static void
 native_FreeSurface(oobject_t list, oint32_t ac)
-/* void FreeSurface(renderer_t ren); */
+/* void sdl.FreeSurface(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2574,8 +2575,8 @@ handle_texture(orenderer_t *ren, otexture_t *tex)
 
 static void
 native_CreateTexture(oobject_t list, oint32_t ac)
-/* texture_t CreateTexture(renderer_t ren, uint32_t format,
-			   int32_t access, int32_t w, int32_t h); */
+/* sdl.texture_t sdl.CreateTexture(sdl.renderer_t ren, uint32_t format,
+				   int32_t access, int32_t w, int32_t h); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2604,7 +2605,8 @@ native_CreateTexture(oobject_t list, oint32_t ac)
 
 static void
 native_CreateTextureFromSurface(oobject_t list, oint32_t ac)
-/* texture_t CreateTextureFromSurface(renderer_t ren, surface_t surf); */
+/* sdl.texture_t sdl.CreateTextureFromSurface(sdl.renderer_t ren,
+					      sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2636,7 +2638,7 @@ native_CreateTextureFromSurface(oobject_t list, oint32_t ac)
 
 static void
 native_LoadTexture(oobject_t list, oint32_t ac)
-/* texture_t LoadTexture(renderer_t ren, string_t path); */
+/* sdl.texture_t sdl.LoadTexture(sdl.renderer_t ren, string_t path); */
 {
     GET_THREAD_SELF()
     SDL_Texture			*st;
@@ -2671,7 +2673,7 @@ native_LoadTexture(oobject_t list, oint32_t ac)
 
 static void
 native_ChangeTexture(oobject_t list, oint32_t ac)
-/* int32_t ChangeTexture(texture_t tex); */
+/* int32_t sdl.ChangeTexture(sdl.texture_t tex); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2697,7 +2699,7 @@ native_ChangeTexture(oobject_t list, oint32_t ac)
 
 static void
 native_DestroyTexture(oobject_t list, oint32_t ac)
-/* void DestroyTexture(texture_t tex); */
+/* void sdl.DestroyTexture(sdl.texture_t tex); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2920,7 +2922,7 @@ translate_event(oevent_t *ev)
 
 static void
 native_PollEvent(oobject_t list, oint32_t ac)
-/* void PollEvent(event_t ev); */
+/* void sdl.PollEvent(sdl.event_t ev); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2940,7 +2942,7 @@ native_PollEvent(oobject_t list, oint32_t ac)
 
 static void
 native_WaitEvent(oobject_t list, oint32_t ac)
-/* void PollEvent(event_t ev); */
+/* void sdl.PollEvent(sdl.event_t ev); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2960,7 +2962,7 @@ native_WaitEvent(oobject_t list, oint32_t ac)
 
 static void
 native_GetModState(oobject_t list, oint32_t ac)
-/* void GetModeState(); */
+/* void sdl.GetModeState(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3018,7 +3020,7 @@ push_timer(otimer_t *timer)
 
 static void
 native_AddTimer(oobject_t list, oint32_t ac)
-/* timer_t AddTimer(uint32_t ms, auto data); */
+/* sdl.timer_t sdl.AddTimer(uint32_t ms, auto data); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3048,7 +3050,7 @@ native_AddTimer(oobject_t list, oint32_t ac)
 
 static void
 native_GetTicks(oobject_t list, oint32_t ac)
-/* uint32_t GetTicks(); */
+/* uint32_t sdl.GetTicks(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3059,7 +3061,7 @@ native_GetTicks(oobject_t list, oint32_t ac)
 
 static void
 native_Delay(oobject_t list, oint32_t ac)
-/* void Delay(uint32_t ms); */
+/* void sdl.Delay(uint32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3073,7 +3075,7 @@ native_Delay(oobject_t list, oint32_t ac)
 
 static void
 native_RemoveTimer(oobject_t list, oint32_t ac)
-/* int32_t RemoveTimer(otimer_t); */
+/* int32_t sdl.RemoveTimer(sdl.timer_t timer); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3095,7 +3097,7 @@ native_RemoveTimer(oobject_t list, oint32_t ac)
 
 static void
 native_ShowCursor(oobject_t list, oint32_t ac)
-/* int32_t ShowCursor(int32_t toggle); */
+/* int32_t sdl.ShowCursor(int32_t toggle); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3121,7 +3123,7 @@ query_font(ofont_t *of)
 
 static void
 native_OpenFont(oobject_t list, oint32_t ac)
-/* font_t OpenFont(string_t name, int32_t ptsize) */
+/* ttf.font_t ttf.OpenFont(string_t name, int32_t ptsize) */
 {
     GET_THREAD_SELF()
     TTF_Font			*sf;
@@ -3171,7 +3173,7 @@ native_OpenFont(oobject_t list, oint32_t ac)
 
 static void
 native_ChangeFont(oobject_t list, oint32_t ac)
-/* int32_t ChangeFont(font_t) */
+/* int32_t ttf.ChangeFont(sdl.font_t font) */
 {
     GET_THREAD_SELF()
     TTF_Font			*sf;
@@ -3201,7 +3203,7 @@ native_ChangeFont(oobject_t list, oint32_t ac)
 
 static void
 native_GlyphIsProvided(oobject_t list, oint32_t ac)
-/* int32_t GlyphIsProvided(font_t font, uint16_t ch) */
+/* int32_t ttf.GlyphIsProvided(ttf.font_t font, uint16_t ch) */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3218,7 +3220,7 @@ native_GlyphIsProvided(oobject_t list, oint32_t ac)
 
 static void
 native_GlyphMetrics(oobject_t list, oint32_t ac)
-/* glyph_t GlyphMetrics(font_t font, uint16_t ch) */
+/* ttf.glyph_t ttf.GlyphMetrics(ttf.font_t font, uint16_t ch) */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3262,7 +3264,7 @@ native_GlyphMetrics(oobject_t list, oint32_t ac)
 
 static void
 native_SizeText(oobject_t list, oint32_t ac)
-/* int32_t SizeText(font_t font, string_t text, point_t size); */
+/* int32_t ttf.SizeText(ttf.font_t font, string_t text, sdl.point_t size); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3286,7 +3288,7 @@ native_SizeText(oobject_t list, oint32_t ac)
 
 static void
 native_SizeUTF8(oobject_t list, oint32_t ac)
-/* int32_t SizeUTF8(font_t font, string_t text, point_t size); */
+/* int32_t ttf.SizeUTF8(ttf.font_t font, string_t text, sdl.point_t size); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3310,7 +3312,8 @@ native_SizeUTF8(oobject_t list, oint32_t ac)
 
 static void
 native_SizeUNICODE(oobject_t list, oint32_t ac)
-/* int32_t SizeUNICODE(font_t font, uint16_t text[], point_t size); */
+/* int32_t ttf.SizeUNICODE(ttf.font_t font,
+			   uint16_t text[], sdl.point_t size); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3334,7 +3337,8 @@ native_SizeUNICODE(oobject_t list, oint32_t ac)
 
 static void
 native_RenderText_Solid(oobject_t list, oint32_t ac)
-/* surface_t RenderText_Solid(font_t font, string_t text, color_t fg); */
+/* sdl.surface_t ttf.RenderText_Solid(ttf.font_t font,
+				      string_t text, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3368,7 +3372,8 @@ native_RenderText_Solid(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUTF8_Solid(oobject_t list, oint32_t ac)
-/* surface_t RenderUTF8_Solid(font_t font, string_t text, color_t fg); */
+/* sdl.surface_t ttf.RenderUTF8_Solid(ttf.font_t font,
+				      string_t text, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3402,7 +3407,8 @@ native_RenderUTF8_Solid(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUNICODE_Solid(oobject_t list, oint32_t ac)
-/* surface_t RenderUNICODE_Solid(font_t font, uint16_t text[], color_t fg); */
+/* sdl.surface_t ttf.RenderUNICODE_Solid(ttf.font_t font,
+					 uint16_t text[], sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3436,7 +3442,8 @@ native_RenderUNICODE_Solid(oobject_t list, oint32_t ac)
 
 static void
 native_RenderGlyph_Solid(oobject_t list, oint32_t ac)
-/* surface_t RenderGlyph_Solid(font_t font, uint16_t glyph, color_t fg); */
+/* sdl.surface_t ttf.RenderGlyph_Solid(ttf.font_t font,
+				       uint16_t glyph, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3466,8 +3473,8 @@ native_RenderGlyph_Solid(oobject_t list, oint32_t ac)
 
 static void
 native_RenderText_Shaded(oobject_t list, oint32_t ac)
-/* surface_t RenderText_Shaded(font_t font, string_t text,
-			       color_t fg, color_t bf); */
+/* sdl.surface_t ttf.RenderText_Shaded(ttf.font_t font, string_t text,
+				       sdl.color_t fg, sdl.color_t bf); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3504,8 +3511,8 @@ native_RenderText_Shaded(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUTF8_Shaded(oobject_t list, oint32_t ac)
-/* surface_t RenderUTF8_Shaded(font_t font, string_t text,
-			       color_t fg, color_t bf); */
+/* sdl.surface_t ttf.RenderUTF8_Shaded(ttf.font_t font, string_t text,
+				       sdl.color_t fg, sdl.color_t bf); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3542,8 +3549,8 @@ native_RenderUTF8_Shaded(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUNICODE_Shaded(oobject_t list, oint32_t ac)
-/* surface_t RenderUNICODE_Shaded(font_t font, uint16_t text[],
-				  color_t fg, color_t bf); */
+/* sdl.surface_t ttf.RenderUNICODE_Shaded(ttf.font_t font, uint16_t text[],
+					  sdl.color_t fg, sdl.color_t bf); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3580,8 +3587,8 @@ native_RenderUNICODE_Shaded(oobject_t list, oint32_t ac)
 
 static void
 native_RenderGlyph_Shaded(oobject_t list, oint32_t ac)
-/* surface_t RenderGlyph_Shaded(font_t font, uint16_t glyph,
-				color_t fg, color_t bf); */
+/* sdl.surface_t ttf.RenderGlyph_Shaded(ttf.font_t font, uint16_t glyph,
+					sdl.color_t fg, sdl.color_t bf); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3613,7 +3620,8 @@ native_RenderGlyph_Shaded(oobject_t list, oint32_t ac)
 
 static void
 native_RenderText_Blended(oobject_t list, oint32_t ac)
-/* surface_t RenderText_Blended(font_t font, string_t text, color_t fg); */
+/* sdl.surface_t ttf.RenderText_Blended(ttf.font_t font,
+					string_t text, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3647,7 +3655,8 @@ native_RenderText_Blended(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUTF8_Blended(oobject_t list, oint32_t ac)
-/* surface_t RenderUTF8_Blended(font_t font, string_t text, color_t fg); */
+/* sdl.surface_t ttf.RenderUTF8_Blended(ttf.font_t font,
+					string_t text, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3681,7 +3690,8 @@ native_RenderUTF8_Blended(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUNICODE_Blended(oobject_t list, oint32_t ac)
-/* surface_t RenderUNICODE_Blended(font_t font, uint16_t text[], color_t fg); */
+/* sdl.surface_t ttf.RenderUNICODE_Blended(ttf.font_t font,
+					   uint16_t text[], sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3715,7 +3725,8 @@ native_RenderUNICODE_Blended(oobject_t list, oint32_t ac)
 
 static void
 native_RenderGlyph_Blended(oobject_t list, oint32_t ac)
-/* surface_t RenderGlyph_Blended(font_t font, uint16_t glyph, color_t fg); */
+/* sdl.surface_t ttf.RenderGlyph_Blended(ttf.font_t font,
+					 uint16_t glyph, sdl.color_t fg); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3745,8 +3756,9 @@ native_RenderGlyph_Blended(oobject_t list, oint32_t ac)
 
 static void
 native_RenderText_Blended_Wrapped(oobject_t list, oint32_t ac)
-/* surface_t RenderText_Blended_Wrapped(font_t font, string_t text,
-					color_t fg, uint32_t length); */
+/* sdl.surface_t ttf.RenderText_Blended_Wrapped(ttf.font_t font, string_t text,
+						sdl.color_t fg,
+						uint32_t length); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3781,8 +3793,9 @@ native_RenderText_Blended_Wrapped(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUTF8_Blended_Wrapped(oobject_t list, oint32_t ac)
-/* surface_t RenderUTF8_Blended_Wrapped(font_t font, string_t text,
-				        color_t fg, uint32_t length); */
+/* sdl.surface_t ttf.RenderUTF8_Blended_Wrapped(ttf.font_t font, string_t text,
+					        sdl.color_t fg,
+						uint32_t length); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3817,8 +3830,10 @@ native_RenderUTF8_Blended_Wrapped(oobject_t list, oint32_t ac)
 
 static void
 native_RenderUNICODE_Blended_Wrapped(oobject_t list, oint32_t ac)
-/* surface_t RenderUNICODE_Blended_Wrapped(font_t font, uint16_t text[],
-					   color_t fg, uint32_t length); */
+/* sdl.surface_t ttf.RenderUNICODE_Blended_Wrapped(ttf.font_t font,
+						   uint16_t text[],
+						   sdl.color_t fg,
+						   uint32_t length); */
 {
     GET_THREAD_SELF()
     osurface_t			*os;
@@ -3853,7 +3868,7 @@ native_RenderUNICODE_Blended_Wrapped(oobject_t list, oint32_t ac)
 
 static void
 native_GetFontKerningSize(oobject_t list, oint32_t ac)
-/* int32_t GetFontKerningSize(font_t font, uint16_t prev, uint16_t ch); */
+/* int32_t ttf.GetFontKerningSize(font_t font, uint16_t prev, uint16_t ch); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3870,7 +3885,7 @@ native_GetFontKerningSize(oobject_t list, oint32_t ac)
 
 static void
 native_CloseFont(oobject_t list, oint32_t ac)
-/* void CloseFont(font_t font); */
+/* void ttf.CloseFont(ttf.font_t font); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3887,8 +3902,8 @@ native_CloseFont(oobject_t list, oint32_t ac)
 
 static void
 native_OpenAudio(oobject_t list, oint32_t ac)
-/* audio_t OpenAudio(int32_t frequency, uint16_t format, int32_t channels,
-		     int32_t chunksize); */
+/* mix.audio_t mix.OpenAudio(int32_t frequency, uint16_t format,
+			     int32_t channels, int32_t chunksize); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3910,7 +3925,7 @@ native_OpenAudio(oobject_t list, oint32_t ac)
 
 static void
 native_AllocateChannels(oobject_t list, oint32_t ac)
-/* int32_t AllocateChannels(int32_t channels); */
+/* int32_t mix.AllocateChannels(int32_t channels); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3924,7 +3939,7 @@ native_AllocateChannels(oobject_t list, oint32_t ac)
 
 static void
 native_LoadChunk(oobject_t list, oint32_t ac)
-/* chunk_t LoadChunk(string_t path); */
+/* mix.chunk_t mix.LoadChunk(string_t path); */
 {
     GET_THREAD_SELF()
     Mix_Chunk			*sc;
@@ -3966,7 +3981,8 @@ channel_callback(int channel)
 
 static void
 native_PlayChannel(oobject_t list, oint32_t ac)
-/* int32_t PlayChannel(int32_t channel, chunk_t chunk, int32_t loops); */
+/* int32_t mix.PlayChannel(int32_t channel,
+			   mix.chunk_t chunk, int32_t loops); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3983,8 +3999,8 @@ native_PlayChannel(oobject_t list, oint32_t ac)
 
 static void
 native_FadeInChannel(oobject_t list, oint32_t ac)
-/* int32_t FadeInChannel(int32_t channel, chunk_t chunk,
-			 int32_t loops, int32_t ms); */
+/* int32_t mix.FadeInChannel(int32_t channel, mix.chunk_t chunk,
+			     int32_t loops, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4002,7 +4018,7 @@ native_FadeInChannel(oobject_t list, oint32_t ac)
 
 static void
 native_VolumeChunk(oobject_t list, oint32_t ac)
-/* int32_t VolumeChunk(chunk_t chunk, int32_t volume); */
+/* int32_t mix.VolumeChunk(mix.chunk_t chunk, int32_t volume); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4019,7 +4035,7 @@ native_VolumeChunk(oobject_t list, oint32_t ac)
 
 static void
 native_SetPanning(oobject_t list, oint32_t ac)
-/* int32_t SetPanning(int32_t channel, uint8_t left, uint8_t right); */
+/* int32_t mix.SetPanning(int32_t channel, uint8_t left, uint8_t right); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4033,7 +4049,7 @@ native_SetPanning(oobject_t list, oint32_t ac)
 
 static void
 native_SetPosition(oobject_t list, oint32_t ac)
-/* int32_t SetPosition(int32_t channel, int16_t angle, uint8_t dist); */
+/* int32_t mix.SetPosition(int32_t channel, int16_t angle, uint8_t dist); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4047,7 +4063,7 @@ native_SetPosition(oobject_t list, oint32_t ac)
 
 static void
 native_SetDistance(oobject_t list, oint32_t ac)
-/* int32_t SetDistance(int32_t channel, uint8_t dist); */
+/* int32_t mix.SetDistance(int32_t channel, uint8_t dist); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4061,7 +4077,7 @@ native_SetDistance(oobject_t list, oint32_t ac)
 
 static void
 native_SetReverseStereo(oobject_t list, oint32_t ac)
-/* int32_t SetReverseStereo(int32_t channel, int8_t flip); */
+/* int32_t mix.SetReverseStereo(int32_t channel, int8_t flip); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4075,7 +4091,7 @@ native_SetReverseStereo(oobject_t list, oint32_t ac)
 
 static void
 native_FadeOutChannel(oobject_t list, oint32_t ac)
-/* int32_t FadeOutChannel(int32_t channel, int32_t ms); */
+/* int32_t mix.FadeOutChannel(int32_t channel, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4089,7 +4105,7 @@ native_FadeOutChannel(oobject_t list, oint32_t ac)
 
 static void
 native_Playing(oobject_t list, oint32_t ac)
-/* int32_t Playing(int32_t channel); */
+/* int32_t mix.Playing(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4103,7 +4119,7 @@ native_Playing(oobject_t list, oint32_t ac)
 
 static void
 native_FadingChannel(oobject_t list, oint32_t ac)
-/* int32_t FadingChannel(int32_t channel); */
+/* int32_t mix.FadingChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4117,7 +4133,7 @@ native_FadingChannel(oobject_t list, oint32_t ac)
 
 static void
 native_ExpireChannel(oobject_t list, oint32_t ac)
-/* int32_t ExpireChannel(int32_t channel); */
+/* int32_t mix.ExpireChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4131,7 +4147,7 @@ native_ExpireChannel(oobject_t list, oint32_t ac)
 
 static void
 native_Pause(oobject_t list, oint32_t ac)
-/* void Pause(int32_t channel); */
+/* void mix.Pause(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4145,7 +4161,7 @@ native_Pause(oobject_t list, oint32_t ac)
 
 static void
 native_Resume(oobject_t list, oint32_t ac)
-/* void Resume(int32_t channel); */
+/* void mix.Resume(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4159,7 +4175,7 @@ native_Resume(oobject_t list, oint32_t ac)
 
 static void
 native_Paused(oobject_t list, oint32_t ac)
-/* void Paused(int32_t channel); */
+/* void mix.Paused(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4173,7 +4189,7 @@ native_Paused(oobject_t list, oint32_t ac)
 
 static void
 native_HaltChannel(oobject_t list, oint32_t ac)
-/* int32_t HaltChannel(int32_t channel); */
+/* int32_t mix.HaltChannel(int32_t channel); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4187,7 +4203,7 @@ native_HaltChannel(oobject_t list, oint32_t ac)
 
 static void
 native_FreeChunk(oobject_t list, oint32_t ac)
-/* void FreeChunk(chunk_t chunk); */
+/* void mix.FreeChunk(mix.chunk_t chunk); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4204,7 +4220,7 @@ native_FreeChunk(oobject_t list, oint32_t ac)
 
 static void
 native_GroupChannel(oobject_t list, oint32_t ac)
-/* int32_t GroupChannel(int32_t channel, int32_t tag); */
+/* int32_t mix.GroupChannel(int32_t channel, int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4218,8 +4234,8 @@ native_GroupChannel(oobject_t list, oint32_t ac)
 
 static void
 native_GroupChannels(oobject_t list, oint32_t ac)
-/* int32_t GroupChannels(int32_t from_channel, int32_t to_channel,
-			 int32_t tag); */
+/* int32_t mix.GroupChannels(int32_t from_channel, int32_t to_channel,
+			     int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4233,7 +4249,7 @@ native_GroupChannels(oobject_t list, oint32_t ac)
 
 static void
 native_GroupAvailable(oobject_t list, oint32_t ac)
-/* int32_t GroupAvailable(int32_t tag); */
+/* int32_t mix.GroupAvailable(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4247,7 +4263,7 @@ native_GroupAvailable(oobject_t list, oint32_t ac)
 
 static void
 native_GroupCount(oobject_t list, oint32_t ac)
-/* int32_t GroupCount(int32_t tag); */
+/* int32_t mix.GroupCount(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4261,7 +4277,7 @@ native_GroupCount(oobject_t list, oint32_t ac)
 
 static void
 native_GroupOldest(oobject_t list, oint32_t ac)
-/* int32_t GroupOldest(int32_t tag); */
+/* int32_t mix.GroupOldest(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4275,7 +4291,7 @@ native_GroupOldest(oobject_t list, oint32_t ac)
 
 static void
 native_GroupNewer(oobject_t list, oint32_t ac)
-/* int32_t GroupNewer(int32_t tag); */
+/* int32_t mix.GroupNewer(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4289,7 +4305,7 @@ native_GroupNewer(oobject_t list, oint32_t ac)
 
 static void
 native_FadeOutGroup(oobject_t list, oint32_t ac)
-/* int32_t FadeOutGroup(int32_t tag, int32_t ms); */
+/* int32_t mix.FadeOutGroup(int32_t tag, int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4303,7 +4319,7 @@ native_FadeOutGroup(oobject_t list, oint32_t ac)
 
 static void
 native_HaltGroup(oobject_t list, oint32_t ac)
-/* int32_t HaltGroup(int32_t tag); */
+/* int32_t mix.HaltGroup(int32_t tag); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4317,7 +4333,7 @@ native_HaltGroup(oobject_t list, oint32_t ac)
 
 static void
 native_LoadMusic(oobject_t list, oint32_t ac)
-/* music_t LoadMusic(string_t path); */
+/* mix.music_t mix.LoadMusic(string_t path); */
 {
     GET_THREAD_SELF()
     Mix_Music			*sm;
@@ -4360,7 +4376,7 @@ music_callback(void)
 
 static void
 native_PlayMusic(oobject_t list, oint32_t ac)
-/* int32_t PlayMusic(music_t music, int32_t loops); */
+/* int32_t mix.PlayMusic(mix.music_t music, int32_t loops); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4377,7 +4393,7 @@ native_PlayMusic(oobject_t list, oint32_t ac)
 
 static void
 native_FadeInMusic(oobject_t list, oint32_t ac)
-/* int32_t FadeInMusic(music_t music, int32_t loops, int ms); */
+/* int32_t mix.FadeInMusic(mix.music_t music, int32_t loops, int ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4394,7 +4410,7 @@ native_FadeInMusic(oobject_t list, oint32_t ac)
 
 static void
 native_VolumeMusic(oobject_t list, oint32_t ac)
-/* int32_t VolumeMusic(uint8_t volume); */
+/* int32_t mix.VolumeMusic(uint8_t volume); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4408,7 +4424,7 @@ native_VolumeMusic(oobject_t list, oint32_t ac)
 
 static void
 native_PlayingMusic(oobject_t list, oint32_t ac)
-/* int32_t PlayingMusic(); */
+/* int32_t mix.PlayingMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4420,7 +4436,7 @@ native_PlayingMusic(oobject_t list, oint32_t ac)
 
 static void
 native_FadeOutMusic(oobject_t list, oint32_t ac)
-/* int32_t FadeOutMusic(int32_t ms); */
+/* int32_t mix.FadeOutMusic(int32_t ms); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4434,7 +4450,7 @@ native_FadeOutMusic(oobject_t list, oint32_t ac)
 
 static void
 native_FadingMusic(oobject_t list, oint32_t ac)
-/* int32_t fading_music(); */
+/* int32_t mix.FadingMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4446,7 +4462,7 @@ native_FadingMusic(oobject_t list, oint32_t ac)
 
 static void
 native_PauseMusic(oobject_t list, oint32_t ac)
-/* void pause_music(); */
+/* void mix.PauseMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4458,7 +4474,7 @@ native_PauseMusic(oobject_t list, oint32_t ac)
 
 static void
 native_ResumeMusic(oobject_t list, oint32_t ac)
-/* void resume_music(); */
+/* void mix.ResumeMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4470,7 +4486,7 @@ native_ResumeMusic(oobject_t list, oint32_t ac)
 
 static void
 native_RewindMusic(oobject_t list, oint32_t ac)
-/* void rewind_music(); */
+/* void mix.RewindMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4482,7 +4498,7 @@ native_RewindMusic(oobject_t list, oint32_t ac)
 
 static void
 native_PausedMusic(oobject_t list, oint32_t ac)
-/* void PausedMusic(); */
+/* void mix.PausedMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4494,7 +4510,7 @@ native_PausedMusic(oobject_t list, oint32_t ac)
 
 static void
 native_SetMusicPosition(oobject_t list, oint32_t ac)
-/* int32_t SetMusicPosition(float64_t position); */
+/* int32_t mix.SetMusicPosition(float64_t position); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4508,7 +4524,7 @@ native_SetMusicPosition(oobject_t list, oint32_t ac)
 
 static void
 native_HaltMusic(oobject_t list, oint32_t ac)
-/* int32_t HaltMusic(); */
+/* int32_t mix.HaltMusic(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4520,7 +4536,7 @@ native_HaltMusic(oobject_t list, oint32_t ac)
 
 static void
 native_FreeMusic(oobject_t list, oint32_t ac)
-/* void FreeMusic(music_t music); */
+/* void mix.FreeMusic(mix.music_t music); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4537,7 +4553,7 @@ native_FreeMusic(oobject_t list, oint32_t ac)
 
 static void
 native_CloseAudio(oobject_t list, oint32_t ac)
-/* void CloseAudio(); */
+/* void mix.CloseAudio(); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4568,7 +4584,7 @@ ret_u32(oregister_t *r, ouint32_t v)
 
 static void
 native_ResolveHost(oobject_t list, oint32_t ac)
-/* int32_t ResolveHost(net.address_t addr, string_t host, uint16_t port); */
+/* int32_t net.ResolveHost(net.address_t addr, string_t host, uint16_t port); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4591,7 +4607,7 @@ native_ResolveHost(oobject_t list, oint32_t ac)
 
 static void
 native_ResolveIP(oobject_t list, oint32_t ac)
-/* string_t ResolveIP(ipaddress_t addr); */
+/* string_t  net.ResolveIP( net.address_t addr); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4619,7 +4635,7 @@ native_ResolveIP(oobject_t list, oint32_t ac)
 
 static void
 native_GetLocalAddresses(oobject_t list, oint32_t ac)
-/* sdl.address_t GetLocalAddresses()[]; */
+/* sdl.address_t  net.GetLocalAddresses()[]; */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -4868,7 +4884,9 @@ native_tcp_GetPeerAddress(oobject_t list, oint32_t ac)
 
 static void
 native_tcp_Send(oobject_t list, oint32_t ac)
-/* int32_t net.tcp.Send(net.tcp.socket_t sock, data[]); */
+/* int32_t net.tcp.Send(net.tcp.socket_t sock, (int8_t|uint8_t|
+						int16_t|uint16_t|
+						int32_t|uint32_t) data[]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4916,7 +4934,10 @@ native_tcp_Send(oobject_t list, oint32_t ac)
 
 static void
 native_tcp_Recv(oobject_t list, oint32_t ac)
-/* int32_t net.tcp.Recv(net.tcp.socket_t sock, data[], int32_t length); */
+/* int32_t net.tcp.Recv(net.tcp.socket_t sock, (int8_t|uint8_t|
+						int16_t|uint16_t|
+						int32_t|uint32_t) data[],
+			 int32_t length); */
 {
 
     GET_THREAD_SELF()
@@ -5241,7 +5262,7 @@ native_udp_DelSocket(oobject_t list, oint32_t ac)
 
 static void
 native_ResetAttributes(oobject_t list, oint32_t ac)
-/* void ResetAttributes(); */
+/* void sdl.gl.ResetAttributes(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5253,7 +5274,7 @@ native_ResetAttributes(oobject_t list, oint32_t ac)
 
 static void
 native_SetAttribute(oobject_t list, oint32_t ac)
-/* int32_t SetAttribute(int32_t attr, int32_t value); */
+/* int32_t sdl.gl.SetAttribute(int32_t attr, int32_t value); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5267,7 +5288,7 @@ native_SetAttribute(oobject_t list, oint32_t ac)
 
 static void
 native_GetAttribute(oobject_t list, oint32_t ac)
-/* int32_t GetAttribute(int32_t attr, int32_t value[1]); */
+/* int32_t sdl.gl.GetAttribute(int32_t attr, int32_t value[1]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5285,7 +5306,7 @@ native_GetAttribute(oobject_t list, oint32_t ac)
 
 static void
 native_CreateContext(oobject_t list, oint32_t ac)
-/* context_t CreateContext(window_t window); */
+/* context_t sdl.gl.CreateContext(sdl.window_t window); */
 {
     GET_THREAD_SELF()
     SDL_GLContext			 sc;
@@ -5311,7 +5332,7 @@ native_CreateContext(oobject_t list, oint32_t ac)
 
 static void
 native_MakeCurrent(oobject_t list, oint32_t ac)
-/* int32_t MakeCurrent(window_t window, context_t context); */
+/* int32_t sdl.gl.MakeCurrent(sdl.window_t window, sdl.gl.context_t context); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5333,7 +5354,7 @@ native_MakeCurrent(oobject_t list, oint32_t ac)
 
 static void
 native_GetCurrentWindow(oobject_t list, oint32_t ac)
-/* window_t GetCurrentWindow(); */
+/* sdl.window_t sdl.gl.GetCurrentWindow(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5350,7 +5371,7 @@ native_GetCurrentWindow(oobject_t list, oint32_t ac)
 
 static void
 native_GetCurrentContext(oobject_t list, oint32_t ac)
-/* context_t GetCurrentContext(); */
+/* sdl.gl.context_t sdl.gl.GetCurrentContext(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5367,7 +5388,7 @@ native_GetCurrentContext(oobject_t list, oint32_t ac)
 
 static void
 native_SetSwapInterval(oobject_t list, oint32_t ac)
-/* int32_t SetSwapInterval(int8_t interval); */
+/* int32_t sdl.gl.SetSwapInterval(int8_t interval); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5381,7 +5402,7 @@ native_SetSwapInterval(oobject_t list, oint32_t ac)
 
 static void
 native_GetSwapInterval(oobject_t list, oint32_t ac)
-/* int8_t GetSwapInterval(); */
+/* int8_t sdl.gl.GetSwapInterval(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5393,7 +5414,7 @@ native_GetSwapInterval(oobject_t list, oint32_t ac)
 
 static void
 native_SwapWindow(oobject_t list, oint32_t ac)
-/* void SwapWindow(window_t window); */
+/* void sdl.gl.SwapWindow(sdl.window_t window); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5410,7 +5431,7 @@ native_SwapWindow(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteContext(oobject_t list, oint32_t ac)
-/* void DeleteContext(context_t context); */
+/* void sdl.gl.DeleteContext(sdl.gl.context_t context); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -5427,7 +5448,8 @@ native_DeleteContext(oobject_t list, oint32_t ac)
 
 static void
 native_ReadPixels(oobject_t list, oint32_t ac)
-/* surface_t ReadPixels(int32_t x, int32_t y, int32_t width, int32_t height); */
+/* sdl.surface_t sdl.gl.ReadPixels(int32_t x, int32_t y,
+				   int32_t width, int32_t height); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;
@@ -5477,7 +5499,7 @@ query_format(SDL_Surface *surface, uint32_t *internal, uint32_t *format)
 
 static void
 native_DrawPixels(oobject_t list, oint32_t ac)
-/* void DrawPixels(surface_t surf); */
+/* void sdl.gl.DrawPixels(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;
@@ -5498,7 +5520,7 @@ native_DrawPixels(oobject_t list, oint32_t ac)
 
 static void
 native_TexImage1D(oobject_t list, oint32_t ac)
-/* void TexImage1D(surface_t surf); */
+/* void sdl.gl.TexImage1D(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;
@@ -5521,7 +5543,7 @@ native_TexImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_TexImage2D(oobject_t list, oint32_t ac)
-/* void TexImage2D(surface_t surf); */
+/* void sdl.gl.TexImage2D(sdl.surface_t surf); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;
@@ -5545,7 +5567,8 @@ native_TexImage2D(oobject_t list, oint32_t ac)
 
 static void
 native_TexSubImage1D(oobject_t list, oint32_t ac)
-/* void TexSubImage1D(surface_t surf, int32_t xoff, int32_t width); */
+/* void sdl.gl.TexSubImage1D(sdl.surface_t surf,
+			     int32_t xoff, int32_t width); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;
@@ -5567,8 +5590,8 @@ native_TexSubImage1D(oobject_t list, oint32_t ac)
 
 static void
 native_TexSubImage2D(oobject_t list, oint32_t ac)
-/* void TexSubImage2D(surface_t surf, int32_t xoff, int32_t yoff,
-		      int32_t width, int32_t height); */
+/* void sdl.gl.TexSubImage2D(sdl.surface_t surf, int32_t xoff, int32_t yoff,
+			     int32_t width, int32_t height); */
 {
     GET_THREAD_SELF()
     SDL_Surface				*ss;

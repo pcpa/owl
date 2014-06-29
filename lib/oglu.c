@@ -434,7 +434,7 @@ finish_glu(void)
 
 static void
 native_BeginCurve(oobject_t list, oint32_t ac)
-/* void BeginCurve(nurb_t *nurb); */
+/* void glu.BeginCurve(glu.nurb_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -451,7 +451,7 @@ native_BeginCurve(oobject_t list, oint32_t ac)
 
 static void
 native_BeginPolygon(oobject_t list, oint32_t ac)
-/* void BeginPolygon(tesselator_t tess); */
+/* void glu.BeginPolygon(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -468,7 +468,7 @@ native_BeginPolygon(oobject_t list, oint32_t ac)
 
 static void
 native_BeginSurface(oobject_t list, oint32_t ac)
-/* void BeginSurface(nurbs_t nurb); */
+/* void glu.BeginSurface(glu.nurbs_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -485,7 +485,7 @@ native_BeginSurface(oobject_t list, oint32_t ac)
 
 static void
 native_BeginTrim(oobject_t list, oint32_t ac)
-/* void BeginTrim(nurbs_t nurb); */
+/* void glu.BeginTrim(glu.nurbs_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -502,9 +502,9 @@ native_BeginTrim(oobject_t list, oint32_t ac)
 
 static void
 native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build1DMipmapLevels(uint32_t target,
-			    int32_t width, uint32_t format, int32_t level,
-			    int32_t base, int32_t max, uint8_t data[]); */
+/* void glu.Build1DMipmapLevels(uint32_t target,
+				int32_t width, uint32_t format, int32_t level,
+				int32_t base, int32_t max, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -553,8 +553,8 @@ native_Build1DMipmapLevels(oobject_t list, oint32_t ac)
 
 static void
 native_Build1DMipmaps(oobject_t list, oint32_t ac)
-/* void Build1DMipmaps(uint32_t target,
-		       int32_t width, uint32_t format, uint8_t data[]); */
+/* void glu.Build1DMipmaps(uint32_t target,
+			   int32_t width, uint32_t format, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -604,10 +604,10 @@ native_Build1DMipmaps(oobject_t list, oint32_t ac)
 
 static void
 native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build2DMipmapLevels(uint32_t target,
-			    int32_t width, int32_t height, uint32_t format,
-			    int32_t level, int32_t base, int32_t max,
-			    uint8_t data[]); */
+/* void glu.Build2DMipmapLevels(uint32_t target,
+				int32_t width, int32_t height, uint32_t format,
+				int32_t level, int32_t base, int32_t max,
+				uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -660,9 +660,9 @@ native_Build2DMipmapLevels(oobject_t list, oint32_t ac)
 
 static void
 native_Build2DMipmaps(oobject_t list, oint32_t ac)
-/* void Build2DMipmaps(uint32_t target,
-		       int32_t width, int32_t height, uint32_t format,
-		       uint8_t data[]); */
+/* void glu.Build2DMipmaps(uint32_t target,
+			   int32_t width, int32_t height, uint32_t format,
+			   uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -714,10 +714,10 @@ native_Build2DMipmaps(oobject_t list, oint32_t ac)
 
 static void
 native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
-/* void Build3DMipmapLevels(uint32_t target,
-			    int32_t width, int32_t height, int32_t depth,
-			    uint32_t format, int32_t level, int32_t base,
-			    int32_t max, uint8_t data[]); */
+/* void glu.Build3DMipmapLevels(uint32_t target,
+				int32_t width, int32_t height, int32_t depth,
+				uint32_t format, int32_t level, int32_t base,
+				int32_t max, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -774,9 +774,9 @@ native_Build3DMipmapLevels(oobject_t list, oint32_t ac)
 
 static void
 native_Build3DMipmaps(oobject_t list, oint32_t ac)
-/* void Build3DMipmaps(uint32_t target,
-		       int32_t width, int32_t height, int32_t depth,
-		       uint32_t format, uint8_t data[]); */
+/* void glu.Build3DMipmaps(uint32_t target,
+			   int32_t width, int32_t height, int32_t depth,
+			   uint32_t format, uint8_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -832,7 +832,7 @@ native_Build3DMipmaps(oobject_t list, oint32_t ac)
 
 static void
 native_CheckExtension(oobject_t list, oint32_t ac)
-/* uint8_t CheckExtension(string_t extName, string_t extString); */
+/* uint8_t glu.CheckExtension(string_t extName, string_t extString); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -861,8 +861,8 @@ native_CheckExtension(oobject_t list, oint32_t ac)
 
 static void
 native_Cylinder(oobject_t list, oint32_t ac)
-/* void Cylinder(quadric_t quad, float64_t base, float64_t top,
-		 float64_t height, int32_t slices, int32_t stacks); */
+/* void glu.Cylinder(glu.quadric_t quad, float64_t base, float64_t top,
+		     float64_t height, int32_t slices, int32_t stacks); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -880,7 +880,7 @@ native_Cylinder(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteNurbsRenderer(oobject_t list, oint32_t ac)
-/* void DeleteNurbsRenderer(nurbs_t nurbs); */
+/* void glu.DeleteNurbsRenderer(glu.nurbs_t nurbs); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -900,7 +900,7 @@ native_DeleteNurbsRenderer(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteQuadric(oobject_t list, oint32_t ac)
-/* void DeleteQuadric(quadric_t quadric); */
+/* void glu.DeleteQuadric(glu.quadric_t quadric); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -920,7 +920,7 @@ native_DeleteQuadric(oobject_t list, oint32_t ac)
 
 static void
 native_DeleteTess(oobject_t list, oint32_t ac)
-/* void DeleteTess(tesselator_t tesselator); */
+/* void glu.DeleteTess(glu.tesselator_t tesselator); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -940,8 +940,8 @@ native_DeleteTess(oobject_t list, oint32_t ac)
 
 static void
 native_Disk(oobject_t list, oint32_t ac)
-/* void Disk(quadric_t quad, float64_t inner, float64_t outer,
-	     int32_t slices, int32_t loops); */
+/* void glu.Disk(glu.quadric_t quad, float64_t inner, float64_t outer,
+		 int32_t slices, int32_t loops); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -958,7 +958,7 @@ native_Disk(oobject_t list, oint32_t ac)
 
 static void
 native_EndCurve(oobject_t list, oint32_t ac)
-/* void EndCurve(nurbs_t nurb); */
+/* void glu.EndCurve(glu.nurbs_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -975,7 +975,7 @@ native_EndCurve(oobject_t list, oint32_t ac)
 
 static void
 native_EndPolygon(oobject_t list, oint32_t ac)
-/* void EndPolygon(tesselator_t tess); */
+/* void glu.EndPolygon(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -992,7 +992,7 @@ native_EndPolygon(oobject_t list, oint32_t ac)
 
 static void
 native_EndSurface(oobject_t list, oint32_t ac)
-/* void EndSurface(nurbs_t nurb); */
+/* void glu.EndSurface(glu.nurbs_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1009,7 +1009,7 @@ native_EndSurface(oobject_t list, oint32_t ac)
 
 static void
 native_EndTrim(oobject_t list, oint32_t ac)
-/* void EndTrim(nurbs_t nurb); */
+/* void glu.EndTrim(glu.nurbs_t nurb); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1027,7 +1027,7 @@ native_EndTrim(oobject_t list, oint32_t ac)
 /* FIXME this should be a constant string */
 static void
 native_ErrorString(oobject_t list, oint32_t ac)
-/* string_t ErrorString(uint32_t error); */
+/* string_t glu.ErrorString(uint32_t error); */
 {
     GET_THREAD_SELF()
     const GLubyte			*gv;
@@ -1050,7 +1050,8 @@ native_ErrorString(oobject_t list, oint32_t ac)
 
 static void
 native_GetNurbsProperty(oobject_t list, oint32_t ac)
-/* void GetNurbsProperty(nurbs_t *nurb, uint32_t property, float32_t data[]); */
+/* void glu.GetNurbsProperty(glu.nurbs_t nurb,
+			     uint32_t property, float32_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1088,7 +1089,7 @@ native_GetNurbsProperty(oobject_t list, oint32_t ac)
 /* FIXME this should be a constant string */
 static void
 native_GetString(oobject_t list, oint32_t ac)
-/* string_t GetString(uint32_t name); */
+/* string_t glu.GetString(uint32_t name); */
 {
     GET_THREAD_SELF()
     const GLubyte			*gv;
@@ -1111,8 +1112,8 @@ native_GetString(oobject_t list, oint32_t ac)
 
 static void
 native_GetTessProperty(oobject_t list, oint32_t ac)
-/* void GetTessProperty(tesselator_t *tess, uint32_t which,
-		        float64_t data[]); */
+/* void glu.GetTessProperty(glu.tesselator_t tess, uint32_t which,
+			    float64_t data[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1143,8 +1144,8 @@ native_GetTessProperty(oobject_t list, oint32_t ac)
 
 static void
 native_LoadSamplingMatrices(oobject_t list, oint32_t ac)
-/* void LoadSamplingMatrices(nurbs_t *nurb, float32_t model[],
-			     float32_t perspective[], int32_t view[]); */
+/* void glu.LoadSamplingMatrices(glu.nurbs_t nurb, float32_t model[],
+				 float32_t perspective[], int32_t view[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1171,9 +1172,9 @@ native_LoadSamplingMatrices(oobject_t list, oint32_t ac)
 
 static void
 native_LookAt(oobject_t list, oint32_t ac)
-/* LookAt(float64_t eyeX, float64_t eyeY, float64_t eyeZ,
-	  float64_t centerX, float64_t centerY, float64_t centerZ);
-	  float64_t upX, float64_t upY, float64_t upZ); */
+/* glu.LookAt(float64_t eyeX, float64_t eyeY, float64_t eyeZ,
+	      float64_t centerX, float64_t centerY, float64_t centerZ);
+	      float64_t upX, float64_t upY, float64_t upZ); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1189,7 +1190,7 @@ native_LookAt(oobject_t list, oint32_t ac)
 
 static void
 native_NewNurbsRenderer(oobject_t list, oint32_t ac)
-/* nurbs_t NewNurbsRenderer(); */
+/* glu.nurbs_t glu.NewNurbsRenderer(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1210,7 +1211,7 @@ native_NewNurbsRenderer(oobject_t list, oint32_t ac)
 
 static void
 native_NewQuadric(oobject_t list, oint32_t ac)
-/* quadric_t NewQuadric(); */
+/* glu.quadric_t glu.NewQuadric(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1231,7 +1232,7 @@ native_NewQuadric(oobject_t list, oint32_t ac)
 
 static void
 native_NewTess(oobject_t list, oint32_t ac)
-/* tesselator_t NewTess(); */
+/* glu.tesselator_t glu.NewTess(); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1252,7 +1253,7 @@ native_NewTess(oobject_t list, oint32_t ac)
 
 static void
 native_NextContour(oobject_t list, oint32_t ac)
-/* void NextContour(tesselator_t tess, uint32_t type); */
+/* void glu.NextContour(glu.tesselator_t tess, uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1269,8 +1270,8 @@ native_NextContour(oobject_t list, oint32_t ac)
 
 static void
 native_NurbsCurve(oobject_t list, oint32_t ac)
-/* void NurbsCurve(nurbs_t nurb, float32_t knots[], float32_t control[],
-		   int32_t order, uint32_t type);  */
+/* void glu.NurbsCurve(glu.nurbs_t nurb, float32_t knots[], float32_t control[],
+		       int32_t order, uint32_t type);  */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1311,8 +1312,8 @@ native_NurbsCurve(oobject_t list, oint32_t ac)
 
 static void
 native_Ortho2D(oobject_t list, oint32_t ac)
-/* void Ortho2D(float64_t left, float64_t right,
-		float64_t bottom, float64_t top);*/
+/* void glu.Ortho2D(float64_t left, float64_t right,
+		    float64_t bottom, float64_t top);*/
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1326,7 +1327,8 @@ native_Ortho2D(oobject_t list, oint32_t ac)
 
 static void
 native_NurbsProperty(oobject_t list, oint32_t ac)
-/* void NurbsProperty(nurbs_t nurb, uint32_t property, float32_t value); */
+/* void glu.NurbsProperty(glu.nurbs_t nurb,
+			  uint32_t property, float32_t value); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1343,9 +1345,9 @@ native_NurbsProperty(oobject_t list, oint32_t ac)
 
 static void
 native_NurbsSurface(oobject_t list, oint32_t ac)
-/* void NurbsSurface(nurbs_t nurb, float32_t sKnots[], float32_t tKnots[],
-		     float32_t control[], int32_t sOrder, int32_t tOrder,
-		     uint32_t type);  */
+/* void glu.NurbsSurface(glu.nurbs_t nurb, float32_t sKnots[],
+			 float32_t tKnots[], float32_t control[],
+			 int32_t sOrder, int32_t tOrder, uint32_t type);  */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1377,9 +1379,9 @@ native_NurbsSurface(oobject_t list, oint32_t ac)
 
 static void
 native_PartialDisk(oobject_t list, oint32_t ac)
-/* void PartialDisk(quadric_t quad, float64_t inner, float64_t outer,
-		    int32_t slices, int32_t loops, float64_t start,
-		    float64_t sweep); */
+/* void glu.PartialDisk(glu.quadric_t quad, float64_t inner, float64_t outer,
+			int32_t slices, int32_t loops, float64_t start,
+			float64_t sweep); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1397,8 +1399,8 @@ native_PartialDisk(oobject_t list, oint32_t ac)
 
 static void
 native_Perspective(oobject_t list, oint32_t ac)
-/* static void Perspective(float64_t fovy, float64_t aspec,
-			   float64_t zNear, float64_t zFar); */
+/* void glu.Perspective(float64_t fovy, float64_t aspec,
+			float64_t zNear, float64_t zFar); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1412,8 +1414,8 @@ native_Perspective(oobject_t list, oint32_t ac)
 
 static void
 native_PickMatrix(oobject_t list, oint32_t ac)
-/* void PickMatrix(float64_t x, float64_t y, float64_t delX, float64_t delY,
-		   int32_t viewport[]); */
+/* void glu.PickMatrix(float64_t x, float64_t y, float64_t delX, float64_t delY,
+		       int32_t viewport[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1431,9 +1433,9 @@ native_PickMatrix(oobject_t list, oint32_t ac)
 
 static void
 native_Project(oobject_t list, oint32_t ac)
-/* void Project(float64_t objX, float64_t objY, float64_t objZ,
-		float64_t model[], float64_t proj[], int32_t view[],
-		float64_t winXYZ[]); */
+/* void glu.Project(float64_t objX, float64_t objY, float64_t objZ,
+		    float64_t model[], float64_t proj[], int32_t view[],
+		    float64_t winXYZ[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1462,7 +1464,7 @@ native_Project(oobject_t list, oint32_t ac)
 
 static void
 native_PwlCurve(oobject_t list, oint32_t ac)
-/* void PwlCurve(nurbs_t nurb, float32_t data[], uint32_t type); */
+/* void glu.PwlCurve(glu.nurbs_t nurb, float32_t data[], uint32_t type); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1492,7 +1494,7 @@ native_PwlCurve(oobject_t list, oint32_t ac)
 
 static void
 native_QuadricDrawStyle(oobject_t list, oint32_t ac)
-/* void QuadricDrawStyle(quadric_t quad, uint32_t draw); */
+/* void glu.QuadricDrawStyle(glu.quadric_t quad, uint32_t draw); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1509,7 +1511,7 @@ native_QuadricDrawStyle(oobject_t list, oint32_t ac)
 
 static void
 native_QuadricNormals(oobject_t list, oint32_t ac)
-/* void QuadricNormals(quadric_t quad, uint32_t normal); */
+/* void glu.QuadricNormals(glu.quadric_t quad, uint32_t normal); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1526,7 +1528,7 @@ native_QuadricNormals(oobject_t list, oint32_t ac)
 
 static void
 native_QuadricOrientation(oobject_t list, oint32_t ac)
-/* void QuadricOrientation(quadric_t quad, uint32_t orientation); */
+/* void glu.QuadricOrientation(glu.quadric_t quad, uint32_t orientation); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1543,7 +1545,7 @@ native_QuadricOrientation(oobject_t list, oint32_t ac)
 
 static void
 native_QuadricTexture(oobject_t list, oint32_t ac)
-/* void QuadricTexture(quadric_t quad, uint8_t texture); */
+/* void glu.QuadricTexture(glu.quadric_t quad, uint8_t texture); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1560,9 +1562,9 @@ native_QuadricTexture(oobject_t list, oint32_t ac)
 
 static void
 native_ScaleImage(oobject_t list, oint32_t ac)
-/* void ScaleImage(uint32_t format,
-		   int32_t wIn, int32_t hIn, uint8_t dataIn[],
-		   int32_t wOut, int32_t hOut, uint8_t dataOut[]); */
+/* void glu.ScaleImage(uint32_t format,
+		       int32_t wIn, int32_t hIn, uint8_t dataIn[],
+		       int32_t wOut, int32_t hOut, uint8_t dataOut[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1622,8 +1624,8 @@ native_ScaleImage(oobject_t list, oint32_t ac)
 
 static void
 native_Sphere(oobject_t list, oint32_t ac)
-/* void Sphere(quadric_t quad, float64_t radius,
-	       int32_t slices, int32_t stacks); */
+/* void glu.Sphere(glu.quadric_t quad, float64_t radius,
+		   int32_t slices, int32_t stacks); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1641,7 +1643,7 @@ native_Sphere(oobject_t list, oint32_t ac)
 
 static void
 native_TessBeginContour(oobject_t list, oint32_t ac)
-/* void TessBeginContour(tesselator_t tess); */
+/* void glu.TessBeginContour(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1658,7 +1660,7 @@ native_TessBeginContour(oobject_t list, oint32_t ac)
 
 static void
 native_TessBeginPolygon(oobject_t list, oint32_t ac)
-/* void TessBeginPolygon(tesselator_t tess); */
+/* void glu.TessBeginPolygon(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1675,7 +1677,7 @@ native_TessBeginPolygon(oobject_t list, oint32_t ac)
 
 static void
 native_TessEndContour(oobject_t list, oint32_t ac)
-/* void TessEndContour(tesselator_t tess); */
+/* void glu.TessEndContour(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1692,7 +1694,7 @@ native_TessEndContour(oobject_t list, oint32_t ac)
 
 static void
 native_TessEndPolygon(oobject_t list, oint32_t ac)
-/* void TessEndPolygon(tesselator_t tess); */
+/* void glu.TessEndPolygon(glu.tesselator_t tess); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1709,8 +1711,8 @@ native_TessEndPolygon(oobject_t list, oint32_t ac)
 
 static void
 native_TessNormal(oobject_t list, oint32_t ac)
-/* void TessNormal(tesselator_t tess, float64_t valueX,
-		   float64_t valueY, float64_t valueZ); */
+/* void glu.TessNormal(glu.tesselator_t tess, float64_t valueX,
+		       float64_t valueY, float64_t valueZ); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1727,7 +1729,8 @@ native_TessNormal(oobject_t list, oint32_t ac)
 
 static void
 native_TessProperty(oobject_t list, oint32_t ac)
-/* void TessProperty(tesselator_t tess, uint32_t which, float64_t data); */
+/* void glu.TessProperty(glu.tesselator_t tess,
+			 uint32_t which, float64_t data); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1744,7 +1747,7 @@ native_TessProperty(oobject_t list, oint32_t ac)
 
 static void
 native_TessVertex(oobject_t list, oint32_t ac)
-/* void TessVertex(tesselator_t tess, float64_t location[3]); */
+/* void glu.TessVertex(glu.tesselator_t tess, float64_t location[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1764,9 +1767,9 @@ native_TessVertex(oobject_t list, oint32_t ac)
 
 static void
 native_UnProject(oobject_t list, oint32_t ac)
-/* int32_t UnProject(float64_t winX, float64_t winY, float64_t winZ,
-		    float64_t model[16], float64_t proj[16],
-		    int32_t view[4], float64_t objXYZ[3]); */
+/* int32_t glu.UnProject(float64_t winX, float64_t winY, float64_t winZ,
+			 float64_t model[16], float64_t proj[16],
+			 int32_t view[4], float64_t objXYZ[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
@@ -1797,10 +1800,11 @@ native_UnProject(oobject_t list, oint32_t ac)
 
 static void
 native_UnProject4(oobject_t list, oint32_t ac)
-/* int32_t UnProject4(float64_t winX, float64_t winY, float64_t winZ,
-		      float64_t clipW, float64_t model[16], float64_t proj[16],
-		      int32_t view[4], float64_t nearVal, float64_t farVal,
-		      float64_t objXYZW[3]); */
+/* int32_t glu.UnProject4(float64_t winX, float64_t winY, float64_t winZ,
+			  float64_t clipW, float64_t model[16],
+			  float64_t proj[16], int32_t view[4],
+			  float64_t nearVal, float64_t farVal,
+			  float64_t objXYZW[3]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
