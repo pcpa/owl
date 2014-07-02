@@ -685,7 +685,7 @@ eval_ast_renew(oast_t *ast)
     oeval_ast(ast->r.ast);
     if (ast->r.ast->token == tok_number) {
 	if (ast->r.ast->l.value == null || otype(ast->r.ast->l.value) != t_word)
-	    oparse_error(ast->r.ast, "excepting integer %A", ast->r.ast);
+	    oparse_error(ast->r.ast, "expecting integer %A", ast->r.ast);
 	if (*(oword_t *)ast->r.ast->l.value < 0)
 	    oparse_error(ast->r.ast, "not a positive integer");
     }
