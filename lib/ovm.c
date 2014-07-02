@@ -387,8 +387,12 @@ ovm_raise(oint32_t xcpt)
 {
     GET_THREAD_SELF()
     thread_self->r0.t = t_word;
-    thread_self->r0.v.w = xcpt;
-    thread_self->xcpt = xcpt;
+    if (xcpt != except_unhandled_exception) {
+	thread_self->r0.v.w = xcpt;
+	thread_self->xcpt = xcpt;
+    }
+    else
+	thread_self->r0.v.w = thread_self->xcpt;
     /* While information in the stack */
     search_instruction_pointer();
     siglongjmp(thread_self->env, 1);
