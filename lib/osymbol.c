@@ -217,10 +217,8 @@ onew_exception(orecord_t *record)
 {
     oword_t		 offset;
 
-    assert(record == root_record || otype(record) == t_prototype);
-    assert(record->function);
-
     if (otype(record) == t_prototype) {
+	assert(record->function);
 #if __WORDSIZE == 32
 	record->offset = record->offset & ~3;
 	record->length = (record->length + 3) & ~3;
@@ -239,6 +237,10 @@ onew_exception(orecord_t *record)
     }
     else {
 	assert(otype(record) == t_namespace);
+	/* FIXME this may be a bit confusing, but make easier to access
+	 * symbols by sharing the global data record, and storing
+	 * namespace variables in the root namespace record */
+	record = root_record;
 #if __WORDSIZE == 32
 	record->offset = (record->offset + 3) & ~3;
 	assert(record->offset >= 0);
