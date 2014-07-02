@@ -115,6 +115,9 @@ static void
 emit_new(oast_t *ast);
 
 static void
+emit_renew(oast_t *ast);
+
+static void
 emit_data(oast_t *ast);
 
 static void
@@ -835,6 +838,9 @@ emit(oast_t *ast)
 	case tok_new:
 	    emit_new(ast);
 	    break;
+	case tok_renew:
+	    emit_renew(ast);
+	    break;
 	case tok_data:
 	    emit_data(ast);
 	    break;
@@ -1251,6 +1257,65 @@ emit_new(oast_t *ast)
 	operand_copy(lop, bop);
 	/* op argument is implicitly unget */
 	emit_call_next(null, ctor, null, lop, false, true, false, false);
+    }
+}
+
+static void
+emit_renew(oast_t *ast)
+{
+    obool_t		 imm;
+    ooperand_t		*lop;
+    ooperand_t		*rop;
+    jit_node_t		*jump;
+
+    emit(ast->l.ast);
+    lop = operand_top();
+    /* already validated ast->l.ast is a vector */
+    emit(ast->r.ast);
+    rop = operand_top();
+
+    imm = rop->t == t_half || rop->t == t_word;
+    if (!imm) {
+	emit_load(rop);
+	switch (emit_get_type(rop)) {
+	    case t_half:	case t_word:
+		break;
+	    case t_single:
+		jit_extr_f_d(FPR[rop->u.w], FPR[rop->u.w]);
+	    case t_float:
+		sync_d(rop->u.w);
+	    case t_void:
+		load_r(rop->u.w);
+		jit_prepare();
+		jit_pushargr(GPR[rop->u.w]);
+		emit_finish(ovm_offset, mask1(rop->u.w));
+		load_w(rop->u.w);
+		emit_set_type(rop, t_word);
+		break;
+	    default:
+		abort();
+	}
+    }
+
+    emit_load(lop);
+    load_w(lop->u.w);
+    /* Only null or a compatible object type should be stored */
+    jump = jit_bnei(GPR[lop->u.w], 0);
+    jit_prepare();
+    jit_pushargi(except_null_dereference);
+    jit_finishi(ovm_raise);
+    jit_patch(jump);
+    jit_prepare();
+    jit_pushargr(GPR[lop->u.w]);
+    if (imm) {
+	jit_pushargi(rop->u.w);
+	emit_finish(orenew_vector, mask1(lop->u.w));
+	operand_unget(1);
+    }
+    else {
+	jit_pushargr(GPR[rop->u.w]);
+	emit_finish(orenew_vector, mask2(lop->u.w, rop->u.w));
+	operand_unget(2);
     }
 }
 

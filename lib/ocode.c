@@ -50,6 +50,9 @@ static void
 eval_ast_typeof(oast_t *ast);
 
 static void
+eval_ast_renew(oast_t *ast);
+
+static void
 update_symbol(oast_t *ast, obool_t function);
 
 static void
@@ -173,6 +176,9 @@ oeval_ast(oast_t *ast)
 	    break;
 	case tok_typeof:
 	    eval_ast_typeof(ast);
+	    break;
+	case tok_renew:
+	    eval_ast_renew(ast);
 	    break;
 	case tok_question:
 	    oeval_ast(ast->t.ast);
@@ -665,6 +671,24 @@ eval_ast_typeof(oast_t *ast)
     odel_object(&ast->l.value);
     ast->token = tok_number;
     onew_word(&ast->l.value, type);
+}
+
+static void
+eval_ast_renew(oast_t *ast)
+{
+    otag_t		*tag;
+
+    oeval_ast(ast->l.ast);
+    tag = oeval_ast_tag(ast->l.ast);
+    if (tag == null || tag->type != tag_vector)
+	oparse_error(ast->l.ast, "expecting vector %A", ast->l.ast);
+    oeval_ast(ast->r.ast);
+    if (ast->r.ast->token == tok_number) {
+	if (ast->r.ast->l.value == null || otype(ast->r.ast->l.value) != t_word)
+	    oparse_error(ast->r.ast, "excepting integer %A", ast->r.ast);
+	if (*(oword_t *)ast->r.ast->l.value < 0)
+	    oparse_error(ast->r.ast, "not a positive integer");
+    }
 }
 
 static void

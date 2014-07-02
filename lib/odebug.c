@@ -960,6 +960,9 @@ write_ast(oast_t *ast, oint32_t indent, oformat_t *format)
 		bytes += print_ast(ast->l.ast);
 	    dputc(')');		++bytes;
 	    break;
+	case tok_renew:
+	    bytes += print_ast_binary_function("renew", 5, ast);
+	    break;
 	case tok_thread:
 	    bytes += print_ast_unary_function("thread", 6, ast);
 	    break;

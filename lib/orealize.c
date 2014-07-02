@@ -207,7 +207,11 @@ realize(oast_t *ast)
 	    if (ast->r.ast->token != tok_number)
 		realize(ast->r.ast);
 	    break;
-
+	case tok_renew:
+	    realize(ast->l.ast);
+	    realize(ast->r.ast);
+	    unget(2);
+	    break;
 	case tok_vector:	case tok_hash:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);

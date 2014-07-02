@@ -86,7 +86,7 @@ odata(oast_t *ast)
 	case tok_shrset:	case tok_addset:
 	case tok_subset:	case tok_mulset:
 	case tok_divset:	case tok_trunc2set:
-	case tok_remset:
+	case tok_remset:	case tok_renew:
 	    odata(ast->l.ast);
 	    odata(ast->r.ast);
 	    break;

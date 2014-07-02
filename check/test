@@ -40655,3 +40655,21 @@ namespace t59 {
     if (sizeof(a) != 1)
 	print("error %d\n", __LINE__);
 };
+
+namespace t60 {
+    uint8_t v[2];
+    try {
+	renew(v, 5);
+    }
+    catch (auto e) {
+	// just ensure it will not fail due to renew of a null vector pointer
+    }
+    v = { 1, 2 };
+    int32_t a = 3;
+    renew(v, a);
+    if (sizeof(v) != 3 || v[0] != 1 || v[1] != 2 || v[2] != 0)
+	print("error %d\n", __LINE__);
+    renew(v, 1);
+    if (sizeof(v) != 1 || v[0] != 1)
+	print("error %d %d\n", __LINE__, sizeof(v));
+};
