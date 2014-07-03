@@ -4908,23 +4908,23 @@ native_tcp_Send(oobject_t list, oint32_t ac)
 	    break;
 	case t_int16:		case t_uint16:
 	    length = alist->a1->length << 1;
-	    if (thr_vec->length < length)
-		orenew_vector(thr_vec, length);
+	    if (thr_str->length < length)
+		orenew_vector(thr_str, length);
 	    for (offset = 0; offset < alist->a1->length; offset++)
 		SDLNet_Write16(alist->a1->v.u16[offset],
-			       thr_vec->v.u16 + offset);
+			       thr_str->v.u16 + offset);
 	    r0->v.w = SDLNet_TCP_Send(alist->a0->__socket,
-				      thr_vec->v.obj, length) >> 1;
+				      thr_str->v.obj, length) >> 1;
 	    break;
 	case t_int32:		case t_uint32:
 	    length = alist->a1->length << 2;
-	    if (thr_vec->length < length)
-		orenew_vector(thr_vec, length);
+	    if (thr_str->length < length)
+		orenew_vector(thr_str, length);
 	    for (offset = 0; offset < alist->a1->length; offset++)
 		SDLNet_Write32(alist->a1->v.u32[offset],
-			       thr_vec->v.u32 + offset);
+			       thr_str->v.u32 + offset);
 	    r0->v.w = SDLNet_TCP_Send(alist->a0->__socket,
-				      thr_vec->v.obj, length) >> 2;
+				      thr_str->v.obj, length) >> 2;
 	    break;
 	default:
 	    othrow(except_type_mismatch);
@@ -4956,44 +4956,44 @@ native_tcp_Recv(oobject_t list, oint32_t ac)
     switch (otype(alist->a1) & ~t_vector) {
 	case t_int8:		case t_uint8:
 	    length = alist->a2;
-	    if (thr_vec->length < length)
-		orenew_vector(thr_vec, length);
+	    if (thr_str->length < length)
+		orenew_vector(thr_str, length);
 	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
-					  thr_vec->v.obj,
+					  thr_str->v.obj,
 					  alist->a2)) >= 0) {
 		if (alist->a1->length != length)
 		    orenew_vector(alist->a1, length);
-		memcpy(alist->a1->v.obj, thr_vec->v.obj, length);
+		memcpy(alist->a1->v.obj, thr_str->v.obj, length);
 	    }
 	    else
 		orenew_vector(alist->a1, 0);
 	    break;
 	case t_int16:		case t_uint16:
 	    length = alist->a2 << 1;
-	    if (thr_vec->length < length)
-		orenew_vector(thr_vec, length);
+	    if (thr_str->length < length)
+		orenew_vector(thr_str, length);
 	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
-					  thr_vec->v.obj,
+					  thr_str->v.obj,
 					  length) << 1) >= 0) {
 		if (alist->a1->length != length)
 		    orenew_vector(alist->a1, length);
 		for (offset = 0; offset < length; offset++)
 		    alist->a1->v.u16[offset] =
-			SDLNet_Read16(thr_vec->v.u16 + offset);
+			SDLNet_Read16(thr_str->v.u16 + offset);
 	    }
 	    break;
 	case t_int32:		case t_uint32:
 	    length = alist->a2 << 2;
-	    if (thr_vec->length < length)
-		orenew_vector(thr_vec, length);
+	    if (thr_str->length < length)
+		orenew_vector(thr_str, length);
 	    if ((length = SDLNet_TCP_Recv(alist->a0->__socket,
-					  thr_vec->v.obj,
+					  thr_str->v.obj,
 					  alist->a2) << 2) >= 0) {
 		if (alist->a1->length != length)
 		    orenew_vector(alist->a1, length);
 		for (offset = 0; offset < r0->v.w; offset++)
 		    alist->a1->v.u32[offset] =
-			SDLNet_Read32(thr_vec->v.u32 + offset);
+			SDLNet_Read32(thr_str->v.u32 + offset);
 	    }
 	    break;
 	default:

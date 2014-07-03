@@ -179,7 +179,7 @@ init_object(void)
     cqq_init(&thread_main->qq);
     mpc_init2(&thread_main->cc, thr_prc);
     mpf_init(&thread_main->f);
-    onew_vector((oobject_t *)&thread_main->vec, t_uint8, BUFSIZ);
+    onew_vector((oobject_t *)&thread_main->str, t_uint8, BUFSIZ);
 
 #define init_register(T, N)						\
     do {								\
@@ -304,7 +304,7 @@ onew_thread(oobject_t *pointer)
     cqq_init(&thread->qq);
     mpc_init2(&thread->cc, thr_prc);
     mpf_init(&thread->f);
-    onew_vector((oobject_t *)&thread->vec, t_uint8, BUFSIZ);
+    onew_vector((oobject_t *)&thread->str, t_uint8, BUFSIZ);
 
     init_register(thread, 0);
     init_register(thread, 1);
@@ -1247,8 +1247,8 @@ gc_mark_thread(othread_t *thread)
     if (thread->ev)
 	mark(object_to_memory(thread->ev));
 
-    if (thread->vec)
-	gc_mark(object_to_memory(thread->vec));
+    if (thread->str)
+	gc_mark(object_to_memory(thread->str));
 #define mark_register(N)						\
     do {								\
 	if (thread->r##N.vec)						\

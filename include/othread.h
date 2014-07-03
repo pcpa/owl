@@ -175,7 +175,7 @@ struct othread {
     __cqq_struct	 qq;
     __mpc_struct	 cc;
     __mpf_struct	 f;
-    ovector_t		*vec;
+    ovector_t		*str;
     othread_t		*next;
     pthread_t		 pthread;
 
