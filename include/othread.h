@@ -151,7 +151,6 @@ struct oregister {
     } v;
     __cqq_struct	 qq;
     __mpc_struct	 cc;
-    ovector_t		*vec;
 };
 
 struct othread {

@@ -185,7 +185,6 @@ init_object(void)
     do {								\
 	cqq_init(&T->r##N.qq);						\
 	mpc_init2(&T->r##N.cc, thr_prc);				\
-	onew_vector((oobject_t *)&T->r##N.vec, t_uint8, BUFSIZ);	\
     } while (0)
     init_register(thread_main, 0);
     init_register(thread_main, 1);
@@ -1249,15 +1248,6 @@ gc_mark_thread(othread_t *thread)
 
     if (thread->str)
 	gc_mark(object_to_memory(thread->str));
-#define mark_register(N)						\
-    do {								\
-	if (thread->r##N.vec)						\
-	    gc_mark(object_to_memory(thread->r##N.vec));		\
-    } while (0)
-    mark_register(0);
-    mark_register(1);
-    mark_register(2);
-    mark_register(3);
 
     /* Resume control thread */
     if (stop) {
