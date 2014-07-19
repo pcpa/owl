@@ -12,7 +12,7 @@
 # GNU General Public License for more details.
 #
 # Authors:
-#	Paulo Cesar Pereira de Andrade
+#      Paulo Cesar Pereira de Andrade
 #
 
 bin_PROGRAMS = owl
@@ -30,6 +30,6 @@ SUBDIRS =		\
 	lib
 
 DIST_SUBDIRS =		\
-	check		\
-	include		\
-	lib
+       check		\
+       include		\
+       lib

@@ -1316,7 +1316,7 @@ emit_call_next(ooperand_t *rop,
 		break;
 	    case t_float:
 		if (builtin)
-		    load_w(0);
+		    load_d(0);
 		if (rop->u.w)
 		    jit_movr_d(FPR[rop->u.w], FPR[0]);
 		rop->t = t_float | t_register;
