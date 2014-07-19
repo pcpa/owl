@@ -152,6 +152,30 @@
     } while (0)
 #define define_builtin10(TYPE,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)	\
     define_nsbuiltin10(TYPE, ,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9)
+#define define_nsbuiltin17(TYPE,NS,NAME, A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16)	\
+    do {								\
+	builtin = onew_builtin(#NAME, native_##NS##NAME, TYPE, false);	\
+	onew_argument(builtin, A0);					\
+	onew_argument(builtin, A1);					\
+	onew_argument(builtin, A2);					\
+	onew_argument(builtin, A3);					\
+	onew_argument(builtin, A4);					\
+	onew_argument(builtin, A5);					\
+	onew_argument(builtin, A6);					\
+	onew_argument(builtin, A7);					\
+	onew_argument(builtin, A8);					\
+	onew_argument(builtin, A9);					\
+	onew_argument(builtin, A10);					\
+	onew_argument(builtin, A11);					\
+	onew_argument(builtin, A12);					\
+	onew_argument(builtin, A13);					\
+	onew_argument(builtin, A14);					\
+	onew_argument(builtin, A15);					\
+	onew_argument(builtin, A16);					\
+	oend_builtin(builtin);						\
+    } while (0)
+#define define_builtin17(TYPE,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16)	\
+    define_nsbuiltin17(TYPE, ,NAME,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16)
 
 #define CHECK_NULL(A)							\
     do {								\
@@ -260,6 +284,10 @@ TYPE2(ofloat64_t,ofloat64_t,
       f64_f64);
 TYPE2(ovector_t*,oint32_t,
       vec_i32);
+TYPE2(ovector_t*,ofloat32_t,
+      vec_f32);
+TYPE2(ovector_t*,ofloat64_t,
+      vec_f64);
 TYPE2(ovector_t*,ovector_t*,
       vec_vec);
 #if SDL
@@ -352,6 +380,16 @@ TYPE3(ofloat32_t,ofloat32_t,ofloat32_t,
       f32_f32_f32);
 TYPE3(ofloat64_t,ofloat64_t,ofloat64_t,
       f64_f64_f64);
+TYPE3(ovector_t*,ofloat32_t,ofloat32_t,
+      vec_f32_f32);
+TYPE3(ovector_t*,ofloat64_t,ofloat64_t,
+      vec_f64_f64);
+TYPE3(ovector_t*,ovector_t*,ofloat32_t,
+      vec_vec_f32);
+TYPE3(ovector_t*,ovector_t*,ofloat64_t,
+      vec_vec_f64);
+TYPE3(ovector_t*,ovector_t*,ovector_t*,
+      vec_vec_vec);
 #if SDL
 TYPE3(oint32_t,ochunk_t*,oint32_t,
       i32_chu_i32);
@@ -429,6 +467,10 @@ TYPE4(ofloat32_t, ofloat32_t, ofloat32_t, ofloat32_t,
       f32_f32_f32_f32);
 TYPE4(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
       f64_f64_f64_f64);
+TYPE4(ovector_t*, ofloat32_t, ofloat32_t, ofloat32_t,
+      vec_f32_f32_f32);
+TYPE4(ovector_t*, ofloat64_t, ofloat64_t, ofloat64_t,
+      vec_f64_f64_f64);
 #if SDL
 TYPE4(oint32_t, ochunk_t*, oint32_t, oint32_t,
       i32_chu_i32_i32);
@@ -477,6 +519,10 @@ TYPE5(ouint32_t, ofloat64_t, ofloat64_t, oint32_t, ovector_t*,
       u32_f64_f64_i32_vec);
 TYPE5(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ovector_t*,
       f64_f64_f64_f64_vec);
+TYPE5(ovector_t*, ofloat32_t, ofloat32_t, ofloat32_t,ofloat32_t,
+      vec_f32_f32_f32_f32);
+TYPE5(ovector_t*, ofloat64_t, ofloat64_t, ofloat64_t,ofloat64_t,
+      vec_f64_f64_f64_f64);
 #if SDL
 TYPE5(onurbs_t*, ovector_t*, ovector_t*, oint32_t, ouint32_t,
       nur_vec_vec_i32_u32);
@@ -618,6 +664,42 @@ TYPE10(ouint32_t,oint32_t,oint32_t,oint32_t,oint32_t,ouint32_t,oint32_t,oint32_t
        u32_i32_i32_i32_i32_u32_i32_i32_i32_vec);
 TYPE10(ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ovector_t*,ovector_t*,ovector_t*,ofloat64_t,ofloat64_t,ovector_t*,
        f64_f64_f64_f64_vec_vec_vec_f64_f64_vec);
+TYPE10(ovector_t*,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
+       ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
+       vec_f32_f32_f32_f32_f32_f32_f32_f32_f32);
+TYPE10(ovector_t*,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
+       ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
+       vec_f64_f64_f64_f64_f64_f64_f64_f64_f64);
 #undef TYPE10
+
+#define TYPE17(T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14,T15,T16, N) \
+typedef struct {							\
+    T0			 a0;						\
+    T1			 a1;						\
+    T2			 a2;						\
+    T3			 a3;						\
+    T4			 a4;						\
+    T5			 a5;						\
+    T6			 a6;						\
+    T7			 a7;						\
+    T8			 a8;						\
+    T9			 a9;						\
+    T10			 a10;						\
+    T11			 a11;						\
+    T12			 a12;						\
+    T13			 a13;						\
+    T14			 a14;						\
+    T15			 a15;						\
+    T16			 a16;						\
+} nat_##N##_t
+TYPE17(ovector_t*,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
+       ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
+       ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
+       vec_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32_f32);
+TYPE17(ovector_t*,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
+       ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
+       ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
+       vec_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64_f64);
+#undef TYPE17
 
 #endif /* _obuiltin_h */

@@ -47,6 +47,7 @@ EXTRA_DIST =		\
 	otag.h		\
 	othread.h	\
 	otypes.h	\
+	ovecmat.h	\
 	ovm.h		\
 	owl.h		\
 	owrite.h

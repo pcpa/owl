@@ -76,6 +76,7 @@
 #include "osymbol.h"
 #include "otag.h"
 #include "othread.h"
+#include "ovecmat.h"
 #include "ovm.h"
 #include "owrite.h"
 

@@ -158,6 +158,23 @@ init_tag(void)
 	symbol->type = true;
     }
 
+#define def_vxt(name)							\
+    symbol = onew_symbol(current_record,				\
+			 oget_string((ouint8_t *)#name, 3), null);	\
+    name##_record = onew_namespace(symbol)
+    def_vxt(v2f);
+    def_vxt(v3f);
+    def_vxt(v4f);
+    def_vxt(v2d);
+    def_vxt(v3d);
+    def_vxt(v4d);
+    def_vxt(m2f);
+    def_vxt(m3f);
+    def_vxt(m4f);
+    def_vxt(m2d);
+    def_vxt(m3d);
+    def_vxt(m4d);
+
 #if SDL
     record = current_record;
 

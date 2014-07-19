@@ -49,6 +49,7 @@ libowl_la_SOURCES =	\
 	osymbol.c	\
 	otag.c		\
 	othread.c	\
+	ovecmat.c	\
 	ovm.c		\
 	ovm_void.c	\
 	ovm_word.c	\

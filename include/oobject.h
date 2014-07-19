@@ -106,6 +106,20 @@ enum otype {
     t_cqq,
     t_mpc,
 
+    t_v2f,
+    t_v2d,
+    t_v3f,
+    t_v3d,
+    t_v4f,
+    t_v4d,
+
+    t_m2f,
+    t_m2d,
+    t_m3f,
+    t_m3d,
+    t_m4f,
+    t_m4d,
+
 #if SDL
     /* Note that these can be created dynamically, but are
      * statically assigned here to have constant identifiers,

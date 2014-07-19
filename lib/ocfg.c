@@ -97,6 +97,7 @@ ocfg_main(int argc, char *argv[])
     init_realize();
     init_emit();
     init_hashtable();
+    init_vecmat();
 #if SDL
     init_sdl();
     init_gl();
@@ -141,6 +142,7 @@ ocfg_main(int argc, char *argv[])
     finish_gl();
     finish_sdl();
 #endif
+    finish_vecmat();
     finish_hashtable();
     finish_emit();
     finish_realize();

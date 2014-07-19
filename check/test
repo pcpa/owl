@@ -40673,3 +40673,621 @@ namespace t60 {
     if (sizeof(v) != 1 || v[0] != 1)
 	print("error %d %d\n", __LINE__, sizeof(v));
 };
+
+namespace t61 {
+    uint8_t cmp(float64_t a, float64_t b) {
+	return (abs(abs(a) - abs(b)) > 1000000.0);
+    }
+    float32_t v2f_a[2] = { 1, 2 };
+    float32_t v2f_b[2] = { 3, 4 };
+    float32_t v2f_c[2] = {};
+    v2f.set(v2f_c, 5, 6);
+    if (v2f_c[0] != 5 || v2f_c[1] != 6) 	    print("error %d\n", __LINE__);
+    v2f.fill(v2f_c, -1);
+    if (v2f_c[0] != -1 || v2f_c[1] != -1)	    print("error %d\n", __LINE__);
+    v2f.copy(v2f_c, v2f_a);
+    if (v2f_c[0] != 1 || v2f_c[1] != 2) 	    print("error %d\n", __LINE__);
+    if (v2f.length(v2f_b) != 5) 		    print("error %d\n", __LINE__);
+    if (v2f.dot(v2f_a, v2f_b) != 11)		    print("error %d\n", __LINE__);
+    v2f.normalize(v2f_c, v2f_b);
+    if (cmp(v2f_c[0], 0.6) || cmp(v2f_c[1], 0.8))   print("error %d\n", __LINE__);
+    v2f.scale(v2f_c, v2f_b, 2);
+    if (v2f_c[0] != 6 || v2f_c[1] != 8) 	    print("error %d\n", __LINE__);
+    v2f.neg(v2f_c, v2f_a);
+    if (v2f_c[0] != -1 || v2f_c[1] != -2)	    print("error %d\n", __LINE__);
+    v2f.add(v2f_c, v2f_a, v2f_b);
+    if (v2f_c[0] != 4 || v2f_c[1] != 6) 	    print("error %d\n", __LINE__);
+    v2f.sub(v2f_c, v2f_a, v2f_b);
+    if (v2f_c[0] != -2 || v2f_c[1] != -2)	    print("error %d\n", __LINE__);
+    v2f.mul(v2f_c, v2f_a, v2f_b);
+    if (v2f_c[0] != 3 || v2f_c[1] != 8) 	    print("error %d\n", __LINE__);
+    v2f.div(v2f_c, v2f_a, v2f_b);
+    if (cmp(v2f_c[0], 1/3) || v2f_c[1] != 0.5)	    print("error %d\n", __LINE__);
+    float32_t v3f_a[3] = { 1, 2, 3 };
+    float32_t v3f_b[3] = { 4, 5, 6 };
+    float32_t v3f_c[3] = {};
+    v3f.set(v3f_c, 7, 8, 9);
+    if (v3f_c[0] != 7 || v3f_c[1] != 8 || v3f_c[2] != 9)
+	print("error %d\n", __LINE__);
+    v3f.fill(v3f_c, -1);
+    if (v3f_c[0] != -1 || v3f_c[1] != -1 || v3f_c[2] != -1)
+	print("error %d\n", __LINE__);
+    v3f.copy(v3f_c, v3f_a);
+    if (v3f_c[0] != 1 || v3f_c[1] != 2 || v3f_c[2] != 3)
+	print("error %d\n", __LINE__);
+    if (cmp(v3f.length(v3f_b), 8.774964))	    print("error %d\n", __LINE__);
+    if (v3f.dot(v3f_a, v3f_b) != 32)		    print("error %d\n", __LINE__);
+    v3f.normalize(v3f_c, v3f_b);
+    if (cmp(v3f_c[0], 0.455842) || cmp(v3f_c[1], 0.569803) ||
+	cmp(v3f_c[2], 0.683764))    print("error %d\n", __LINE__);
+    v3f.scale(v3f_c, v3f_b, 2);
+    if (v3f_c[0] != 8 || v3f_c[1] != 10 || v3f_c[2] != 12)
+	print("error %d\n", __LINE__);
+    v3f.cross(v3f_c, v3f_a, v3f_b);
+    if (v3f_c[0] != -3 || v3f_c[1] != 6 || v3f_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3f.neg(v3f_c, v3f_a);
+    if (v3f_c[0] != -1 || v3f_c[1] != -2 || v3f_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3f.add(v3f_c, v3f_a, v3f_b);
+    if (v3f_c[0] != 5 || v3f_c[1] != 7 || v3f_c[2] != 9)
+	print("error %d\n", __LINE__);
+    v3f.sub(v3f_c, v3f_a, v3f_b);
+    if (v3f_c[0] != -3 || v3f_c[1] != -3 || v3f_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3f.mul(v3f_c, v3f_a, v3f_b);
+    if (v3f_c[0] != 4 || v3f_c[1] != 10 || v3f_c[2] != 18)
+	print("error %d\n", __LINE__);
+    v3f.div(v3f_c, v3f_a, v3f_b);
+    if (v3f_c[0] != 0.25 || cmp(v3f_c[1], 2/5) || v3f_c[2] != 0.5)
+	print("error %d\n", __LINE__);
+    float32_t v4f_a[4] = { 1, 2, 3, 4 };
+    float32_t v4f_b[4] = { 5, 6, 7, 8 };
+    float32_t v4f_c[4] = {};
+    v4f.set(v4f_c, 9, 10, 11, 12);
+    if (v4f_c[0] != 9 || v4f_c[1] != 10 || v4f_c[2] != 11 || v4f_c[3] != 12)
+	print("error %d\n", __LINE__);
+    v4f.fill(v4f_c, -1);
+    if (v4f_c[0] != -1 || v4f_c[1] != -1 || v4f_c[2] != -1 || v4f_c[3] != -1)
+	print("error %d\n", __LINE__);
+    v4f.copy(v4f_c, v4f_a);
+    if (v4f_c[0] != 1 || v4f_c[1] != 2 || v4f_c[2] != 3 || v4f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    if (cmp(v4f.length(v4f_b), 13.190906))	    print("error %d\n", __LINE__);
+    if (v4f.dot(v4f_a, v4f_b) != 70)		    print("error %d\n", __LINE__);
+    v4f.normalize(v4f_c, v4f_b);
+    if (cmp(v4f_c[0], 0.379049) || cmp(v4f_c[1], 0.454859) ||
+	cmp(v4f_c[2], 0.530669) || cmp(v4f_c[3], 0.606478))
+	print("error %d\n", __LINE__);
+    v4f.scale(v4f_c, v4f_b, 2);
+    if (v4f_c[0] != 10 || v4f_c[1] != 12 || v4f_c[2] != 14 || v4f_c[3] != 16)
+	print("error %d\n", __LINE__);
+    v4f.neg(v4f_c, v4f_a);
+    if (v4f_c[0] != -1 || v4f_c[1] != -2 || v4f_c[2] != -3 || v4f_c[3] != -4)
+	print("error %d\n", __LINE__);
+    v4f.add(v4f_c, v4f_a, v4f_b);
+    if (v4f_c[0] != 6 || v4f_c[1] != 8 || v4f_c[2] != 10 || v4f_c[3] != 12)
+	print("error %d\n", __LINE__);
+    v4f.sub(v4f_c, v4f_a, v4f_b);
+    if (v4f_c[0] != -4 || v4f_c[1] != -4 || v4f_c[2] != -4 || v4f_c[3] != -4)
+	print("error %d\n", __LINE__);
+    v4f.mul(v4f_c, v4f_a, v4f_b);
+    if (v4f_c[0] != 5 || v4f_c[1] != 12 || v4f_c[2] != 21 || v4f_c[3] != 32)
+	print("error %d\n", __LINE__);
+    v4f.div(v4f_c, v4f_a, v4f_b);
+    if (v4f_c[0] != 0.2 || cmp(v4f_c[1], 2/6) ||
+	cmp(v4f_c[2], 3/7) || v4f_c[3] != 0.5)
+	print("error %d\n", __LINE__);
+    float64_t v2d_a[2] = { 1, 2 };
+    float64_t v2d_b[2] = { 3, 4 };
+    float64_t v2d_c[2] = {};
+    v2d.set(v2d_c, 5, 6);
+    if (v2d_c[0] != 5 || v2d_c[1] != 6) 	    print("error %d\n", __LINE__);
+    v2d.fill(v2d_c, -1);
+    if (v2d_c[0] != -1 || v2d_c[1] != -1)	    print("error %d\n", __LINE__);
+    v2d.copy(v2d_c, v2d_a);
+    if (v2d_c[0] != 1 || v2d_c[1] != 2) 	    print("error %d\n", __LINE__);
+    if (v2d.length(v2d_b) != 5) 		    print("error %d\n", __LINE__);
+    if (v2d.dot(v2d_a, v2d_b) != 11)		    print("error %d\n", __LINE__);
+    v2d.normalize(v2d_c, v2d_b);
+    if (cmp(v2d_c[0], 0.6) || cmp(v2d_c[1], 0.8))   print("error %d\n", __LINE__);
+    v2d.scale(v2d_c, v2d_b, 2);
+    if (v2d_c[0] != 6 || v2d_c[1] != 8) 	    print("error %d\n", __LINE__);
+    v2d.neg(v2d_c, v2d_a);
+    if (v2d_c[0] != -1 || v2d_c[1] != -2)	    print("error %d\n", __LINE__);
+    v2d.add(v2d_c, v2d_a, v2d_b);
+    if (v2d_c[0] != 4 || v2d_c[1] != 6) 	    print("error %d\n", __LINE__);
+    v2d.sub(v2d_c, v2d_a, v2d_b);
+    if (v2d_c[0] != -2 || v2d_c[1] != -2)	    print("error %d\n", __LINE__);
+    v2d.mul(v2d_c, v2d_a, v2d_b);
+    if (v2d_c[0] != 3 || v2d_c[1] != 8) 	    print("error %d\n", __LINE__);
+    v2d.div(v2d_c, v2d_a, v2d_b);
+    if (cmp(v2d_c[0], 1/3) || v2d_c[1] != 0.5)	    print("error %d\n", __LINE__);
+    float64_t v3d_a[3] = { 1, 2, 3 };
+    float64_t v3d_b[3] = { 4, 5, 6 };
+    float64_t v3d_c[3] = {};
+    v3d.set(v3d_c, 7, 8, 9);
+    if (v3d_c[0] != 7 || v3d_c[1] != 8 || v3d_c[2] != 9)
+	print("error %d\n", __LINE__);
+    v3d.fill(v3d_c, -1);
+    if (v3d_c[0] != -1 || v3d_c[1] != -1 || v3d_c[2] != -1)
+	print("error %d\n", __LINE__);
+    v3d.copy(v3d_c, v3d_a);
+    if (v3d_c[0] != 1 || v3d_c[1] != 2 || v3d_c[2] != 3)
+	print("error %d\n", __LINE__);
+    if (cmp(v3d.length(v3d_b), 8.774964))	    print("error %d\n", __LINE__);
+    if (v3d.dot(v3d_a, v3d_b) != 32)		    print("error %d\n", __LINE__);
+    v3d.normalize(v3d_c, v3d_b);
+    if (cmp(v3d_c[0], 0.455842) || cmp(v3d_c[1], 0.569803) ||
+	cmp(v3d_c[2], 0.683764))    print("error %d\n", __LINE__);
+    v3d.scale(v3d_c, v3d_b, 2);
+    if (v3d_c[0] != 8 || v3d_c[1] != 10 || v3d_c[2] != 12)
+	print("error %d\n", __LINE__);
+    v3d.cross(v3d_c, v3d_a, v3d_b);
+    if (v3d_c[0] != -3 || v3d_c[1] != 6 || v3d_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3d.neg(v3d_c, v3d_a);
+    if (v3d_c[0] != -1 || v3d_c[1] != -2 || v3d_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3d.add(v3d_c, v3d_a, v3d_b);
+    if (v3d_c[0] != 5 || v3d_c[1] != 7 || v3d_c[2] != 9)
+	print("error %d\n", __LINE__);
+    v3d.sub(v3d_c, v3d_a, v3d_b);
+    if (v3d_c[0] != -3 || v3d_c[1] != -3 || v3d_c[2] != -3)
+	print("error %d\n", __LINE__);
+    v3d.mul(v3d_c, v3d_a, v3d_b);
+    if (v3d_c[0] != 4 || v3d_c[1] != 10 || v3d_c[2] != 18)
+	print("error %d\n", __LINE__);
+    v3d.div(v3d_c, v3d_a, v3d_b);
+    if (v3d_c[0] != 0.25 || cmp(v3d_c[1], 2/5) || v3d_c[2] != 0.5)
+	print("error %d\n", __LINE__);
+    float64_t v4d_a[4] = { 1, 2, 3, 4 };
+    float64_t v4d_b[4] = { 5, 6, 7, 8 };
+    float64_t v4d_c[4] = {};
+    v4d.set(v4d_c, 9, 10, 11, 12);
+    if (v4d_c[0] != 9 || v4d_c[1] != 10 || v4d_c[2] != 11 || v4d_c[3] != 12)
+	print("error %d\n", __LINE__);
+    v4d.fill(v4d_c, -1);
+    if (v4d_c[0] != -1 || v4d_c[1] != -1 || v4d_c[2] != -1 || v4d_c[3] != -1)
+	print("error %d\n", __LINE__);
+    v4d.copy(v4d_c, v4d_a);
+    if (v4d_c[0] != 1 || v4d_c[1] != 2 || v4d_c[2] != 3 || v4d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    if (cmp(v4d.length(v4d_b), 13.190906))	    print("error %d\n", __LINE__);
+    if (v4d.dot(v4d_a, v4d_b) != 70)		    print("error %d\n", __LINE__);
+    v4d.normalize(v4d_c, v4d_b);
+    if (cmp(v4d_c[0], 0.379049) || cmp(v4d_c[1], 0.454859) ||
+	cmp(v4d_c[2], 0.530669) || cmp(v4d_c[3], 0.606478))
+	print("error %d\n", __LINE__);
+    v4d.scale(v4d_c, v4d_b, 2);
+    if (v4d_c[0] != 10 || v4d_c[1] != 12 || v4d_c[2] != 14 || v4d_c[3] != 16)
+	print("error %d\n", __LINE__);
+    v4d.neg(v4d_c, v4d_a);
+    if (v4d_c[0] != -1 || v4d_c[1] != -2 || v4d_c[2] != -3 || v4d_c[3] != -4)
+	print("error %d\n", __LINE__);
+    v4d.add(v4d_c, v4d_a, v4d_b);
+    if (v4d_c[0] != 6 || v4d_c[1] != 8 || v4d_c[2] != 10 || v4d_c[3] != 12)
+	print("error %d\n", __LINE__);
+    v4d.sub(v4d_c, v4d_a, v4d_b);
+    if (v4d_c[0] != -4 || v4d_c[1] != -4 || v4d_c[2] != -4 || v4d_c[3] != -4)
+	print("error %d\n", __LINE__);
+    v4d.mul(v4d_c, v4d_a, v4d_b);
+    if (v4d_c[0] != 5 || v4d_c[1] != 12 || v4d_c[2] != 21 || v4d_c[3] != 32)
+	print("error %d\n", __LINE__);
+    v4d.div(v4d_c, v4d_a, v4d_b);
+    if (v4d_c[0] != 0.2 || cmp(v4d_c[1], 2/6) ||
+	cmp(v4d_c[2], 3/7) || v4d_c[3] != 0.5)
+	print("error %d\n", __LINE__);
+    float32_t m2f_a[4] = { 1, 2, 3, 4 };
+    float32_t m2f_b[4] = { 4, 3, 2, 1 };
+    float32_t m2f_c[4] = {};
+    m2f.set(m2f_c, 1, 2, 3, 4);
+    if (m2f_c[0] != 1 || m2f_c[1] != 2 || m2f_c[2] != 3 || m2f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2f.fill(m2f_c, -1);
+    if (m2f_c[0] != -1 || m2f_c[1] != -1 || m2f_c[2] != -1 || m2f_c[3] != -1)
+	print("error %d\n", __LINE__);
+    m2f.identity(m2f_c);
+    if (m2f_c[0] != 1 || m2f_c[1] != 0 || m2f_c[2] != 0 || m2f_c[3] != 1)
+	print("error %d\n", __LINE__);
+    m2f.copy(m2f_c, m2f_a);
+    if (m2f_c[0] != 1 || m2f_c[1] != 2 || m2f_c[2] != 3 || m2f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    if (m2f.det(m2f_a) != -2)			    print("error %d\n", __LINE__);
+    m2f.transpose(m2f_c, m2f_a);
+    if (m2f_c[0] != 1 || m2f_c[1] != 3 || m2f_c[2] != 2 || m2f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2f.transpose(m2f_c, m2f_c);
+    if (m2f_c[0] != 1 || m2f_c[1] != 2 || m2f_c[2] != 3 || m2f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2f.scale(m2f_c, m2f_a, 2);
+    if (m2f_c[0] !=  2 || m2f_c[1] != 4 || m2f_c[2] != 6 || m2f_c[3] != 8)
+	print("error %d\n", __LINE__);
+    m2f.inverse(m2f_c, m2f_a);
+    if (m2f_c[0] != -2 || m2f_c[1] != 1 || m2f_c[2] != 1.5 || m2f_c[3] != -0.5)
+	print("error %d\n", __LINE__);
+    m2f.neg(m2f_c, m2f_a);
+    if (m2f_c[0] != -1 || m2f_c[1] != -2 || m2f_c[2] != -3 || m2f_c[3] != -4)
+	print("error %d\n", __LINE__);
+    m2f.add(m2f_c, m2f_a, m2f_b);
+    if (m2f_c[0] != 5 || m2f_c[1] != 5 || m2f_c[2] != 5 || m2f_c[3] != 5)
+	print("error %d\n", __LINE__);
+    m2f.sub(m2f_c, m2f_a, m2f_b);
+    if (m2f_c[0] != -3 || m2f_c[1] != -1 || m2f_c[2] != 1 || m2f_c[3] != 3)
+	print("error %d\n", __LINE__);
+    m2f.mul(m2f_c, m2f_a, m2f_b);
+    if (m2f_c[0] != 13 || m2f_c[1] != 20 || m2f_c[2] != 5 || m2f_c[3] != 8)
+	print("error %d\n", __LINE__);
+    m2f.div(m2f_c, m2f_a, m2f_b);
+    if (m2f_c[0] != 4 || m2f_c[1] != 5 || m2f_c[2] != -5 || m2f_c[3] != -6)
+	print("error %d\n", __LINE__);
+    float32_t m3f_a[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    float32_t m3f_b[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+    float32_t m3f_c[9] = {};
+    m3f.set(m3f_c, 1, 2, 3, 4, 5, 4, 3, 2, 1);
+    if (m3f_c[0] != 1 || m3f_c[1] != 2 || m3f_c[2] != 3 ||
+	m3f_c[3] != 4 || m3f_c[4] != 5 || m3f_c[5] != 4 ||
+	m3f_c[6] != 3 || m3f_c[7] != 2 || m3f_c[8] != 1)
+	print("error %d\n", __LINE__);
+    m3f.fill(m3f_c, -1);
+    if (m3f_c[0] != -1 || m3f_c[1] != -1 || m3f_c[2] != -1 ||
+	m3f_c[3] != -1 || m3f_c[4] != -1 || m3f_c[5] != -1 ||
+	m3f_c[6] != -1 || m3f_c[7] != -1 || m3f_c[8] != -1)
+	print("error %d\n", __LINE__);
+    m3f.identity(m3f_c);
+    if (m3f_c[0] != 1 || m3f_c[1] != 0 || m3f_c[2] != 0 ||
+	m3f_c[3] != 0 || m3f_c[4] != 1 || m3f_c[5] != 0 ||
+	m3f_c[6] != 0 || m3f_c[7] != 0 || m3f_c[8] != 1)
+	print("error %d\n", __LINE__);
+    m3f.copy(m3f_c, m3f_a);
+    if (m3f_c[0] != 1 || m3f_c[1] != 2 || m3f_c[2] != 3 ||
+	m3f_c[3] != 4 || m3f_c[4] != 5 || m3f_c[5] != 6 ||
+	m3f_c[6] != 7 || m3f_c[7] != 8 || m3f_c[8] != 9)
+	print("error %d\n", __LINE__);
+    if (m3f.det(m3f_a) != 0)			    print("error %d\n", __LINE__);
+    m3f.transpose(m3f_c, m3f_a);
+    if (m3f_c[0] != 1 || m3f_c[1] != 4 || m3f_c[2] != 7 ||
+	m3f_c[3] != 2 || m3f_c[4] != 5 || m3f_c[5] != 8 ||
+	m3f_c[6] != 3 || m3f_c[7] != 6 || m3f_c[8] != 9)
+	print("error %d\n", __LINE__);
+    m3f.transpose(m3f_c, m3f_c);
+    if (m3f_c[0] != 1 || m3f_c[1] != 2 || m3f_c[2] != 3 ||
+	m3f_c[3] != 4 || m3f_c[4] != 5 || m3f_c[5] != 6 ||
+	m3f_c[6] != 7 || m3f_c[7] != 8 || m3f_c[8] != 9)
+	print("error %d\n", __LINE__);
+    m3f.scale(m3f_c, m3f_a, 2);
+    if (m3f_c[0] !=  2 || m3f_c[1] !=  4 || m3f_c[2] !=  6 ||
+	m3f_c[3] !=  8 || m3f_c[4] != 10 || m3f_c[5] != 12 ||
+	m3f_c[6] != 14 || m3f_c[7] != 16 || m3f_c[8] != 18)
+	print("error %d\n", __LINE__);
+    m3f.set(m3f_c,
+	     7, 2,  1,
+	     0, 3, -1,
+	    -3, 4, -2);
+    m3f.inverse(m3f_c, m3f_c);
+    if (m3f_c[0] != -2 || m3f_c[1] !=	8 || m3f_c[2] != -5 ||
+	m3f_c[3] !=  3 || m3f_c[4] != -11 || m3f_c[5] !=  7 ||
+	m3f_c[6] !=  9 || m3f_c[7] != -34 || m3f_c[8] != 21)
+	print("error %d\n", __LINE__);
+    m3f.neg(m3f_c, m3f_a);
+    if (m3f_c[0] != -1 || m3f_c[1] != -2 || m3f_c[2] != -3 ||
+	m3f_c[3] != -4 || m3f_c[4] != -5 || m3f_c[5] != -6 ||
+	m3f_c[6] != -7 || m3f_c[7] != -8 || m3f_c[8] != -9)
+	print("error %d\n", __LINE__);
+    m3f.add(m3f_c, m3f_a, m3f_b);
+    if (m3f_c[0] != 10 || m3f_c[1] != 10 || m3f_c[2] != 10 ||
+	m3f_c[3] != 10 || m3f_c[4] != 10 || m3f_c[5] != 10 ||
+	m3f_c[6] != 10 || m3f_c[7] != 10 || m3f_c[8] != 10)
+	print("error %d\n", __LINE__);
+    m3f.sub(m3f_c, m3f_a, m3f_b);
+    if (m3f_c[0] != -8 || m3f_c[1] != -6 || m3f_c[2] != -4 ||
+	m3f_c[3] != -2 || m3f_c[4] !=  0 || m3f_c[5] !=  2 ||
+	m3f_c[6] !=  4 || m3f_c[7] !=  6 || m3f_c[8] !=  8)
+	print("error %d\n", __LINE__);
+    m3f.mul(m3f_c, m3f_a, m3f_b);
+    if (m3f_c[0] != 90 || m3f_c[1] != 114 || m3f_c[2] != 138 ||
+	m3f_c[3] != 54 || m3f_c[4] !=  69 || m3f_c[5] !=  84 ||
+	m3f_c[6] != 18 || m3f_c[7] !=  24 || m3f_c[8] !=  30)
+	print("error %d\n", __LINE__);
+    m3f.set(m3f_c,
+	     7, 2,  1,
+	     0, 3, -1,
+	    -3, 4, -2);
+    m3f.div(m3f_c, m3f_a, m3f_c);
+    if (m3f_c[0] != -5 || m3f_c[1] != -4 || m3f_c[2] != -3 ||
+	m3f_c[3] !=  8 || m3f_c[4] !=  7 || m3f_c[5] !=  6 ||
+	m3f_c[6] != 20 || m3f_c[7] != 16 || m3f_c[8] != 12)
+	print("error %d\n", __LINE__);
+    float32_t m4f_a[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    float32_t m4f_b[16] = { 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+    float32_t m4f_c[16] = {};
+    m4f.fill(m4f_c, -1);
+    if (m4f_c[ 0] != -1 || m4f_c[ 1] != -1 || m4f_c[ 2] != -1 || m4f_c[ 3] != -1 ||
+	m4f_c[ 4] != -1 || m4f_c[ 5] != -1 || m4f_c[ 6] != -1 || m4f_c[ 7] != -1 ||
+	m4f_c[ 8] != -1 || m4f_c[ 9] != -1 || m4f_c[10] != -1 || m4f_c[11] != -1 ||
+	m4f_c[12] != -1 || m4f_c[13] != -1 || m4f_c[14] != -1 || m4f_c[15] != -1)
+	print("error %d\n", __LINE__);
+    m4f.identity(m4f_c);
+    if (m4f_c[ 0] != 1 || m4f_c[ 1] != 0 || m4f_c[ 2] != 0 || m4f_c[ 3] != 0 ||
+	m4f_c[ 4] != 0 || m4f_c[ 5] != 1 || m4f_c[ 6] != 0 || m4f_c[ 7] != 0 ||
+	m4f_c[ 8] != 0 || m4f_c[ 9] != 0 || m4f_c[10] != 1 || m4f_c[11] != 0 ||
+	m4f_c[12] != 0 || m4f_c[13] != 0 || m4f_c[14] != 0 || m4f_c[15] != 1)
+	print("error %d\n", __LINE__);
+    m4f.copy(m4f_c, m4f_a);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] !=  5 || m4f_c[ 5] !=  6 || m4f_c[ 6] !=  7 || m4f_c[ 7] !=  8 ||
+	m4f_c[ 8] !=  9 || m4f_c[ 9] != 10 || m4f_c[10] != 11 || m4f_c[11] != 12 ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
+    if (m4f.det(m4f_a) != 0)			    print("error %d\n", __LINE__);
+    m4f.transpose(m4f_c, m4f_a);
+    if (m4f_c[ 0] != 1 || m4f_c[ 1] != 5 || m4f_c[ 2] !=  9 || m4f_c[ 3] != 13 ||
+	m4f_c[ 4] != 2 || m4f_c[ 5] != 6 || m4f_c[ 6] != 10 || m4f_c[ 7] != 14 ||
+	m4f_c[ 8] != 3 || m4f_c[ 9] != 7 || m4f_c[10] != 11 || m4f_c[11] != 15 ||
+	m4f_c[12] != 4 || m4f_c[13] != 8 || m4f_c[14] != 12 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4f.transpose(m4f_c, m4f_c);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] !=  5 || m4f_c[ 5] !=  6 || m4f_c[ 6] !=  7 || m4f_c[ 7] !=  8 ||
+	m4f_c[ 8] !=  9 || m4f_c[ 9] != 10 || m4f_c[10] != 11 || m4f_c[11] != 12 ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4f.scale(m4f_c, m4f_a, 2);
+    if (m4f_c[ 0] !=  2 || m4f_c[ 1] !=  4 || m4f_c[ 2] !=  6 || m4f_c[ 3] !=  8 ||
+	m4f_c[ 4] != 10 || m4f_c[ 5] != 12 || m4f_c[ 6] != 14 || m4f_c[ 7] != 16 ||
+	m4f_c[ 8] != 18 || m4f_c[ 9] != 20 || m4f_c[10] != 22 || m4f_c[11] != 24 ||
+	m4f_c[12] != 26 || m4f_c[13] != 28 || m4f_c[14] != 30 || m4f_c[15] != 32)
+	print("error %d\n", __LINE__);
+    m4f.set(m4f_c,
+	     7, 2,  1, 1,
+	     0, 3, -1, 2,
+	    -3, 4, -2, 3,
+	     0, 0,  0, 1);
+    m4f.inverse(m4f_c, m4f_c);
+    if (m4f_c[ 0] != -2 || m4f_c[ 1] !=   8 || m4f_c[ 2] != -5 || m4f_c[ 3] !=	1 ||
+	m4f_c[ 4] !=  3 || m4f_c[ 5] != -11 || m4f_c[ 6] !=  7 || m4f_c[ 7] != -2 ||
+	m4f_c[ 8] !=  9 || m4f_c[ 9] != -34 || m4f_c[10] != 21 || m4f_c[11] != -4 ||
+	m4f_c[12] !=  0 || m4f_c[13] !=   0 || m4f_c[14] !=  0 || m4f_c[15] != 1)
+	print("error %d\n", __LINE__);
+    m4f.neg(m4f_c, m4f_a);
+    if (m4f_c[ 0] !=  -1 || m4f_c[ 1] !=  -2 || m4f_c[ 2] !=  -3 || m4f_c[ 3] !=  -4 ||
+	m4f_c[ 4] !=  -5 || m4f_c[ 5] !=  -6 || m4f_c[ 6] !=  -7 || m4f_c[ 7] !=  -8 ||
+	m4f_c[ 8] !=  -9 || m4f_c[ 9] != -10 || m4f_c[10] != -11 || m4f_c[11] != -12 ||
+	m4f_c[12] != -13 || m4f_c[13] != -14 || m4f_c[14] != -15 || m4f_c[15] != -16)
+	print("error %d\n", __LINE__);
+    m4f.add(m4f_c, m4f_a, m4f_b);
+    if (m4f_c[ 0] != 17 || m4f_c[ 1] != 17 || m4f_c[ 2] != 17 || m4f_c[ 3] != 17 ||
+	m4f_c[ 4] != 17 || m4f_c[ 5] != 17 || m4f_c[ 6] != 17 || m4f_c[ 7] != 17 ||
+	m4f_c[ 8] != 17 || m4f_c[ 9] != 17 || m4f_c[10] != 17 || m4f_c[11] != 17 ||
+	m4f_c[12] != 17 || m4f_c[13] != 17 || m4f_c[14] != 17 || m4f_c[15] != 17)
+	print("error %d\n", __LINE__);
+    m4f.sub(m4f_c, m4f_a, m4f_b);
+    if (m4f_c[ 0] != -15 || m4f_c[ 1] != -13 || m4f_c[ 2] != -11 || m4f_c[ 3] != -9 ||
+	m4f_c[ 4] !=  -7 || m4f_c[ 5] !=  -5 || m4f_c[ 6] !=  -3 || m4f_c[ 7] != -1 ||
+	m4f_c[ 8] !=   1 || m4f_c[ 9] !=   3 || m4f_c[10] !=   5 || m4f_c[11] !=  7 ||
+	m4f_c[12] !=   9 || m4f_c[13] !=  11 || m4f_c[14] !=  13 || m4f_c[15] != 15)
+	print("error %d\n", __LINE__);
+    m4f.mul(m4f_c, m4f_a, m4f_b);
+    if (m4f_c[ 0] != 386 || m4f_c[ 1] != 444 || m4f_c[ 2] != 502 || m4f_c[ 3] != 560 ||
+	m4f_c[ 4] != 274 || m4f_c[ 5] != 316 || m4f_c[ 6] != 358 || m4f_c[ 7] != 400 ||
+	m4f_c[ 8] != 162 || m4f_c[ 9] != 188 || m4f_c[10] != 214 || m4f_c[11] != 240 ||
+	m4f_c[12] !=  50 || m4f_c[13] !=  60 || m4f_c[14] !=  70 || m4f_c[15] !=  80)
+	print("error %d\n", __LINE__);
+    m4f.set(m4f_c,
+	     7, 2,  1, 1,
+	     0, 3, -1, 2,
+	    -3, 4, -2, 3,
+	     0, 0,  0, 1);
+    m4f.div(m4f_c, m4f_a, m4f_c);
+    if (m4f_c[ 0] !=   6 || m4f_c[ 1] !=   8 || m4f_c[ 2] !=  10 || m4f_c[ 3] !=  12 ||
+	m4f_c[ 4] != -15 || m4f_c[ 5] != -18 || m4f_c[ 6] != -21 || m4f_c[ 7] != -24 ||
+	m4f_c[ 8] != -24 || m4f_c[ 9] != -32 || m4f_c[10] != -40 || m4f_c[11] != -48 ||
+	m4f_c[12] !=  13 || m4f_c[13] !=  14 || m4f_c[14] !=  15 || m4f_c[15] !=  16)
+	print("error %d\n", __LINE__);
+    float64_t m2d_a[4] = { 1, 2, 3, 4 };
+    float64_t m2d_b[4] = { 4, 3, 2, 1 };
+    float64_t m2d_c[4] = {};
+    m2d.set(m2d_c, 1, 2, 3, 4);
+    if (m2d_c[0] != 1 || m2d_c[1] != 2 || m2d_c[2] != 3 || m2d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2d.fill(m2d_c, -1);
+    if (m2d_c[0] != -1 || m2d_c[1] != -1 || m2d_c[2] != -1 || m2d_c[3] != -1)
+	print("error %d\n", __LINE__);
+    m2d.identity(m2d_c);
+    if (m2d_c[0] != 1 || m2d_c[1] != 0 || m2d_c[2] != 0 || m2d_c[3] != 1)
+	print("error %d\n", __LINE__);
+    m2d.copy(m2d_c, m2d_a);
+    if (m2d_c[0] != 1 || m2d_c[1] != 2 || m2d_c[2] != 3 || m2d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    if (m2d.det(m2d_a) != -2)			    print("error %d\n", __LINE__);
+    m2d.transpose(m2d_c, m2d_a);
+    if (m2d_c[0] != 1 || m2d_c[1] != 3 || m2d_c[2] != 2 || m2d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2d.transpose(m2d_c, m2d_c);
+    if (m2d_c[0] != 1 || m2d_c[1] != 2 || m2d_c[2] != 3 || m2d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    m2d.scale(m2d_c, m2d_a, 2);
+    if (m2d_c[0] !=  2 || m2d_c[1] != 4 || m2d_c[2] != 6 || m2d_c[3] != 8)
+	print("error %d\n", __LINE__);
+    m2d.inverse(m2d_c, m2d_a);
+    if (m2d_c[0] != -2 || m2d_c[1] != 1 || m2d_c[2] != 1.5 || m2d_c[3] != -0.5)
+	print("error %d\n", __LINE__);
+    m2d.neg(m2d_c, m2d_a);
+    if (m2d_c[0] != -1 || m2d_c[1] != -2 || m2d_c[2] != -3 || m2d_c[3] != -4)
+	print("error %d\n", __LINE__);
+    m2d.add(m2d_c, m2d_a, m2d_b);
+    if (m2d_c[0] != 5 || m2d_c[1] != 5 || m2d_c[2] != 5 || m2d_c[3] != 5)
+	print("error %d\n", __LINE__);
+    m2d.sub(m2d_c, m2d_a, m2d_b);
+    if (m2d_c[0] != -3 || m2d_c[1] != -1 || m2d_c[2] != 1 || m2d_c[3] != 3)
+	print("error %d\n", __LINE__);
+    m2d.mul(m2d_c, m2d_a, m2d_b);
+    if (m2d_c[0] != 13 || m2d_c[1] != 20 || m2d_c[2] != 5 || m2d_c[3] != 8)
+	print("error %d\n", __LINE__);
+    m2d.div(m2d_c, m2d_a, m2d_b);
+    if (m2d_c[0] != 4 || m2d_c[1] != 5 || m2d_c[2] != -5 || m2d_c[3] != -6)
+	print("error %d\n", __LINE__);
+    float64_t m3d_a[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    float64_t m3d_b[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+    float64_t m3d_c[9] = {};
+    m3d.set(m3d_c, 1, 2, 3, 4, 5, 4, 3, 2, 1);
+    if (m3d_c[0] != 1 || m3d_c[1] != 2 || m3d_c[2] != 3 ||
+	m3d_c[3] != 4 || m3d_c[4] != 5 || m3d_c[5] != 4 ||
+	m3d_c[6] != 3 || m3d_c[7] != 2 || m3d_c[8] != 1)
+	print("error %d\n", __LINE__);
+    m3d.fill(m3d_c, -1);
+    if (m3d_c[0] != -1 || m3d_c[1] != -1 || m3d_c[2] != -1 ||
+	m3d_c[3] != -1 || m3d_c[4] != -1 || m3d_c[5] != -1 ||
+	m3d_c[6] != -1 || m3d_c[7] != -1 || m3d_c[8] != -1)
+	print("error %d\n", __LINE__);
+    m3d.identity(m3d_c);
+    if (m3d_c[0] != 1 || m3d_c[1] != 0 || m3d_c[2] != 0 ||
+	m3d_c[3] != 0 || m3d_c[4] != 1 || m3d_c[5] != 0 ||
+	m3d_c[6] != 0 || m3d_c[7] != 0 || m3d_c[8] != 1)
+	print("error %d\n", __LINE__);
+    m3d.copy(m3d_c, m3d_a);
+    if (m3d_c[0] != 1 || m3d_c[1] != 2 || m3d_c[2] != 3 ||
+	m3d_c[3] != 4 || m3d_c[4] != 5 || m3d_c[5] != 6 ||
+	m3d_c[6] != 7 || m3d_c[7] != 8 || m3d_c[8] != 9)
+	print("error %d\n", __LINE__);
+    if (m3d.det(m3d_a) != 0)			    print("error %d\n", __LINE__);
+    m3d.transpose(m3d_c, m3d_a);
+    if (m3d_c[0] != 1 || m3d_c[1] != 4 || m3d_c[2] != 7 ||
+	m3d_c[3] != 2 || m3d_c[4] != 5 || m3d_c[5] != 8 ||
+	m3d_c[6] != 3 || m3d_c[7] != 6 || m3d_c[8] != 9)
+	print("error %d\n", __LINE__);
+    m3d.transpose(m3d_c, m3d_c);
+    if (m3d_c[0] != 1 || m3d_c[1] != 2 || m3d_c[2] != 3 ||
+	m3d_c[3] != 4 || m3d_c[4] != 5 || m3d_c[5] != 6 ||
+	m3d_c[6] != 7 || m3d_c[7] != 8 || m3d_c[8] != 9)
+	print("error %d\n", __LINE__);
+    m3d.scale(m3d_c, m3d_a, 2);
+    if (m3d_c[0] !=  2 || m3d_c[1] !=  4 || m3d_c[2] !=  6 ||
+	m3d_c[3] !=  8 || m3d_c[4] != 10 || m3d_c[5] != 12 ||
+	m3d_c[6] != 14 || m3d_c[7] != 16 || m3d_c[8] != 18)
+	print("error %d\n", __LINE__);
+    m3d.set(m3d_c,
+	     7, 2,  1,
+	     0, 3, -1,
+	    -3, 4, -2);
+    m3d.inverse(m3d_c, m3d_c);
+    if (m3d_c[0] != -2 || m3d_c[1] !=	8 || m3d_c[2] != -5 ||
+	m3d_c[3] !=  3 || m3d_c[4] != -11 || m3d_c[5] !=  7 ||
+	m3d_c[6] !=  9 || m3d_c[7] != -34 || m3d_c[8] != 21)
+	print("error %d\n", __LINE__);
+    m3d.neg(m3d_c, m3d_a);
+    if (m3d_c[0] != -1 || m3d_c[1] != -2 || m3d_c[2] != -3 ||
+	m3d_c[3] != -4 || m3d_c[4] != -5 || m3d_c[5] != -6 ||
+	m3d_c[6] != -7 || m3d_c[7] != -8 || m3d_c[8] != -9)
+	print("error %d\n", __LINE__);
+    m3d.add(m3d_c, m3d_a, m3d_b);
+    if (m3d_c[0] != 10 || m3d_c[1] != 10 || m3d_c[2] != 10 ||
+	m3d_c[3] != 10 || m3d_c[4] != 10 || m3d_c[5] != 10 ||
+	m3d_c[6] != 10 || m3d_c[7] != 10 || m3d_c[8] != 10)
+	print("error %d\n", __LINE__);
+    m3d.sub(m3d_c, m3d_a, m3d_b);
+    if (m3d_c[0] != -8 || m3d_c[1] != -6 || m3d_c[2] != -4 ||
+	m3d_c[3] != -2 || m3d_c[4] !=  0 || m3d_c[5] !=  2 ||
+	m3d_c[6] !=  4 || m3d_c[7] !=  6 || m3d_c[8] !=  8)
+	print("error %d\n", __LINE__);
+    m3d.mul(m3d_c, m3d_a, m3d_b);
+    if (m3d_c[0] != 90 || m3d_c[1] != 114 || m3d_c[2] != 138 ||
+	m3d_c[3] != 54 || m3d_c[4] !=  69 || m3d_c[5] !=  84 ||
+	m3d_c[6] != 18 || m3d_c[7] !=  24 || m3d_c[8] !=  30)
+	print("error %d\n", __LINE__);
+    m3d.set(m3d_c,
+	     7, 2,  1,
+	     0, 3, -1,
+	    -3, 4, -2);
+    m3d.div(m3d_c, m3d_a, m3d_c);
+    if (m3d_c[0] != -5 || m3d_c[1] != -4 || m3d_c[2] != -3 ||
+	m3d_c[3] !=  8 || m3d_c[4] !=  7 || m3d_c[5] !=  6 ||
+	m3d_c[6] != 20 || m3d_c[7] != 16 || m3d_c[8] != 12)
+	print("error %d\n", __LINE__);
+    float64_t m4d_a[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+    float64_t m4d_b[16] = { 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
+    float64_t m4d_c[16] = {};
+    m4d.fill(m4d_c, -1);
+    if (m4d_c[ 0] != -1 || m4d_c[ 1] != -1 || m4d_c[ 2] != -1 || m4d_c[ 3] != -1 ||
+	m4d_c[ 4] != -1 || m4d_c[ 5] != -1 || m4d_c[ 6] != -1 || m4d_c[ 7] != -1 ||
+	m4d_c[ 8] != -1 || m4d_c[ 9] != -1 || m4d_c[10] != -1 || m4d_c[11] != -1 ||
+	m4d_c[12] != -1 || m4d_c[13] != -1 || m4d_c[14] != -1 || m4d_c[15] != -1)
+	print("error %d\n", __LINE__);
+    m4d.identity(m4d_c);
+    if (m4d_c[ 0] != 1 || m4d_c[ 1] != 0 || m4d_c[ 2] != 0 || m4d_c[ 3] != 0 ||
+	m4d_c[ 4] != 0 || m4d_c[ 5] != 1 || m4d_c[ 6] != 0 || m4d_c[ 7] != 0 ||
+	m4d_c[ 8] != 0 || m4d_c[ 9] != 0 || m4d_c[10] != 1 || m4d_c[11] != 0 ||
+	m4d_c[12] != 0 || m4d_c[13] != 0 || m4d_c[14] != 0 || m4d_c[15] != 1)
+	print("error %d\n", __LINE__);
+    m4d.copy(m4d_c, m4d_a);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] !=  5 || m4d_c[ 5] !=  6 || m4d_c[ 6] !=  7 || m4d_c[ 7] !=  8 ||
+	m4d_c[ 8] !=  9 || m4d_c[ 9] != 10 || m4d_c[10] != 11 || m4d_c[11] != 12 ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    if (m4d.det(m4d_a) != 0)			    print("error %d\n", __LINE__);
+    m4d.transpose(m4d_c, m4d_a);
+    if (m4d_c[ 0] != 1 || m4d_c[ 1] != 5 || m4d_c[ 2] !=  9 || m4d_c[ 3] != 13 ||
+	m4d_c[ 4] != 2 || m4d_c[ 5] != 6 || m4d_c[ 6] != 10 || m4d_c[ 7] != 14 ||
+	m4d_c[ 8] != 3 || m4d_c[ 9] != 7 || m4d_c[10] != 11 || m4d_c[11] != 15 ||
+	m4d_c[12] != 4 || m4d_c[13] != 8 || m4d_c[14] != 12 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4d.transpose(m4d_c, m4d_c);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] !=  5 || m4d_c[ 5] !=  6 || m4d_c[ 6] !=  7 || m4d_c[ 7] !=  8 ||
+	m4d_c[ 8] !=  9 || m4d_c[ 9] != 10 || m4d_c[10] != 11 || m4d_c[11] != 12 ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4d.scale(m4d_c, m4d_a, 2);
+    if (m4d_c[ 0] !=  2 || m4d_c[ 1] !=  4 || m4d_c[ 2] !=  6 || m4d_c[ 3] !=  8 ||
+	m4d_c[ 4] != 10 || m4d_c[ 5] != 12 || m4d_c[ 6] != 14 || m4d_c[ 7] != 16 ||
+	m4d_c[ 8] != 18 || m4d_c[ 9] != 20 || m4d_c[10] != 22 || m4d_c[11] != 24 ||
+	m4d_c[12] != 26 || m4d_c[13] != 28 || m4d_c[14] != 30 || m4d_c[15] != 32)
+	print("error %d\n", __LINE__);
+    m4d.set(m4d_c,
+	     7, 2,  1, 1,
+	     0, 3, -1, 2,
+	    -3, 4, -2, 3,
+	     0, 0,  0, 1);
+    m4d.inverse(m4d_c, m4d_c);
+    if (m4d_c[ 0] != -2 || m4d_c[ 1] !=   8 || m4d_c[ 2] != -5 || m4d_c[ 3] !=	1 ||
+	m4d_c[ 4] !=  3 || m4d_c[ 5] != -11 || m4d_c[ 6] !=  7 || m4d_c[ 7] != -2 ||
+	m4d_c[ 8] !=  9 || m4d_c[ 9] != -34 || m4d_c[10] != 21 || m4d_c[11] != -4 ||
+	m4d_c[12] !=  0 || m4d_c[13] !=   0 || m4d_c[14] !=  0 || m4d_c[15] != 1)
+	print("error %d\n", __LINE__);
+    m4d.neg(m4d_c, m4d_a);
+    if (m4d_c[ 0] !=  -1 || m4d_c[ 1] !=  -2 || m4d_c[ 2] !=  -3 || m4d_c[ 3] !=  -4 ||
+	m4d_c[ 4] !=  -5 || m4d_c[ 5] !=  -6 || m4d_c[ 6] !=  -7 || m4d_c[ 7] !=  -8 ||
+	m4d_c[ 8] !=  -9 || m4d_c[ 9] != -10 || m4d_c[10] != -11 || m4d_c[11] != -12 ||
+	m4d_c[12] != -13 || m4d_c[13] != -14 || m4d_c[14] != -15 || m4d_c[15] != -16)
+	print("error %d\n", __LINE__);
+    m4d.add(m4d_c, m4d_a, m4d_b);
+    if (m4d_c[ 0] != 17 || m4d_c[ 1] != 17 || m4d_c[ 2] != 17 || m4d_c[ 3] != 17 ||
+	m4d_c[ 4] != 17 || m4d_c[ 5] != 17 || m4d_c[ 6] != 17 || m4d_c[ 7] != 17 ||
+	m4d_c[ 8] != 17 || m4d_c[ 9] != 17 || m4d_c[10] != 17 || m4d_c[11] != 17 ||
+	m4d_c[12] != 17 || m4d_c[13] != 17 || m4d_c[14] != 17 || m4d_c[15] != 17)
+	print("error %d\n", __LINE__);
+    m4d.sub(m4d_c, m4d_a, m4d_b);
+    if (m4d_c[ 0] != -15 || m4d_c[ 1] != -13 || m4d_c[ 2] != -11 || m4d_c[ 3] != -9 ||
+	m4d_c[ 4] !=  -7 || m4d_c[ 5] !=  -5 || m4d_c[ 6] !=  -3 || m4d_c[ 7] != -1 ||
+	m4d_c[ 8] !=   1 || m4d_c[ 9] !=   3 || m4d_c[10] !=   5 || m4d_c[11] !=  7 ||
+	m4d_c[12] !=   9 || m4d_c[13] !=  11 || m4d_c[14] !=  13 || m4d_c[15] != 15)
+	print("error %d\n", __LINE__);
+    m4d.mul(m4d_c, m4d_a, m4d_b);
+    if (m4d_c[ 0] != 386 || m4d_c[ 1] != 444 || m4d_c[ 2] != 502 || m4d_c[ 3] != 560 ||
+	m4d_c[ 4] != 274 || m4d_c[ 5] != 316 || m4d_c[ 6] != 358 || m4d_c[ 7] != 400 ||
+	m4d_c[ 8] != 162 || m4d_c[ 9] != 188 || m4d_c[10] != 214 || m4d_c[11] != 240 ||
+	m4d_c[12] !=  50 || m4d_c[13] !=  60 || m4d_c[14] !=  70 || m4d_c[15] !=  80)
+	print("error %d\n", __LINE__);
+    m4d.set(m4d_c,
+	     7, 2,  1, 1,
+	     0, 3, -1, 2,
+	    -3, 4, -2, 3,
+	     0, 0,  0, 1);
+    m4d.div(m4d_c, m4d_a, m4d_c);
+    if (m4d_c[ 0] !=   6 || m4d_c[ 1] !=   8 || m4d_c[ 2] !=  10 || m4d_c[ 3] !=  12 ||
+	m4d_c[ 4] != -15 || m4d_c[ 5] != -18 || m4d_c[ 6] != -21 || m4d_c[ 7] != -24 ||
+	m4d_c[ 8] != -24 || m4d_c[ 9] != -32 || m4d_c[10] != -40 || m4d_c[11] != -48 ||
+	m4d_c[12] !=  13 || m4d_c[13] !=  14 || m4d_c[14] !=  15 || m4d_c[15] !=  16)
+	print("error %d\n", __LINE__);
+};
