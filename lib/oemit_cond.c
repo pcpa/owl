@@ -324,7 +324,9 @@ emit_test(oast_t *ast, obool_t jmpif, oword_t level)
 		}
 	    }
 	    /* Evaluate right operand */
-	    emit_test(ast->r.ast, false, level + 1);
+	    emit_test(ast->r.ast,
+		      level ? ast->token == tok_oror : false,
+		      level + 1);
 	    if (bjmp == null) {
 		assert(branch->offset > 1);
 		bjmp = branch->v.ptr[branch->offset - 2];
