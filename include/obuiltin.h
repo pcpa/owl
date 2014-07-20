@@ -471,6 +471,10 @@ TYPE4(ovector_t*, ofloat32_t, ofloat32_t, ofloat32_t,
       vec_f32_f32_f32);
 TYPE4(ovector_t*, ofloat64_t, ofloat64_t, ofloat64_t,
       vec_f64_f64_f64);
+TYPE4(ovector_t*, ovector_t*, ofloat32_t, ovector_t*,
+      vec_vec_f32_vec);
+TYPE4(ovector_t*, ovector_t*, ofloat64_t, ovector_t*,
+      vec_vec_f64_vec);
 #if SDL
 TYPE4(oint32_t, ochunk_t*, oint32_t, oint32_t,
       i32_chu_i32_i32);

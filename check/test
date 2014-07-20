@@ -40691,7 +40691,7 @@ namespace t61 {
     if (v2f.dot(v2f_a, v2f_b) != 11)		    print("error %d\n", __LINE__);
     v2f.normalize(v2f_c, v2f_b);
     if (cmp(v2f_c[0], 0.6) || cmp(v2f_c[1], 0.8))   print("error %d\n", __LINE__);
-    v2f.scale(v2f_c, v2f_b, 2);
+    v2f.muls(v2f_c, v2f_b, 2);
     if (v2f_c[0] != 6 || v2f_c[1] != 8) 	    print("error %d\n", __LINE__);
     v2f.neg(v2f_c, v2f_a);
     if (v2f_c[0] != -1 || v2f_c[1] != -2)	    print("error %d\n", __LINE__);
@@ -40720,7 +40720,7 @@ namespace t61 {
     v3f.normalize(v3f_c, v3f_b);
     if (cmp(v3f_c[0], 0.455842) || cmp(v3f_c[1], 0.569803) ||
 	cmp(v3f_c[2], 0.683764))    print("error %d\n", __LINE__);
-    v3f.scale(v3f_c, v3f_b, 2);
+    v3f.muls(v3f_c, v3f_b, 2);
     if (v3f_c[0] != 8 || v3f_c[1] != 10 || v3f_c[2] != 12)
 	print("error %d\n", __LINE__);
     v3f.cross(v3f_c, v3f_a, v3f_b);
@@ -40759,7 +40759,7 @@ namespace t61 {
     if (cmp(v4f_c[0], 0.379049) || cmp(v4f_c[1], 0.454859) ||
 	cmp(v4f_c[2], 0.530669) || cmp(v4f_c[3], 0.606478))
 	print("error %d\n", __LINE__);
-    v4f.scale(v4f_c, v4f_b, 2);
+    v4f.muls(v4f_c, v4f_b, 2);
     if (v4f_c[0] != 10 || v4f_c[1] != 12 || v4f_c[2] != 14 || v4f_c[3] != 16)
 	print("error %d\n", __LINE__);
     v4f.neg(v4f_c, v4f_a);
@@ -40791,7 +40791,7 @@ namespace t61 {
     if (v2d.dot(v2d_a, v2d_b) != 11)		    print("error %d\n", __LINE__);
     v2d.normalize(v2d_c, v2d_b);
     if (cmp(v2d_c[0], 0.6) || cmp(v2d_c[1], 0.8))   print("error %d\n", __LINE__);
-    v2d.scale(v2d_c, v2d_b, 2);
+    v2d.muls(v2d_c, v2d_b, 2);
     if (v2d_c[0] != 6 || v2d_c[1] != 8) 	    print("error %d\n", __LINE__);
     v2d.neg(v2d_c, v2d_a);
     if (v2d_c[0] != -1 || v2d_c[1] != -2)	    print("error %d\n", __LINE__);
@@ -40820,7 +40820,7 @@ namespace t61 {
     v3d.normalize(v3d_c, v3d_b);
     if (cmp(v3d_c[0], 0.455842) || cmp(v3d_c[1], 0.569803) ||
 	cmp(v3d_c[2], 0.683764))    print("error %d\n", __LINE__);
-    v3d.scale(v3d_c, v3d_b, 2);
+    v3d.muls(v3d_c, v3d_b, 2);
     if (v3d_c[0] != 8 || v3d_c[1] != 10 || v3d_c[2] != 12)
 	print("error %d\n", __LINE__);
     v3d.cross(v3d_c, v3d_a, v3d_b);
@@ -40859,7 +40859,7 @@ namespace t61 {
     if (cmp(v4d_c[0], 0.379049) || cmp(v4d_c[1], 0.454859) ||
 	cmp(v4d_c[2], 0.530669) || cmp(v4d_c[3], 0.606478))
 	print("error %d\n", __LINE__);
-    v4d.scale(v4d_c, v4d_b, 2);
+    v4d.muls(v4d_c, v4d_b, 2);
     if (v4d_c[0] != 10 || v4d_c[1] != 12 || v4d_c[2] != 14 || v4d_c[3] != 16)
 	print("error %d\n", __LINE__);
     v4d.neg(v4d_c, v4d_a);
@@ -40900,7 +40900,7 @@ namespace t61 {
     m2f.transpose(m2f_c, m2f_c);
     if (m2f_c[0] != 1 || m2f_c[1] != 2 || m2f_c[2] != 3 || m2f_c[3] != 4)
 	print("error %d\n", __LINE__);
-    m2f.scale(m2f_c, m2f_a, 2);
+    m2f.muls(m2f_c, m2f_a, 2);
     if (m2f_c[0] !=  2 || m2f_c[1] != 4 || m2f_c[2] != 6 || m2f_c[3] != 8)
 	print("error %d\n", __LINE__);
     m2f.inverse(m2f_c, m2f_a);
@@ -40955,7 +40955,7 @@ namespace t61 {
 	m3f_c[3] != 4 || m3f_c[4] != 5 || m3f_c[5] != 6 ||
 	m3f_c[6] != 7 || m3f_c[7] != 8 || m3f_c[8] != 9)
 	print("error %d\n", __LINE__);
-    m3f.scale(m3f_c, m3f_a, 2);
+    m3f.muls(m3f_c, m3f_a, 2);
     if (m3f_c[0] !=  2 || m3f_c[1] !=  4 || m3f_c[2] !=  6 ||
 	m3f_c[3] !=  8 || m3f_c[4] != 10 || m3f_c[5] != 12 ||
 	m3f_c[6] != 14 || m3f_c[7] != 16 || m3f_c[8] != 18)
@@ -41032,7 +41032,7 @@ namespace t61 {
 	m4f_c[ 8] !=  9 || m4f_c[ 9] != 10 || m4f_c[10] != 11 || m4f_c[11] != 12 ||
 	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
 	print("error %d\n", __LINE__);
-    m4f.scale(m4f_c, m4f_a, 2);
+    m4f.muls(m4f_c, m4f_a, 2);
     if (m4f_c[ 0] !=  2 || m4f_c[ 1] !=  4 || m4f_c[ 2] !=  6 || m4f_c[ 3] !=  8 ||
 	m4f_c[ 4] != 10 || m4f_c[ 5] != 12 || m4f_c[ 6] != 14 || m4f_c[ 7] != 16 ||
 	m4f_c[ 8] != 18 || m4f_c[ 9] != 20 || m4f_c[10] != 22 || m4f_c[11] != 24 ||
@@ -41084,6 +41084,51 @@ namespace t61 {
 	m4f_c[ 8] != -24 || m4f_c[ 9] != -32 || m4f_c[10] != -40 || m4f_c[11] != -48 ||
 	m4f_c[12] !=  13 || m4f_c[13] !=  14 || m4f_c[14] !=  15 || m4f_c[15] !=  16)
 	print("error %d\n", __LINE__);
+    m4f.translate(m4f_c, m4f_a, v3f_a);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] !=  5 || m4f_c[ 5] !=  6 || m4f_c[ 6] !=  7 || m4f_c[ 7] !=  8 ||
+	m4f_c[ 8] !=  9 || m4f_c[ 9] != 10 || m4f_c[10] != 11 || m4f_c[11] != 12 ||
+	m4f_c[12] != 51 || m4f_c[13] != 58 || m4f_c[14] != 65 || m4f_c[15] != 72)
+	print("error %d\n", __LINE__);
+    m4f.copy(m4f_c, m4f_a);
+    m4f.translate(m4f_c, m4f_c, v3f_a);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] !=  5 || m4f_c[ 5] !=  6 || m4f_c[ 6] !=  7 || m4f_c[ 7] !=  8 ||
+	m4f_c[ 8] !=  9 || m4f_c[ 9] != 10 || m4f_c[10] != 11 || m4f_c[11] != 12 ||
+	m4f_c[12] != 51 || m4f_c[13] != 58 || m4f_c[14] != 65 || m4f_c[15] != 72)
+	print("error %d\n", __LINE__);
+    m4f.rotate(m4f_c, m4f_a, 45, v3f_a);
+    if (cmp(m4f_c[0], 0.935155) || cmp(m4f_c[1], 1.956770) ||
+	cmp(m4f_c[2], 2.978385) || cmp(m4f_c[3], 4) ||
+	cmp(m4f_c[4], 6.259419) || cmp(m4f_c[5], 6.839613) ||
+	cmp(m4f_c[6], 7.419806) || cmp(m4f_c[7], 8) ||
+	cmp(m4f_c[8], 8.182002) || cmp(m4f_c[9], 9.454668) ||
+	cmp(m4f_c[10], 10.727334) || cmp(m4f_c[11], 12) ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4f.copy(m4f_c, m4f_a);
+    m4f.rotate(m4f_c, m4f_c, 45, v3f_a);
+    if (cmp(m4f_c[0], 0.935155) || cmp(m4f_c[1], 1.956770) ||
+	cmp(m4f_c[2], 2.978385) || cmp(m4f_c[3], 4) ||
+	cmp(m4f_c[4], 6.259419) || cmp(m4f_c[5], 6.839613) ||
+	cmp(m4f_c[6], 7.419806) || cmp(m4f_c[7], 8) ||
+	cmp(m4f_c[8], 8.182002) || cmp(m4f_c[9], 9.454668) ||
+	cmp(m4f_c[10], 10.727334) || cmp(m4f_c[11], 12) ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d %d\n", __LINE__);
+    m4f.scale(m4f_c, m4f_a, v3f_a);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] != 10 || m4f_c[ 5] != 12 || m4f_c[ 6] != 14 || m4f_c[ 7] != 16 ||
+	m4f_c[ 8] != 27 || m4f_c[ 9] != 30 || m4f_c[10] != 33 || m4f_c[11] != 36 ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4f.copy(m4f_c, m4f_a);
+    m4f.scale(m4f_c, m4f_c, v3f_a);
+    if (m4f_c[ 0] !=  1 || m4f_c[ 1] !=  2 || m4f_c[ 2] !=  3 || m4f_c[ 3] !=  4 ||
+	m4f_c[ 4] != 10 || m4f_c[ 5] != 12 || m4f_c[ 6] != 14 || m4f_c[ 7] != 16 ||
+	m4f_c[ 8] != 27 || m4f_c[ 9] != 30 || m4f_c[10] != 33 || m4f_c[11] != 36 ||
+	m4f_c[12] != 13 || m4f_c[13] != 14 || m4f_c[14] != 15 || m4f_c[15] != 16)
+	print("error %d\n", __LINE__);
     float64_t m2d_a[4] = { 1, 2, 3, 4 };
     float64_t m2d_b[4] = { 4, 3, 2, 1 };
     float64_t m2d_c[4] = {};
@@ -41106,7 +41151,7 @@ namespace t61 {
     m2d.transpose(m2d_c, m2d_c);
     if (m2d_c[0] != 1 || m2d_c[1] != 2 || m2d_c[2] != 3 || m2d_c[3] != 4)
 	print("error %d\n", __LINE__);
-    m2d.scale(m2d_c, m2d_a, 2);
+    m2d.muls(m2d_c, m2d_a, 2);
     if (m2d_c[0] !=  2 || m2d_c[1] != 4 || m2d_c[2] != 6 || m2d_c[3] != 8)
 	print("error %d\n", __LINE__);
     m2d.inverse(m2d_c, m2d_a);
@@ -41161,7 +41206,7 @@ namespace t61 {
 	m3d_c[3] != 4 || m3d_c[4] != 5 || m3d_c[5] != 6 ||
 	m3d_c[6] != 7 || m3d_c[7] != 8 || m3d_c[8] != 9)
 	print("error %d\n", __LINE__);
-    m3d.scale(m3d_c, m3d_a, 2);
+    m3d.muls(m3d_c, m3d_a, 2);
     if (m3d_c[0] !=  2 || m3d_c[1] !=  4 || m3d_c[2] !=  6 ||
 	m3d_c[3] !=  8 || m3d_c[4] != 10 || m3d_c[5] != 12 ||
 	m3d_c[6] != 14 || m3d_c[7] != 16 || m3d_c[8] != 18)
@@ -41238,7 +41283,7 @@ namespace t61 {
 	m4d_c[ 8] !=  9 || m4d_c[ 9] != 10 || m4d_c[10] != 11 || m4d_c[11] != 12 ||
 	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
 	print("error %d\n", __LINE__);
-    m4d.scale(m4d_c, m4d_a, 2);
+    m4d.muls(m4d_c, m4d_a, 2);
     if (m4d_c[ 0] !=  2 || m4d_c[ 1] !=  4 || m4d_c[ 2] !=  6 || m4d_c[ 3] !=  8 ||
 	m4d_c[ 4] != 10 || m4d_c[ 5] != 12 || m4d_c[ 6] != 14 || m4d_c[ 7] != 16 ||
 	m4d_c[ 8] != 18 || m4d_c[ 9] != 20 || m4d_c[10] != 22 || m4d_c[11] != 24 ||
@@ -41289,5 +41334,50 @@ namespace t61 {
 	m4d_c[ 4] != -15 || m4d_c[ 5] != -18 || m4d_c[ 6] != -21 || m4d_c[ 7] != -24 ||
 	m4d_c[ 8] != -24 || m4d_c[ 9] != -32 || m4d_c[10] != -40 || m4d_c[11] != -48 ||
 	m4d_c[12] !=  13 || m4d_c[13] !=  14 || m4d_c[14] !=  15 || m4d_c[15] !=  16)
+	print("error %d\n", __LINE__);
+    m4d.translate(m4d_c, m4d_a, v3d_a);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] !=  5 || m4d_c[ 5] !=  6 || m4d_c[ 6] !=  7 || m4d_c[ 7] !=  8 ||
+	m4d_c[ 8] !=  9 || m4d_c[ 9] != 10 || m4d_c[10] != 11 || m4d_c[11] != 12 ||
+	m4d_c[12] != 51 || m4d_c[13] != 58 || m4d_c[14] != 65 || m4d_c[15] != 72)
+	print("error %d\n", __LINE__);
+    m4d.copy(m4d_c, m4d_a);
+    m4d.translate(m4d_c, m4d_c, v3d_a);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] !=  5 || m4d_c[ 5] !=  6 || m4d_c[ 6] !=  7 || m4d_c[ 7] !=  8 ||
+	m4d_c[ 8] !=  9 || m4d_c[ 9] != 10 || m4d_c[10] != 11 || m4d_c[11] != 12 ||
+	m4d_c[12] != 51 || m4d_c[13] != 58 || m4d_c[14] != 65 || m4d_c[15] != 72)
+	print("error %d\n", __LINE__);
+    m4d.rotate(m4d_c, m4d_a, 45, v3d_a);
+    if (cmp(m4d_c[0], 0.935155) || cmp(m4d_c[1], 1.956770) ||
+	cmp(m4d_c[2], 2.978385) || cmp(m4d_c[3], 4) ||
+	cmp(m4d_c[4], 6.259419) || cmp(m4d_c[5], 6.839613) ||
+	cmp(m4d_c[6], 7.419806) || cmp(m4d_c[7], 8) ||
+	cmp(m4d_c[8], 8.182002) || cmp(m4d_c[9], 9.454668) ||
+	cmp(m4d_c[10], 10.727334) || cmp(m4d_c[11], 12) ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4d.copy(m4d_c, m4d_a);
+    m4d.rotate(m4d_c, m4d_c, 45, v3d_a);
+    if (cmp(m4d_c[0], 0.935155) || cmp(m4d_c[1], 1.956770) ||
+	cmp(m4d_c[2], 2.978385) || cmp(m4d_c[3], 4) ||
+	cmp(m4d_c[4], 6.259419) || cmp(m4d_c[5], 6.839613) ||
+	cmp(m4d_c[6], 7.419806) || cmp(m4d_c[7], 8) ||
+	cmp(m4d_c[8], 8.182002) || cmp(m4d_c[9], 9.454668) ||
+	cmp(m4d_c[10], 10.727334) || cmp(m4d_c[11], 12) ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4d.scale(m4d_c, m4d_a, v3d_a);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] != 10 || m4d_c[ 5] != 12 || m4d_c[ 6] != 14 || m4d_c[ 7] != 16 ||
+	m4d_c[ 8] != 27 || m4d_c[ 9] != 30 || m4d_c[10] != 33 || m4d_c[11] != 36 ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
+	print("error %d\n", __LINE__);
+    m4d.copy(m4d_c, m4d_a);
+    m4d.scale(m4d_c, m4d_c, v3d_a);
+    if (m4d_c[ 0] !=  1 || m4d_c[ 1] !=  2 || m4d_c[ 2] !=  3 || m4d_c[ 3] !=  4 ||
+	m4d_c[ 4] != 10 || m4d_c[ 5] != 12 || m4d_c[ 6] != 14 || m4d_c[ 7] != 16 ||
+	m4d_c[ 8] != 27 || m4d_c[ 9] != 30 || m4d_c[10] != 33 || m4d_c[11] != 36 ||
+	m4d_c[12] != 13 || m4d_c[13] != 14 || m4d_c[14] != 15 || m4d_c[15] != 16)
 	print("error %d\n", __LINE__);
 };

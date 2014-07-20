@@ -26,16 +26,28 @@
 #define degreesf(rad)		((rad) * (180.0f / (float)M_PI))
 
 /*
+ * Other than trivial operations, a good share of the code here is direct
+ * translation from glm (http://glm.g-truc.net)
+ */
+
+/*
  * Prototypes
  */
 static ofloat32_t v2f_length(ofloat32_t v0[2]);
+static void v2f_normalize(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void v2f_muls(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
+static void v2f_fill(ofloat32_t v0[2], ofloat32_t s0);
+static void v2f_add(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
+static void v2f_sub(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
+static void v2f_mul(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
+static void v2f_div(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_set(oobject_t list, oint32_t ac);
 static void native_v2f_fill(oobject_t list, oint32_t ac);
 static void native_v2f_copy(oobject_t list, oint32_t ac);
 static void native_v2f_length(oobject_t list, oint32_t ac);
 static void native_v2f_dot(oobject_t list, oint32_t ac);
 static void native_v2f_normalize(oobject_t list, oint32_t ac);
-static void native_v2f_scale(oobject_t list, oint32_t ac);
+static void native_v2f_muls(oobject_t list, oint32_t ac);
 static void native_v2f_neg(oobject_t list, oint32_t ac);
 static void native_v2f_add(oobject_t list, oint32_t ac);
 static void native_v2f_sub(oobject_t list, oint32_t ac);
@@ -43,13 +55,20 @@ static void native_v2f_mul(oobject_t list, oint32_t ac);
 static void native_v2f_div(oobject_t list, oint32_t ac);
 
 static ofloat32_t v3f_length(ofloat32_t v0[3]);
+static void v3f_normalize(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void v3f_muls(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
+static void v3f_fill(ofloat32_t v0[3], ofloat32_t s0);
+static void v3f_add(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
+static void v3f_sub(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
+static void v3f_mul(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
+static void v3f_div(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_set(oobject_t list, oint32_t ac);
 static void native_v3f_fill(oobject_t list, oint32_t ac);
 static void native_v3f_copy(oobject_t list, oint32_t ac);
 static void native_v3f_length(oobject_t list, oint32_t ac);
 static void native_v3f_dot(oobject_t list, oint32_t ac);
 static void native_v3f_normalize(oobject_t list, oint32_t ac);
-static void native_v3f_scale(oobject_t list, oint32_t ac);
+static void native_v3f_muls(oobject_t list, oint32_t ac);
 static void native_v3f_cross(oobject_t list, oint32_t ac);
 static void native_v3f_neg(oobject_t list, oint32_t ac);
 static void native_v3f_add(oobject_t list, oint32_t ac);
@@ -58,13 +77,20 @@ static void native_v3f_mul(oobject_t list, oint32_t ac);
 static void native_v3f_div(oobject_t list, oint32_t ac);
 
 static ofloat32_t v4f_length(ofloat32_t v0[4]);
+static void v4f_normalize(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void v4f_muls(ofloat32_t v0[4], ofloat32_t v1[1], ofloat32_t s0);
+static void v4f_fill(ofloat32_t v0[4], ofloat32_t s0);
+static void v4f_add(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void v4f_sub(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void v4f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void v4f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_set(oobject_t list, oint32_t ac);
 static void native_v4f_fill(oobject_t list, oint32_t ac);
 static void native_v4f_copy(oobject_t list, oint32_t ac);
 static void native_v4f_length(oobject_t list, oint32_t ac);
 static void native_v4f_dot(oobject_t list, oint32_t ac);
 static void native_v4f_normalize(oobject_t list, oint32_t ac);
-static void native_v4f_scale(oobject_t list, oint32_t ac);
+static void native_v4f_muls(oobject_t list, oint32_t ac);
 static void native_v4f_neg(oobject_t list, oint32_t ac);
 static void native_v4f_add(oobject_t list, oint32_t ac);
 static void native_v4f_sub(oobject_t list, oint32_t ac);
@@ -72,13 +98,20 @@ static void native_v4f_mul(oobject_t list, oint32_t ac);
 static void native_v4f_div(oobject_t list, oint32_t ac);
 
 static ofloat64_t v2d_length(ofloat64_t v0[2]);
+static void v2d_normalize(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void v2d_muls(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
+static void v2d_fill(ofloat64_t v0[2], ofloat64_t s0);
+static void v2d_add(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
+static void v2d_sub(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
+static void v2d_mul(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
+static void v2d_div(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_set(oobject_t list, oint32_t ac);
 static void native_v2d_fill(oobject_t list, oint32_t ac);
 static void native_v2d_copy(oobject_t list, oint32_t ac);
 static void native_v2d_length(oobject_t list, oint32_t ac);
 static void native_v2d_dot(oobject_t list, oint32_t ac);
 static void native_v2d_normalize(oobject_t list, oint32_t ac);
-static void native_v2d_scale(oobject_t list, oint32_t ac);
+static void native_v2d_muls(oobject_t list, oint32_t ac);
 static void native_v2d_neg(oobject_t list, oint32_t ac);
 static void native_v2d_add(oobject_t list, oint32_t ac);
 static void native_v2d_sub(oobject_t list, oint32_t ac);
@@ -86,13 +119,20 @@ static void native_v2d_mul(oobject_t list, oint32_t ac);
 static void native_v2d_div(oobject_t list, oint32_t ac);
 
 static ofloat64_t v3d_length(ofloat64_t v0[3]);
+static void v3d_normalize(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void v3d_muls(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
+static void v3d_fill(ofloat64_t v0[3], ofloat64_t s0);
+static void v3d_add(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
+static void v3d_sub(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
+static void v3d_mul(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
+static void v3d_div(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_set(oobject_t list, oint32_t ac);
 static void native_v3d_fill(oobject_t list, oint32_t ac);
 static void native_v3d_copy(oobject_t list, oint32_t ac);
 static void native_v3d_length(oobject_t list, oint32_t ac);
 static void native_v3d_dot(oobject_t list, oint32_t ac);
 static void native_v3d_normalize(oobject_t list, oint32_t ac);
-static void native_v3d_scale(oobject_t list, oint32_t ac);
+static void native_v3d_muls(oobject_t list, oint32_t ac);
 static void native_v3d_cross(oobject_t list, oint32_t ac);
 static void native_v3d_neg(oobject_t list, oint32_t ac);
 static void native_v3d_add(oobject_t list, oint32_t ac);
@@ -101,28 +141,39 @@ static void native_v3d_mul(oobject_t list, oint32_t ac);
 static void native_v3d_div(oobject_t list, oint32_t ac);
 
 static ofloat64_t v4d_length(ofloat64_t v0[4]);
+static void v4d_normalize(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void v4d_muls(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
+static void v4d_fill(ofloat64_t v0[4], ofloat64_t s0);
+static void v4d_add(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void v4d_sub(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void v4d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void v4d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_set(oobject_t list, oint32_t ac);
 static void native_v4d_fill(oobject_t list, oint32_t ac);
 static void native_v4d_copy(oobject_t list, oint32_t ac);
 static void native_v4d_length(oobject_t list, oint32_t ac);
 static void native_v4d_dot(oobject_t list, oint32_t ac);
 static void native_v4d_normalize(oobject_t list, oint32_t ac);
-static void native_v4d_scale(oobject_t list, oint32_t ac);
+static void native_v4d_muls(oobject_t list, oint32_t ac);
 static void native_v4d_neg(oobject_t list, oint32_t ac);
 static void native_v4d_add(oobject_t list, oint32_t ac);
 static void native_v4d_sub(oobject_t list, oint32_t ac);
 static void native_v4d_mul(oobject_t list, oint32_t ac);
 static void native_v4d_div(oobject_t list, oint32_t ac);
 
+static void m2f_identity(ofloat32_t v0[4]);
 static ofloat32_t m2f_det_inverse(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void m2f_add(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void m2f_sub(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void m2f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void m2f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_m2f_set(oobject_t list, oint32_t ac);
 static void native_m2f_fill(oobject_t list, oint32_t ac);
 static void native_m2f_identity(oobject_t list, oint32_t ac);
 static void native_m2f_copy(oobject_t list, oint32_t ac);
 static void native_m2f_det(oobject_t list, oint32_t ac);
 static void native_m2f_transpose(oobject_t list, oint32_t ac);
-static void native_m2f_scale(oobject_t list, oint32_t ac);
+static void native_m2f_muls(oobject_t list, oint32_t ac);
 static void native_m2f_inverse(oobject_t list, oint32_t ac);
 static void native_m2f_neg(oobject_t list, oint32_t ac);
 static void native_m2f_add(oobject_t list, oint32_t ac);
@@ -130,15 +181,19 @@ static void native_m2f_sub(oobject_t list, oint32_t ac);
 static void native_m2f_mul(oobject_t list, oint32_t ac);
 static void native_m2f_div(oobject_t list, oint32_t ac);
 
+static void m3f_identity(ofloat32_t v0[9]);
 static ofloat32_t m3f_det_inverse(ofloat32_t v0[9], ofloat32_t v1[9]);
+static void m3f_add(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9]);
+static void m3f_sub(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9]);
 static void m3f_mul(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9]);
+static void m3f_div(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9]);
 static void native_m3f_set(oobject_t list, oint32_t ac);
 static void native_m3f_fill(oobject_t list, oint32_t ac);
 static void native_m3f_identity(oobject_t list, oint32_t ac);
 static void native_m3f_copy(oobject_t list, oint32_t ac);
 static void native_m3f_det(oobject_t list, oint32_t ac);
 static void native_m3f_transpose(oobject_t list, oint32_t ac);
-static void native_m3f_scale(oobject_t list, oint32_t ac);
+static void native_m3f_muls(oobject_t list, oint32_t ac);
 static void native_m3f_inverse(oobject_t list, oint32_t ac);
 static void native_m3f_neg(oobject_t list, oint32_t ac);
 static void native_m3f_add(oobject_t list, oint32_t ac);
@@ -146,31 +201,47 @@ static void native_m3f_sub(oobject_t list, oint32_t ac);
 static void native_m3f_mul(oobject_t list, oint32_t ac);
 static void native_m3f_div(oobject_t list, oint32_t ac);
 
+static void m4f_identity(ofloat32_t v0[16]);
 static ofloat32_t m4f_det_inverse(ofloat32_t v0[16], ofloat32_t v1[16]);
+static void m4f_add(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16]);
+static void m4f_sub(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16]);
 static void m4f_mul(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16]);
+static void m4f_div(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16]);
+static void m4f_translate(ofloat32_t v0[16],
+			  ofloat32_t v1[16], ofloat32_t v2[3]);
+static void m4f_rotate(ofloat32_t v0[16], ofloat32_t v1[16],
+		       ofloat32_t angle, ofloat32_t v2[3]);
+static void m4f_scale(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[3]);
 static void native_m4f_set(oobject_t list, oint32_t ac);
 static void native_m4f_fill(oobject_t list, oint32_t ac);
 static void native_m4f_identity(oobject_t list, oint32_t ac);
 static void native_m4f_copy(oobject_t list, oint32_t ac);
 static void native_m4f_det(oobject_t list, oint32_t ac);
 static void native_m4f_transpose(oobject_t list, oint32_t ac);
-static void native_m4f_scale(oobject_t list, oint32_t ac);
+static void native_m4f_muls(oobject_t list, oint32_t ac);
 static void native_m4f_inverse(oobject_t list, oint32_t ac);
 static void native_m4f_neg(oobject_t list, oint32_t ac);
 static void native_m4f_add(oobject_t list, oint32_t ac);
 static void native_m4f_sub(oobject_t list, oint32_t ac);
 static void native_m4f_mul(oobject_t list, oint32_t ac);
 static void native_m4f_div(oobject_t list, oint32_t ac);
+static void native_m4f_translate(oobject_t list, oint32_t ac);
+static void native_m4f_rotate(oobject_t list, oint32_t ac);
+static void native_m4f_scale(oobject_t list, oint32_t ac);
 
+static void m2d_identity(ofloat64_t v0[4]);
 static ofloat64_t m2d_det_inverse(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void m2d_add(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void m2d_sub(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void m2d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void m2d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_m2d_set(oobject_t list, oint32_t ac);
 static void native_m2d_fill(oobject_t list, oint32_t ac);
 static void native_m2d_identity(oobject_t list, oint32_t ac);
 static void native_m2d_copy(oobject_t list, oint32_t ac);
 static void native_m2d_det(oobject_t list, oint32_t ac);
 static void native_m2d_transpose(oobject_t list, oint32_t ac);
-static void native_m2d_scale(oobject_t list, oint32_t ac);
+static void native_m2d_muls(oobject_t list, oint32_t ac);
 static void native_m2d_inverse(oobject_t list, oint32_t ac);
 static void native_m2d_neg(oobject_t list, oint32_t ac);
 static void native_m2d_add(oobject_t list, oint32_t ac);
@@ -178,15 +249,19 @@ static void native_m2d_sub(oobject_t list, oint32_t ac);
 static void native_m2d_mul(oobject_t list, oint32_t ac);
 static void native_m2d_div(oobject_t list, oint32_t ac);
 
+static void m3d_identity(ofloat64_t v0[9]);
 static ofloat64_t m3d_det_inverse(ofloat64_t v0[9], ofloat64_t v1[9]);
+static void m3d_add(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9]);
+static void m3d_sub(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9]);
 static void m3d_mul(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9]);
+static void m3d_div(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9]);
 static void native_m3d_set(oobject_t list, oint32_t ac);
 static void native_m3d_fill(oobject_t list, oint32_t ac);
 static void native_m3d_identity(oobject_t list, oint32_t ac);
 static void native_m3d_copy(oobject_t list, oint32_t ac);
 static void native_m3d_det(oobject_t list, oint32_t ac);
 static void native_m3d_transpose(oobject_t list, oint32_t ac);
-static void native_m3d_scale(oobject_t list, oint32_t ac);
+static void native_m3d_muls(oobject_t list, oint32_t ac);
 static void native_m3d_inverse(oobject_t list, oint32_t ac);
 static void native_m3d_neg(oobject_t list, oint32_t ac);
 static void native_m3d_add(oobject_t list, oint32_t ac);
@@ -194,21 +269,33 @@ static void native_m3d_sub(oobject_t list, oint32_t ac);
 static void native_m3d_mul(oobject_t list, oint32_t ac);
 static void native_m3d_div(oobject_t list, oint32_t ac);
 
+static void m4d_identity(ofloat64_t v0[16]);
 static ofloat64_t m4d_det_inverse(ofloat64_t v0[16], ofloat64_t v1[16]);
+static void m4d_add(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16]);
+static void m4d_sub(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16]);
 static void m4d_mul(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16]);
+static void m4d_div(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16]);
+static void m4d_translate(ofloat64_t v0[16],
+			  ofloat64_t v1[16], ofloat64_t v2[3]);
+static void m4d_rotate(ofloat64_t v0[16], ofloat64_t v1[16],
+		       ofloat64_t angle, ofloat64_t v2[3]);
+static void m4d_scale(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[3]);
 static void native_m4d_set(oobject_t list, oint32_t ac);
 static void native_m4d_fill(oobject_t list, oint32_t ac);
 static void native_m4d_identity(oobject_t list, oint32_t ac);
 static void native_m4d_copy(oobject_t list, oint32_t ac);
 static void native_m4d_det(oobject_t list, oint32_t ac);
 static void native_m4d_transpose(oobject_t list, oint32_t ac);
-static void native_m4d_scale(oobject_t list, oint32_t ac);
+static void native_m4d_muls(oobject_t list, oint32_t ac);
 static void native_m4d_inverse(oobject_t list, oint32_t ac);
 static void native_m4d_neg(oobject_t list, oint32_t ac);
 static void native_m4d_add(oobject_t list, oint32_t ac);
 static void native_m4d_sub(oobject_t list, oint32_t ac);
 static void native_m4d_mul(oobject_t list, oint32_t ac);
 static void native_m4d_div(oobject_t list, oint32_t ac);
+static void native_m4d_translate(oobject_t list, oint32_t ac);
+static void native_m4d_rotate(oobject_t list, oint32_t ac);
+static void native_m4d_scale(oobject_t list, oint32_t ac);
 
 /*
  * Initialization
@@ -249,7 +336,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v2f_, length, t_vf);
     define_nsbuiltin2(t_d, v2f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v2f_, normalize, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, v2f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v2f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin2(t_vf, v2f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, sub, t_vf, t_vf, t_vf);
@@ -263,7 +350,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v3f_, length, t_vf);
     define_nsbuiltin2(t_d, v3f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v3f_, normalize, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, v3f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v3f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, cross, t_vf, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v3f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, add, t_vf, t_vf, t_vf);
@@ -278,7 +365,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v4f_, length, t_vf);
     define_nsbuiltin2(t_d, v4f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v4f_, normalize, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, v4f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v4f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin2(t_vf, v4f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, sub, t_vf, t_vf, t_vf);
@@ -292,7 +379,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v2d_, length, t_vd);
     define_nsbuiltin2(t_d, v2d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v2d_, normalize, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, v2d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v2d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin2(t_vd, v2d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, sub, t_vd, t_vd, t_vd);
@@ -306,7 +393,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v3d_, length, t_vd);
     define_nsbuiltin2(t_d, v3d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v3d_, normalize, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, v3d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v3d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, cross, t_vd, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v3d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, add, t_vd, t_vd, t_vd);
@@ -321,7 +408,7 @@ init_vecmat(void)
     define_nsbuiltin1(t_d, v4d_, length, t_vd);
     define_nsbuiltin2(t_d, v4d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v4d_, normalize, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, v4d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v4d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin2(t_vd, v4d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, sub, t_vd, t_vd, t_vd);
@@ -336,7 +423,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, m2f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, m2f_, det, t_vf);
     define_nsbuiltin2(t_vf, m2f_, transpose, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, m2f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, m2f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin2(t_vf, m2f_, inverse, t_vf, t_vf);
     define_nsbuiltin2(t_vf, m2f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m2f_, add, t_vf, t_vf, t_vf);
@@ -352,7 +439,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, m3f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, m3f_, det, t_vf);
     define_nsbuiltin2(t_vf, m3f_, transpose, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, m3f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, m3f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin2(t_vf, m3f_, inverse, t_vf, t_vf);
     define_nsbuiltin2(t_vf, m3f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m3f_, add, t_vf, t_vf, t_vf);
@@ -369,13 +456,16 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, m4f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, m4f_, det, t_vf);
     define_nsbuiltin2(t_vf, m4f_, transpose, t_vf, t_vf);
-    define_nsbuiltin3(t_vf, m4f_, scale, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, m4f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin2(t_vf, m4f_, inverse, t_vf, t_vf);
     define_nsbuiltin2(t_vf, m4f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m4f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m4f_, sub, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m4f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, m4f_, div, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, m4f_, translate, t_vf, t_vf, t_vf);
+    define_nsbuiltin4(t_vf, m4f_, rotate, t_vf, t_vf, t_f, t_vf);
+    define_nsbuiltin3(t_vf, m4f_, scale, t_vf, t_vf, t_vf);
 
     current_record = m2d_record;
     define_nsbuiltin5(t_vd, m2d_, set,
@@ -385,7 +475,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, m2d_, copy, t_vd, t_vd);
     define_nsbuiltin1(t_d, m2d_, det, t_vd);
     define_nsbuiltin2(t_vd, m2d_, transpose, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, m2d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, m2d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin2(t_vd, m2d_, inverse, t_vd, t_vd);
     define_nsbuiltin2(t_vd, m2d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m2d_, add, t_vd, t_vd, t_vd);
@@ -401,7 +491,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, m3d_, copy, t_vd, t_vd);
     define_nsbuiltin1(t_d, m3d_, det, t_vd);
     define_nsbuiltin2(t_vd, m3d_, transpose, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, m3d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, m3d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin2(t_vd, m3d_, inverse, t_vd, t_vd);
     define_nsbuiltin2(t_vd, m3d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m3d_, add, t_vd, t_vd, t_vd);
@@ -418,13 +508,16 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, m4d_, copy, t_vd, t_vd);
     define_nsbuiltin1(t_d, m4d_, det, t_vd);
     define_nsbuiltin2(t_vd, m4d_, transpose, t_vd, t_vd);
-    define_nsbuiltin3(t_vd, m4d_, scale, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, m4d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin2(t_vd, m4d_, inverse, t_vd, t_vd);
     define_nsbuiltin2(t_vd, m4d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m4d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m4d_, sub, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m4d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, m4d_, div, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, m4d_, translate, t_vd, t_vd, t_vd);
+    define_nsbuiltin4(t_vd, m4d_, rotate, t_vd, t_vd, t_d, t_vd);
+    define_nsbuiltin3(t_vd, m4d_, scale, t_vd, t_vd, t_vd);
 
     current_record = record;
 #undef t_vf
@@ -467,6 +560,65 @@ v2f_length(ofloat32_t v0[2])
 }
 
 static void
+v2f_normalize(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    ofloat32_t		s0;
+
+    if (!v1[0] && !v1[1]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	}
+    }
+    else {
+	s0 = 1.0f / v2f_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+    }
+}
+
+static void
+v2f_muls(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+}
+
+static void
+v2f_fill(ofloat32_t v0[2], ofloat32_t s0)
+{
+    v0[0] = v0[1] = s0;
+}
+
+static void
+v2f_add(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+}
+
+static void
+v2f_sub(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+}
+
+static void
+v2f_mul(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+}
+
+static void
+v2f_div(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
+}
+
+static void
 native_v2f_set(oobject_t list, oint32_t ac)
 /* float32_t v2f.set(float32_t v0[2], float32_t s0, float32_t s1)[2]; */
 {
@@ -491,14 +643,12 @@ native_v2f_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[0] = v0[1] = alist->a1;
+    v2f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -567,47 +717,29 @@ native_v2f_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
-    if (!v1[0] && !v1[1]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	}
-    }
-    else {
-	v2 = 1.0f / v2f_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-    }
+    v2f_normalize(alist->a0->v.f32, alist->a1->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v2f_scale(oobject_t list, oint32_t ac)
-/* float32_t v2f.scale(float32_t v0[2], float32_t v1[2], float32_t s0)[2]; */
+native_v2f_muls(oobject_t list, oint32_t ac)
+/* float32_t v2f.muls(float32_t v0[2], float32_t v1[2], float32_t s0)[2]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f32_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
+    v2f_muls(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -640,18 +772,13 @@ native_v2f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
+    v2f_add(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -663,18 +790,13 @@ native_v2f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
+    v2f_sub(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -686,18 +808,13 @@ native_v2f_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
+    v2f_mul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -709,18 +826,13 @@ native_v2f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
+    v2f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -729,6 +841,72 @@ static ofloat32_t
 v3f_length(ofloat32_t v0[3])
 {
     return (sqrtf(sqrf(v0[0]) + sqrf(v0[1]) + sqrf(v0[2])));
+}
+
+static void
+v3f_normalize(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    ofloat32_t		s0;
+
+    if (!v1[0] && !v1[1] && !v1[2]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	    v0[2] = v1[2];
+	}
+    }
+    else {
+	s0 = 1.0f / v3f_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+	v0[2] = v1[2] * s0;
+    }
+}
+
+static void
+v3f_muls(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+    v0[2] = v1[2] * s0;
+}
+
+static void
+v3f_fill(ofloat32_t v0[3], ofloat32_t s0)
+{
+    v0[0] = v0[1] = v0[2] = s0;
+}
+
+static void
+v3f_add(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];
+}
+
+static void
+v3f_sub(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];
+}
+
+static void
+v3f_mul(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+    v0[2] = v1[2] * v2[2];
+}
+
+static void
+v3f_div(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
+    v0[2] = v1[2] / v2[2];
 }
 
 static void
@@ -758,14 +936,12 @@ native_v3f_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[0] = v0[1] = v0[2] = alist->a1;
+    v3f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -835,50 +1011,29 @@ native_v3f_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
-    if (!v1[0] && !v1[1] && !v1[2]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	    v0[2] = v1[2];
-	}
-    }
-    else {
-	v2 = 1.0f / v3f_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-	v0[2] = v1[2] * v2;
-    }
+    v3f_normalize(alist->a0->v.f32, alist->a1->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v3f_scale(oobject_t list, oint32_t ac)
-/* float32_t v3f.scale(float32_t v0[3], float32_t v1[3], float32_t s0)[3]; */
+native_v3f_muls(oobject_t list, oint32_t ac)
+/* float32_t v3f.muls(float32_t v0[3], float32_t v1[3], float32_t s0)[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f32_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
-    v0[2] = v1[2] * v2;
+    v3f_muls(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -944,19 +1099,13 @@ native_v3f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];
+    v3f_add(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -968,19 +1117,13 @@ native_v3f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];
+    v3f_sub(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -992,19 +1135,13 @@ native_v3f_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
-    v0[2] = v1[2] * v2[2];
+    v3f_mul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1016,19 +1153,13 @@ native_v3f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
-    v0[2] = v1[2] / v2[2];
+    v3f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1037,6 +1168,79 @@ static ofloat32_t
 v4f_length(ofloat32_t v0[4])
 {
     return (sqrtf(sqrf(v0[0]) + sqrf(v0[1]) + sqrf(v0[2]) + sqrf(v0[3])));
+}
+
+static void
+v4f_normalize(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    ofloat32_t		s0;
+
+    if (!v1[0] && !v1[1] && !v1[2] && !v1[3]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	    v0[2] = v1[2];
+	    v0[3] = v1[3];
+	}
+    }
+    else {
+	s0 = 1.0f / v4f_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+	v0[2] = v1[2] * s0;
+	v0[3] = v1[3] * s0;
+    }
+}
+
+static void
+v4f_muls(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+    v0[2] = v1[2] * s0;
+    v0[3] = v1[3] * s0;
+}
+
+static void
+v4f_fill(ofloat32_t v0[4], ofloat32_t s0)
+{
+    v0[0] = v0[1] = v0[2] = v0[3] = s0;
+}
+
+static void
+v4f_add(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];
+    v0[3] = v1[3] + v2[3];
+}
+
+static void
+v4f_sub(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];
+    v0[3] = v1[3] - v2[3];
+}
+
+static void
+v4f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+    v0[2] = v1[2] * v2[2];
+    v0[3] = v1[3] * v2[3];
+}
+
+static void
+v4f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
+    v0[2] = v1[2] / v2[2];
+    v0[3] = v1[3] / v2[3];
 }
 
 static void
@@ -1067,14 +1271,12 @@ native_v4f_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[0] = v0[1] = v0[2] = v0[3] = alist->a1;
+    v4f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1145,53 +1347,29 @@ native_v4f_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
-    if (!v1[0] && !v1[1] && !v1[2] && !v1[3]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	    v0[2] = v1[2];
-	    v0[3] = v1[3];
-	}
-    }
-    else {
-	v2 = 1.0f / v4f_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-	v0[2] = v1[2] * v2;
-	v0[3] = v1[3] * v2;
-    }
+    v4f_normalize(alist->a0->v.f32, alist->a1->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v4f_scale(oobject_t list, oint32_t ac)
-/* float32_t v4f.scale(float32_t v0[4], float32_t v1[4], float32_t s0)[4]; */
+native_v4f_muls(oobject_t list, oint32_t ac)
+/* float32_t v4f.muls(float32_t v0[4], float32_t v1[4], float32_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f32_t		*alist;
-    float			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
-    v0[2] = v1[2] * v2;
-    v0[3] = v1[3] * v2;
+    v4f_muls(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1226,20 +1404,13 @@ native_v4f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];
-    v0[3] = v1[3] + v2[3];
+    v4f_add(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1251,20 +1422,13 @@ native_v4f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];
-    v0[3] = v1[3] - v2[3];
+    v4f_sub(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1276,20 +1440,13 @@ native_v4f_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
-    v0[2] = v1[2] * v2[2];
-    v0[3] = v1[3] * v2[3];
+    v4f_mul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1301,20 +1458,13 @@ native_v4f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_VF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_VF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
-    v0[2] = v1[2] / v2[2];
-    v0[3] = v1[3] / v2[3];
+    v4f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1323,6 +1473,65 @@ static ofloat64_t
 v2d_length(ofloat64_t v0[2])
 {
     return (sqrt(sqr(v0[0]) + sqr(v0[1])));
+}
+
+static void
+v2d_normalize(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    ofloat64_t		s0;
+
+    if (!v1[0] && !v1[1]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	}
+    }
+    else {
+	s0 = 1.0 / v2d_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+    }
+}
+
+static void
+v2d_muls(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+}
+
+static void
+v2d_fill(ofloat64_t v0[2], ofloat64_t s0)
+{
+    v0[0] = v0[1] = s0;
+}
+
+static void
+v2d_add(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+}
+
+static void
+v2d_sub(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+}
+
+static void
+v2d_mul(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+}
+
+static void
+v2d_div(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
 }
 
 static void
@@ -1350,14 +1559,12 @@ native_v2d_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[0] = v0[1] = alist->a1;
+    v2d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1426,47 +1633,29 @@ native_v2d_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
-    if (!v1[0] && !v1[1]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	}
-    }
-    else {
-	v2 = 1.0 / v2d_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-    }
+    v2d_normalize(alist->a0->v.f64, alist->a1->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v2d_scale(oobject_t list, oint32_t ac)
-/* float64_t v2d.scale(float64_t v0[2], float64_t v1[2], float64_t s0)[2]; */
+native_v2d_muls(oobject_t list, oint32_t ac)
+/* float64_t v2d.muls(float64_t v0[2], float64_t v1[2], float64_t s0)[2]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f64_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
+    v2d_muls(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1500,18 +1689,13 @@ native_v2d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
+    v2d_add(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1523,18 +1707,13 @@ native_v2d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
+    v2d_sub(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1546,18 +1725,13 @@ native_v2d_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
+    v2d_mul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1569,18 +1743,13 @@ native_v2d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
+    v2d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1589,6 +1758,72 @@ static ofloat64_t
 v3d_length(ofloat64_t v0[3])
 {
     return (sqrt(sqr(v0[0]) + sqr(v0[1]) + sqr(v0[2])));
+}
+
+static void
+v3d_normalize(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    ofloat64_t		s0;
+
+    if (!v1[0] && !v1[1] && !v1[2]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	    v0[2] = v1[2];
+	}
+    }
+    else {
+	s0 = 1.0 / v3d_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+	v0[2] = v1[2] * s0;
+    }
+}
+
+static void
+v3d_muls(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+    v0[2] = v1[2] * s0;
+}
+
+static void
+v3d_fill(ofloat64_t v0[3], ofloat64_t s0)
+{
+    v0[0] = v0[1] = v0[2] = s0;
+}
+
+static void
+v3d_add(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];
+}
+
+static void
+v3d_sub(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];
+}
+
+static void
+v3d_mul(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+    v0[2] = v1[2] * v2[2];
+}
+
+static void
+v3d_div(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
+    v0[2] = v1[2] / v2[2];
 }
 
 static void
@@ -1618,14 +1853,12 @@ native_v3d_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[0] = v0[1] = v0[2] = alist->a1;
+    v3d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1695,50 +1928,29 @@ native_v3d_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
-    if (!v1[0] && !v1[1] && !v1[2]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	    v0[2] = v1[2];
-	}
-    }
-    else {
-	v2 = 1.0 / v3d_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-	v0[2] = v1[2] * v2;
-    }
+    v3d_normalize(alist->a0->v.f64, alist->a1->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v3d_scale(oobject_t list, oint32_t ac)
-/* float64_t v3d.scale(float64_t v0[3], float64_t v1[3], float64_t s0)[3]; */
+native_v3d_muls(oobject_t list, oint32_t ac)
+/* float64_t v3d.muls(float64_t v0[3], float64_t v1[3], float64_t s0)[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f64_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
-    v0[2] = v1[2] * v2;
+    v3d_muls(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1797,7 +2009,6 @@ native_v3d_neg(oobject_t list, oint32_t ac)
     r0->v.o = alist->a0;
 }
 
-
 static void
 native_v3d_add(oobject_t list, oint32_t ac)
 /* float64_t v3d.add(float64_t v0[3], float64_t v1[3], float64_t v2[3])[3]; */
@@ -1805,19 +2016,13 @@ native_v3d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];
+    v3d_add(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1829,19 +2034,13 @@ native_v3d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];
+    v3d_sub(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1853,19 +2052,13 @@ native_v3d_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
-    v0[2] = v1[2] * v2[2];
+    v3d_mul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1877,19 +2070,13 @@ native_v3d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
-    v0[2] = v1[2] / v2[2];
+    v3d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -1898,6 +2085,79 @@ static ofloat64_t
 v4d_length(ofloat64_t v0[4])
 {
     return (sqrt(sqr(v0[0]) + sqr(v0[1]) + sqr(v0[2]) + sqr(v0[3])));
+}
+
+static void
+v4d_normalize(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    ofloat64_t		s0;
+
+    if (!v1[0] && !v1[1] && !v1[2] && !v1[3]) {
+	if (likely(v0 != v1)) {
+	    v0[0] = v1[0];
+	    v0[1] = v1[1];
+	    v0[2] = v1[2];
+	    v0[3] = v1[3];
+	}
+    }
+    else {
+	s0 = 1.0 / v4d_length(v1);
+	v0[0] = v1[0] * s0;
+	v0[1] = v1[1] * s0;
+	v0[2] = v1[2] * s0;
+	v0[3] = v1[3] * s0;
+    }
+}
+
+static void
+v4d_muls(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0)
+{
+    v0[0] = v1[0] * s0;
+    v0[1] = v1[1] * s0;
+    v0[2] = v1[2] * s0;
+    v0[3] = v1[3] * s0;
+}
+
+static void
+v4d_fill(ofloat64_t v0[4], ofloat64_t s0)
+{
+    v0[0] = v0[1] = v0[2] = v0[3] = s0;
+}
+
+static void
+v4d_add(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] + v2[0];
+    v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];
+    v0[3] = v1[3] + v2[3];
+}
+
+static void
+v4d_sub(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] - v2[0];
+    v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];
+    v0[3] = v1[3] - v2[3];
+}
+
+static void
+v4d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] * v2[0];
+    v0[1] = v1[1] * v2[1];
+    v0[2] = v1[2] * v2[2];
+    v0[3] = v1[3] * v2[3];
+}
+
+static void
+v4d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] / v2[0];
+    v0[1] = v1[1] / v2[1];
+    v0[2] = v1[2] / v2[2];
+    v0[3] = v1[3] / v2[3];
 }
 
 static void
@@ -1928,14 +2188,12 @@ native_v4d_fill(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[0] = v0[1] = v0[2] = v0[3] = alist->a1;
+    v4d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2006,53 +2264,29 @@ native_v4d_normalize(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
-    if (!v1[0] && !v1[1] && !v1[2] && !v1[3]) {
-	if (likely(v0 != v1)) {
-	    v0[0] = v1[0];
-	    v0[1] = v1[1];
-	    v0[2] = v1[2];
-	    v0[3] = v1[3];
-	}
-    }
-    else {
-	v2 = 1.0 / v4d_length(v1);
-	v0[0] = v1[0] * v2;
-	v0[1] = v1[1] * v2;
-	v0[2] = v1[2] * v2;
-	v0[3] = v1[3] * v2;
-    }
+    v4d_normalize(alist->a0->v.f64, alist->a1->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
 static void
-native_v4d_scale(oobject_t list, oint32_t ac)
-/* float64_t v4d.scale(float64_t v0[4], float64_t v1[4], float64_t s0)[4]; */
+native_v4d_muls(oobject_t list, oint32_t ac)
+/* float64_t v4d.muls(float64_t v0[4], float64_t v1[4], float64_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_f64_t		*alist;
-    double			*v0, *v1, v2;
 
     alist = (nat_vec_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
-    v2 = alist->a2;
-    v0[0] = v1[0] * v2;
-    v0[1] = v1[1] * v2;
-    v0[2] = v1[2] * v2;
-    v0[3] = v1[3] * v2;
+    v4d_muls(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2087,20 +2321,13 @@ native_v4d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] + v2[0];
-    v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];
-    v0[3] = v1[3] + v2[3];
+    v4d_add(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2112,20 +2339,13 @@ native_v4d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] - v2[0];
-    v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];
-    v0[3] = v1[3] - v2[3];
+    v4d_sub(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2137,20 +2357,13 @@ native_v4d_mul(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] * v2[0];
-    v0[1] = v1[1] * v2[1];
-    v0[2] = v1[2] * v2[2];
-    v0[3] = v1[3] * v2[3];
+    v4d_mul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2162,22 +2375,22 @@ native_v4d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_VD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_VD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] / v2[0];
-    v0[1] = v1[1] / v2[1];
-    v0[2] = v1[2] / v2[2];
-    v0[3] = v1[3] / v2[3];
+    v4d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
+}
+
+static void
+m2f_identity(ofloat32_t v0[4])
+{
+    A2(v0, 0, 1) = A2(v0, 1, 0) = 0.0;
+    A2(v0, 0, 0) = A2(v0, 1, 1) = 1.0;
 }
 
 static ofloat32_t
@@ -2202,6 +2415,20 @@ m2f_det_inverse(ofloat32_t v0[4], ofloat32_t v1[4])
 }
 
 static void
+m2f_add(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+}
+
+static void
+m2f_sub(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+}
+
+static void
 m2f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
 {
     float		a00, a01;
@@ -2218,6 +2445,15 @@ m2f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
     A2(v0, 0, 1) = a01 * b00 + a11 * b01;
     A2(v0, 1, 0) = a00 * b10 + a10 * b11;
     A2(v0, 1, 1) = a01 * b10 + a11 * b11;
+}
+
+static void
+m2f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    ofloat32_t			 inv[4];
+
+    (void)m2f_det_inverse(inv, v2);
+    m2f_mul(v0, v1, inv);
 }
 
 static void
@@ -2266,15 +2502,12 @@ native_m2f_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF2(alist->a0);
-    v0 = alist->a0->v.f32;
-    A2(v0, 0, 1) = A2(v0, 1, 0) = 0.0;
-    A2(v0, 0, 0) = A2(v0, 1, 1) = 1.0;
+    m2f_identity(alist->a0->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2344,8 +2577,8 @@ native_m2f_det(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m2f_scale(oobject_t list, oint32_t ac)
-/* float32_t m2f.scale(float32_t v0[4], float32_t v1[4], float32_t s0)[4]; */
+native_m2f_muls(oobject_t list, oint32_t ac)
+/* float32_t m2f.muls(float32_t v0[4], float32_t v1[4], float32_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2411,18 +2644,13 @@ native_m2f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+    m2f_add(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2435,18 +2663,13 @@ native_m2f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF2(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF2(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF2(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+    m2f_sub(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2478,17 +2701,23 @@ native_m2f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat32_t			 inv[4];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF2(alist->a0);
     CHECK_MF2(alist->a1);
     CHECK_MF2(alist->a2);
-    (void)m2f_det_inverse(inv, alist->a2->v.f32);
-    m2f_mul(alist->a0->v.f32, alist->a1->v.f32, inv);
+    m2f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
+}
+
+static void
+m3f_identity(ofloat32_t v0[9])
+{
+    A3(v0, 0, 1) = A3(v0, 0, 2) = A3(v0, 1, 0) =
+    A3(v0, 1, 2) = A3(v0, 2, 0) = A3(v0, 2, 1) = 0.0;
+    A3(v0, 0, 0) = A3(v0, 1, 1) = A3(v0, 2, 2) = 1.0;
 }
 
 static ofloat32_t
@@ -2538,6 +2767,26 @@ m3f_det_inverse(ofloat32_t v0[9], ofloat32_t v1[9])
 }
 
 static void
+m3f_add(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9])
+{
+    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+    v0[4] = v1[4] + v2[4];	v0[5] = v1[5] + v2[5];
+    v0[6] = v1[6] + v2[6];	v0[7] = v1[7] + v2[7];
+    v0[8] = v1[8] + v2[8];
+}
+
+static void
+m3f_sub(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9])
+{
+    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+    v0[4] = v1[4] - v2[4];	v0[5] = v1[5] - v2[5];
+    v0[6] = v1[6] - v2[6];	v0[7] = v1[7] - v2[7];
+    v0[8] = v1[8] - v2[8];
+}
+
+static void
 m3f_mul(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9])
 {
     float		a00, a01, a02;
@@ -2563,6 +2812,15 @@ m3f_mul(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9])
     A3(v0, 2, 0) = a00 * b20 + a10 * b21 + a20 * b22;
     A3(v0, 2, 1) = a01 * b20 + a11 * b21 + a21 * b22;
     A3(v0, 2, 2) = a02 * b20 + a12 * b21 + a22 * b22;
+}
+
+static void
+m3f_div(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9])
+{
+    ofloat32_t			 inv[9];
+
+    (void)m3f_det_inverse(inv, v2);
+    m3f_mul(v0, v1, inv);
 }
 
 static void
@@ -2620,16 +2878,12 @@ native_m3f_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF3(alist->a0);
-    v0 = alist->a0->v.f32;
-    A3(v0, 0, 1) = A3(v0, 0, 2) = A3(v0, 1, 0) =
-    A3(v0, 1, 2) = A3(v0, 2, 0) = A3(v0, 2, 1) = 0.0;
-    A3(v0, 0, 0) = A3(v0, 1, 1) = A3(v0, 2, 2) = 1.0;
+    m3f_identity(alist->a0->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2710,8 +2964,8 @@ native_m3f_det(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m3f_scale(oobject_t list, oint32_t ac)
-/* float32_t m3f.scale(float32_t v0[9], float32_t v1[9], float32_t s0)[9]; */
+native_m3f_muls(oobject_t list, oint32_t ac)
+/* float32_t m3f.muls(float32_t v0[9], float32_t v1[9], float32_t s0)[9]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -2781,21 +3035,13 @@ native_m3f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
-    v0[4] = v1[4] + v2[4];	v0[5] = v1[5] + v2[5];
-    v0[6] = v1[6] + v2[6];	v0[7] = v1[7] + v2[7];
-    v0[8] = v1[8] + v2[8];
+    m3f_add(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2808,21 +3054,13 @@ native_m3f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF3(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF3(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF3(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
-    v0[4] = v1[4] - v2[4];	v0[5] = v1[5] - v2[5];
-    v0[6] = v1[6] - v2[6];	v0[7] = v1[7] - v2[7];
-    v0[8] = v1[8] - v2[8];
+    m3f_sub(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2854,17 +3092,24 @@ native_m3f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat32_t			 inv[9];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF3(alist->a0);
     CHECK_MF3(alist->a1);
     CHECK_MF3(alist->a2);
-    (void)m3f_det_inverse(inv, alist->a2->v.f32);
-    m3f_mul(alist->a0->v.f32, alist->a1->v.f32, inv);
-    r0->t = t_vector|t_float32;
+    m3f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+   r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
+}
+
+static void
+m4f_identity(ofloat32_t v0[16])
+{
+    v0[ 1] = v0[ 2] = v0[ 3] = v0[ 4] =
+    v0[ 6] = v0[ 7] = v0[ 8] = v0[ 9] =
+    v0[11] = v0[12] = v0[13] = v0[14] = 0.0;
+    v0[ 0] = v0[ 5] = v0[10] = v0[15] = 1.0;
 }
 
 static ofloat32_t
@@ -2936,6 +3181,32 @@ m4f_det_inverse(ofloat32_t v0[16], ofloat32_t v1[16])
 }
 
 static void
+m4f_add(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16])
+{
+    v0[ 0] = v1[ 0] + v2[ 0];	v0[ 1] = v1[ 1] + v2[ 1];
+    v0[ 2] = v1[ 2] + v2[ 2];	v0[ 3] = v1[ 3] + v2[ 3];
+    v0[ 4] = v1[ 4] + v2[ 4];	v0[ 5] = v1[ 5] + v2[ 5];
+    v0[ 6] = v1[ 6] + v2[ 6];	v0[ 7] = v1[ 7] + v2[ 7];
+    v0[ 8] = v1[ 8] + v2[ 8];	v0[ 9] = v1[ 9] + v2[ 9];
+    v0[10] = v1[10] + v2[10];	v0[11] = v1[11] + v2[11];
+    v0[12] = v1[12] + v2[12];	v0[13] = v1[13] + v2[13];
+    v0[14] = v1[14] + v2[14];	v0[15] = v1[15] + v2[15];
+}
+
+static void
+m4f_sub(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16])
+{
+    v0[ 0] = v1[ 0] - v2[ 0];	v0[ 1] = v1[ 1] - v2[ 1];
+    v0[ 2] = v1[ 2] - v2[ 2];	v0[ 3] = v1[ 3] - v2[ 3];
+    v0[ 4] = v1[ 4] - v2[ 4];	v0[ 5] = v1[ 5] - v2[ 5];
+    v0[ 6] = v1[ 6] - v2[ 6];	v0[ 7] = v1[ 7] - v2[ 7];
+    v0[ 8] = v1[ 8] - v2[ 8];	v0[ 9] = v1[ 9] - v2[ 9];
+    v0[10] = v1[10] - v2[10];	v0[11] = v1[11] - v2[11];
+    v0[12] = v1[12] - v2[12];	v0[13] = v1[13] - v2[13];
+    v0[14] = v1[14] - v2[14];	v0[15] = v1[15] - v2[15];
+}
+
+static void
 m4f_mul(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16])
 {
     float		a00, a01, a02, a03;
@@ -2979,6 +3250,92 @@ m4f_mul(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16])
     A4(v0, 3, 1) = a01 * b30 + a11 * b31 + a21 * b32 + a31 * b33;
     A4(v0, 3, 2) = a02 * b30 + a12 * b31 + a22 * b32 + a32 * b33;
     A4(v0, 3, 3) = a03 * b30 + a13 * b31 + a23 * b32 + a33 * b33;
+}
+
+static void
+m4f_div(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[16])
+{
+    ofloat32_t			 inv[16];
+
+    (void)m4f_det_inverse(inv, v2);
+    m4f_mul(v0, v1, inv);
+}
+
+static void
+m4f_translate(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[3])
+{
+    ofloat32_t		res0[4], res1[4], res2[4];
+
+    v4f_muls(res0, v1 + 0, v2[0]);
+    v4f_muls(res1, v1 + 4, v2[1]);
+    v4f_muls(res2, v1 + 8, v2[2]);
+    if (likely(v0 != v1))
+	memcpy(v0, v1, sizeof(ofloat32_t) * 16);
+    v4f_add(v0 + 12, v0 + 12, res0);
+    v4f_add(v0 + 12, v0 + 12, res1);
+    v4f_add(v0 + 12, v0 + 12, res2);
+}
+
+static void
+m4f_rotate(ofloat32_t v0[16], ofloat32_t v1[16],
+	   ofloat32_t angle, ofloat32_t v2[3])
+{
+    ofloat32_t		 c, s, axis[3], tmp[3];
+    ofloat32_t		*vn, rot[16], res[16], res0[4], res1[4], res2[4];
+
+    if (unlikely(v0 == v1))
+	vn = res;
+    else
+	vn = v0;
+    c = cosf(angle);
+    s = sinf(angle);
+
+    v3f_normalize(axis, v2);
+
+    v3f_fill(tmp, 1.0f - c);
+    v3f_mul(tmp, tmp, axis);
+
+    A4(rot, 0, 0) = c + tmp[0] * axis[0];
+    A4(rot, 0, 1) =     tmp[0] * axis[1] + s * axis[2];
+    A4(rot, 0, 2) =     tmp[0] * axis[2] - s * axis[1];
+
+    A4(rot, 1, 0) =     tmp[1] * axis[0] - s * axis[2];
+    A4(rot, 1, 1) = c + tmp[1] * axis[1];
+    A4(rot, 1, 2) =     tmp[1] * axis[2] + s * axis[0];
+
+    A4(rot, 2, 0) =     tmp[2] * axis[0] + s * axis[1];
+    A4(rot, 2, 1) =     tmp[2] * axis[1] - s * axis[0];
+    A4(rot, 2, 2) = c + tmp[2] * axis[2];
+
+    v4f_muls(res0, v1 + 0, A4(rot, 0, 0));
+    v4f_muls(res1, v1 + 4, A4(rot, 0, 1));
+    v4f_muls(res2, v1 + 8, A4(rot, 0, 2));
+    v4f_add(vn + 0, res0, res1);	v4f_add(vn + 0, vn + 0, res2);
+
+    v4f_muls(res0, v1 + 0, A4(rot, 1, 0));
+    v4f_muls(res1, v1 + 4, A4(rot, 1, 1));
+    v4f_muls(res2, v1 + 8, A4(rot, 1, 2));
+    v4f_add(vn + 4, res0, res1);	v4f_add(vn + 4, vn + 4, res2);
+
+    v4f_muls(res0, v1 + 0, A4(rot, 2, 0));
+    v4f_muls(res1, v1 + 4, A4(rot, 2, 1));
+    v4f_muls(res2, v1 + 8, A4(rot, 2, 2));
+    v4f_add(vn + 8, res0, res1);	v4f_add(vn + 8, vn + 8, res2);
+
+    if (unlikely(v0 == v1))
+	memcpy(v0, vn, sizeof(ofloat32_t) * 12);
+    else
+	memcpy(v0 + 12, v1 + 12, sizeof(ofloat32_t) * 4);
+}
+
+static void
+m4f_scale(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[3])
+{
+    v4f_muls(v0 + 0, v1 + 0, v2[0]);
+    v4f_muls(v0 + 4, v1 + 4, v2[1]);
+    v4f_muls(v0 + 8, v1 + 8, v2[2]);
+    if (likely(v0 != v1))
+	memcpy(v0 + 12, v1 + 12, sizeof(ofloat32_t) * 4);
 }
 
 static void
@@ -3046,17 +3403,12 @@ native_m4f_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[ 1] = v0[ 2] = v0[ 3] = v0[ 4] =
-    v0[ 6] = v0[ 7] = v0[ 8] = v0[ 9] =
-    v0[11] = v0[12] = v0[13] = v0[14] = 0.0;
-    v0[ 0] = v0[ 5] = v0[10] = v0[15] = 1.0;
+    m4f_identity(alist->a0->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3153,8 +3505,8 @@ native_m4f_det(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m4f_scale(oobject_t list, oint32_t ac)
-/* float32_t m4f.scale(float32_t v0[16], float32_t v1[16], float32_t s0)[16]; */
+native_m4f_muls(oobject_t list, oint32_t ac)
+/* float32_t m4f.muls(float32_t v0[16], float32_t v1[16], float32_t s0)[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3228,24 +3580,13 @@ native_m4f_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[ 0] = v1[ 0] + v2[ 0];	v0[ 1] = v1[ 1] + v2[ 1];
-    v0[ 2] = v1[ 2] + v2[ 2];	v0[ 3] = v1[ 3] + v2[ 3];
-    v0[ 4] = v1[ 4] + v2[ 4];	v0[ 5] = v1[ 5] + v2[ 5];
-    v0[ 6] = v1[ 6] + v2[ 6];	v0[ 7] = v1[ 7] + v2[ 7];
-    v0[ 8] = v1[ 8] + v2[ 8];	v0[ 9] = v1[ 9] + v2[ 9];
-    v0[10] = v1[10] + v2[10];	v0[11] = v1[11] + v2[11];
-    v0[12] = v1[12] + v2[12];	v0[13] = v1[13] + v2[13];
-    v0[14] = v1[14] + v2[14];	v0[15] = v1[15] + v2[15];
+    m4f_add(alist->a0->v.f32,  alist->a1->v.f32,  alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3258,24 +3599,13 @@ native_m4f_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    float			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    v0 = alist->a0->v.f32;
     CHECK_MF4(alist->a1);
-    v1 = alist->a1->v.f32;
     CHECK_MF4(alist->a2);
-    v2 = alist->a2->v.f32;
-    v0[ 0] = v1[ 0] - v2[ 0];	v0[ 1] = v1[ 1] - v2[ 1];
-    v0[ 2] = v1[ 2] - v2[ 2];	v0[ 3] = v1[ 3] - v2[ 3];
-    v0[ 4] = v1[ 4] - v2[ 4];	v0[ 5] = v1[ 5] - v2[ 5];
-    v0[ 6] = v1[ 6] - v2[ 6];	v0[ 7] = v1[ 7] - v2[ 7];
-    v0[ 8] = v1[ 8] - v2[ 8];	v0[ 9] = v1[ 9] - v2[ 9];
-    v0[10] = v1[10] - v2[10];	v0[11] = v1[11] - v2[11];
-    v0[12] = v1[12] - v2[12];	v0[13] = v1[13] - v2[13];
-    v0[14] = v1[14] - v2[14];	v0[15] = v1[15] - v2[15];
+    m4f_sub(alist->a0->v.f32,  alist->a1->v.f32,  alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3307,17 +3637,80 @@ native_m4f_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat32_t			 inv[16];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
     CHECK_MF4(alist->a1);
     CHECK_MF4(alist->a2);
-    (void)m4f_det_inverse(inv, alist->a2->v.f32);
-    m4f_mul(alist->a0->v.f32, alist->a1->v.f32, inv);
+    m4f_div(alist->a0->v.f32,  alist->a1->v.f32,  alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
+}
+
+static void
+native_m4f_translate(oobject_t list, oint32_t ac)
+/* float32_t m4f.translate(float32_t v0[16],
+			   float32_t v1[16], float32_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    CHECK_MF4(alist->a1);
+    CHECK_VF3(alist->a2);
+    m4f_translate(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+native_m4f_rotate(oobject_t list, oint32_t ac)
+/* float32_t m4f.rotate(float32_t v0[16], float32_t v1[16],
+			float32_t deg, float32_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_vec_t	*alist;
+
+    alist = (nat_vec_vec_f32_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    CHECK_MF4(alist->a1);
+    CHECK_VF3(alist->a3);
+    m4f_rotate(alist->a0->v.f32, alist->a1->v.f32,
+	       radiansf(alist->a2), alist->a3->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+native_m4f_scale(oobject_t list, oint32_t ac)
+/* float32_t m4f.scale(float32_t v0[16],
+		       float32_t v1[16], float32_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    CHECK_MF4(alist->a1);
+    CHECK_VF3(alist->a2);
+    m4f_scale(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+m2d_identity(ofloat64_t v0[4])
+{
+    A2(v0, 0, 1) = A2(v0, 1, 0) = 0.0;
+    A2(v0, 0, 0) = A2(v0, 1, 1) = 1.0;
 }
 
 static ofloat64_t
@@ -3342,6 +3735,20 @@ m2d_det_inverse(ofloat64_t v0[4], ofloat64_t v1[4])
 }
 
 static void
+m2d_add(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+}
+
+static void
+m2d_sub(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+}
+
+static void
 m2d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
 {
     double		a00, a01;
@@ -3358,6 +3765,15 @@ m2d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
     A2(v0, 0, 1) = a01 * b00 + a11 * b01;
     A2(v0, 1, 0) = a00 * b10 + a10 * b11;
     A2(v0, 1, 1) = a01 * b10 + a11 * b11;
+}
+
+static void
+m2d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    ofloat64_t			 inv[4];
+
+    (void)m2d_det_inverse(inv, v2);
+    m2d_mul(v0, v1, inv);
 }
 
 static void
@@ -3406,15 +3822,12 @@ native_m2d_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD2(alist->a0);
-    v0 = alist->a0->v.f64;
-    A2(v0, 0, 1) = A2(v0, 1, 0) = 0.0;
-    A2(v0, 0, 0) = A2(v0, 1, 1) = 1.0;
+    m2d_identity(alist->a0->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3484,8 +3897,8 @@ native_m2d_det(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m2d_scale(oobject_t list, oint32_t ac)
-/* float64_t m2d.scale(float64_t v0[4], float64_t v1[4], float64_t s0)[4]; */
+native_m2d_muls(oobject_t list, oint32_t ac)
+/* float64_t m2d.muls(float64_t v0[4], float64_t v1[4], float64_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3551,18 +3964,13 @@ native_m2d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+    m2d_add(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3575,18 +3983,13 @@ native_m2d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD2(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD2(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD2(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+    m2d_sub(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3618,17 +4021,22 @@ native_m2d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat64_t			 inv[4];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD2(alist->a0);
     CHECK_MD2(alist->a1);
     CHECK_MD2(alist->a2);
-    (void)m2d_det_inverse(inv, alist->a2->v.f64);
-    m2d_mul(alist->a0->v.f64, alist->a1->v.f64, inv);
+    m2d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
+}
+
+static void
+m3d_identity(ofloat64_t v0[9])
+{
+    v0[1] = v0[2] = v0[3] = v0[5] = v0[6] = v0[7] = 0.0;
+    v0[0] = v0[4] = v0[8] = 1.0;
 }
 
 static ofloat64_t
@@ -3678,6 +4086,26 @@ m3d_det_inverse(ofloat64_t v0[9], ofloat64_t v1[9])
 }
 
 static void
+m3d_add(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9])
+{
+    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
+    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
+    v0[4] = v1[4] + v2[4];	v0[5] = v1[5] + v2[5];
+    v0[6] = v1[6] + v2[6];	v0[7] = v1[7] + v2[7];
+    v0[8] = v1[8] + v2[8];
+}
+
+static void
+m3d_sub(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9])
+{
+    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
+    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
+    v0[4] = v1[4] - v2[4];	v0[5] = v1[5] - v2[5];
+    v0[6] = v1[6] - v2[6];	v0[7] = v1[7] - v2[7];
+    v0[8] = v1[8] - v2[8];
+}
+
+static void
 m3d_mul(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9])
 {
     double		a00, a01, a02;
@@ -3703,6 +4131,15 @@ m3d_mul(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9])
     A3(v0, 2, 0) = a00 * b20 + a10 * b21 + a20 * b22;
     A3(v0, 2, 1) = a01 * b20 + a11 * b21 + a21 * b22;
     A3(v0, 2, 2) = a02 * b20 + a12 * b21 + a22 * b22;
+}
+
+static void
+m3d_div(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9])
+{
+    ofloat64_t			 inv[9];
+
+    (void)m3d_det_inverse(inv, v2);
+    m3d_mul(v0, v1, inv);
 }
 
 static void
@@ -3760,15 +4197,12 @@ native_m3d_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD3(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[1] = v0[2] = v0[3] = v0[5] = v0[6] = v0[7] = 0.0;
-    v0[0] = v0[4] = v0[8] = 1.0;
+    m3d_identity(alist->a0->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3849,8 +4283,8 @@ native_m3d_det(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m3d_scale(oobject_t list, oint32_t ac)
-/* float64_t m3d.scale(float64_t v0[9], float64_t v1[9], float64_t s0)[9]; */
+native_m3d_muls(oobject_t list, oint32_t ac)
+/* float64_t m3d.muls(float64_t v0[9], float64_t v1[9], float64_t s0)[9]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -3920,21 +4354,13 @@ native_m3d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] + v2[0];	v0[1] = v1[1] + v2[1];
-    v0[2] = v1[2] + v2[2];	v0[3] = v1[3] + v2[3];
-    v0[4] = v1[4] + v2[4];	v0[5] = v1[5] + v2[5];
-    v0[6] = v1[6] + v2[6];	v0[7] = v1[7] + v2[7];
-    v0[8] = v1[8] + v2[8];
+    m3d_add(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3947,21 +4373,13 @@ native_m3d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD3(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD3(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD3(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[0] = v1[0] - v2[0];	v0[1] = v1[1] - v2[1];
-    v0[2] = v1[2] - v2[2];	v0[3] = v1[3] - v2[3];
-    v0[4] = v1[4] - v2[4];	v0[5] = v1[5] - v2[5];
-    v0[6] = v1[6] - v2[6];	v0[7] = v1[7] - v2[7];
-    v0[8] = v1[8] - v2[8];
+    m3d_sub(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3981,7 +4399,7 @@ native_m3d_mul(oobject_t list, oint32_t ac)
     CHECK_MD3(alist->a1);
     CHECK_MD3(alist->a2);
     m3d_mul(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
-    r0->t = t_vector|t_float32;
+    r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
@@ -3993,17 +4411,24 @@ native_m3d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat64_t			 inv[9];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD3(alist->a0);
     CHECK_MD3(alist->a1);
     CHECK_MD3(alist->a2);
-    (void)m3d_det_inverse(inv, alist->a2->v.f64);
-    m3d_mul(alist->a0->v.f64, alist->a1->v.f64, inv);
+    m3d_div(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
+}
+
+static void
+m4d_identity(ofloat64_t v0[16])
+{
+    v0[ 1] = v0[ 2] = v0[ 3] = v0[ 4] =
+    v0[ 6] = v0[ 7] = v0[ 8] = v0[ 9] =
+    v0[11] = v0[12] = v0[13] = v0[14] = 0.0;
+    v0[ 0] = v0[ 5] = v0[10] = v0[15] = 1.0;
 }
 
 static ofloat64_t
@@ -4075,6 +4500,32 @@ m4d_det_inverse(ofloat64_t v0[16], ofloat64_t v1[16])
 }
 
 static void
+m4d_add(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16])
+{
+    v0[ 0] = v1[ 0] + v2[ 0];	v0[ 1] = v1[ 1] + v2[ 1];
+    v0[ 2] = v1[ 2] + v2[ 2];	v0[ 3] = v1[ 3] + v2[ 3];
+    v0[ 4] = v1[ 4] + v2[ 4];	v0[ 5] = v1[ 5] + v2[ 5];
+    v0[ 6] = v1[ 6] + v2[ 6];	v0[ 7] = v1[ 7] + v2[ 7];
+    v0[ 8] = v1[ 8] + v2[ 8];	v0[ 9] = v1[ 9] + v2[ 9];
+    v0[10] = v1[10] + v2[10];	v0[11] = v1[11] + v2[11];
+    v0[12] = v1[12] + v2[12];	v0[13] = v1[13] + v2[13];
+    v0[14] = v1[14] + v2[14];	v0[15] = v1[15] + v2[15];
+}
+
+static void
+m4d_sub(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16])
+{
+    v0[ 0] = v1[ 0] - v2[ 0];	v0[ 1] = v1[ 1] - v2[ 1];
+    v0[ 2] = v1[ 2] - v2[ 2];	v0[ 3] = v1[ 3] - v2[ 3];
+    v0[ 4] = v1[ 4] - v2[ 4];	v0[ 5] = v1[ 5] - v2[ 5];
+    v0[ 6] = v1[ 6] - v2[ 6];	v0[ 7] = v1[ 7] - v2[ 7];
+    v0[ 8] = v1[ 8] - v2[ 8];	v0[ 9] = v1[ 9] - v2[ 9];
+    v0[10] = v1[10] - v2[10];	v0[11] = v1[11] - v2[11];
+    v0[12] = v1[12] - v2[12];	v0[13] = v1[13] - v2[13];
+    v0[14] = v1[14] - v2[14];	v0[15] = v1[15] - v2[15];
+}
+
+static void
 m4d_mul(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16])
 {
     double		a00, a01, a02, a03;
@@ -4118,6 +4569,92 @@ m4d_mul(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16])
     A4(v0, 3, 1) = a01 * b30 + a11 * b31 + a21 * b32 + a31 * b33;
     A4(v0, 3, 2) = a02 * b30 + a12 * b31 + a22 * b32 + a32 * b33;
     A4(v0, 3, 3) = a03 * b30 + a13 * b31 + a23 * b32 + a33 * b33;
+}
+
+static void
+m4d_div(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[16])
+{
+    ofloat64_t			 inv[16];
+
+    (void)m4d_det_inverse(inv, v2);
+    m4d_mul(v0, v1, inv);
+}
+
+static void
+m4d_translate(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[3])
+{
+    ofloat64_t		res0[4], res1[4], res2[4];
+
+    v4d_muls(res0, v1 + 0, v2[0]);
+    v4d_muls(res1, v1 + 4, v2[1]);
+    v4d_muls(res2, v1 + 8, v2[2]);
+    if (likely(v0 != v1))
+	memcpy(v0, v1, sizeof(ofloat64_t) * 16);
+    v4d_add(v0 + 12, v0 + 12, res0);
+    v4d_add(v0 + 12, v0 + 12, res1);
+    v4d_add(v0 + 12, v0 + 12, res2);
+}
+
+static void
+m4d_rotate(ofloat64_t v0[16], ofloat64_t v1[16],
+	   ofloat64_t angle, ofloat64_t v2[3])
+{
+    ofloat64_t		 c, s, axis[3], tmp[3];
+    ofloat64_t		*vn, rot[16], res[16], res0[4], res1[4], res2[4];
+
+    if (unlikely(v0 == v1))
+	vn = res;
+    else
+	vn = v0;
+    c = cos(angle);
+    s = sin(angle);
+
+    v3d_normalize(axis, v2);
+
+    v3d_fill(tmp, 1.0 - c);
+    v3d_mul(tmp, tmp, axis);
+
+    A4(rot, 0, 0) = c + tmp[0] * axis[0];
+    A4(rot, 0, 1) =     tmp[0] * axis[1] + s * axis[2];
+    A4(rot, 0, 2) =     tmp[0] * axis[2] - s * axis[1];
+
+    A4(rot, 1, 0) =     tmp[1] * axis[0] - s * axis[2];
+    A4(rot, 1, 1) = c + tmp[1] * axis[1];
+    A4(rot, 1, 2) =     tmp[1] * axis[2] + s * axis[0];
+
+    A4(rot, 2, 0) =     tmp[2] * axis[0] + s * axis[1];
+    A4(rot, 2, 1) =     tmp[2] * axis[1] - s * axis[0];
+    A4(rot, 2, 2) = c + tmp[2] * axis[2];
+
+    v4d_muls(res0, v1 + 0, A4(rot, 0, 0));
+    v4d_muls(res1, v1 + 4, A4(rot, 0, 1));
+    v4d_muls(res2, v1 + 8, A4(rot, 0, 2));
+    v4d_add(vn + 0, res0, res1);	v4d_add(vn + 0, vn + 0, res2);
+
+    v4d_muls(res0, v1 + 0, A4(rot, 1, 0));
+    v4d_muls(res1, v1 + 4, A4(rot, 1, 1));
+    v4d_muls(res2, v1 + 8, A4(rot, 1, 2));
+    v4d_add(vn + 4, res0, res1);	v4d_add(vn + 4, vn + 4, res2);
+
+    v4d_muls(res0, v1 + 0, A4(rot, 2, 0));
+    v4d_muls(res1, v1 + 4, A4(rot, 2, 1));
+    v4d_muls(res2, v1 + 8, A4(rot, 2, 2));
+    v4d_add(vn + 8, res0, res1);	v4d_add(vn + 8, vn + 8, res2);
+
+    if (unlikely(v0 == v1))
+	memcpy(v0, vn, sizeof(ofloat64_t) * 12);
+    else
+	memcpy(v0 + 12, v1 + 12, sizeof(ofloat64_t) * 4);
+}
+
+static void
+m4d_scale(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[3])
+{
+    v4d_muls(v0 + 0, v1 + 0, v2[0]);
+    v4d_muls(v0 + 4, v1 + 4, v2[1]);
+    v4d_muls(v0 + 8, v1 + 8, v2[2]);
+    if (likely(v0 != v1))
+	memcpy(v0 + 12, v1 + 12, sizeof(ofloat64_t) * 4);
 }
 
 static void
@@ -4185,17 +4722,12 @@ native_m4d_identity(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_t			*alist;
 
     alist = (nat_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[ 1] = v0[ 2] = v0[ 3] = v0[ 4] =
-    v0[ 6] = v0[ 7] = v0[ 8] = v0[ 9] =
-    v0[11] = v0[12] = v0[13] = v0[14] = 0.0;
-    v0[ 0] = v0[ 5] = v0[10] = v0[15] = 1.0;
+    m4d_identity(alist->a0->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4292,8 +4824,8 @@ native_m4d_transpose(oobject_t list, oint32_t ac)
 }
 
 static void
-native_m4d_scale(oobject_t list, oint32_t ac)
-/* float64_t m4d.scale(float64_t v0[16], float64_t v1[16], float64_t s0)[16]; */
+native_m4d_muls(oobject_t list, oint32_t ac)
+/* float64_t m4d.muls(float64_t v0[16], float64_t v1[16], float64_t s0)[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -4367,24 +4899,13 @@ native_m4d_add(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[ 0] = v1[ 0] + v2[ 0];	v0[ 1] = v1[ 1] + v2[ 1];
-    v0[ 2] = v1[ 2] + v2[ 2];	v0[ 3] = v1[ 3] + v2[ 3];
-    v0[ 4] = v1[ 4] + v2[ 4];	v0[ 5] = v1[ 5] + v2[ 5];
-    v0[ 6] = v1[ 6] + v2[ 6];	v0[ 7] = v1[ 7] + v2[ 7];
-    v0[ 8] = v1[ 8] + v2[ 8];	v0[ 9] = v1[ 9] + v2[ 9];
-    v0[10] = v1[10] + v2[10];	v0[11] = v1[11] + v2[11];
-    v0[12] = v1[12] + v2[12];	v0[13] = v1[13] + v2[13];
-    v0[14] = v1[14] + v2[14];	v0[15] = v1[15] + v2[15];
+    m4d_add(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4397,24 +4918,13 @@ native_m4d_sub(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    double			*v0, *v1, *v2;
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    v0 = alist->a0->v.f64;
     CHECK_MD4(alist->a1);
-    v1 = alist->a1->v.f64;
     CHECK_MD4(alist->a2);
-    v2 = alist->a2->v.f64;
-    v0[ 0] = v1[ 0] - v2[ 0];	v0[ 1] = v1[ 1] - v2[ 1];
-    v0[ 2] = v1[ 2] - v2[ 2];	v0[ 3] = v1[ 3] - v2[ 3];
-    v0[ 4] = v1[ 4] - v2[ 4];	v0[ 5] = v1[ 5] - v2[ 5];
-    v0[ 6] = v1[ 6] - v2[ 6];	v0[ 7] = v1[ 7] - v2[ 7];
-    v0[ 8] = v1[ 8] - v2[ 8];	v0[ 9] = v1[ 9] - v2[ 9];
-    v0[10] = v1[10] - v2[10];	v0[11] = v1[11] - v2[11];
-    v0[12] = v1[12] - v2[12];	v0[13] = v1[13] - v2[13];
-    v0[14] = v1[14] - v2[14];	v0[15] = v1[15] - v2[15];
+    m4d_sub(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4446,15 +4956,71 @@ native_m4d_div(oobject_t list, oint32_t ac)
     GET_THREAD_SELF()
     oregister_t			*r0;
     nat_vec_vec_vec_t		*alist;
-    ofloat64_t			 inv[16];
 
     alist = (nat_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
     CHECK_MD4(alist->a1);
     CHECK_MD4(alist->a2);
-    (void)m4d_det_inverse(inv, alist->a2->v.f64);
-    m4d_mul(alist->a0->v.f64, alist->a1->v.f64, inv);
+    m4d_div(alist->a0->v.f64,  alist->a1->v.f64,  alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+native_m4d_translate(oobject_t list, oint32_t ac)
+/* float64_t m4d.translate(float64_t v0[16],
+			   float64_t v1[16], float64_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    CHECK_MD4(alist->a1);
+    CHECK_VD3(alist->a2);
+    m4d_translate(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+native_m4d_rotate(oobject_t list, oint32_t ac)
+/* float64_t m4d.rotate(float64_t v0[16], float64_t v1[16],
+			float64_t deg, float64_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_vec_t	*alist;
+
+    alist = (nat_vec_vec_f64_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    CHECK_MD4(alist->a1);
+    CHECK_VD3(alist->a3);
+    m4d_rotate(alist->a0->v.f64, alist->a1->v.f64,
+	       radians(alist->a2), alist->a3->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+native_m4d_scale(oobject_t list, oint32_t ac)
+/* float64_t m4d.scale(float64_t v0[16],
+		       float64_t v1[16], float64_t v2[3])[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    CHECK_MD4(alist->a1);
+    CHECK_VD3(alist->a2);
+    m4d_scale(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
