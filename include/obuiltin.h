@@ -527,6 +527,8 @@ TYPE5(ovector_t*, ofloat32_t, ofloat32_t, ofloat32_t,ofloat32_t,
       vec_f32_f32_f32_f32);
 TYPE5(ovector_t*, ofloat64_t, ofloat64_t, ofloat64_t,ofloat64_t,
       vec_f64_f64_f64_f64);
+TYPE5(ovector_t*, ovector_t*, ovector_t*, ovector_t*, ovector_t*,
+      vec_vec_vec_vec_vec);
 #if SDL
 TYPE5(onurbs_t*, ovector_t*, ovector_t*, oint32_t, ouint32_t,
       nur_vec_vec_i32_u32);
@@ -564,6 +566,10 @@ TYPE6(ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t,
       f64_f64_f64_f64_f64_f64);
 TYPE6(ovector_t*, oint32_t, oint32_t, oint32_t, oint32_t, ouint32_t,
       vec_i32_i32_i32_i32_u32);
+TYPE6(ovector_t*, ofloat32_t, ofloat32_t, ofloat32_t, ofloat32_t, ovector_t*,
+      vec_f32_f32_f32_f32_vec);
+TYPE6(ovector_t*, ofloat64_t, ofloat64_t, ofloat64_t, ofloat64_t, ovector_t*,
+      vec_f64_f64_f64_f64_vec);
 #if SDL
 TYPE6(oquadric_t*, ofloat64_t, ofloat64_t, ofloat64_t, oint32_t, oint32_t,
       qua_f64_f64_f64_i32_i32);
@@ -600,8 +606,12 @@ TYPE7(ofloat64_t,ofloat64_t,ofloat64_t,ovector_t*,ovector_t*,ovector_t*,ovector_
       f64_f64_f64_vec_vec_vec_vec);
 TYPE7(ovector_t*,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,ofloat32_t,
       vec_f32_f32_f32_f32_f32_f32);
+TYPE7(ovector_t*,ofloat32_t,ofloat32_t,ofloat32_t,ovector_t*,ovector_t*,ovector_t*,
+      vec_f32_f32_f32_vec_vec_vec);
 TYPE7(ovector_t*,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,ofloat64_t,
       vec_f64_f64_f64_f64_f64_f64);
+TYPE7(ovector_t*,ofloat64_t,ofloat64_t,ofloat64_t,ovector_t*,ovector_t*,ovector_t*,
+      vec_f64_f64_f64_vec_vec_vec);
 #if SDL
 TYPE7(orenderer_t*,otexture_t*,orect_t*,orect_t*,ofloat64_t,opoint_t*,oint32_t,
       ren_tex_rec_rec_f64_pnt_i32);
