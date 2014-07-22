@@ -162,6 +162,7 @@ static void v4d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_div(oobject_t list, oint32_t ac);
 
 static void native_m2f_set(oobject_t list, oint32_t ac);
+static void m2f_fill(ofloat32_t v0[4], ofloat32_t s0);
 static void native_m2f_fill(oobject_t list, oint32_t ac);
 static void m2f_identity(ofloat32_t v0[4]);
 static void native_m2f_identity(oobject_t list, oint32_t ac);
@@ -182,6 +183,7 @@ static void m2f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_m2f_div(oobject_t list, oint32_t ac);
 
 static void native_m3f_set(oobject_t list, oint32_t ac);
+static void m3f_fill(ofloat32_t v0[9], ofloat32_t s0);
 static void native_m3f_fill(oobject_t list, oint32_t ac);
 static void m3f_identity(ofloat32_t v0[9]);
 static void native_m3f_identity(oobject_t list, oint32_t ac);
@@ -202,6 +204,7 @@ static void m3f_div(ofloat32_t v0[9], ofloat32_t v1[9], ofloat32_t v2[9]);
 static void native_m3f_div(oobject_t list, oint32_t ac);
 
 static void native_m4f_set(oobject_t list, oint32_t ac);
+static void m4f_fill(ofloat32_t v0[16], ofloat32_t s0);
 static void native_m4f_fill(oobject_t list, oint32_t ac);
 static void m4f_identity(ofloat32_t v0[16]);
 static void native_m4f_identity(oobject_t list, oint32_t ac);
@@ -228,8 +231,21 @@ static void m4f_rotate(ofloat32_t v0[16], ofloat32_t v1[16],
 static void native_m4f_rotate(oobject_t list, oint32_t ac);
 static void m4f_scale(ofloat32_t v0[16], ofloat32_t v1[16], ofloat32_t v2[3]);
 static void native_m4f_scale(oobject_t list, oint32_t ac);
+static void m4f_ortho(ofloat32_t v0[16], ofloat32_t left,
+		      ofloat32_t right, ofloat32_t bottom, ofloat32_t top,
+		      ofloat32_t zNear, ofloat32_t zFar);
+static void native_m4f_ortho(oobject_t list, oint32_t ac);
+static void m4f_frustum(ofloat32_t v0[16], ofloat32_t left,
+			ofloat32_t right, ofloat32_t bottom,
+			ofloat32_t top, ofloat32_t nearVal, ofloat32_t farVal);
+static void native_m4f_frustum(oobject_t list, oint32_t ac);
+static void m4f_perspective(ofloat32_t v0[16], ofloat32_t fovy,
+			    ofloat32_t aspect, ofloat32_t zNear,
+			    ofloat32_t zFar);
+static void native_m4f_perspective(oobject_t list, oint32_t ac);
 
 static void native_m2d_set(oobject_t list, oint32_t ac);
+static void m2d_fill(ofloat64_t v0[4], ofloat64_t s0);
 static void native_m2d_fill(oobject_t list, oint32_t ac);
 static void m2d_identity(ofloat64_t v0[4]);
 static void native_m2d_identity(oobject_t list, oint32_t ac);
@@ -250,6 +266,7 @@ static void m2d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_m2d_div(oobject_t list, oint32_t ac);
 
 static void native_m3d_set(oobject_t list, oint32_t ac);
+static void m3d_fill(ofloat64_t v0[9], ofloat64_t s0);
 static void native_m3d_fill(oobject_t list, oint32_t ac);
 static void m3d_identity(ofloat64_t v0[9]);
 static void native_m3d_identity(oobject_t list, oint32_t ac);
@@ -270,6 +287,7 @@ static void m3d_div(ofloat64_t v0[9], ofloat64_t v1[9], ofloat64_t v2[9]);
 static void native_m3d_div(oobject_t list, oint32_t ac);
 
 static void native_m4d_set(oobject_t list, oint32_t ac);
+static void m4d_fill(ofloat64_t v0[16], ofloat64_t s0);
 static void native_m4d_fill(oobject_t list, oint32_t ac);
 static void m4d_identity(ofloat64_t v0[16]);
 static void native_m4d_identity(oobject_t list, oint32_t ac);
@@ -296,6 +314,18 @@ static void m4d_rotate(ofloat64_t v0[16], ofloat64_t v1[16],
 static void native_m4d_rotate(oobject_t list, oint32_t ac);
 static void m4d_scale(ofloat64_t v0[16], ofloat64_t v1[16], ofloat64_t v2[3]);
 static void native_m4d_scale(oobject_t list, oint32_t ac);
+static void m4d_ortho(ofloat64_t v0[16], ofloat64_t left,
+		      ofloat64_t right, ofloat64_t bottom, ofloat64_t top,
+		      ofloat64_t zNear, ofloat64_t zFar);
+static void native_m4d_ortho(oobject_t list, oint32_t ac);
+static void m4d_frustum(ofloat64_t v0[16], ofloat64_t left,
+			ofloat64_t right, ofloat64_t bottom,
+			ofloat64_t top, ofloat64_t nearVal, ofloat64_t farVal);
+static void native_m4d_frustum(oobject_t list, oint32_t ac);
+static void m4d_perspective(ofloat64_t v0[16], ofloat64_t fovy,
+			    ofloat64_t aspect, ofloat64_t zNear,
+			    ofloat64_t zFar);
+static void native_m4d_perspective(oobject_t list, oint32_t ac);
 
 /*
  * Initialization
@@ -466,6 +496,9 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, m4f_, translate, t_vf, t_vf, t_vf);
     define_nsbuiltin4(t_vf, m4f_, rotate, t_vf, t_vf, t_f, t_vf);
     define_nsbuiltin3(t_vf, m4f_, scale, t_vf, t_vf, t_vf);
+    define_nsbuiltin7(t_vf, m4f_, ortho, t_vf, t_f, t_f, t_f, t_f, t_f, t_f);
+    define_nsbuiltin7(t_vf, m4f_, frustum, t_vf, t_f, t_f, t_f, t_f, t_f, t_f);
+    define_nsbuiltin5(t_vf, m4f_, perspective, t_vf, t_f, t_f, t_f, t_f);
 
     current_record = m2d_record;
     define_nsbuiltin5(t_vd, m2d_, set,
@@ -518,6 +551,9 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, m4d_, translate, t_vd, t_vd, t_vd);
     define_nsbuiltin4(t_vd, m4d_, rotate, t_vd, t_vd, t_d, t_vd);
     define_nsbuiltin3(t_vd, m4d_, scale, t_vd, t_vd, t_vd);
+    define_nsbuiltin7(t_vd, m4d_, ortho, t_vd, t_d, t_d, t_d, t_d, t_d, t_d);
+    define_nsbuiltin7(t_vd, m4d_, frustum, t_vd, t_d, t_d, t_d, t_d, t_d, t_d);
+    define_nsbuiltin5(t_vd, m4d_, perspective, t_vd, t_d, t_d, t_d, t_d);
 
     current_record = record;
 #undef t_vf
@@ -2408,19 +2444,23 @@ native_m2f_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m2f_fill(ofloat32_t v0[4], ofloat32_t s0)
+{
+    v0[0] = v0[1] = v0[2] = v0[3] = s0;
+}
+
+static void
 native_m2f_fill(oobject_t list, oint32_t ac)
 /* float32_t m2f.fill(float32_t v0[4], float32_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF2(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[0] = v0[1] = v0[2] = v0[3] = alist->a1;
+    m2f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2741,21 +2781,25 @@ native_m3f_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m3f_fill(ofloat32_t v0[9], ofloat32_t s0)
+{
+    v0[0] = v0[1] = v0[2] =
+    v0[3] = v0[4] = v0[5] =
+    v0[6] = v0[7] = v0[8] = s0;
+}
+
+static void
 native_m3f_fill(oobject_t list, oint32_t ac)
 /* float32_t m3f.fill(float32_t v0[9], float32_t s0)[9]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF3(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[0] = v0[1] = v0[2] =
-    v0[3] = v0[4] = v0[5] =
-    v0[6] = v0[7] = v0[8] = alist->a1;
+    m3f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3141,22 +3185,26 @@ native_m4f_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m4f_fill(ofloat32_t v0[16], ofloat32_t s0)
+{
+    v0[ 0] = v0[ 1] = v0[ 2] = v0[ 3] =
+    v0[ 4] = v0[ 5] = v0[ 6] = v0[ 7] =
+    v0[ 8] = v0[ 9] = v0[10] = v0[11] =
+    v0[12] = v0[13] = v0[14] = v0[15] =	s0;
+}
+
+static void
 native_m4f_fill(oobject_t list, oint32_t ac)
 /* float32_t m4f.fill(float32_t v0[16], float32_t s0)[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    float			*v0;
     nat_vec_f32_t		*alist;
 
     alist = (nat_vec_f32_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    v0 = alist->a0->v.f32;
-    v0[ 0] = v0[ 1] = v0[ 2] = v0[ 3] =
-    v0[ 4] = v0[ 5] = v0[ 6] = v0[ 7] =
-    v0[ 8] = v0[ 9] = v0[10] = v0[11] =
-    v0[12] = v0[13] = v0[14] = v0[15] =	alist->a1;
+    m4f_fill(alist->a0->v.f32, alist->a1);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3706,6 +3754,105 @@ native_m4f_scale(oobject_t list, oint32_t ac)
 }
 
 static void
+m4f_ortho(ofloat32_t v0[16], ofloat32_t left, ofloat32_t right,
+	  ofloat32_t bottom, ofloat32_t top, ofloat32_t zNear, ofloat32_t zFar)
+{
+    m4f_identity(v0);
+    A4(v0, 0, 0) =   2.0f / (right - left);
+    A4(v0, 1, 1) =   2.0f / (top - bottom);
+    A4(v0, 2, 2) = - 2.0f / (zFar - zNear);
+    A4(v0, 3, 0) = - (right + left) / (right - left);
+    A4(v0, 3, 1) = - (top + bottom) / (top - bottom);
+    A4(v0, 3, 2) = - (zFar + zNear) / (zFar - zNear);
+}
+
+static void
+native_m4f_ortho(oobject_t list, oint32_t ac)
+/* float32_t m4f.ortho(float32_t v0[16], float32_t left, float32_t right,
+		       float32_t bottom, float32_t top, float32_t zNear,
+		       float32_t zFar)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f32_f32_f32_f32_f32_f32_t		*alist;
+
+    alist = (nat_vec_f32_f32_f32_f32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    m4f_ortho(alist->a0->v.f32, alist->a1, alist->a2,
+	      alist->a3, alist->a4, alist->a5, alist->a6);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+m4f_frustum(ofloat32_t v0[16], ofloat32_t left,
+	    ofloat32_t right, ofloat32_t bottom,
+	    ofloat32_t top, ofloat32_t nearVal, ofloat32_t farVal)
+{
+    m4f_fill(v0, 0.0f);
+    A4(v0, 0, 0) =   (2.0f * nearVal) / (right - left);
+    A4(v0, 1, 1) =   (2.0f * nearVal) / (top - bottom);
+    A4(v0, 2, 0) =   (right + left) / (right - left);
+    A4(v0, 2, 1) = - (top + bottom) / (top - bottom);
+    A4(v0, 2, 2) = - (farVal + nearVal) / (farVal - nearVal);
+    A4(v0, 2, 3) = - 1.0f;
+    A4(v0, 3, 2) = - (2.0f * farVal * nearVal) / (farVal - nearVal);
+}
+
+static void
+native_m4f_frustum(oobject_t list, oint32_t ac)
+/* float32_t m4f.frustum(float32_t v0[16], float32_t left, float32_t right,
+			 float32_t bottom, float32_t top, float32_t nearVal,
+			 float32_t farVal)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f32_f32_f32_f32_f32_f32_t		*alist;
+
+    alist = (nat_vec_f32_f32_f32_f32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    m4f_frustum(alist->a0->v.f32, alist->a1, alist->a2,
+		alist->a3, alist->a4, alist->a5, alist->a6);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+m4f_perspective(ofloat32_t v0[16], ofloat32_t fovy,
+		ofloat32_t aspect, ofloat32_t zNear, ofloat32_t zFar)
+{
+    ofloat32_t			t;
+
+    t = tanf(fovy / 2.0f);
+    m4f_fill(v0, 0.0f);
+    A4(v0, 0, 0) = 1.0f / (aspect * t);
+    A4(v0, 1, 1) = 1.0f / t;
+    A4(v0, 2, 2) = - (zFar + zNear) / (zFar - zNear);
+    A4(v0, 2, 3) = - 1.0f;
+    A4(v0, 3, 2) = - (2.0f * zFar * zNear) / (zFar - zNear);
+}
+
+static void
+native_m4f_perspective(oobject_t list, oint32_t ac)
+/* float32_t m4f.perspective(float32_t v0[16], float32_t fovy, float32_t aspect,
+			     float32_t zNear, float32_t zFar)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f32_f32_f32_f32_t	*alist;
+
+    alist = (nat_vec_f32_f32_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MF4(alist->a0);
+    m4f_perspective(alist->a0->v.f32,
+		    radiansf(alist->a1), alist->a2, alist->a3, alist->a4);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_m2d_set(oobject_t list, oint32_t ac)
 /* float64_t m2d.set(float64_t v0[4], float64_t s0,
 		     float64_t s1, float64_t s2, float64_t s3)[9]; */
@@ -3728,19 +3875,23 @@ native_m2d_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m2d_fill(ofloat64_t v0[4], ofloat64_t s0)
+{
+    v0[0] = v0[1] = v0[2] = v0[3] = s0;
+}
+
+static void
 native_m2d_fill(oobject_t list, oint32_t ac)
 /* float64_t m2d.fill(float64_t v0[4], float64_t s0)[4]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD2(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[0] = v0[1] = v0[2] = v0[3] = alist->a1;
+    m2d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4061,21 +4212,25 @@ native_m3d_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m3d_fill(ofloat64_t v0[9], ofloat64_t s0)
+{
+    v0[0] = v0[1] = v0[2] =
+    v0[3] = v0[4] = v0[5] =
+    v0[6] = v0[7] = v0[8] = s0;
+}
+
+static void
 native_m3d_fill(oobject_t list, oint32_t ac)
 /* float64_t m3d.fill(float64_t v0[9], float64_t s0)[9]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD3(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[0] = v0[1] = v0[2] =
-    v0[3] = v0[4] = v0[5] =
-    v0[6] = v0[7] = v0[8] = alist->a1;
+    m3d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4460,22 +4615,26 @@ native_m4d_set(oobject_t list, oint32_t ac)
 }
 
 static void
+m4d_fill(ofloat64_t v0[16], ofloat64_t s0)
+{
+    v0[ 0] = v0[ 1] = v0[ 2] = v0[ 3] =
+    v0[ 4] = v0[ 5] = v0[ 6] = v0[ 7] =
+    v0[ 8] = v0[ 9] = v0[10] = v0[11] =
+    v0[12] = v0[13] = v0[14] = v0[15] =	s0;
+}
+
+static void
 native_m4d_fill(oobject_t list, oint32_t ac)
 /* float64_t m4d.fill(float64_t v0[16], float64_t s0)[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    double			*v0;
     nat_vec_f64_t		*alist;
 
     alist = (nat_vec_f64_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    v0 = alist->a0->v.f64;
-    v0[ 0] = v0[ 1] = v0[ 2] = v0[ 3] =
-    v0[ 4] = v0[ 5] = v0[ 6] = v0[ 7] =
-    v0[ 8] = v0[ 9] = v0[10] = v0[11] =
-    v0[12] = v0[13] = v0[14] = v0[15] =	alist->a1;
+    m4d_fill(alist->a0->v.f64, alist->a1);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -5020,6 +5179,105 @@ native_m4d_scale(oobject_t list, oint32_t ac)
     CHECK_MD4(alist->a1);
     CHECK_VD3(alist->a2);
     m4d_scale(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+m4d_ortho(ofloat64_t v0[16], ofloat64_t left, ofloat64_t right,
+	  ofloat64_t bottom, ofloat64_t top, ofloat64_t zNear, ofloat64_t zFar)
+{
+    m4d_identity(v0);
+    A4(v0, 0, 0) =   2.0 / (right - left);
+    A4(v0, 1, 1) =   2.0 / (top - bottom);
+    A4(v0, 2, 2) = - 2.0 / (zFar - zNear);
+    A4(v0, 3, 0) = - (right + left) / (right - left);
+    A4(v0, 3, 1) = - (top + bottom) / (top - bottom);
+    A4(v0, 3, 2) = - (zFar + zNear) / (zFar - zNear);
+}
+
+static void
+native_m4d_ortho(oobject_t list, oint32_t ac)
+/* float64_t m4d.ortho(float64_t v0[16], float64_t left, float64_t right,
+		       float64_t bottom, float64_t top, float64_t zNear,
+		       float64_t zFar)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f64_f64_f64_f64_f64_f64_t		*alist;
+
+    alist = (nat_vec_f64_f64_f64_f64_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    m4d_ortho(alist->a0->v.f64, alist->a1, alist->a2,
+	      alist->a3, alist->a4, alist->a5, alist->a6);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+m4d_frustum(ofloat64_t v0[16], ofloat64_t left,
+	    ofloat64_t right, ofloat64_t bottom,
+	    ofloat64_t top, ofloat64_t nearVal, ofloat64_t farVal)
+{
+    m4d_fill(v0, 0.0);
+    A4(v0, 0, 0) =   (2.0 * nearVal) / (right - left);
+    A4(v0, 1, 1) =   (2.0 * nearVal) / (top - bottom);
+    A4(v0, 2, 0) =   (right + left) / (right - left);
+    A4(v0, 2, 1) = - (top + bottom) / (top - bottom);
+    A4(v0, 2, 2) = - (farVal + nearVal) / (farVal - nearVal);
+    A4(v0, 2, 3) = - 1.0;
+    A4(v0, 3, 2) = - (2.0 * farVal * nearVal) / (farVal - nearVal);
+}
+
+static void
+native_m4d_frustum(oobject_t list, oint32_t ac)
+/* float64_t m4d.frustum(float64_t v0[16], float64_t left, float64_t right,
+			 float64_t bottom, float64_t top, float64_t nearVal,
+			 float64_t farVal)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f64_f64_f64_f64_f64_f64_t		*alist;
+
+    alist = (nat_vec_f64_f64_f64_f64_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    m4d_frustum(alist->a0->v.f64, alist->a1, alist->a2,
+		alist->a3, alist->a4, alist->a5, alist->a6);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+m4d_perspective(ofloat64_t v0[16], ofloat64_t fovy,
+		ofloat64_t aspect, ofloat64_t zNear, ofloat64_t zFar)
+{
+    ofloat64_t			t;
+
+    t = tan(fovy / 2.0);
+    m4d_fill(v0, 0.0);
+    A4(v0, 0, 0) = 1.0 / (aspect * t);
+    A4(v0, 1, 1) = 1.0 / t;
+    A4(v0, 2, 2) = - (zFar + zNear) / (zFar - zNear);
+    A4(v0, 2, 3) = - 1.0;
+    A4(v0, 3, 2) = - (2.0 * zFar * zNear) / (zFar - zNear);
+}
+
+static void
+native_m4d_perspective(oobject_t list, oint32_t ac)
+/* float64_t m4d.perspective(float64_t v0[16], float64_t fovy, float64_t aspect,
+			     float64_t zNear, float64_t zFar)[16]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_f64_f64_f64_f64_t	*alist;
+
+    alist = (nat_vec_f64_f64_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_MD4(alist->a0);
+    m4d_perspective(alist->a0->v.f64,
+		    radians(alist->a1), alist->a2, alist->a3, alist->a4);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
