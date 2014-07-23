@@ -40696,6 +40696,11 @@ namespace t61 {
     if (cmp(v2f_c[0], 0.6) || cmp(v2f_c[1], 0.8))   print("error %d\n", __LINE__);
     v2f.muls(v2f_c, v2f_b, 2);
     if (v2f_c[0] != 6 || v2f_c[1] != 8) 	    print("error %d\n", __LINE__);
+    if (v2f.eq(v2f_a, v2f_b))		print("error %d\n", __LINE__);
+    if (v2f.ne(v2f_a, v2f_a))		print("error %d\n", __LINE__);
+    v2f.copy(v2f_c, v2f_a);
+    if (v2f.eq(v2f_b, v2f_c))		print("error %d\n", __LINE__);
+    if (v2f.ne(v2f_a, v2f_c))		print("error %d\n", __LINE__);
     v2f.neg(v2f_c, v2f_a);
     if (v2f_c[0] != -1 || v2f_c[1] != -2)	    print("error %d\n", __LINE__);
     v2f.add(v2f_c, v2f_a, v2f_b);
@@ -40729,6 +40734,11 @@ namespace t61 {
     v3f.cross(v3f_c, v3f_a, v3f_b);
     if (v3f_c[0] != -3 || v3f_c[1] != 6 || v3f_c[2] != -3)
 	print("error %d\n", __LINE__);
+    if (v3f.eq(v3f_a, v3f_b))		print("error %d\n", __LINE__);
+    if (v3f.ne(v3f_a, v3f_a))		print("error %d\n", __LINE__);
+    v3f.copy(v3f_c, v3f_a);
+    if (v3f.eq(v3f_b, v3f_c))		print("error %d\n", __LINE__);
+    if (v3f.ne(v3f_a, v3f_c))		print("error %d\n", __LINE__);
     v3f.neg(v3f_c, v3f_a);
     if (v3f_c[0] != -1 || v3f_c[1] != -2 || v3f_c[2] != -3)
 	print("error %d\n", __LINE__);
@@ -40765,6 +40775,11 @@ namespace t61 {
     v4f.muls(v4f_c, v4f_b, 2);
     if (v4f_c[0] != 10 || v4f_c[1] != 12 || v4f_c[2] != 14 || v4f_c[3] != 16)
 	print("error %d\n", __LINE__);
+    if (v4f.eq(v4f_a, v4f_b))		print("error %d\n", __LINE__);
+    if (v4f.ne(v4f_a, v4f_a))		print("error %d\n", __LINE__);
+    v4f.copy(v4f_c, v4f_a);
+    if (v4f.eq(v4f_b, v4f_c))		print("error %d\n", __LINE__);
+    if (v4f.ne(v4f_a, v4f_c))		print("error %d\n", __LINE__);
     v4f.neg(v4f_c, v4f_a);
     if (v4f_c[0] != -1 || v4f_c[1] != -2 || v4f_c[2] != -3 || v4f_c[3] != -4)
 	print("error %d\n", __LINE__);
@@ -40796,6 +40811,11 @@ namespace t61 {
     if (cmp(v2d_c[0], 0.6) || cmp(v2d_c[1], 0.8))   print("error %d\n", __LINE__);
     v2d.muls(v2d_c, v2d_b, 2);
     if (v2d_c[0] != 6 || v2d_c[1] != 8) 	    print("error %d\n", __LINE__);
+    if (v2d.eq(v2d_a, v2d_b))		print("error %d\n", __LINE__);
+    if (v2d.ne(v2d_a, v2d_a))		print("error %d\n", __LINE__);
+    v2d.copy(v2d_c, v2d_a);
+    if (v2d.eq(v2d_b, v2d_c))		print("error %d\n", __LINE__);
+    if (v2d.ne(v2d_a, v2d_c))		print("error %d\n", __LINE__);
     v2d.neg(v2d_c, v2d_a);
     if (v2d_c[0] != -1 || v2d_c[1] != -2)	    print("error %d\n", __LINE__);
     v2d.add(v2d_c, v2d_a, v2d_b);
@@ -40829,6 +40849,11 @@ namespace t61 {
     v3d.cross(v3d_c, v3d_a, v3d_b);
     if (v3d_c[0] != -3 || v3d_c[1] != 6 || v3d_c[2] != -3)
 	print("error %d\n", __LINE__);
+    if (v3d.eq(v3d_a, v3d_b))		print("error %d\n", __LINE__);
+    if (v3d.ne(v3d_a, v3d_a))		print("error %d\n", __LINE__);
+    v3d.copy(v3d_c, v3d_a);
+    if (v3d.eq(v3d_b, v3d_c))		print("error %d\n", __LINE__);
+    if (v3d.ne(v3d_a, v3d_c))		print("error %d\n", __LINE__);
     v3d.neg(v3d_c, v3d_a);
     if (v3d_c[0] != -1 || v3d_c[1] != -2 || v3d_c[2] != -3)
 	print("error %d\n", __LINE__);
@@ -40865,6 +40890,11 @@ namespace t61 {
     v4d.muls(v4d_c, v4d_b, 2);
     if (v4d_c[0] != 10 || v4d_c[1] != 12 || v4d_c[2] != 14 || v4d_c[3] != 16)
 	print("error %d\n", __LINE__);
+    if (v4d.eq(v4d_a, v4d_b))		print("error %d\n", __LINE__);
+    if (v4d.ne(v4d_a, v4d_a))		print("error %d\n", __LINE__);
+    v4d.copy(v4d_c, v4d_a);
+    if (v4d.eq(v4d_b, v4d_c))		print("error %d\n", __LINE__);
+    if (v4d.ne(v4d_a, v4d_c))		print("error %d\n", __LINE__);
     v4d.neg(v4d_c, v4d_a);
     if (v4d_c[0] != -1 || v4d_c[1] != -2 || v4d_c[2] != -3 || v4d_c[3] != -4)
 	print("error %d\n", __LINE__);
@@ -40909,6 +40939,11 @@ namespace t61 {
     m2f.inverse(m2f_c, m2f_a);
     if (m2f_c[0] != -2 || m2f_c[1] != 1 || m2f_c[2] != 1.5 || m2f_c[3] != -0.5)
 	print("error %d\n", __LINE__);
+    if (m2f.eq(m2f_a, m2f_b))		print("error %d\n", __LINE__);
+    if (m2f.ne(m2f_a, m2f_a))		print("error %d\n", __LINE__);
+    m2f.copy(m2f_c, m2f_a);
+    if (m2f.eq(m2f_b, m2f_c))		print("error %d\n", __LINE__);
+    if (m2f.ne(m2f_a, m2f_c))		print("error %d\n", __LINE__);
     m2f.neg(m2f_c, m2f_a);
     if (m2f_c[0] != -1 || m2f_c[1] != -2 || m2f_c[2] != -3 || m2f_c[3] != -4)
 	print("error %d\n", __LINE__);
@@ -40972,6 +41007,11 @@ namespace t61 {
 	m3f_c[3] !=  3 || m3f_c[4] != -11 || m3f_c[5] !=  7 ||
 	m3f_c[6] !=  9 || m3f_c[7] != -34 || m3f_c[8] != 21)
 	print("error %d\n", __LINE__);
+    if (m3f.eq(m3f_a, m3f_b))		print("error %d\n", __LINE__);
+    if (m3f.ne(m3f_a, m3f_a))		print("error %d\n", __LINE__);
+    m3f.copy(m3f_c, m3f_a);
+    if (m3f.eq(m3f_b, m3f_c))		print("error %d\n", __LINE__);
+    if (m3f.ne(m3f_a, m3f_c))		print("error %d\n", __LINE__);
     m3f.neg(m3f_c, m3f_a);
     if (m3f_c[0] != -1 || m3f_c[1] != -2 || m3f_c[2] != -3 ||
 	m3f_c[3] != -4 || m3f_c[4] != -5 || m3f_c[5] != -6 ||
@@ -41052,6 +41092,11 @@ namespace t61 {
 	m4f_c[ 8] !=  9 || m4f_c[ 9] != -34 || m4f_c[10] != 21 || m4f_c[11] != -4 ||
 	m4f_c[12] !=  0 || m4f_c[13] !=   0 || m4f_c[14] !=  0 || m4f_c[15] != 1)
 	print("error %d\n", __LINE__);
+    if (m4f.eq(m4f_a, m4f_b))		print("error %d\n", __LINE__);
+    if (m4f.ne(m4f_a, m4f_a))		print("error %d\n", __LINE__);
+    m4f.copy(m4f_c, m4f_a);
+    if (m4f.eq(m4f_b, m4f_c))		print("error %d\n", __LINE__);
+    if (m4f.ne(m4f_a, m4f_c))		print("error %d\n", __LINE__);
     m4f.neg(m4f_c, m4f_a);
     if (m4f_c[ 0] !=  -1 || m4f_c[ 1] !=  -2 || m4f_c[ 2] !=  -3 || m4f_c[ 3] !=  -4 ||
 	m4f_c[ 4] !=  -5 || m4f_c[ 5] !=  -6 || m4f_c[ 6] !=  -7 || m4f_c[ 7] !=  -8 ||
@@ -41218,6 +41263,11 @@ namespace t61 {
     m2d.inverse(m2d_c, m2d_a);
     if (m2d_c[0] != -2 || m2d_c[1] != 1 || m2d_c[2] != 1.5 || m2d_c[3] != -0.5)
 	print("error %d\n", __LINE__);
+    if (m2d.eq(m2d_a, m2d_b))		print("error %d\n", __LINE__);
+    if (m2d.ne(m2d_a, m2d_a))		print("error %d\n", __LINE__);
+    m2d.copy(m2d_c, m2d_a);
+    if (m2d.eq(m2d_b, m2d_c))		print("error %d\n", __LINE__);
+    if (m2d.ne(m2d_a, m2d_c))		print("error %d\n", __LINE__);
     m2d.neg(m2d_c, m2d_a);
     if (m2d_c[0] != -1 || m2d_c[1] != -2 || m2d_c[2] != -3 || m2d_c[3] != -4)
 	print("error %d\n", __LINE__);
@@ -41281,6 +41331,11 @@ namespace t61 {
 	m3d_c[3] !=  3 || m3d_c[4] != -11 || m3d_c[5] !=  7 ||
 	m3d_c[6] !=  9 || m3d_c[7] != -34 || m3d_c[8] != 21)
 	print("error %d\n", __LINE__);
+    if (m3d.eq(m3d_a, m3d_b))		print("error %d\n", __LINE__);
+    if (m3d.ne(m3d_a, m3d_a))		print("error %d\n", __LINE__);
+    m3d.copy(m3d_c, m3d_a);
+    if (m3d.eq(m3d_b, m3d_c))		print("error %d\n", __LINE__);
+    if (m3d.ne(m3d_a, m3d_c))		print("error %d\n", __LINE__);
     m3d.neg(m3d_c, m3d_a);
     if (m3d_c[0] != -1 || m3d_c[1] != -2 || m3d_c[2] != -3 ||
 	m3d_c[3] != -4 || m3d_c[4] != -5 || m3d_c[5] != -6 ||
@@ -41361,6 +41416,11 @@ namespace t61 {
 	m4d_c[ 8] !=  9 || m4d_c[ 9] != -34 || m4d_c[10] != 21 || m4d_c[11] != -4 ||
 	m4d_c[12] !=  0 || m4d_c[13] !=   0 || m4d_c[14] !=  0 || m4d_c[15] != 1)
 	print("error %d\n", __LINE__);
+    if (m4d.eq(m4d_a, m4d_b))		print("error %d\n", __LINE__);
+    if (m4d.ne(m4d_a, m4d_a))		print("error %d\n", __LINE__);
+    m4d.copy(m4d_c, m4d_a);
+    if (m4d.eq(m4d_b, m4d_c))		print("error %d\n", __LINE__);
+    if (m4d.ne(m4d_a, m4d_c))		print("error %d\n", __LINE__);
     m4d.neg(m4d_c, m4d_a);
     if (m4d_c[ 0] !=  -1 || m4d_c[ 1] !=  -2 || m4d_c[ 2] !=  -3 || m4d_c[ 3] !=  -4 ||
 	m4d_c[ 4] !=  -5 || m4d_c[ 5] !=  -6 || m4d_c[ 6] !=  -7 || m4d_c[ 7] !=  -8 ||
