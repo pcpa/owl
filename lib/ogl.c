@@ -1276,6 +1276,7 @@ static struct {
     { "MAX_TEXTURE_COORDS",		GL_MAX_TEXTURE_COORDS },
 };
 
+typedef oint32_t	obuffer_offset_t;
 #define ARRAY_BUFFER_OFFSET			0
 #define ARRAY_BUFFER_LENGTH			1
 #define ELEMENT_ARRAY_BUFFER_OFFSET		2
@@ -1284,7 +1285,7 @@ static struct {
 #define PIXEL_PACK_BUFFER_LENGTH		5
 #define PIXEL_UNPACK_BUFFER_OFFSET		6
 #define PIXEL_UNPACK_BUFFER_LENGTH		7
-#define BUFFER_VECTOR_SIZE			(sizeof(oword_t) * 8)
+#define BUFFER_VECTOR_SIZE			(sizeof(obuffer_offset_t) * 8)
 static ohashtable_t		*buffer_table;
 static ovector_t		*int_vector;
 static ovector_t		*str_vector;
@@ -3682,7 +3683,7 @@ native_VertexPointer(oobject_t list, oint32_t ac)
     oint32_t				 buffer;
     oword_t				 offset;
     oword_t				 stride;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
@@ -3764,7 +3765,7 @@ native_NormalPointer(oobject_t list, oint32_t ac)
     oint32_t				 buffer;
     oword_t				 offset;
     oword_t				 stride;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
@@ -3852,7 +3853,7 @@ native_ColorPointer(oobject_t list, oint32_t ac)
     oint32_t				 buffer;
     oword_t				 offset;
     oword_t				 stride;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
@@ -3954,7 +3955,7 @@ native_IndexPointer(oobject_t list, oint32_t ac)
     oint32_t				 buffer;
     oword_t				 offset;
     oword_t				 stride;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
@@ -4041,7 +4042,7 @@ native_TexCoordPointer(oobject_t list, oint32_t ac)
     oint32_t				 buffer;
     oword_t				 offset;
     oword_t				 stride;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
@@ -6929,7 +6930,7 @@ native_BufferData(oobject_t list, oint32_t ac)
     ohashentry_t			 check;
     ohashentry_t			*entry;
     oint32_t				 buffer;
-    oword_t				*vector;
+    obuffer_offset_t			*vector;
 
     alist = (nat_u32_vec_u32_t *)list;
     r0 = &thread_self->r0;
@@ -6937,34 +6938,54 @@ native_BufferData(oobject_t list, oint32_t ac)
     CHECK_VECTOR(alist->a1);
     switch (otype(alist->a1)) {
 	case t_vector|t_int8:
+#if __WORDSIZE == 64
+	    if (alist->a1->length > INT_MAX)
+		ovm_raise(except_out_of_bounds);
+#endif
 	    type = GL_BYTE;
 	    size = alist->a1->length;
 	    break;
 	case t_vector|t_uint8:
+#if __WORDSIZE == 64
+	    if (alist->a1->length > INT_MAX)
+		ovm_raise(except_out_of_bounds);
+#endif
 	    type = GL_UNSIGNED_BYTE;
 	    size = alist->a1->length;
 	    break;
 	case t_vector|t_int16:
+	    if (alist->a1->length > INT_MAX >> 1)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_SHORT;
 	    size = alist->a1->length << 1;
 	    break;
 	case t_vector|t_uint16:
+	    if (alist->a1->length > INT_MAX >> 1)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_UNSIGNED_SHORT;
 	    size = alist->a1->length << 1;
 	    break;
 	case t_vector|t_int32:
+	    if (alist->a1->length > INT_MAX >> 2)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_INT;
 	    size = alist->a1->length << 2;
 	    break;
 	case t_vector|t_uint32:
+	    if (alist->a1->length > INT_MAX >> 2)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_UNSIGNED_INT;
 	    size = alist->a1->length << 2;
 	    break;
 	case t_vector|t_float32:
+	    if (alist->a1->length > INT_MAX >> 2)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_FLOAT;
 	    size = alist->a1->length << 2;
 	    break;
 	case t_vector|t_float64:
+	    if (alist->a1->length > INT_MAX >> 3)
+		ovm_raise(except_out_of_bounds);
 	    type = GL_DOUBLE;
 	    size = alist->a1->length << 3;
 	    break;
@@ -8144,7 +8165,7 @@ native_VertexAttribPointer(oobject_t list, oint32_t ac)
     oword_t				 offset;
     oword_t				 stride;
     oint32_t				 buffer;
-    oint32_t				*vector;
+    obuffer_offset_t			*vector;
 
     alist = (nat_u32_i32_i32_vec_t *)list;
     r0 = &thread_self->r0;
