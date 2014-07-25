@@ -84,13 +84,11 @@ static void v3f_mul(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_mul(oobject_t list, oint32_t ac);
 static void v3f_div(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_div(oobject_t list, oint32_t ac);
-static void v3f_project(ofloat32_t v0[3],
-			ofloat32_t objX, ofloat32_t objY, ofloat32_t objZ,
+static void v3f_project(ofloat32_t v0[3], ofloat32_t obj[3],
 			ofloat32_t model[16], ofloat32_t proj[16],
 			oint32_t viewport[4]);
 static void native_v3f_project(oobject_t list, oint32_t ac);
-static void v3f_unProject(ofloat32_t v0[3],
-			  ofloat32_t winX, ofloat32_t winY, ofloat32_t winZ,
+static void v3f_unProject(ofloat32_t v0[3], ofloat32_t win[3],
 			  ofloat32_t model[16], ofloat32_t proj[16],
 			  oint32_t viewport[4]);
 static void native_v3f_unProject(oobject_t list, oint32_t ac);
@@ -172,13 +170,11 @@ static void v3d_mul(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_mul(oobject_t list, oint32_t ac);
 static void v3d_div(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_div(oobject_t list, oint32_t ac);
-static void v3d_project(ofloat64_t v0[3],
-			ofloat64_t objX, ofloat64_t objY, ofloat64_t objZ,
+static void v3d_project(ofloat64_t v0[3], ofloat64_t obj[3],
 			ofloat64_t model[16], ofloat64_t proj[16],
 			oint32_t viewport[4]);
 static void native_v3d_project(oobject_t list, oint32_t ac);
-static void v3d_unProject(ofloat64_t v0[3],
-			  ofloat64_t winX, ofloat64_t winY, ofloat64_t winZ,
+static void v3d_unProject(ofloat64_t v0[3], ofloat64_t win[3],
 			  ofloat64_t model[16], ofloat64_t proj[16],
 			  oint32_t viewport[4]);
 static void native_v3d_unProject(oobject_t list, oint32_t ac);
@@ -297,15 +293,11 @@ static void m4f_perspective(ofloat32_t v0[16], ofloat32_t fovy,
 			    ofloat32_t aspect, ofloat32_t zNear,
 			    ofloat32_t zFar);
 static void native_m4f_perspective(oobject_t list, oint32_t ac);
-static void m4f_pickMatrix(ofloat32_t v0[16],
-			   ofloat32_t centerX, ofloat32_t centerY,
-			   ofloat32_t deltaX, ofloat32_t deltaY,
-			   oint32_t viewport[4]);
+static void m4f_pickMatrix(ofloat32_t v0[16], ofloat32_t center[2],
+			   ofloat32_t delta[2], oint32_t viewport[4]);
 static void native_m4f_pickMatrix(oobject_t list, oint32_t ac);
-static void m4f_lookAt(ofloat32_t v0[16], ofloat32_t eyeX, ofloat32_t eyeY,
-		       ofloat32_t eyeZ, ofloat32_t centerX, ofloat32_t centerY,
-		       ofloat32_t centerZ, ofloat32_t upX, ofloat32_t upY,
-		       ofloat32_t upZ);
+static void m4f_lookAt(ofloat32_t v0[16], ofloat32_t eye[3],
+		       ofloat32_t center[3], ofloat32_t up[3]);
 static void native_m4f_lookAt(oobject_t list, oint32_t ac);
 
 static void native_m2d_set(oobject_t list, oint32_t ac);
@@ -396,15 +388,11 @@ static void m4d_perspective(ofloat64_t v0[16], ofloat64_t fovy,
 			    ofloat64_t aspect, ofloat64_t zNear,
 			    ofloat64_t zFar);
 static void native_m4d_perspective(oobject_t list, oint32_t ac);
-static void m4d_pickMatrix(ofloat64_t v0[16],
-			   ofloat64_t centerX, ofloat64_t centerY,
-			   ofloat64_t deltaX, ofloat64_t deltaY,
-			   oint32_t viewport[4]);
+static void m4d_pickMatrix(ofloat64_t v0[16], ofloat64_t center[2],
+			   ofloat64_t delta[2], oint32_t viewport[4]);
 static void native_m4d_pickMatrix(oobject_t list, oint32_t ac);
-static void m4d_lookAt(ofloat64_t v0[16], ofloat64_t eyeX, ofloat64_t eyeY,
-		       ofloat64_t eyeZ, ofloat64_t centerX, ofloat64_t centerY,
-		       ofloat64_t centerZ, ofloat64_t upX, ofloat64_t upY,
-		       ofloat64_t upZ);
+static void m4d_lookAt(ofloat64_t v0[16], ofloat64_t eye[3],
+		       ofloat64_t center[3], ofloat64_t up[3]);
 static void native_m4d_lookAt(oobject_t list, oint32_t ac);
 
 /*
@@ -472,10 +460,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v3f_, sub, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, div, t_vf, t_vf, t_vf);
-    define_nsbuiltin7(t_vf, v3f_, project, t_vf, t_f, t_f, t_f,
-		      t_vf, t_vf, t_vi);
-    define_nsbuiltin7(t_vf, v3f_, unProject, t_vf, t_f, t_f, t_f,
-		      t_vf, t_vf, t_vi);
+    define_nsbuiltin5(t_vf, v3f_, project, t_vf, t_vf, t_vf, t_vf, t_vi);
+    define_nsbuiltin5(t_vf, v3f_, unProject, t_vf, t_vf, t_vf, t_vf, t_vi);
 
     current_record = v4f_record;
     define_nsbuiltin5(t_vf, v4f_, set, t_vf, t_f, t_f, t_f, t_f);
@@ -525,10 +511,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v3d_, sub, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, div, t_vd, t_vd, t_vd);
-    define_nsbuiltin7(t_vd, v3d_, project, t_vd, t_d, t_d, t_d,
-		      t_vd, t_vd, t_vi);
-    define_nsbuiltin7(t_vd, v3d_, unProject, t_vd, t_d, t_d, t_d,
-		      t_vd, t_vd, t_vi);
+    define_nsbuiltin5(t_vd, v3d_, project, t_vd, t_vd, t_vd, t_vd, t_vi);
+    define_nsbuiltin5(t_vd, v3d_, unProject, t_vd, t_vd, t_vd, t_vd, t_vi);
 
     current_record = v4d_record;
     define_nsbuiltin5(t_vd, v4d_, set, t_vd, t_d, t_d, t_d, t_d);
@@ -606,9 +590,8 @@ init_vecmat(void)
     define_nsbuiltin7(t_vf, m4f_, ortho, t_vf, t_f, t_f, t_f, t_f, t_f, t_f);
     define_nsbuiltin7(t_vf, m4f_, frustum, t_vf, t_f, t_f, t_f, t_f, t_f, t_f);
     define_nsbuiltin5(t_vf, m4f_, perspective, t_vf, t_f, t_f, t_f, t_f);
-    define_nsbuiltin6(t_vf, m4f_, pickMatrix, t_vf, t_f, t_f, t_f, t_f, t_vi);
-    define_nsbuiltin10(t_vf, m4f_, lookAt, t_vf,
-		       t_f, t_f, t_f, t_f, t_f, t_f, t_f, t_f, t_f);
+    define_nsbuiltin4(t_vf, m4f_, pickMatrix, t_vf, t_vf, t_vf, t_vi);
+    define_nsbuiltin4(t_vf, m4f_, lookAt, t_vf, t_vf, t_vf, t_vf);
 
     current_record = m2d_record;
     define_nsbuiltin5(t_vd, m2d_, set,
@@ -670,9 +653,8 @@ init_vecmat(void)
     define_nsbuiltin7(t_vd, m4d_, ortho, t_vd, t_d, t_d, t_d, t_d, t_d, t_d);
     define_nsbuiltin7(t_vd, m4d_, frustum, t_vd, t_d, t_d, t_d, t_d, t_d, t_d);
     define_nsbuiltin5(t_vd, m4d_, perspective, t_vd, t_d, t_d, t_d, t_d);
-    define_nsbuiltin6(t_vd, m4d_, pickMatrix, t_vd, t_d, t_d, t_d, t_d, t_vi);
-    define_nsbuiltin10(t_vd, m4d_, lookAt, t_vd,
-		       t_d, t_d, t_d, t_d, t_d, t_d, t_d, t_d, t_d);
+    define_nsbuiltin4(t_vd, m4d_, pickMatrix, t_vd, t_vd, t_vd, t_vi);
+    define_nsbuiltin4(t_vd, m4d_, lookAt, t_vd, t_vd, t_vd, t_vd);
 
     current_record = record;
 #undef t_vi
@@ -1441,15 +1423,13 @@ native_v3f_div(oobject_t list, oint32_t ac)
 }
 
 static void
-v3f_project(ofloat32_t v0[3],
-	    ofloat32_t objX, ofloat32_t objY, ofloat32_t objZ,
-	    ofloat32_t model[16], ofloat32_t proj[16],
-	    oint32_t viewport[4])
+v3f_project(ofloat32_t v0[3], ofloat32_t obj[3],
+	    ofloat32_t model[16], ofloat32_t proj[16], oint32_t viewport[4])
 {
     ofloat32_t		tmp[4];
 
-    tmp[0] = objX;	tmp[1] = objY;
-    tmp[2] = objZ;	tmp[3] = 1.0f;
+    tmp[0] = obj[0];	tmp[1] = obj[1];
+    tmp[2] = obj[2];	tmp[3] = 1.0f;
     v4f_mulm(tmp, tmp, model);
     v4f_mulm(tmp, tmp, proj);
     v3f_divs(tmp, tmp, tmp[3]);
@@ -1462,30 +1442,29 @@ v3f_project(ofloat32_t v0[3],
 
 static void
 native_v3f_project(oobject_t list, oint32_t ac)
-/* float32_t v3f.project(float32_t v0[3],
-			 float32_t objX, float32_t objY, float32_t objZ,
+/* float32_t v3f.project(float32_t v0[3], float32_t obj[3],
 			 float32_t model[16], float32_t proj[16],
 			 int32_t viewport[4])[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f32_f32_f32_vec_vec_vec_t	*alist;
+    nat_vec_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f32_f32_f32_vec_vec_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    CHECK_MF4(alist->a4);
-    CHECK_MF4(alist->a5);
-    CHECK_VI4(alist->a6);
-    v3f_project(alist->a0->v.f32, alist->a1, alist->a2, alist->a3,
-		alist->a4->v.f32, alist->a5->v.f32, alist->a6->v.i32);
+    CHECK_VF3(alist->a1);
+    CHECK_MF4(alist->a2);
+    CHECK_MF4(alist->a3);
+    CHECK_VI4(alist->a4);
+    v3f_project(alist->a0->v.f32, alist->a1->v.f32,
+		alist->a2->v.f32, alist->a3->v.f32, alist->a4->v.i32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
 
 static void
-v3f_unProject(ofloat32_t v0[3],
-	      ofloat32_t winX, ofloat32_t winY, ofloat32_t winZ,
+v3f_unProject(ofloat32_t v0[3], ofloat32_t win[3],
 	      ofloat32_t model[16], ofloat32_t proj[16],
 	      oint32_t viewport[4])
 {
@@ -1495,8 +1474,8 @@ v3f_unProject(ofloat32_t v0[3],
     m4f_mul(inv, proj, model);
     (void)m4f_det_inverse(inv, inv);
 
-    tmp[0] = winX;	tmp[1] = winY;
-    tmp[2] = winZ;	tmp[3] = 1.0f;
+    tmp[0] = win[0];	tmp[1] = win[1];
+    tmp[2] = win[2];	tmp[3] = 1.0f;
 
     tmp[0] = (tmp[0] - viewport[0]) / viewport[2];
     tmp[1] = (tmp[1] - viewport[1]) / viewport[3];
@@ -1510,23 +1489,23 @@ v3f_unProject(ofloat32_t v0[3],
 
 static void
 native_v3f_unProject(oobject_t list, oint32_t ac)
-/* float32_t v3f.unProject(float32_t v0[3],
-			   float32_t winX, float32_t winY, float32_t winZ,
+/* float32_t v3f.unProject(float32_t v0[3], float32_t win[3],
 			   float32_t model[16], float32_t proj[16],
 			   float32_t viewport[4])[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f32_f32_f32_vec_vec_vec_t	*alist;
+    nat_vec_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f32_f32_f32_vec_vec_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VF3(alist->a0);
-    CHECK_MF4(alist->a4);
-    CHECK_MF4(alist->a5);
-    CHECK_VI4(alist->a6);
-    v3f_unProject(alist->a0->v.f32, alist->a1, alist->a2, alist->a3,
-		  alist->a4->v.f32, alist->a5->v.f32, alist->a6->v.i32);
+    CHECK_VF3(alist->a1);
+    CHECK_MF4(alist->a2);
+    CHECK_MF4(alist->a3);
+    CHECK_VI4(alist->a4);
+    v3f_unProject(alist->a0->v.f32, alist->a1->v.f32,
+		  alist->a2->v.f32, alist->a3->v.f32, alist->a4->v.i32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2644,15 +2623,14 @@ native_v3d_div(oobject_t list, oint32_t ac)
 }
 
 static void
-v3d_project(ofloat64_t v0[3],
-	    ofloat64_t objX, ofloat64_t objY, ofloat64_t objZ,
+v3d_project(ofloat64_t v0[3], ofloat64_t obj[3],
 	    ofloat64_t model[16], ofloat64_t proj[16],
 	    oint32_t viewport[4])
 {
     ofloat64_t		tmp[4];
 
-    tmp[0] = objX;	tmp[1] = objY;
-    tmp[2] = objZ;	tmp[3] = 1.0;
+    tmp[0] = obj[0];	tmp[1] = obj[1];
+    tmp[2] = obj[2];	tmp[3] = 1.0;
     v4d_mulm(tmp, tmp, model);
     v4d_mulm(tmp, tmp, proj);
     v3d_divs(tmp, tmp, tmp[3]);
@@ -2665,30 +2643,29 @@ v3d_project(ofloat64_t v0[3],
 
 static void
 native_v3d_project(oobject_t list, oint32_t ac)
-/* float64_t v3f.project(float64_t v0[3],
-			 float64_t objX, float64_t objY, float64_t objZ,
+/* float64_t v3f.project(float64_t v0[3], float64_t obj[3],
 			 float64_t model[16], float64_t proj[16],
 			 int32_t viewport[4])[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f64_f64_f64_vec_vec_vec_t	*alist;
+    nat_vec_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f64_f64_f64_vec_vec_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    CHECK_MD4(alist->a4);
-    CHECK_MD4(alist->a5);
-    CHECK_VI4(alist->a6);
-    v3d_project(alist->a0->v.f64, alist->a1, alist->a2, alist->a3,
-		alist->a4->v.f64, alist->a5->v.f64, alist->a6->v.i32);
+    CHECK_VD3(alist->a1);
+    CHECK_MD4(alist->a2);
+    CHECK_MD4(alist->a3);
+    CHECK_VI4(alist->a4);
+    v3d_project(alist->a0->v.f64, alist->a1->v.f64,
+		alist->a2->v.f64, alist->a3->v.f64, alist->a4->v.i32);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
 static void
-v3d_unProject(ofloat64_t v0[3],
-	      ofloat64_t winX, ofloat64_t winY, ofloat64_t winZ,
+v3d_unProject(ofloat64_t v0[3], ofloat64_t win[3],
 	      ofloat64_t model[16], ofloat64_t proj[16],
 	      oint32_t viewport[4])
 {
@@ -2698,8 +2675,8 @@ v3d_unProject(ofloat64_t v0[3],
     m4d_mul(inv, proj, model);
     (void)m4d_det_inverse(inv, inv);
 
-    tmp[0] = winX;	tmp[1] = winY;
-    tmp[2] = winZ;	tmp[3] = 1.0;
+    tmp[0] = win[0];	tmp[1] = win[1];
+    tmp[2] = win[2];	tmp[3] = 1.0;
 
     tmp[0] = (tmp[0] - viewport[0]) / viewport[2];
     tmp[1] = (tmp[1] - viewport[1]) / viewport[3];
@@ -2713,23 +2690,23 @@ v3d_unProject(ofloat64_t v0[3],
 
 static void
 native_v3d_unProject(oobject_t list, oint32_t ac)
-/* float64_t v3d.unProject(float64_t v0[3],
-			   float64_t winX, float64_t winY, float64_t winZ,
+/* float64_t v3d.unProject(float64_t v0[3], float64_t win[3],
 			   float64_t model[16], float64_t proj[16],
 			   float64_t viewport[4])[3]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f64_f64_f64_vec_vec_vec_t	*alist;
+    nat_vec_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f64_f64_f64_vec_vec_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_VD3(alist->a0);
-    CHECK_MD4(alist->a4);
-    CHECK_MD4(alist->a5);
-    CHECK_VI4(alist->a6);
-    v3d_unProject(alist->a0->v.f64, alist->a1, alist->a2, alist->a3,
-		  alist->a4->v.f64, alist->a5->v.f64, alist->a6->v.i32);
+    CHECK_VD3(alist->a1);
+    CHECK_MD4(alist->a2);
+    CHECK_MD4(alist->a3);
+    CHECK_VI4(alist->a4);
+    v3d_unProject(alist->a0->v.f64, alist->a1->v.f64,
+		  alist->a2->v.f64, alist->a3->v.f64, alist->a4->v.i32);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4710,68 +4687,53 @@ native_m4f_perspective(oobject_t list, oint32_t ac)
 }
 
 static void
-m4f_pickMatrix(ofloat32_t v0[16],
-	       ofloat32_t centerX, ofloat32_t centerY,
-	       ofloat32_t deltaX, ofloat32_t deltaY,
-	       oint32_t viewport[4])
+m4f_pickMatrix(ofloat32_t v0[16], ofloat32_t center[2],
+	       ofloat32_t delta[2], oint32_t viewport[4])
 {
     ofloat32_t		tmp[3];
 
     m4f_identity(v0);
-    tmp[0] = viewport[2] - 2.0f * (centerX - viewport[0]) / deltaX;
-    tmp[1] = viewport[3] - 2.0f * (centerY - viewport[1]) / deltaY;
+    tmp[0] = viewport[2] - 2.0f * (center[0] - viewport[0]) / delta[0];
+    tmp[1] = viewport[3] - 2.0f * (center[1] - viewport[1]) / delta[1];
     tmp[2] = 0;
     m4f_translate(v0, v0, tmp);
-    tmp[0] = viewport[2] / deltaX;
-    tmp[1] = viewport[3] / deltaY;
+    tmp[0] = viewport[2] / delta[0];
+    tmp[1] = viewport[3] / delta[1];
     tmp[2] = 1.0f;
     m4f_scale(v0, v0, tmp);
 }
 
 static void
 native_m4f_pickMatrix(oobject_t list, oint32_t ac)
-/* float32_t m4f.pickMatrix(float32_t v0[16],
-			    float32_t centerX, float32_t centerY,
-			    float32_t deltaX, float32_t deltaY,
-			    int32_t viewport[4])[16]; */
+/* float32_t m4f.pickMatrix(float32_t v0[16], float32_t center[2],
+			    float32_t delta[2], int32_t viewport[4])[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f32_f32_f32_f32_vec_t	*alist;
+    nat_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f32_f32_f32_f32_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    CHECK_VI4(alist->a5);
-    m4f_pickMatrix(alist->a0->v.f32,
-		   alist->a1, alist->a2, alist->a3, alist->a4,
-		   alist->a5->v.i32);
+    CHECK_VF2(alist->a1);
+    CHECK_VF2(alist->a2);
+    CHECK_VI4(alist->a3);
+    m4f_pickMatrix(alist->a0->v.f32, alist->a1->v.f32,
+		   alist->a2->v.f32, alist->a3->v.i32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
 
 static void
 m4f_lookAt(ofloat32_t v0[16],
-	   ofloat32_t eyeX, ofloat32_t eyeY, ofloat32_t eyeZ,
-	   ofloat32_t centerX, ofloat32_t centerY, ofloat32_t centerZ,
-	   ofloat32_t upX, ofloat32_t upY, ofloat32_t upZ)
+	   ofloat32_t eye[3], ofloat32_t center[3], ofloat32_t up[3])
 {
-    ofloat32_t		f[3], s[3], u[3], eye[3];
+    ofloat32_t		f[3], s[3], u[3];
 
-    f[0] = centerX;
-    f[1] = centerY;
-    f[2] = centerZ;
-    eye[0] = eyeX;
-    eye[1] = eyeY;
-    eye[2] = eyeZ;
-
-    v3f_sub(f, f, eye);
+    v3f_sub(f, center, eye);
     v3f_normalize(f, f);
 
-    s[0] = upX;
-    s[1] = upY;
-    s[2] = upZ;
-    v3f_cross(u, f, s);
+    v3f_cross(u, f, up);
     v3f_normalize(s, u);
 
     v3f_cross(u, s, f);
@@ -4798,21 +4760,21 @@ m4f_lookAt(ofloat32_t v0[16],
 
 static void
 native_m4f_lookAt(oobject_t list, oint32_t ac)
-/* float32_t m4f.lookAt(float32_t v[16],
-			float32_t eyeX, float32_t eyeY, float32_t eyeZ,
-			float32_t centerX, float32_t centerY, float32_t centerZ,
-			float32_t upX, float32_t upY, float32_t upZ); */
+/* float32_t m4f.lookAt(float32_t v[16], float32_t eye[3],
+			float32_t center[3], float32_t up[3]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f32_f32_f32_f32_f32_f32_f32_f32_f32_t	*alist;
+    nat_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f32_f32_f32_f32_f32_f32_f32_f32_f32_t *)list;
+    alist = (nat_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MF4(alist->a0);
-    m4f_lookAt(alist->a0->v.f32,
-	       alist->a1, alist->a2, alist->a3, alist->a4,
-	       alist->a5, alist->a6, alist->a7, alist->a8, alist->a9);
+    CHECK_VF3(alist->a1);
+    CHECK_VF3(alist->a2);
+    CHECK_VF3(alist->a3);
+    m4f_lookAt(alist->a0->v.f32, alist->a1->v.f32,
+	       alist->a2->v.f32, alist->a3->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -6410,68 +6372,53 @@ native_m4d_perspective(oobject_t list, oint32_t ac)
 }
 
 static void
-m4d_pickMatrix(ofloat64_t v0[16],
-	       ofloat64_t centerX, ofloat64_t centerY,
-	       ofloat64_t deltaX, ofloat64_t deltaY,
-	       oint32_t viewport[4])
+m4d_pickMatrix(ofloat64_t v0[16], ofloat64_t center[2],
+	       ofloat64_t delta[2], oint32_t viewport[4])
 {
     ofloat64_t		tmp[3];
 
     m4d_identity(v0);
-    tmp[0] = viewport[2] - 2.0 * (centerX - viewport[0]) / deltaX;
-    tmp[1] = viewport[3] - 2.0 * (centerY - viewport[1]) / deltaY;
+    tmp[0] = viewport[2] - 2.0 * (center[0] - viewport[0]) / delta[0];
+    tmp[1] = viewport[3] - 2.0 * (center[1] - viewport[1]) / delta[1];
     tmp[2] = 0;
     m4d_translate(v0, v0, tmp);
-    tmp[0] = viewport[2] / deltaX;
-    tmp[1] = viewport[3] / deltaY;
+    tmp[0] = viewport[2] / delta[0];
+    tmp[1] = viewport[3] / delta[1];
     tmp[2] = 1.0;
     m4d_scale(v0, v0, tmp);
 }
 
 static void
 native_m4d_pickMatrix(oobject_t list, oint32_t ac)
-/* float64_t m4d.pickMatrix(float64_t v0[16],
-			    float64_t centerX, float64_t centerY,
-			    float64_t deltaX, float64_t deltaY,
-			    int32_t viewport[4])[16]; */
+/* float64_t m4d.pickMatrix(float64_t v0[16], float64_t center[2],
+			    float64_t delta[2], int32_t viewport[4])[16]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f64_f64_f64_f64_vec_t	*alist;
+    nat_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f64_f64_f64_f64_vec_t *)list;
+    alist = (nat_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    CHECK_VI4(alist->a5);
-    m4d_pickMatrix(alist->a0->v.f64,
-		   alist->a1, alist->a2, alist->a3, alist->a4,
-		   alist->a5->v.i32);
+    CHECK_VD2(alist->a1);
+    CHECK_VD2(alist->a2);
+    CHECK_VI4(alist->a3);
+    m4d_pickMatrix(alist->a0->v.f64, alist->a1->v.f64,
+		   alist->a2->v.f64, alist->a3->v.i32);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
 
 static void
-m4d_lookAt(ofloat64_t v0[16],
-	   ofloat64_t eyeX, ofloat64_t eyeY, ofloat64_t eyeZ,
-	   ofloat64_t centerX, ofloat64_t centerY, ofloat64_t centerZ,
-	   ofloat64_t upX, ofloat64_t upY, ofloat64_t upZ)
+m4d_lookAt(ofloat64_t v0[16], ofloat64_t eye[3],
+	   ofloat64_t center[3], ofloat64_t up[3])
 {
-    ofloat64_t		f[3], s[3], u[3], eye[3];
+    ofloat64_t		f[3], s[3], u[3];
 
-    f[0] = centerX;
-    f[1] = centerY;
-    f[2] = centerZ;
-    eye[0] = eyeX;
-    eye[1] = eyeY;
-    eye[2] = eyeZ;
-
-    v3d_sub(f, f, eye);
+    v3d_sub(f, center, eye);
     v3d_normalize(f, f);
 
-    s[0] = upX;
-    s[1] = upY;
-    s[2] = upZ;
-    v3d_cross(u, f, s);
+    v3d_cross(u, f, up);
     v3d_normalize(s, u);
 
     v3d_cross(u, s, f);
@@ -6498,21 +6445,21 @@ m4d_lookAt(ofloat64_t v0[16],
 
 static void
 native_m4d_lookAt(oobject_t list, oint32_t ac)
-/* float64_t m4d.lookAt(float64_t v[0],
-			float64_t eyeX, float64_t eyeY, float64_t eyeZ,
-			float64_t centerX, float64_t centerY, float64_t centerZ,
-			float64_t upX, float64_t upY, float64_t upZ); */
+/* float64_t m4d.lookAt(float64_t v[0], float64_t eye[3],
+			float64_t center[3], float64_t up[3]); */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
-    nat_vec_f64_f64_f64_f64_f64_f64_f64_f64_f64_t	*alist;
+    nat_vec_vec_vec_vec_t	*alist;
 
-    alist = (nat_vec_f64_f64_f64_f64_f64_f64_f64_f64_f64_t *)list;
+    alist = (nat_vec_vec_vec_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_MD4(alist->a0);
-    m4d_lookAt(alist->a0->v.f64,
-	       alist->a1, alist->a2, alist->a3, alist->a4,
-	       alist->a5, alist->a6, alist->a7, alist->a8, alist->a9);
+    CHECK_VD3(alist->a1);
+    CHECK_VD3(alist->a2);
+    CHECK_VD3(alist->a3);
+    m4d_lookAt(alist->a0->v.f64, alist->a1->v.f64,
+	       alist->a2->v.f64, alist->a3->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
