@@ -7861,9 +7861,9 @@ native_UniformMatrix2v(oobject_t list, oint32_t ac)
     r0->t = t_void;
     CHECK_NULL(alist->a2);
     CHECK_TYPE(alist->a2, t_vector|t_float32);
-    if (alist->a2->length & 1)
+    if (alist->a2->length & 3)
 	ovm_raise(except_invalid_argument);
-    glUniformMatrix2fv(alist->a0, alist->a2->length >> 1,
+    glUniformMatrix2fv(alist->a0, alist->a2->length / 4,
 		       alist->a1, alist->a2->v.f32);
 }
 
@@ -7880,9 +7880,9 @@ native_UniformMatrix3v(oobject_t list, oint32_t ac)
     r0->t = t_void;
     CHECK_NULL(alist->a2);
     CHECK_TYPE(alist->a2, t_vector|t_float32);
-    if (alist->a2->length % 3)
+    if (alist->a2->length % 9)
 	ovm_raise(except_invalid_argument);
-    glUniformMatrix3fv(alist->a0, alist->a2->length / 3,
+    glUniformMatrix3fv(alist->a0, alist->a2->length / 9,
 		       alist->a1, alist->a2->v.f32);
 }
 
@@ -7899,9 +7899,9 @@ native_UniformMatrix4v(oobject_t list, oint32_t ac)
     r0->t = t_void;
     CHECK_NULL(alist->a2);
     CHECK_TYPE(alist->a2, t_vector|t_float32);
-    if (alist->a2->length & 3)
+    if (alist->a2->length & 15)
 	ovm_raise(except_invalid_argument);
-    glUniformMatrix4fv(alist->a0, alist->a2->length >> 2,
+    glUniformMatrix4fv(alist->a0, alist->a2->length / 16,
 		       alist->a1, alist->a2->v.f32);
 }
 
