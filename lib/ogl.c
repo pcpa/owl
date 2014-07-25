@@ -6993,7 +6993,10 @@ native_BufferData(oobject_t list, oint32_t ac)
 	    ovm_raise(except_type_mismatch);
     }
     buffer = -1;
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
+    if (unlikely(alist->a0 == GL_ELEMENT_ARRAY_BUFFER))
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &buffer);
+    else
+	glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &buffer);
     /* No buffer bound */
     if (!glIsBuffer(buffer))
 	ovm_raise(except_invalid_argument);
