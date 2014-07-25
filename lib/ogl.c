@@ -4179,31 +4179,77 @@ native_DrawElements(oobject_t list, oint32_t ac)
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
+    oint32_t				 size;
     oint32_t				 type;
     nat_i32_vec_t			*alist;
+    ohashentry_t			 check;
+    ohashentry_t			*entry;
+    oword_t				 offset;
+    oint32_t				 buffer;
+    obuffer_offset_t			*vector;
 
     /* FIXME somehow keep track of vector length and cause
      * a failure if glArrayElement, etc is called with an
      * invalid index/length */
     alist = (nat_i32_vec_t *)list;
-    CHECK_NULL(alist->a1);
-    CHECK_VECTOR(alist->a1);
-    switch (otype(alist->a1)) {
-	case t_vector|t_uint8:
-	    type = GL_UNSIGNED_BYTE;
-	    break;
-	case t_vector|t_uint16:
-	    type = GL_UNSIGNED_SHORT;
-	    break;
-	case t_vector|t_uint32:
-	    type = GL_UNSIGNED_INT;
-	    break;
-	default:
+    if (alist->a1 && (otype(alist->a1) & t_vector)) {
+	switch (otype(alist->a1)) {
+	    case t_vector|t_uint8:
+		type = GL_UNSIGNED_BYTE;
+		break;
+	    case t_vector|t_uint16:
+		type = GL_UNSIGNED_SHORT;
+		break;
+	    case t_vector|t_uint32:
+		type = GL_UNSIGNED_INT;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+	}
+	glDrawElements(alist->a0, alist->a1->length, type, alist->a1->v.obj);
+    }
+    else {
+	if (alist->a1 == null)
+	    offset = 0;
+	else if (otype(alist->a1) != t_word)
 	    ovm_raise(except_type_mismatch);
+	else
+	    offset = *(oword_t *)alist->a1;
+	glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &buffer);
+	if (!glIsBuffer(buffer))
+	    ovm_raise(except_invalid_argument);
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	check.nt = t_word;
+	check.nv.w = buffer;
+	okey_hashentry(&check);
+	/* should not happen */
+	if ((entry = oget_hashentry(buffer_table, &check)) == null)
+	    ovm_raise(except_invalid_argument);
+	vector = entry->vv.o;
+	switch ((type = vector[ELEMENT_ARRAY_BUFFER_OFFSET])) {
+	    case GL_BYTE:		case GL_UNSIGNED_BYTE:
+		break;
+	    case GL_SHORT:		case GL_UNSIGNED_SHORT:
+		offset <<= 1;
+		size >>= 1;
+		break;
+	    case GL_INT:		case GL_UNSIGNED_INT:
+	    case GL_FLOAT:
+		offset <<= 2;
+		size >>= 2;
+		break;
+	    case GL_DOUBLE:
+		offset <<= 3;
+		size >>= 3;
+		break;
+	    default:
+		ovm_raise(except_type_mismatch);
+
+	}
+	glDrawElements(alist->a0, size, type, (oobject_t)offset);
     }
     r0 = &thread_self->r0;
     r0->t = t_void;
-    glDrawElements(alist->a0, alist->a1->length, type, alist->a1->v.obj);
 }
 
 static void
