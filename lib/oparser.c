@@ -2298,7 +2298,26 @@ unary_field(void)
 		}
 	    }
 	}
-	oparse_error(top_ast(), "expecting symbol %A", top_ast());
+	switch (top_ast()->token) {
+	    /* FIXME redesign this to only reserve C and C++ keywords */
+	    /* FIXME this is only a partial work for vecmath, because it
+	     * will not work if one writes something like:
+	     *	namespace v2f {
+	     *	    abs(vec, tmp);
+	     *	}
+	     *	FIXME that is, should convert ast token later, when
+	     *	FIXME sure it is neither a symbol neither an "overloaded"
+	     *	FIXME symbol.
+	     * */
+	    case tok_abs:		case tok_floor:
+	    case tok_trunc:		case tok_round:
+	    case tok_ceil:
+		top_ast()->l.value = symbol_token_vector[top_ast()->token];
+		top_ast()->token = tok_symbol;
+		break;
+	    default:
+		oparse_error(top_ast(), "expecting symbol %A", top_ast());
+	}
     }
     ast->r.ast = pop_ast();
 

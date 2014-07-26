@@ -24,6 +24,13 @@
 #define radiansf(deg)		((deg) * ((float)M_PI / 180.0f))
 #define degrees(rad)		((rad) * (180.0 / M_PI))
 #define degreesf(rad)		((rad) * (180.0f / (float)M_PI))
+#ifndef min
+#  define min(a, b)		((a) < (b) ? (a) : (b))
+#endif
+#ifndef max
+#  define max(a, b)		((a) > (b) ? (a) : (b))
+#endif
+#define clamp(a, minV, maxV)	min(maxV, max(minV, a))
 
 /*
  * Other than trivial operations, a good share of the code here is direct
@@ -53,6 +60,21 @@ static void v2f_muls(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
 static void native_v2f_muls(oobject_t list, oint32_t ac);
 static void v2f_divs(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
 static void native_v2f_divs(oobject_t list, oint32_t ac);
+static void v2f_mods(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
+static void native_v2f_mods(oobject_t list, oint32_t ac);
+static void v2f_clamp(ofloat32_t v0[2], ofloat32_t v1[2],
+		      ofloat32_t minVal, ofloat32_t maxVal);
+static void native_v2f_clamp(oobject_t list, oint32_t ac);
+static void v2f_abs(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_abs(oobject_t list, oint32_t ac);
+static void v2f_floor(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_floor(oobject_t list, oint32_t ac);
+static void v2f_trunc(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_trunc(oobject_t list, oint32_t ac);
+static void v2f_round(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_round(oobject_t list, oint32_t ac);
+static void v2f_ceil(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_ceil(oobject_t list, oint32_t ac);
 static void native_v2f_neg(oobject_t list, oint32_t ac);
 static void v2f_add(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_add(oobject_t list, oint32_t ac);
@@ -62,6 +84,8 @@ static void v2f_mul(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_mul(oobject_t list, oint32_t ac);
 static void v2f_div(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_div(oobject_t list, oint32_t ac);
+static void v2f_mod(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
+static void native_v2f_mod(oobject_t list, oint32_t ac);
 
 static void native_v3f_set(oobject_t list, oint32_t ac);
 static void v3f_fill(ofloat32_t v0[3], ofloat32_t s0);
@@ -83,8 +107,23 @@ static void v3f_muls(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_muls(oobject_t list, oint32_t ac);
 static void v3f_divs(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_divs(oobject_t list, oint32_t ac);
+static void v3f_mods(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
+static void native_v3f_mods(oobject_t list, oint32_t ac);
+static void v3f_clamp(ofloat32_t v0[3], ofloat32_t v1[3],
+		      ofloat32_t minVal, ofloat32_t maxVal);
+static void native_v3f_clamp(oobject_t list, oint32_t ac);
 static void v3f_cross(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[0]);
 static void native_v3f_cross(oobject_t list, oint32_t ac);
+static void v3f_abs(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_abs(oobject_t list, oint32_t ac);
+static void v3f_floor(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_floor(oobject_t list, oint32_t ac);
+static void v3f_trunc(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_trunc(oobject_t list, oint32_t ac);
+static void v3f_round(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_round(oobject_t list, oint32_t ac);
+static void v3f_ceil(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_ceil(oobject_t list, oint32_t ac);
 static void native_v3f_neg(oobject_t list, oint32_t ac);
 static void v3f_add(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_add(oobject_t list, oint32_t ac);
@@ -94,6 +133,8 @@ static void v3f_mul(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_mul(oobject_t list, oint32_t ac);
 static void v3f_div(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
 static void native_v3f_div(oobject_t list, oint32_t ac);
+static void v3f_mod(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3]);
+static void native_v3f_mod(oobject_t list, oint32_t ac);
 static void v3f_project(ofloat32_t v0[3], ofloat32_t obj[3],
 			ofloat32_t model[16], ofloat32_t proj[16],
 			oint32_t viewport[4]);
@@ -123,7 +164,22 @@ static void v4f_muls(ofloat32_t v0[4], ofloat32_t v1[1], ofloat32_t s0);
 static void native_v4f_muls(oobject_t list, oint32_t ac);
 static void v4f_divs(ofloat32_t v0[4], ofloat32_t v1[1], ofloat32_t s0);
 static void native_v4f_divs(oobject_t list, oint32_t ac);
+static void v4f_mods(ofloat32_t v0[4], ofloat32_t v1[1], ofloat32_t s0);
+static void native_v4f_mods(oobject_t list, oint32_t ac);
 static void v4f_mulm(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[16]);
+static void v4f_clamp(ofloat32_t v0[4], ofloat32_t v1[4],
+		      ofloat32_t minVal, ofloat32_t maxVal);
+static void native_v4f_clamp(oobject_t list, oint32_t ac);
+static void v4f_abs(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_abs(oobject_t list, oint32_t ac);
+static void v4f_floor(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_floor(oobject_t list, oint32_t ac);
+static void v4f_trunc(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_trunc(oobject_t list, oint32_t ac);
+static void v4f_round(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_round(oobject_t list, oint32_t ac);
+static void v4f_ceil(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_ceil(oobject_t list, oint32_t ac);
 static void native_v4f_neg(oobject_t list, oint32_t ac);
 static void v4f_add(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_add(oobject_t list, oint32_t ac);
@@ -133,6 +189,8 @@ static void v4f_mul(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_mul(oobject_t list, oint32_t ac);
 static void v4f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_div(oobject_t list, oint32_t ac);
+static void v4f_mod(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
+static void native_v4f_mod(oobject_t list, oint32_t ac);
 
 static void native_v2d_set(oobject_t list, oint32_t ac);
 static void v2d_fill(ofloat64_t v0[2], ofloat64_t s0);
@@ -154,6 +212,21 @@ static void v2d_muls(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
 static void native_v2d_muls(oobject_t list, oint32_t ac);
 static void v2d_divs(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
 static void native_v2d_divs(oobject_t list, oint32_t ac);
+static void v2d_mods(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
+static void native_v2d_mods(oobject_t list, oint32_t ac);
+static void v2d_clamp(ofloat64_t v0[2], ofloat64_t v1[2],
+		      ofloat64_t minVal, ofloat64_t maxVal);
+static void native_v2d_clamp(oobject_t list, oint32_t ac);
+static void v2d_abs(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_abs(oobject_t list, oint32_t ac);
+static void v2d_floor(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_floor(oobject_t list, oint32_t ac);
+static void v2d_trunc(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_trunc(oobject_t list, oint32_t ac);
+static void v2d_round(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_round(oobject_t list, oint32_t ac);
+static void v2d_ceil(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_ceil(oobject_t list, oint32_t ac);
 static void native_v2d_neg(oobject_t list, oint32_t ac);
 static void v2d_add(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_add(oobject_t list, oint32_t ac);
@@ -163,6 +236,8 @@ static void v2d_mul(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_mul(oobject_t list, oint32_t ac);
 static void v2d_div(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_div(oobject_t list, oint32_t ac);
+static void v2d_mod(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
+static void native_v2d_mod(oobject_t list, oint32_t ac);
 
 static void native_v3d_set(oobject_t list, oint32_t ac);
 static void v3d_fill(ofloat64_t v0[3], ofloat64_t s0);
@@ -184,8 +259,23 @@ static void v3d_muls(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_muls(oobject_t list, oint32_t ac);
 static void v3d_divs(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_divs(oobject_t list, oint32_t ac);
+static void v3d_mods(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
+static void native_v3d_mods(oobject_t list, oint32_t ac);
+static void v3d_clamp(ofloat64_t v0[3], ofloat64_t v1[3],
+		      ofloat64_t minVal, ofloat64_t maxVal);
+static void native_v3d_clamp(oobject_t list, oint32_t ac);
 static void v3d_cross(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[0]);
 static void native_v3d_cross(oobject_t list, oint32_t ac);
+static void v3d_abs(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_abs(oobject_t list, oint32_t ac);
+static void v3d_floor(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_floor(oobject_t list, oint32_t ac);
+static void v3d_trunc(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_trunc(oobject_t list, oint32_t ac);
+static void v3d_round(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_round(oobject_t list, oint32_t ac);
+static void v3d_ceil(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_ceil(oobject_t list, oint32_t ac);
 static void native_v3d_neg(oobject_t list, oint32_t ac);
 static void v3d_add(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_add(oobject_t list, oint32_t ac);
@@ -195,6 +285,8 @@ static void v3d_mul(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_mul(oobject_t list, oint32_t ac);
 static void v3d_div(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
 static void native_v3d_div(oobject_t list, oint32_t ac);
+static void v3d_mod(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3]);
+static void native_v3d_mod(oobject_t list, oint32_t ac);
 static void v3d_project(ofloat64_t v0[3], ofloat64_t obj[3],
 			ofloat64_t model[16], ofloat64_t proj[16],
 			oint32_t viewport[4]);
@@ -224,7 +316,22 @@ static void v4d_muls(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
 static void native_v4d_muls(oobject_t list, oint32_t ac);
 static void v4d_divs(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
 static void native_v4d_divs(oobject_t list, oint32_t ac);
+static void v4d_mods(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
+static void native_v4d_mods(oobject_t list, oint32_t ac);
 static void v4d_mulm(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[16]);
+static void v4d_clamp(ofloat64_t v0[4], ofloat64_t v1[4],
+		      ofloat64_t minVal, ofloat64_t maxVal);
+static void native_v4d_clamp(oobject_t list, oint32_t ac);
+static void v4d_abs(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_abs(oobject_t list, oint32_t ac);
+static void v4d_floor(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_floor(oobject_t list, oint32_t ac);
+static void v4d_trunc(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_trunc(oobject_t list, oint32_t ac);
+static void v4d_round(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_round(oobject_t list, oint32_t ac);
+static void v4d_ceil(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_ceil(oobject_t list, oint32_t ac);
 static void native_v4d_neg(oobject_t list, oint32_t ac);
 static void v4d_add(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_add(oobject_t list, oint32_t ac);
@@ -234,6 +341,8 @@ static void v4d_mul(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_mul(oobject_t list, oint32_t ac);
 static void v4d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_div(oobject_t list, oint32_t ac);
+static void v4d_mod(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
+static void native_v4d_mod(oobject_t list, oint32_t ac);
 
 static void native_m2f_set(oobject_t list, oint32_t ac);
 static void m2f_fill(ofloat32_t v0[4], ofloat32_t s0);
@@ -489,11 +598,19 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v2f_, subs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v2f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v2f_, divs, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v2f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin4(t_vf, v2f_, clamp, t_vf, t_vf, t_f, t_f);
+    define_nsbuiltin2(t_vf, v2f_, abs, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v2f_, floor, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v2f_, trunc, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v2f_, round, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v2f_, ceil, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v2f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, sub, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, div, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v2f_, mod, t_vf, t_vf, t_vf);
 
     current_record = v3f_record;
     define_nsbuiltin4(t_vf, v3f_, set, t_vf, t_f, t_f, t_f);
@@ -508,12 +625,20 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v3f_, subs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, divs, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v3f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin4(t_vf, v3f_, clamp, t_vf, t_vf, t_f, t_f);
     define_nsbuiltin3(t_vf, v3f_, cross, t_vf, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v3f_, abs, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v3f_, floor, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v3f_, trunc, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v3f_, round, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v3f_, ceil, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v3f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, sub, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v3f_, div, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v3f_, mod, t_vf, t_vf, t_vf);
     define_nsbuiltin5(t_vf, v3f_, project, t_vf, t_vf, t_vf, t_vf, t_vi);
     define_nsbuiltin5(t_vf, v3f_, unProject, t_vf, t_vf, t_vf, t_vf, t_vi);
 
@@ -530,11 +655,19 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v4f_, subs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v4f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v4f_, divs, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v4f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin4(t_vf, v4f_, clamp, t_vf, t_vf, t_f, t_f);
+    define_nsbuiltin2(t_vf, v4f_, abs, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v4f_, floor, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v4f_, trunc, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v4f_, round, t_vf, t_vf);
+    define_nsbuiltin2(t_vf, v4f_, ceil, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v4f_, neg, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, add, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, sub, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, div, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v4f_, mod, t_vf, t_vf, t_vf);
 
     current_record = v2d_record;
     define_nsbuiltin3(t_vd, v2d_, set, t_vd, t_d, t_d);
@@ -549,11 +682,19 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v2d_, subs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v2d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v2d_, divs, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v2d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin4(t_vd, v2d_, clamp, t_vd, t_vd, t_d, t_d);
+    define_nsbuiltin2(t_vd, v2d_, abs, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v2d_, floor, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v2d_, trunc, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v2d_, round, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v2d_, ceil, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v2d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, sub, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, div, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v2d_, mod, t_vd, t_vd, t_vd);
 
     current_record = v3d_record;
     define_nsbuiltin4(t_vd, v3d_, set, t_vd, t_d, t_d, t_d);
@@ -568,12 +709,20 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v3d_, subs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, divs, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v3d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin4(t_vd, v3d_, clamp, t_vd, t_vd, t_d, t_d);
     define_nsbuiltin3(t_vd, v3d_, cross, t_vd, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v3d_, abs, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v3d_, floor, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v3d_, trunc, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v3d_, round, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v3d_, ceil, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v3d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, sub, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v3d_, div, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v3d_, mod, t_vd, t_vd, t_vd);
     define_nsbuiltin5(t_vd, v3d_, project, t_vd, t_vd, t_vd, t_vd, t_vi);
     define_nsbuiltin5(t_vd, v3d_, unProject, t_vd, t_vd, t_vd, t_vd, t_vi);
 
@@ -590,11 +739,19 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v4d_, subs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v4d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v4d_, divs, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v4d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin4(t_vd, v4d_, clamp, t_vd, t_vd, t_d, t_d);
+    define_nsbuiltin2(t_vd, v4d_, abs, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v4d_, floor, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v4d_, trunc, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v4d_, round, t_vd, t_vd);
+    define_nsbuiltin2(t_vd, v4d_, ceil, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v4d_, neg, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, add, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, sub, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, div, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v4d_, mod, t_vd, t_vd, t_vd);
 
     current_record = m2f_record;
     define_nsbuiltin5(t_vf, m2f_, set,
@@ -1061,8 +1218,178 @@ native_v2f_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v2f_mods(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0)
+{
+    v0[0] = fmodf(v1[0], s0);
+    v0[1] = fmodf(v1[1], s0);
+}
+
+static void
+native_v2f_mods(oobject_t list, oint32_t ac)
+/* float32_t v2f.mods(float32_t v0[2], float32_t v1[2], float32_t s0)[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_mods(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_clamp(ofloat32_t v0[2], ofloat32_t v1[2],
+	  ofloat32_t minVal, ofloat32_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+}
+
+static void
+native_v2f_clamp(oobject_t list, oint32_t ac)
+/* float32_t v2f.clamp(float32_t v0[2], float32_t v1[2],
+		       float32_t minVal, float32_t maxVal)[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_f32_t	*alist;
+
+    alist = (nat_vec_vec_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_clamp(alist->a0->v.f32, alist->a1->v.f32, alist->a2, alist->a3);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_abs(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    v0[0] = fabsf(v1[0]);
+    v0[1] = fabsf(v1[1]);
+}
+
+static void
+native_v2f_abs(oobject_t list, oint32_t ac)
+/* float32_t v2f.abs(float32_t v0[2], float32_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_abs(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_floor(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    v0[0] = floorf(v1[0]);
+    v0[1] = floorf(v1[1]);
+}
+
+static void
+native_v2f_floor(oobject_t list, oint32_t ac)
+/* float32_t v2f.floor(float32_t v0[2], float32_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_floor(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_trunc(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    v0[0] = truncf(v1[0]);
+    v0[1] = truncf(v1[1]);
+}
+
+static void
+native_v2f_trunc(oobject_t list, oint32_t ac)
+/* float32_t v2f.trunc(float32_t v0[2], float32_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_trunc(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_round(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    v0[0] = roundf(v1[0]);
+    v0[1] = roundf(v1[1]);
+}
+
+static void
+native_v2f_round(oobject_t list, oint32_t ac)
+/* float32_t v2f.round(float32_t v0[2], float32_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_round(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_ceil(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    v0[0] = ceilf(v1[0]);
+    v0[1] = ceilf(v1[1]);
+}
+
+static void
+native_v2f_ceil(oobject_t list, oint32_t ac)
+/* float32_t v2f.ceil(float32_t v0[2], float32_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_ceil(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_v2f_neg(oobject_t list, oint32_t ac)
-/* float32_t v3f.neg(float32_t v0[2], float32_t v1[2])[2]; */
+/* float32_t v2f.neg(float32_t v0[2], float32_t v1[2])[2]; */
 {
     GET_THREAD_SELF()
     oregister_t			*r0;
@@ -1177,6 +1504,31 @@ native_v2f_div(oobject_t list, oint32_t ac)
     CHECK_VF2(alist->a1);
     CHECK_VF2(alist->a2);
     v2f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_mod(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2])
+{
+    v0[0] = fmodf(v1[0], v2[0]);
+    v0[1] = fmodf(v1[1], v2[1]);
+}
+
+static void
+native_v2f_mod(oobject_t list, oint32_t ac)
+/* float32_t v2f.mod(float32_t v0[2], float32_t v1[2], float32_t v2[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    CHECK_VF2(alist->a2);
+    v2f_mod(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1475,6 +1827,58 @@ native_v3f_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v3f_mods(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0)
+{
+    v0[0] = fmodf(v1[0], s0);
+    v0[1] = fmodf(v1[1], s0);
+    v0[2] = fmodf(v1[2], s0);
+}
+
+static void
+native_v3f_mods(oobject_t list, oint32_t ac)
+/* float32_t v3f.mods(float32_t v0[3], float32_t v1[3], float32_t s0)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_mods(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_clamp(ofloat32_t v0[3], ofloat32_t v1[3],
+	  ofloat32_t minVal, ofloat32_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+    v0[2] = clamp(minVal, maxVal, v1[2]);
+}
+
+static void
+native_v3f_clamp(oobject_t list, oint32_t ac)
+/* float32_t v3f.clamp(float32_t v0[3], float32_t v1[3],
+		       float32_t minVal, float32_t maxVal)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_f32_t	*alist;
+
+    alist = (nat_vec_vec_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_clamp(alist->a0->v.f32, alist->a1->v.f32, alist->a2, alist->a3);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
 v3f_cross(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
 {
     ofloat32_t		*vn, v[9];
@@ -1507,6 +1911,131 @@ native_v3f_cross(oobject_t list, oint32_t ac)
     CHECK_VF3(alist->a1);
     CHECK_VF3(alist->a2);
     v3f_cross(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_abs(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    v0[0] = fabsf(v1[0]);
+    v0[1] = fabsf(v1[1]);
+    v0[2] = fabsf(v1[2]);
+}
+
+static void
+native_v3f_abs(oobject_t list, oint32_t ac)
+/* float32_t v3f.abs(float32_t v0[3], float32_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_abs(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_floor(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    v0[0] = floorf(v1[0]);
+    v0[1] = floorf(v1[1]);
+    v0[2] = floorf(v1[2]);
+}
+
+static void
+native_v3f_floor(oobject_t list, oint32_t ac)
+/* float32_t v3f.floor(float32_t v0[3], float32_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_floor(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_trunc(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    v0[0] = truncf(v1[0]);
+    v0[1] = truncf(v1[1]);
+    v0[2] = truncf(v1[2]);
+}
+
+static void
+native_v3f_trunc(oobject_t list, oint32_t ac)
+/* float32_t v3f.trunc(float32_t v0[3], float32_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_trunc(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_round(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    v0[0] = roundf(v1[0]);
+    v0[1] = roundf(v1[1]);
+    v0[2] = roundf(v1[2]);
+}
+
+static void
+native_v3f_round(oobject_t list, oint32_t ac)
+/* float32_t v3f.round(float32_t v0[3], float32_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_round(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_ceil(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    v0[0] = ceilf(v1[0]);
+    v0[1] = ceilf(v1[1]);
+    v0[2] = ceilf(v1[2]);
+}
+
+static void
+native_v3f_ceil(oobject_t list, oint32_t ac)
+/* float32_t v3f.ceil(float32_t v0[3], float32_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_ceil(alist->a0->v.f32, alist->a1->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -1617,6 +2146,32 @@ v3f_div(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
     v0[0] = v1[0] / v2[0];
     v0[1] = v1[1] / v2[1];
     v0[2] = v1[2] / v2[2];
+}
+
+static void
+v3f_mod(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[3])
+{
+    v0[0] = fmodf(v1[0], v2[0]);
+    v0[1] = fmodf(v1[1], v2[1]);
+    v0[2] = fmodf(v1[2], v2[2]);
+}
+
+static void
+native_v3f_mod(oobject_t list, oint32_t ac)
+/* float32_t v3f.mod(float32_t v0[3], float32_t v1[3], float32_t v2[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    CHECK_VF3(alist->a2);
+    v3f_mod(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
 }
 
 static void
@@ -2029,6 +2584,32 @@ native_v4f_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v4f_mods(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0)
+{
+    v0[0] = fmodf(v1[0], s0);
+    v0[1] = fmodf(v1[1], s0);
+    v0[2] = fmodf(v1[2], s0);
+    v0[3] = fmodf(v1[3], s0);
+}
+
+static void
+native_v4f_mods(oobject_t list, oint32_t ac)
+/* float32_t v4f.mods(float32_t v0[4], float32_t v1[4], float32_t s0)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_mods(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
 v4f_mulm(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[16])
 {
     ofloat32_t		a00, a01, a02, a03;
@@ -2043,6 +2624,164 @@ v4f_mulm(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[16])
 	     a02 * A4(v2, 2, 2) + a03 * A4(v2, 3, 2));
     v0[3] = (a00 * A4(v2, 0, 3) + a01 * A4(v2, 1, 3) +
 	     a02 * A4(v2, 2, 3) + a03 * A4(v2, 3, 3));
+}
+
+static void
+v4f_clamp(ofloat32_t v0[4], ofloat32_t v1[4],
+	  ofloat32_t minVal, ofloat32_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+    v0[2] = clamp(minVal, maxVal, v1[2]);
+    v0[3] = clamp(minVal, maxVal, v1[3]);
+}
+
+static void
+native_v4f_clamp(oobject_t list, oint32_t ac)
+/* float32_t v4f.clamp(float32_t v0[4], float32_t v1[4],
+		       float32_t minVal, float32_t maxVal)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_f32_t	*alist;
+
+    alist = (nat_vec_vec_f32_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_clamp(alist->a0->v.f32, alist->a1->v.f32, alist->a2, alist->a3);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_abs(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    v0[0] = fabsf(v1[0]);
+    v0[1] = fabsf(v1[1]);
+    v0[2] = fabsf(v1[2]);
+    v0[3] = fabsf(v1[3]);
+}
+
+static void
+native_v4f_abs(oobject_t list, oint32_t ac)
+/* float32_t v4f.abs(float32_t v0[4], float32_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_abs(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_floor(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    v0[0] = floorf(v1[0]);
+    v0[1] = floorf(v1[1]);
+    v0[2] = floorf(v1[2]);
+    v0[3] = floorf(v1[3]);
+}
+
+static void
+native_v4f_floor(oobject_t list, oint32_t ac)
+/* float32_t v4f.floor(float32_t v0[4], float32_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_floor(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_trunc(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    v0[0] = truncf(v1[0]);
+    v0[1] = truncf(v1[1]);
+    v0[2] = truncf(v1[2]);
+    v0[3] = truncf(v1[3]);
+}
+
+static void
+native_v4f_trunc(oobject_t list, oint32_t ac)
+/* float32_t v4f.trunc(float32_t v0[4], float32_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_trunc(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_round(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    v0[0] = roundf(v1[0]);
+    v0[1] = roundf(v1[1]);
+    v0[2] = roundf(v1[2]);
+    v0[3] = roundf(v1[3]);
+}
+
+static void
+native_v4f_round(oobject_t list, oint32_t ac)
+/* float32_t v4f.round(float32_t v0[4], float32_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_round(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_ceil(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    v0[0] = ceilf(v1[0]);
+    v0[1] = ceilf(v1[1]);
+    v0[2] = ceilf(v1[2]);
+    v0[3] = ceilf(v1[3]);
+}
+
+static void
+native_v4f_ceil(oobject_t list, oint32_t ac)
+/* float32_t v4f.ceil(float32_t v0[4], float32_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_ceil(alist->a0->v.f32, alist->a1->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
 }
 
 static void
@@ -2172,6 +2911,33 @@ native_v4f_div(oobject_t list, oint32_t ac)
     CHECK_VF4(alist->a1);
     CHECK_VF4(alist->a2);
     v4f_div(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_mod(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4])
+{
+    v0[0] = fmodf(v1[0], v2[0]);
+    v0[1] = fmodf(v1[1], v2[1]);
+    v0[2] = fmodf(v1[2], v2[2]);
+    v0[3] = fmodf(v1[3], v2[3]);
+}
+
+static void
+native_v4f_mod(oobject_t list, oint32_t ac)
+/* float32_t v4f.mod(float32_t v0[4], float32_t v1[4], float32_t v2[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    CHECK_VF4(alist->a2);
+    v4f_mod(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2462,6 +3228,176 @@ native_v2d_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v2d_mods(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0)
+{
+    v0[0] = fmod(v1[0], s0);
+    v0[1] = fmod(v1[1], s0);
+}
+
+static void
+native_v2d_mods(oobject_t list, oint32_t ac)
+/* float64_t v2d.mods(float64_t v0[2], float64_t v1[2], float64_t s0)[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_mods(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_clamp(ofloat64_t v0[2], ofloat64_t v1[2],
+	  ofloat64_t minVal, ofloat64_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+}
+
+static void
+native_v2d_clamp(oobject_t list, oint32_t ac)
+/* float64_t v2d.clamp(float64_t v0[2], float64_t v1[2],
+		       float64_t minVal, float64_t maxVal)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_f64_t	*alist;
+
+    alist = (nat_vec_vec_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_clamp(alist->a0->v.f64, alist->a1->v.f64, alist->a2, alist->a3);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_abs(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    v0[0] = fabs(v1[0]);
+    v0[1] = fabs(v1[1]);
+}
+
+static void
+native_v2d_abs(oobject_t list, oint32_t ac)
+/* float64_t v2d.abs(float64_t v0[2], float64_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_abs(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_floor(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    v0[0] = floor(v1[0]);
+    v0[1] = floor(v1[1]);
+}
+
+static void
+native_v2d_floor(oobject_t list, oint32_t ac)
+/* float64_t v2d.floor(float64_t v0[2], float64_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_floor(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_trunc(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    v0[0] = trunc(v1[0]);
+    v0[1] = trunc(v1[1]);
+}
+
+static void
+native_v2d_trunc(oobject_t list, oint32_t ac)
+/* float64_t v2d.trunc(float64_t v0[2], float64_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_trunc(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_round(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = round(v1[0]);
+    v0[1] = round(v1[1]);
+}
+
+static void
+native_v2d_round(oobject_t list, oint32_t ac)
+/* float64_t v2d.round(float64_t v0[2], float64_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_round(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_ceil(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    v0[0] = ceil(v1[0]);
+    v0[1] = ceil(v1[1]);
+}
+
+static void
+native_v2d_ceil(oobject_t list, oint32_t ac)
+/* float64_t v2d.ceil(float64_t v0[2], float64_t v1[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_ceil(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_v2d_neg(oobject_t list, oint32_t ac)
 /* float64_t v2d.neg(float64_t v0[2], float64_t v1[2])[2]; */
 {
@@ -2578,6 +3514,31 @@ native_v2d_div(oobject_t list, oint32_t ac)
     CHECK_VD2(alist->a1);
     CHECK_VD2(alist->a2);
     v2d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_mod(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2])
+{
+    v0[0] = fmod(v1[0], v2[0]);
+    v0[1] = fmod(v1[1], v2[1]);
+}
+
+static void
+native_v2d_mod(oobject_t list, oint32_t ac)
+/* float64_t v2d.mod(float64_t v0[2], float64_t v1[2], float64_t v2[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    CHECK_VD2(alist->a2);
+    v2d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -2876,6 +3837,31 @@ native_v3d_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v3d_mods(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0)
+{
+    v0[0] = fmod(v1[0], s0);
+    v0[1] = fmod(v1[1], s0);
+    v0[2] = fmod(v1[2], s0);
+}
+
+static void
+native_v3d_mods(oobject_t list, oint32_t ac)
+/* float64_t v3d.mods(float64_t v0[3], float64_t v1[3], float64_t s0)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_mods(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
 v3d_cross(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
 {
     ofloat64_t		*vn, v[9];
@@ -2908,6 +3894,131 @@ native_v3d_cross(oobject_t list, oint32_t ac)
     CHECK_VD3(alist->a1);
     CHECK_VD3(alist->a2);
     v3d_cross(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_abs(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = fabs(v1[0]);
+    v0[1] = fabs(v1[1]);
+    v0[2] = fabs(v1[2]);
+}
+
+static void
+native_v3d_abs(oobject_t list, oint32_t ac)
+/* float64_t v3d.abs(float64_t v0[3], float64_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_abs(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_floor(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = floor(v1[0]);
+    v0[1] = floor(v1[1]);
+    v0[2] = floor(v1[2]);
+}
+
+static void
+native_v3d_floor(oobject_t list, oint32_t ac)
+/* float64_t v3d.floor(float64_t v0[3], float64_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_floor(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_trunc(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = trunc(v1[0]);
+    v0[1] = trunc(v1[1]);
+    v0[2] = trunc(v1[2]);
+}
+
+static void
+native_v3d_trunc(oobject_t list, oint32_t ac)
+/* float64_t v3d.trunc(float64_t v0[3], float64_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_trunc(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_round(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = round(v1[0]);
+    v0[1] = round(v1[1]);
+    v0[2] = round(v1[2]);
+}
+
+static void
+native_v3d_round(oobject_t list, oint32_t ac)
+/* float64_t v3d.round(float64_t v0[3], float64_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_round(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_ceil(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    v0[0] = ceil(v1[0]);
+    v0[1] = ceil(v1[1]);
+    v0[2] = ceil(v1[2]);
+}
+
+static void
+native_v3d_ceil(oobject_t list, oint32_t ac)
+/* float64_t v3d.ceil(float64_t v0[3], float64_t v1[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_ceil(alist->a0->v.f64, alist->a1->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3034,6 +4145,59 @@ native_v3d_div(oobject_t list, oint32_t ac)
     CHECK_VD3(alist->a1);
     CHECK_VD3(alist->a2);
     v3d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_mod(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[3])
+{
+    v0[0] = fmod(v1[0], v2[0]);
+    v0[1] = fmod(v1[1], v2[1]);
+    v0[2] = fmod(v1[2], v2[2]);
+}
+
+static void
+native_v3d_mod(oobject_t list, oint32_t ac)
+/* float64_t v3d.mod(float64_t v0[3], float64_t v1[3], float64_t v2[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    CHECK_VD3(alist->a2);
+    v3d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_clamp(ofloat64_t v0[3], ofloat64_t v1[3],
+	  ofloat64_t minVal, ofloat64_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+    v0[2] = clamp(minVal, maxVal, v1[2]);
+}
+
+static void
+native_v3d_clamp(oobject_t list, oint32_t ac)
+/* float64_t v3d.clamp(float64_t v0[3], float64_t v1[3],
+		       float64_t minVal, float64_t maxVal)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_f64_t	*alist;
+
+    alist = (nat_vec_vec_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_clamp(alist->a0->v.f64, alist->a1->v.f64, alist->a2, alist->a3);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -3431,6 +4595,190 @@ native_v4d_divs(oobject_t list, oint32_t ac)
 }
 
 static void
+v4d_mods(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0)
+{
+    v0[0] = fmod(v1[0], s0);
+    v0[1] = fmod(v1[1], s0);
+    v0[2] = fmod(v1[2], s0);
+    v0[3] = fmod(v1[3], s0);
+}
+
+static void
+native_v4d_mods(oobject_t list, oint32_t ac)
+/* float64_t v4d.mods(float64_t v0[4], float64_t v1[4], float64_t s0)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_mods(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_clamp(ofloat64_t v0[4], ofloat64_t v1[4],
+	  ofloat64_t minVal, ofloat64_t maxVal)
+{
+    v0[0] = clamp(minVal, maxVal, v1[0]);
+    v0[1] = clamp(minVal, maxVal, v1[1]);
+    v0[2] = clamp(minVal, maxVal, v1[2]);
+    v0[3] = clamp(minVal, maxVal, v1[3]);
+}
+
+static void
+native_v4d_clamp(oobject_t list, oint32_t ac)
+/* float64_t v4d.clamp(float64_t v0[4], float64_t v1[4],
+		       float64_t minVal, float64_t maxVal)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_f64_t	*alist;
+
+    alist = (nat_vec_vec_f64_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_clamp(alist->a0->v.f64, alist->a1->v.f64, alist->a2, alist->a3);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_abs(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    v0[0] = fabs(v1[0]);
+    v0[1] = fabs(v1[1]);
+    v0[2] = fabs(v1[2]);
+    v0[3] = fabs(v1[3]);
+}
+
+static void
+native_v4d_abs(oobject_t list, oint32_t ac)
+/* float64_t v4d.abs(float64_t v0[4], float64_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_abs(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_floor(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    v0[0] = floor(v1[0]);
+    v0[1] = floor(v1[1]);
+    v0[2] = floor(v1[2]);
+    v0[3] = floor(v1[3]);
+}
+
+static void
+native_v4d_floor(oobject_t list, oint32_t ac)
+/* float64_t v4d.floor(float64_t v0[4], float64_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_floor(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_trunc(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    v0[0] = trunc(v1[0]);
+    v0[1] = trunc(v1[1]);
+    v0[2] = trunc(v1[2]);
+    v0[3] = trunc(v1[3]);
+}
+
+static void
+native_v4d_trunc(oobject_t list, oint32_t ac)
+/* float64_t v4d.trunc(float64_t v0[4], float64_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_trunc(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_round(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    v0[0] = round(v1[0]);
+    v0[1] = round(v1[1]);
+    v0[2] = round(v1[2]);
+    v0[3] = round(v1[3]);
+}
+
+static void
+native_v4d_round(oobject_t list, oint32_t ac)
+/* float64_t v4d.round(float64_t v0[4], float64_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_round(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_ceil(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    v0[0] = ceil(v1[0]);
+    v0[1] = ceil(v1[1]);
+    v0[2] = ceil(v1[2]);
+    v0[3] = ceil(v1[3]);
+}
+
+static void
+native_v4d_ceil(oobject_t list, oint32_t ac)
+/* float64_t v4d.ceil(float64_t v0[4], float64_t v1[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_ceil(alist->a0->v.f64, alist->a1->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_v4d_neg(oobject_t list, oint32_t ac)
 /* float64_t v4d.neg(float64_t v0[4], float64_t v1[4])[4]; */
 {
@@ -3557,6 +4905,33 @@ native_v4d_div(oobject_t list, oint32_t ac)
     CHECK_VD4(alist->a1);
     CHECK_VD4(alist->a2);
     v4d_div(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_mod(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4])
+{
+    v0[0] = fmod(v1[0], v2[0]);
+    v0[1] = fmod(v1[1], v2[1]);
+    v0[2] = fmod(v1[2], v2[2]);
+    v0[3] = fmod(v1[3], v2[3]);
+}
+
+static void
+native_v4d_mod(oobject_t list, oint32_t ac)
+/* float64_t v4d.mod(float64_t v0[4], float64_t v1[4], float64_t v2[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    CHECK_VD4(alist->a2);
+    v4d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
