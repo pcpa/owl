@@ -492,8 +492,6 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 	record = root_record;
 
     switch (length) {
-	case 0:
-	    break;
 	case 1:
 	    if (down)	--record->offset;
 	    ++record->length;
@@ -503,15 +501,21 @@ new_symbol(orecord_t *record, ovector_t *name, otag_t *tag, obool_t add)
 	    else	record->offset = (record->offset + 1) & ~1;
 	    record->length = (record->length + 1) & ~1;
 	    break;
-	case 3:		case 4:
+	case 4:
 	    if (down)	record->offset = (record->offset - 4) & ~3;
 	    else	record->offset = (record->offset + 3) & ~3;
 	    record->length = (record->length + 3) & ~3;
 	    break;
 	default:
+	    assert(length == 8);
 	    if (down)	record->offset = (record->offset - 8) & ~7;
+#if __WORDSIZE == 32
+	    else	record->offset = (record->offset + 3) & ~3;
+	    record->length = (record->length + 3) & ~3;
+#else
 	    else	record->offset = (record->offset + 7) & ~7;
 	    record->length = (record->length + 7) & ~7;
+#endif
 	    break;
     }
     symbol->offset = record->offset;
