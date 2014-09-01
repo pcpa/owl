@@ -440,16 +440,23 @@ oprint_mpz(ostream_t *stream, oformat_t *format, ompz_t integer)
 	ouword_t	M;
 
 	count = mpz_sizeinbase(integer, 16) / 2;
-	/* simplify code below if value fits in an unsigned 64 bits integer */
+	/* simplify code below if value fits in an ouword_t bits integer */
 	if (count <= (sizeof(oword_t) >> 3))
 	    return (oprint_wrd(stream, format, mpz_get_ui(integer)));
 
 	assert(thr_zs != integer);
 	S = (sizeof(oword_t) << 3) - 8;
 	M = 0xffL << S;
-	size = count - (count & 7);
+#if __WORDSIZE == 32
+#  define MASK		3
+#  define SIZE		4
+#else
+#  define MASK		7
+#  define SIZE		8
+#endif
+	size = count - (count & MASK);
 
-	/* update mask and shift if count is not a multiple of 8 */
+	/* update mask and shift if count is not a multiple of SIZE */
 	if (size != count) {
 	    mpz_fdiv_q_2exp(thr_zs, integer, size << 3);
 	    i = mpz_get_ui(thr_zs);
@@ -470,7 +477,7 @@ oprint_mpz(ostream_t *stream, oformat_t *format, ompz_t integer)
 			++count;
 		}
 	    }
-	    for (bytes = size - 8; bytes >= 0; bytes -= 8) {
+	    for (bytes = size - SIZE; bytes >= 0; bytes -= SIZE) {
 		if (bytes) {
 		    mpz_fdiv_q_2exp(thr_zs, integer, bytes << 3);
 		    i = mpz_get_ui(thr_zs);
@@ -506,7 +513,7 @@ oprint_mpz(ostream_t *stream, oformat_t *format, ompz_t integer)
 	}
 
 	/* print value */
-	for (size -= 8; size >= 0; size -= 8) {
+	for (size -= SIZE; size >= 0; size -= SIZE) {
 	    if (size) {
 		mpz_fdiv_q_2exp(thr_zs, integer, size << 3);
 		i = mpz_get_ui(thr_zs);
@@ -522,6 +529,8 @@ oprint_mpz(ostream_t *stream, oformat_t *format, ompz_t integer)
 	    }
 	}
 	if (format->read)	*ptr++ = '\'';
+#undef MASK
+#undef SIZE
 
 	return (print_pad(stream, format->left, bytes, count));
     }
