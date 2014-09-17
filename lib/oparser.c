@@ -2088,7 +2088,7 @@ unary_value(otoken_t token)
     oast_t		*ast;
     oast_t		*value;
 
-    switch (lookahead()) {
+    switch (lookahead_noeof()) {
 	case tok_number:	case tok_symbol:
 	case tok_string:	case tok_add:
 	case tok_sub:		case tok_not:
@@ -2117,9 +2117,10 @@ unary_value(otoken_t token)
 	case tok_pow:		case tok_hypot:
 	case tok_complex:	case tok_ellipsis:
 	case tok_oparen:	case tok_subtypeof:
+	case tok_sizeof:
 	    break;
 	default:
-	    oparse_error(top_ast(), "expecting expression %A", top_ast());
+	    oparse_error(head_ast, "expecting expression %A", head_ast);
     }
 
     unary();
