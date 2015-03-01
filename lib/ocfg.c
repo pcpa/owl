@@ -127,9 +127,9 @@ ocfg_main(int argc, char *argv[])
     oemit();
     //if (cfg_verbose)
 	//jit_print();
-    jit_clear_state();
     if (cfg_verbose)
 	jit_disassemble();
+    jit_clear_state();
 
     init_vm();
     ovm(thread_main);
