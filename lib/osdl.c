@@ -941,6 +941,7 @@ init_sdl(void)
     record = type_vector->v.ptr[t_texture];
     add_field(pointer_string,	"*texture*");
     add_field("auto",		"*handle*");	/* gc it */
+    add_field("auto",		"*renderer*");	/* gc it */
     add_field("uint32_t",	"format");
     add_field("int32_t",	"access");
     add_field("int32_t",	"w");
@@ -2571,6 +2572,7 @@ handle_texture(orenderer_t *ren, otexture_t *tex)
     okey_hashentry(tex->__handle);
     assert(oget_hashentry(ren->__textures, tex->__handle) == null);
     oput_hashentry(ren->__textures, tex->__handle);
+    tex->__renderer = ren;
 }
 
 static void
@@ -2710,6 +2712,8 @@ native_DestroyTexture(oobject_t list, oint32_t ac)
     if (alist->a0) {
 	CHECK_TYPE(alist->a0, t_texture);
 	odestroy_texture(alist->a0);
+	/* Shortcut it when user splicitly destroyed the texture */
+	orem_hashentry(alist->a0->__renderer->__textures, alist->a0->__handle);
     }
     r0->t = t_void;
 }

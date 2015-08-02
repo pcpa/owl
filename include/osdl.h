@@ -155,6 +155,7 @@ struct osurface {
 struct otexture {
     SDL_Texture		*__texture;
     ohashentry_t	*__handle;		/* convert pointers */
+    orenderer_t		*__renderer;		/* back pointer */
     ouint32_t		 format;
     oint32_t		 access;
     oint32_t		 w;
