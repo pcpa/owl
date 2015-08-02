@@ -671,6 +671,8 @@ getc_quoted(ostream_t *stream, onote_t *note)
 	    case 'v': ch = '\v'; break;
 	    case '"': case '\'': break;
 	    case '0': case '1': case '2':
+	    case '3': case '4': case '5':
+	    case '6': case '7':
 		ch -= '0';
 		value = ogetc(stream);
 		digit = char_value(value, 8);
