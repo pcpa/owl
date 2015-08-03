@@ -1455,7 +1455,7 @@ init_gl(void)
 		    t_float32, t_float32, t_vector|t_uint8);
     define_builtin6(t_void,    ReadPixels,
 		    t_int32, t_int32, t_int32, t_int32,
-		    t_uint32, t_vector|t_uint8);
+		    t_uint32, t_vector);
     define_builtin6(t_void,    ReadBitmap,
 		    t_int32, t_int32, t_int32, t_int32,
 		    t_uint32, t_vector|t_uint8);
@@ -4759,29 +4759,55 @@ native_Bitmap(oobject_t list, oint32_t ac)
 static void
 native_ReadPixels(oobject_t list, oint32_t ac)
 /* void gl.ReadPixels(int32_t x, int32_t y, int32_t width, int32_t height,
-		      uint32_t format, uint8_t pixels[]); */
+		      uint32_t format, pixels[]); */
 {
     GET_THREAD_SELF()
     oregister_t				*r0;
+    oint32_t				 type;
     nat_i32_i32_i32_i32_u32_vec_t	*alist;
     oword_t				 length;
 
     alist = (nat_i32_i32_i32_i32_u32_vec_t *)list;
     r0 = &thread_self->r0;
     CHECK_NULL(alist->a5);
-    CHECK_TYPE(alist->a5, t_vector|t_uint8);
     check_mult(alist->a2, alist->a3);
     length = alist->a2 * alist->a3;
     switch (alist->a4) {
 	case GL_RGB:
 	case GL_BGR:
+	    type = GL_UNSIGNED_BYTE;
+	    CHECK_TYPE(alist->a5, t_vector|t_uint8);
 	    check_mult(length, 3);
 	    length *= 3;
 	    break;
 	case GL_RGBA:
 	case GL_BGRA:
+	    type = GL_UNSIGNED_BYTE;
+	    CHECK_TYPE(alist->a5, t_vector|t_uint8);
 	    check_mult(length, 4);
 	    length *= 4;
+	    break;
+	case GL_RED:
+	case GL_GREEN:
+	case GL_BLUE:
+	case GL_ALPHA:
+	    if (otype(alist->a5) == (t_vector|t_uint8))
+		type = GL_UNSIGNED_BYTE;
+	    else {
+		type = GL_FLOAT;
+		CHECK_TYPE(alist->a5, t_vector|t_float32);
+	    }
+	    break;
+	case GL_LUMINANCE:
+	case GL_LUMINANCE_ALPHA:
+	case GL_DEPTH_COMPONENT:
+	    type = GL_FLOAT;
+	    CHECK_TYPE(alist->a5, t_vector|t_float32);
+	    break;
+	case GL_COLOR_INDEX:
+	case GL_STENCIL_INDEX:
+	    type = GL_UNSIGNED_INT;
+	    CHECK_TYPE(alist->a5, t_vector|t_uint32);
 	    break;
 	default:
 	    ovm_raise(except_invalid_argument);
@@ -4790,7 +4816,7 @@ native_ReadPixels(oobject_t list, oint32_t ac)
 	orenew_vector(alist->a5, length);
     r0->t = t_void;
     glReadPixels(alist->a0, alist->a1, alist->a2, alist->a3,
-		 alist->a4, GL_UNSIGNED_BYTE, alist->a5->v.u8);
+		 alist->a4, type, alist->a5->v.u8);
 }
 
 static void
