@@ -86,6 +86,8 @@ static void v2f_div(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_div(oobject_t list, oint32_t ac);
 static void v2f_mod(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_mod(oobject_t list, oint32_t ac);
+static void v2f_rotate(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
+static void native_v2f_rotate(oobject_t list, oint32_t ac);
 
 static void native_v3f_set(oobject_t list, oint32_t ac);
 static void v3f_fill(ofloat32_t v0[3], ofloat32_t s0);
@@ -143,6 +145,17 @@ static void v3f_unProject(ofloat32_t v0[3], ofloat32_t win[3],
 			  ofloat32_t model[16], ofloat32_t proj[16],
 			  oint32_t viewport[4]);
 static void native_v3f_unProject(oobject_t list, oint32_t ac);
+static void v3f_m4f_mul_v3f(ofloat32_t v0[3],
+			    ofloat32_t v1[16], ofloat32_t v2[3]);
+static void v3f_rotate(ofloat32_t v0[3], ofloat32_t v1[3],
+		       ofloat32_t s0, ofloat32_t v2[3]);
+static void native_v3f_rotate(oobject_t list, oint32_t ac);
+static void v3f_rotateX(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
+static void native_v3f_rotateX(oobject_t list, oint32_t ac);
+static void v3f_rotateY(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
+static void native_v3f_rotateY(oobject_t list, oint32_t ac);
+static void v3f_rotateZ(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
+static void native_v3f_rotateZ(oobject_t list, oint32_t ac);
 
 static void native_v4f_set(oobject_t list, oint32_t ac);
 static void v4f_fill(ofloat32_t v0[4], ofloat32_t s0);
@@ -191,6 +204,18 @@ static void v4f_div(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_div(oobject_t list, oint32_t ac);
 static void v4f_mod(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[4]);
 static void native_v4f_mod(oobject_t list, oint32_t ac);
+static void v4f_m4f_mul_v4f(ofloat32_t v0[4],
+			    ofloat32_t v1[16], ofloat32_t v2[4]);
+static void v4f_rotate(ofloat32_t v0[4], ofloat32_t v1[4],
+		       ofloat32_t s0, ofloat32_t v2[3]);
+static void native_v4f_rotate(oobject_t list, oint32_t ac);
+static void native_v4f_rotate(oobject_t list, oint32_t ac);
+static void v4f_rotateX(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0);
+static void native_v4f_rotateX(oobject_t list, oint32_t ac);
+static void v4f_rotateY(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0);
+static void native_v4f_rotateY(oobject_t list, oint32_t ac);
+static void v4f_rotateZ(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0);
+static void native_v4f_rotateZ(oobject_t list, oint32_t ac);
 
 static void native_v2d_set(oobject_t list, oint32_t ac);
 static void v2d_fill(ofloat64_t v0[2], ofloat64_t s0);
@@ -238,6 +263,8 @@ static void v2d_div(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_div(oobject_t list, oint32_t ac);
 static void v2d_mod(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_mod(oobject_t list, oint32_t ac);
+static void v2d_rotate(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
+static void native_v2d_rotate(oobject_t list, oint32_t ac);
 
 static void native_v3d_set(oobject_t list, oint32_t ac);
 static void v3d_fill(ofloat64_t v0[3], ofloat64_t s0);
@@ -295,6 +322,17 @@ static void v3d_unProject(ofloat64_t v0[3], ofloat64_t win[3],
 			  ofloat64_t model[16], ofloat64_t proj[16],
 			  oint32_t viewport[4]);
 static void native_v3d_unProject(oobject_t list, oint32_t ac);
+static void v3d_m4d_mul_v3d(ofloat64_t v0[3],
+			    ofloat64_t v1[16], ofloat64_t v2[3]);
+static void v3d_rotate(ofloat64_t v0[3], ofloat64_t v1[3],
+		       ofloat64_t s0, ofloat64_t v2[3]);
+static void native_v3d_rotate(oobject_t list, oint32_t ac);
+static void v3d_rotateX(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
+static void native_v3d_rotateX(oobject_t list, oint32_t ac);
+static void v3d_rotateY(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
+static void native_v3d_rotateY(oobject_t list, oint32_t ac);
+static void v3d_rotateZ(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
+static void native_v3d_rotateZ(oobject_t list, oint32_t ac);
 
 static void native_v4d_set(oobject_t list, oint32_t ac);
 static void v4d_fill(ofloat64_t v0[4], ofloat64_t s0);
@@ -343,6 +381,17 @@ static void v4d_div(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_div(oobject_t list, oint32_t ac);
 static void v4d_mod(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[4]);
 static void native_v4d_mod(oobject_t list, oint32_t ac);
+static void v4d_m4d_mul_v4d(ofloat64_t v0[4],
+			    ofloat64_t v1[16], ofloat64_t v2[4]);
+static void v4d_rotate(ofloat64_t v0[4], ofloat64_t v1[4],
+		       ofloat64_t s0, ofloat64_t v2[3]);
+static void native_v4d_rotate(oobject_t list, oint32_t ac);
+static void v4d_rotateX(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
+static void native_v4d_rotateX(oobject_t list, oint32_t ac);
+static void v4d_rotateY(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
+static void native_v4d_rotateY(oobject_t list, oint32_t ac);
+static void v4d_rotateZ(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
+static void native_v4d_rotateZ(oobject_t list, oint32_t ac);
 
 static void native_m2f_set(oobject_t list, oint32_t ac);
 static void m2f_fill(ofloat32_t v0[4], ofloat32_t s0);
@@ -567,6 +616,18 @@ orecord_t			*m4f_record;
 orecord_t			*m2d_record;
 orecord_t			*m3d_record;
 orecord_t			*m4d_record;
+static ofloat32_t		 identityf[16] = {
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+};
+static ofloat64_t		 identity[16] = {
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
+};
 
 /*
  * Implementation
@@ -611,6 +672,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v2f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, div, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, mod, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v2f_, rotate, t_vf, t_vf, t_f);
 
     current_record = v3f_record;
     define_nsbuiltin4(t_vf, v3f_, set, t_vf, t_f, t_f, t_f);
@@ -641,6 +703,10 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v3f_, mod, t_vf, t_vf, t_vf);
     define_nsbuiltin5(t_vf, v3f_, project, t_vf, t_vf, t_vf, t_vf, t_vi);
     define_nsbuiltin5(t_vf, v3f_, unProject, t_vf, t_vf, t_vf, t_vf, t_vi);
+    define_nsbuiltin4(t_vf, v3f_, rotate, t_vf, t_vf, t_f, t_vf);
+    define_nsbuiltin3(t_vf, v3f_, rotateX, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v3f_, rotateY, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v3f_, rotateZ, t_vf, t_vf, t_f);
 
     current_record = v4f_record;
     define_nsbuiltin5(t_vf, v4f_, set, t_vf, t_f, t_f, t_f, t_f);
@@ -668,6 +734,10 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v4f_, mul, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, div, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v4f_, mod, t_vf, t_vf, t_vf);
+    define_nsbuiltin4(t_vf, v4f_, rotate, t_vf, t_vf, t_f, t_vf);
+    define_nsbuiltin3(t_vf, v4f_, rotateX, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v4f_, rotateY, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v4f_, rotateZ, t_vf, t_vf, t_f);
 
     current_record = v2d_record;
     define_nsbuiltin3(t_vd, v2d_, set, t_vd, t_d, t_d);
@@ -695,6 +765,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v2d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, div, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, mod, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v2d_, rotate, t_vd, t_vd, t_d);
 
     current_record = v3d_record;
     define_nsbuiltin4(t_vd, v3d_, set, t_vd, t_d, t_d, t_d);
@@ -725,6 +796,10 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v3d_, mod, t_vd, t_vd, t_vd);
     define_nsbuiltin5(t_vd, v3d_, project, t_vd, t_vd, t_vd, t_vd, t_vi);
     define_nsbuiltin5(t_vd, v3d_, unProject, t_vd, t_vd, t_vd, t_vd, t_vi);
+    define_nsbuiltin4(t_vd, v3d_, rotate, t_vd, t_vd, t_d, t_vd);
+    define_nsbuiltin3(t_vd, v3d_, rotateX, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v3d_, rotateY, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v3d_, rotateZ, t_vd, t_vd, t_d);
 
     current_record = v4d_record;
     define_nsbuiltin5(t_vd, v4d_, set, t_vd, t_d, t_d, t_d, t_d);
@@ -752,6 +827,10 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v4d_, mul, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, div, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v4d_, mod, t_vd, t_vd, t_vd);
+    define_nsbuiltin4(t_vd, v4d_, rotate, t_vd, t_vd, t_d, t_vd);
+    define_nsbuiltin3(t_vd, v4d_, rotateX, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v4d_, rotateY, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v4d_, rotateZ, t_vd, t_vd, t_d);
 
     current_record = m2f_record;
     define_nsbuiltin5(t_vf, m2f_, set,
@@ -1534,6 +1613,34 @@ native_v2f_mod(oobject_t list, oint32_t ac)
 }
 
 static void
+v2f_rotate(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0)
+{
+    float	_cos = cosf(s0);
+    float	_sin = sinf(s0);
+    float	x = v1[0] * _cos - v1[1] * _sin;
+    float	y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+}
+
+static void
+native_v2f_rotate(oobject_t list, oint32_t ac)
+/* float32_t v2f.rotate(float32_t v0[2], float32_t v1[2], float32_t s0)[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    v2f_rotate(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_v3f_set(oobject_t list, oint32_t ac)
 /* float32_t v3f.set(float32_t v0[3], float32_t s0,
 		     float32_t s1, float32_t s2)[3]; */
@@ -2280,6 +2387,139 @@ native_v3f_unProject(oobject_t list, oint32_t ac)
     r0->v.o = alist->a0;
 }
 
+/*
+ * v3 = m4x4 * v3
+ */
+static void
+v3f_m4f_mul_v3f(ofloat32_t v0[3], ofloat32_t v1[16], ofloat32_t v2[3])
+{
+    v0[0] = A4(v1,0,0) * v2[0] + A4(v1,1,0) * v2[1] + A4(v1,2,0) * v2[2];
+    v0[1] = A4(v1,0,1) * v2[0] + A4(v1,1,1) * v2[1] + A4(v1,2,1) * v2[2];
+    v0[2] = A4(v1,0,2) * v2[0] + A4(v1,1,2) * v2[1] + A4(v1,2,2) * v2[2];
+}
+
+static void
+v3f_rotate(ofloat32_t v0[3], ofloat32_t v1[3],
+	   ofloat32_t s0, ofloat32_t v2[3])
+{
+    ofloat32_t		m[16];
+    m4f_rotate(m, identityf, s0, v2);
+    v3f_m4f_mul_v3f(v0, m, v1);
+}
+
+static void
+native_v3f_rotate(oobject_t list, oint32_t ac)
+/* float32_t v3f.rotate(float32_t v0[3], float32_t v1[3],
+			   float32_t angle, float32_t normal[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_vec_t	*alist;
+
+    alist = (nat_vec_vec_f32_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    CHECK_VF3(alist->a3);
+    v3f_rotate(alist->a0->v.f32, alist->a1->v.f32,
+	       alist->a2, alist->a3->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_rotateX(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			y = v1[1] * _cos - v1[2] * _sin;
+    float			z = v1[1] * _sin + v1[2] * _cos;
+    if (v0 != v1)
+	v0[0] = v1[0];
+    v0[1] = y;
+    v0[2] = z;
+}
+
+static void
+native_v3f_rotateX(oobject_t list, oint32_t ac)
+/* float32_t v3f.rotateX(float32_t v0[3], float32_t v1[3],
+			 float32_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_rotateX(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_rotateY(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			x =  v1[0] * _cos + v1[2] * _sin;
+    float			z = -v1[0] * _sin + v1[2] * _cos;
+    v0[0] = x;
+    if (v0 != v1)
+	v0[1] = v1[1];
+    v0[2] = z;
+}
+
+static void
+native_v3f_rotateY(oobject_t list, oint32_t ac)
+/* float32_t v3f.rotateY(float32_t v0[3], float32_t v1[3],
+			 float32_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_rotateY(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_rotateZ(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			x = v1[0] * _cos - v1[1] * _sin;
+    float			y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+    if (v0 != v1)
+	v0[2] = v1[2];
+}
+
+static void
+native_v3f_rotateZ(oobject_t list, oint32_t ac)
+/* float32_t v3f.rotateZ(float32_t v0[3], float32_t v1[3],
+			 float32_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    v3f_rotateZ(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
 static void
 native_v4f_set(oobject_t list, oint32_t ac)
 /* float32_t v4f.set(float32_t v0[4], float32_t s0,
@@ -2942,6 +3182,146 @@ native_v4f_mod(oobject_t list, oint32_t ac)
     r0->v.o = alist->a0;
 }
 
+/*
+ * v4 = m4x4 * v4
+ */
+static void
+v4f_m4f_mul_v4f(ofloat32_t v0[4], ofloat32_t v1[16], ofloat32_t v2[3])
+{
+    v0[0] = A4(v1,0,0) * v2[0] + A4(v1,1,0) * v2[1] + A4(v1,2,0) * v2[2] + A4(v1,3,0) * v2[3];
+    v0[1] = A4(v1,0,1) * v2[0] + A4(v1,1,1) * v2[1] + A4(v1,2,1) * v2[2] + A4(v1,3,1) * v2[3];
+    v0[2] = A4(v1,0,2) * v2[0] + A4(v1,1,2) * v2[1] + A4(v1,2,2) * v2[2] + A4(v1,3,2) * v2[3];
+    v0[3] = A4(v1,0,3) * v2[0] + A4(v1,1,3) * v2[1] + A4(v1,2,3) * v2[2] + A4(v1,3,3) * v2[3];
+}
+
+static void
+v4f_rotate(ofloat32_t v0[4], ofloat32_t v1[4],
+	   ofloat32_t s0, ofloat32_t v2[3])
+{
+    ofloat32_t		m[16];
+    m4f_rotate(m, identityf, s0, v2);
+    v4f_m4f_mul_v4f(v0, m, v1);
+}
+
+static void
+native_v4f_rotate(oobject_t list, oint32_t ac)
+/* float32_t v4f.rotate(float32_t v0[4], float32_t v1[4],
+			   float32_t angle, float32_t normal[3])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_vec_t	*alist;
+
+    alist = (nat_vec_vec_f32_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    CHECK_VF3(alist->a3);
+    v4f_rotate(alist->a0->v.f32, alist->a1->v.f32,
+	       alist->a2, alist->a3->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_rotateX(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			y = v1[1] * _cos - v1[2] * _sin;
+    float			z = v1[1] * _sin + v1[2] * _cos;
+    if (v0 != v1) {
+	v0[0] = v1[0];
+	v0[3] = v1[3];
+    }
+    v0[1] = y;
+    v0[2] = z;
+}
+
+static void
+native_v4f_rotateX(oobject_t list, oint32_t ac)
+/* float32_t v4f.rotateX(float32_t v0[4], float32_t v1[4],
+			 float32_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_rotateX(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_rotateY(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			x =  v1[0] * _cos + v1[2] * _sin;
+    float			z = -v1[0] * _sin + v1[2] * _cos;
+    v0[0] = x;
+    if (v0 != v1) {
+	v0[1] = v1[1];
+	v0[3] = v1[3];
+    }
+    v0[2] = z;
+}
+
+static void
+native_v4f_rotateY(oobject_t list, oint32_t ac)
+/* float32_t v4f.rotateY(float32_t v0[4], float32_t v1[4],
+			 float32_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_rotateY(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4f_rotateZ(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t s0)
+{
+    float			_cos = cosf(s0);
+    float			_sin = sinf(s0);
+    float			x = v1[0] * _cos - v1[1] * _sin;
+    float			y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+    if (v0 != v1) {
+	v0[2] = v1[2];
+	v0[3] = v1[3];
+    }
+}
+
+static void
+native_v4f_rotateZ(oobject_t list, oint32_t ac)
+/* float32_t v4f.rotateZ(float32_t v0[4], float32_t v1[4],
+			 float32_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f32_t		*alist;
+
+    alist = (nat_vec_vec_f32_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    v4f_rotateZ(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
 static void
 native_v2d_set(oobject_t list, oint32_t ac)
 /* float64_t v2d.set(float64_t v0[2], float64_t s0, float64_t s1)[2]; */
@@ -3539,6 +3919,34 @@ native_v2d_mod(oobject_t list, oint32_t ac)
     CHECK_VD2(alist->a1);
     CHECK_VD2(alist->a2);
     v2d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_rotate(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0)
+{
+    double	_cos = cos(s0);
+    double	_sin = sin(s0);
+    double	x = v1[0] * _cos - v1[1] * _sin;
+    double	y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+}
+
+static void
+native_v2d_rotate(oobject_t list, oint32_t ac)
+/* float64_t v2d.rotate(float64_t v0[2], float64_t v1[2], float64_t s0)[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    v2d_rotate(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4291,6 +4699,139 @@ native_v3d_unProject(oobject_t list, oint32_t ac)
     r0->v.o = alist->a0;
 }
 
+/*
+ * v3 = m4x4 * v3
+ */
+static void
+v3d_m4d_mul_v3d(ofloat64_t v0[3], ofloat64_t v1[16], ofloat64_t v2[3])
+{
+    v0[0] = A4(v1,0,0) * v2[0] + A4(v1,1,0) * v2[1] + A4(v1,2,0) * v2[2];
+    v0[1] = A4(v1,0,1) * v2[0] + A4(v1,1,1) * v2[1] + A4(v1,2,1) * v2[2];
+    v0[2] = A4(v1,0,2) * v2[0] + A4(v1,1,2) * v2[1] + A4(v1,2,2) * v2[2];
+}
+
+static void
+v3d_rotate(ofloat64_t v0[3], ofloat64_t v1[3],
+	   ofloat64_t s0, ofloat64_t v2[3])
+{
+    ofloat64_t		m[16];
+    m4d_rotate(m, identity, s0, v2);
+    v3d_m4d_mul_v3d(v0, m, v1);
+}
+
+static void
+native_v3d_rotate(oobject_t list, oint32_t ac)
+/* float64_t v3d.rotate(float64_t v0[3], float64_t v1[3],
+			   float64_t angle, float64_t normal[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_vec_t	*alist;
+
+    alist = (nat_vec_vec_f64_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    CHECK_VD3(alist->a3);
+    v3d_rotate(alist->a0->v.f64, alist->a1->v.f64,
+	       alist->a2, alist->a3->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_rotateX(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			y = v1[1] * _cos - v1[2] * _sin;
+    double			z = v1[1] * _sin + v1[2] * _cos;
+    if (v0 != v1)
+	v0[0] = v1[0];
+    v0[1] = y;
+    v0[2] = z;
+}
+
+static void
+native_v3d_rotateX(oobject_t list, oint32_t ac)
+/* float64_t v3d.rotateX(float64_t v0[3], float64_t v1[3],
+			 float64_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_rotateX(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_rotateY(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			x =  v1[0] * _cos + v1[2] * _sin;
+    double			z = -v1[0] * _sin + v1[2] * _cos;
+    v0[0] = x;
+    if (v0 != v1)
+	v0[1] = v1[1];
+    v0[2] = z;
+}
+
+static void
+native_v3d_rotateY(oobject_t list, oint32_t ac)
+/* float64_t v3d.rotateY(float64_t v0[3], float64_t v1[3],
+			 float64_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_rotateY(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_rotateZ(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			x = v1[0] * _cos - v1[1] * _sin;
+    double			y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+    if (v0 != v1)
+	v0[2] = v1[2];
+}
+
+static void
+native_v3d_rotateZ(oobject_t list, oint32_t ac)
+/* float64_t v3d.rotateZ(float64_t v0[3], float64_t v1[3],
+			 float64_t angle)[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    v3d_rotateZ(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
 static void
 native_v4d_set(oobject_t list, oint32_t ac)
 /* float64_t v4d.set(float64_t v0[3], float64_t s0,
@@ -4932,6 +5473,146 @@ native_v4d_mod(oobject_t list, oint32_t ac)
     CHECK_VD4(alist->a1);
     CHECK_VD4(alist->a2);
     v4d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+/*
+ * v4 = m4x4 * v4
+ */
+static void
+v4d_m4d_mul_v4d(ofloat64_t v0[4], ofloat64_t v1[16], ofloat64_t v2[3])
+{
+    v0[0] = A4(v1,0,0) * v2[0] + A4(v1,1,0) * v2[1] + A4(v1,2,0) * v2[2] + A4(v1,3,0) * v2[3];
+    v0[1] = A4(v1,0,1) * v2[0] + A4(v1,1,1) * v2[1] + A4(v1,2,1) * v2[2] + A4(v1,3,1) * v2[3];
+    v0[2] = A4(v1,0,2) * v2[0] + A4(v1,1,2) * v2[1] + A4(v1,2,2) * v2[2] + A4(v1,3,2) * v2[3];
+    v0[3] = A4(v1,0,3) * v2[0] + A4(v1,1,3) * v2[1] + A4(v1,2,3) * v2[2] + A4(v1,3,3) * v2[3];
+}
+
+static void
+v4d_rotate(ofloat64_t v0[4], ofloat64_t v1[4],
+	   ofloat64_t s0, ofloat64_t v2[3])
+{
+    ofloat64_t		m[16];
+    m4d_rotate(m, identity, s0, v2);
+    v4d_m4d_mul_v4d(v0, m, v1);
+}
+
+static void
+native_v4d_rotate(oobject_t list, oint32_t ac)
+/* float64_t v4d.rotate(float64_t v0[4], float64_t v1[4],
+			   float64_t angle, float64_t normal[3])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_vec_t	*alist;
+
+    alist = (nat_vec_vec_f64_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    CHECK_VD3(alist->a3);
+    v4d_rotate(alist->a0->v.f64, alist->a1->v.f64,
+	       alist->a2, alist->a3->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_rotateX(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			y = v1[1] * _cos - v1[2] * _sin;
+    double			z = v1[1] * _sin + v1[2] * _cos;
+    if (v0 != v1) {
+	v0[0] = v1[0];
+	v0[2] = v1[2];
+    }
+    v0[1] = y;
+    v0[2] = z;
+}
+
+static void
+native_v4d_rotateX(oobject_t list, oint32_t ac)
+/* float64_t v4d.rotateX(float64_t v0[4], float64_t v1[4],
+			 float64_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_rotateX(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_rotateY(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			x =  v1[0] * _cos + v1[2] * _sin;
+    double			z = -v1[0] * _sin + v1[2] * _cos;
+    v0[0] = x;
+    if (v0 != v1) {
+	v0[1] = v1[1];
+	v0[3] = v1[3];
+    }
+    v0[2] = z;
+}
+
+static void
+native_v4d_rotateY(oobject_t list, oint32_t ac)
+/* float64_t v4d.rotateY(float64_t v0[4], float64_t v1[4],
+			 float64_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_rotateY(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_rotateZ(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0)
+{
+    double			_cos = cos(s0);
+    double			_sin = sin(s0);
+    double			x = v1[0] * _cos - v1[1] * _sin;
+    double			y = v1[0] * _sin + v1[1] * _cos;
+    v0[0] = x;
+    v0[1] = y;
+    if (v0 != v1) {
+	v0[2] = v1[2];
+	v0[3] = v1[3];
+    }
+}
+
+static void
+native_v4d_rotateZ(oobject_t list, oint32_t ac)
+/* float64_t v4d.rotateZ(float64_t v0[4], float64_t v1[4],
+			 float64_t angle)[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_f64_t		*alist;
+
+    alist = (nat_vec_vec_f64_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    v4d_rotateZ(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }

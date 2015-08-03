@@ -40738,6 +40738,10 @@ namespace t61 {
     if (cmp(v2f_c[0], 1/3) || v2f_c[1] != 0.5)	print("error %d\n", __LINE__);
     v2f.mod(v2f_c, v2f_a, v2f_b);
     if (v2f_c[0] != 1 || v2f_c[1] != 2)		print("error %d\n", __LINE__);
+    v2f.set(v2f_b, 1, 2);
+    v2f.rotate(v2f_a, v2f_b, 0.7853981625);
+    if (cmp(v2f_a[0], -0.70710676908493042) ||
+	cmp(v2f_a[1],  2.1213202476501465))	print("error %d\n", __LINE__);
     float32_t v3f_a[3] = { 1, 2, 3 };
     float32_t v3f_b[3] = { 4, 5, 6 };
     float32_t v3f_c[3] = {};
@@ -40818,6 +40822,20 @@ namespace t61 {
 	print("error %d\n", __LINE__);
     v3f.mod(v3f_c, v3f_a, v3f_b);
     if (v3f_c[0] != 1 || v3f_c[1] != 2 || v3f_c[2] != 3)
+	print("error %d\n", __LINE__);
+    v3f.rotate(v3f_c, v3f_a, 0.7853981625, v3f_b);
+    if (cmp(v3f_c[0], 1.4357410669326782) ||
+	cmp(v3f_c[1], 1.5393290519714355) ||
+	cmp(v3f_c[2], 3.0933985710144043))	print("error %d\n", __LINE__);
+    v3f.rotateX(v3f_c, v3f_a, 0.7853981625);
+    if (v3f_c[0] != 1 || cmp(v3f_c[1], -0.70710670948028564) ||
+	cmp(v3f_c[2], 3.5355339050292969))	print("error %d\n", __LINE__);
+    v3f.rotateY(v3f_c, v3f_a, 0.7853981625);
+    if (cmp(v3f_c[0], 2.8284270763397217) || v3f_c[1] != 2 ||
+	cmp(v3f_c[2], 1.4142134189605713))	print("error %d\n", __LINE__);
+    v3f.rotateZ(v3f_c, v3f_a, 0.7853981625);
+    if (cmp(v3f_c[0], -0.70710676908493042) ||
+	cmp(v3f_c[1], 2.1213202476501465) || v3f_c[2] != 3)
 	print("error %d\n", __LINE__);
     float32_t v4f_a[4] = { 1, 2, 3, 4 };
     float32_t v4f_b[4] = { 5, 6, 7, 8 };
@@ -40900,6 +40918,23 @@ namespace t61 {
     v4f.mod(v4f_c, v4f_a, v4f_b);
     if (v4f_c[0] != 1 || v4f_c[1] != 2 || v4f_c[2] != 3 || v4f_c[3] != 4)
 	print("error %d\n", __LINE__);
+    v4f.rotate(v4f_c, v4f_a, 0.7853981625, v3f_b);
+    if (cmp(v4f_c[0], 1.4357410669326782) ||
+	cmp(v4f_c[1], 1.5393290519714355) ||
+	cmp(v4f_c[2], 3.0933985710144043) || v4f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4f.rotateX(v4f_c, v4f_a, 0.7853981625);
+    if (v4f_c[0] != 1 || cmp(v4f_c[1], -0.70710670948028564) ||
+	cmp(v4f_c[2], 3.5355339050292969) || v4f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4f.rotateY(v4f_c, v4f_a, 0.7853981625);
+    if (cmp(v4f_c[0], 2.8284270763397217) || v4f_c[1] != 2 ||
+	cmp(v4f_c[2], 1.4142134189605713) || v4f_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4f.rotateZ(v4f_c, v4f_a, 0.7853981625);
+    if (cmp(v4f_c[0], -0.70710676908493042) ||
+	cmp(v4f_c[1], 2.1213202476501465) || v4f_c[2] != 3 || v4f_c[3] != 4)
+	print("error %d\n", __LINE__);
     float64_t v2d_a[2] = { 1, 2 };
     float64_t v2d_b[2] = { 3, 4 };
     float64_t v2d_c[2] = {};
@@ -40957,6 +40992,10 @@ namespace t61 {
     if (cmp(v2d_c[0], 1/3) || v2d_c[1] != 0.5)	print("error %d\n", __LINE__);
     v2d.mod(v2d_c, v2d_a, v2d_b);
     if (v2d_c[0] != 1 || v2d_c[1] != 2)		print("error %d\n", __LINE__);
+    v2d.set(v2d_b, 1, 2);
+    v2d.rotate(v2d_a, v2d_b, 0.7853981625);
+    if (cmp(v2d_a[0], -0.70710677928277221) ||
+	cmp(v2d_a[1],  2.1213203441942343))	print("error %d\n", __LINE__);
     float64_t v3d_a[3] = { 1, 2, 3 };
     float64_t v3d_b[3] = { 4, 5, 6 };
     float64_t v3d_c[3] = {};
@@ -41038,6 +41077,20 @@ namespace t61 {
     v3d.mod(v3d_c, v3d_a, v3d_b);
     if (v3d_c[0] != 1 || v3d_c[1] != 2 || v3d_c[2] != 3)
 	print("error %d\n", __LINE__);
+    v3d.rotate(v3d_c, v3d_a, 0.7853981625, v3d_b);
+    if (cmp(v3d_c[0], 1.4357410669326782) ||
+	cmp(v3d_c[1], 1.5393290519714355) ||
+	cmp(v3d_c[2], 3.0933985710144043))	print("error %d\n", __LINE__);
+    v3d.rotateX(v3d_c, v3d_a, 0.7853981625);
+    if (v3d_c[0] != 1 || cmp(v3d_c[1], -0.70710677801358846) ||
+	cmp(v3d_c[2], 3.5355339065673292))	print("error %d\n", __LINE__);
+    v3d.rotateY(v3d_c, v3d_a, 0.7853981625);
+    if (cmp(v3d_c[0], 2.8284271234770064) || v3d_c[1] != 2 ||
+	cmp(v3d_c[2], 1.414213564911462))	print("error %d\n", __LINE__);
+    v3d.rotateZ(v3d_c, v3d_a, 0.7853981625);
+    if (cmp(v3d_c[0], -0.70710677928277221) ||
+	cmp(v3d_c[1], 2.1213203441942343) || v3d_c[2] != 3)
+	print("error %d\n", __LINE__);
     float64_t v4d_a[4] = { 1, 2, 3, 4 };
     float64_t v4d_b[4] = { 5, 6, 7, 8 };
     float64_t v4d_c[4] = {};
@@ -41118,6 +41171,23 @@ namespace t61 {
 	print("error %d\n", __LINE__);
     v4d.mod(v4d_c, v4d_a, v4d_b);
     if (v4d_c[0] != 1 || v4d_c[1] != 2 || v4d_c[2] != 3 || v4d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4d.rotate(v4d_c, v4d_a, 0.7853981625, v3d_b);
+    if (cmp(v4d_c[0], 1.4357410984338002) ||
+	cmp(v4d_c[1], 1.5393290701884637) ||
+	cmp(v4d_c[2], 3.0933983758870793) || v4d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4d.rotateX(v4d_c, v4d_a, 0.7853981625);
+    if (v4d_c[0] != 1 || cmp(v4d_c[1], -0.70710670948028564) ||
+	cmp(v4d_c[2], 3.5355339050292969) || v4d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4d.rotateY(v4d_c, v4d_a, 0.7853981625);
+    if (cmp(v4d_c[0], 2.8284270763397217) || v4d_c[1] != 2 ||
+	cmp(v4d_c[2], 1.4142134189605713) || v4d_c[3] != 4)
+	print("error %d\n", __LINE__);
+    v4d.rotateZ(v4d_c, v4d_a, 0.7853981625);
+    if (cmp(v4d_c[0], -0.70710676908493042) ||
+	cmp(v4d_c[1], 2.1213202476501465) || v4d_c[2] != 3 || v4d_c[3] != 4)
 	print("error %d\n", __LINE__);
     float32_t m2f_a[4] = { 1, 2, 3, 4 };
     float32_t m2f_b[4] = { 4, 3, 2, 1 };
