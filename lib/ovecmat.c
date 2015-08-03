@@ -46,6 +46,8 @@ static void native_v2f_fill(oobject_t list, oint32_t ac);
 static void native_v2f_copy(oobject_t list, oint32_t ac);
 static ofloat32_t v2f_length(ofloat32_t v0[2]);
 static void native_v2f_length(oobject_t list, oint32_t ac);
+static ofloat32_t v2f_distance(ofloat32_t v0[2], ofloat32_t v1[2]);
+static void native_v2f_distance(oobject_t list, oint32_t ac);
 static ofloat32_t v2f_dot(ofloat32_t v0[2], ofloat32_t v1[2]);
 static void native_v2f_dot(oobject_t list, oint32_t ac);
 static void v2f_normalize(ofloat32_t v0[2], ofloat32_t v1[2]);
@@ -95,6 +97,8 @@ static void native_v3f_fill(oobject_t list, oint32_t ac);
 static void native_v3f_copy(oobject_t list, oint32_t ac);
 static ofloat32_t v3f_length(ofloat32_t v0[3]);
 static void native_v3f_length(oobject_t list, oint32_t ac);
+static ofloat32_t v3f_distance(ofloat32_t v0[3], ofloat32_t v1[3]);
+static void native_v3f_distance(oobject_t list, oint32_t ac);
 static ofloat32_t v3f_dot(ofloat32_t v0[3], ofloat32_t v1[3]);
 static void native_v3f_dot(oobject_t list, oint32_t ac);
 static void v3f_normalize(ofloat32_t v0[3], ofloat32_t v1[3]);
@@ -163,6 +167,8 @@ static void native_v4f_fill(oobject_t list, oint32_t ac);
 static void native_v4f_copy(oobject_t list, oint32_t ac);
 static ofloat32_t v4f_length(ofloat32_t v0[4]);
 static void native_v4f_length(oobject_t list, oint32_t ac);
+static ofloat32_t v4f_distance(ofloat32_t v0[4], ofloat32_t v1[4]);
+static void native_v4f_distance(oobject_t list, oint32_t ac);
 static ofloat32_t v4f_dot(ofloat32_t v0[4], ofloat32_t v1[4]);
 static void native_v4f_dot(oobject_t list, oint32_t ac);
 static void v4f_normalize(ofloat32_t v0[4], ofloat32_t v1[4]);
@@ -223,6 +229,8 @@ static void native_v2d_fill(oobject_t list, oint32_t ac);
 static void native_v2d_copy(oobject_t list, oint32_t ac);
 static ofloat64_t v2d_length(ofloat64_t v0[2]);
 static void native_v2d_length(oobject_t list, oint32_t ac);
+static ofloat64_t v2d_distance(ofloat64_t v0[2], ofloat64_t v1[2]);
+static void native_v2d_distance(oobject_t list, oint32_t ac);
 static ofloat64_t v2d_dot(ofloat64_t v0[2], ofloat64_t v1[2]);
 static void native_v2d_dot(oobject_t list, oint32_t ac);
 static void v2d_normalize(ofloat64_t v0[2], ofloat64_t v1[2]);
@@ -272,6 +280,8 @@ static void native_v3d_fill(oobject_t list, oint32_t ac);
 static void native_v3d_copy(oobject_t list, oint32_t ac);
 static ofloat64_t v3d_length(ofloat64_t v0[3]);
 static void native_v3d_length(oobject_t list, oint32_t ac);
+static ofloat64_t v3d_distance(ofloat64_t v0[3], ofloat64_t v1[3]);
+static void native_v3d_distance(oobject_t list, oint32_t ac);
 static ofloat64_t v3d_dot(ofloat64_t v0[3], ofloat64_t v1[3]);
 static void native_v3d_dot(oobject_t list, oint32_t ac);
 static void v3d_normalize(ofloat64_t v0[3], ofloat64_t v1[3]);
@@ -340,6 +350,8 @@ static void native_v4d_fill(oobject_t list, oint32_t ac);
 static void native_v4d_copy(oobject_t list, oint32_t ac);
 static ofloat64_t v4d_length(ofloat64_t v0[4]);
 static void native_v4d_length(oobject_t list, oint32_t ac);
+static ofloat64_t v4d_distance(ofloat64_t v0[4], ofloat64_t v1[4]);
+static void native_v4d_distance(oobject_t list, oint32_t ac);
 static ofloat64_t v4d_dot(ofloat64_t v0[4], ofloat64_t v1[4]);
 static void native_v4d_dot(oobject_t list, oint32_t ac);
 static void v4d_normalize(ofloat64_t v0[4], ofloat64_t v1[4]);
@@ -651,6 +663,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, v2f_, fill, t_vf, t_f);
     define_nsbuiltin2(t_vf, v2f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, v2f_, length, t_vf);
+    define_nsbuiltin2(t_d, v2f_, distance, t_vf, t_vf);
     define_nsbuiltin2(t_d, v2f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v2f_, normalize, t_vf, t_vf);
     define_nsbuiltin2(t_uint8, v2f_, eq, t_vf, t_vf);
@@ -679,6 +692,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, v3f_, fill, t_vf, t_f);
     define_nsbuiltin2(t_vf, v3f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, v3f_, length, t_vf);
+    define_nsbuiltin2(t_d, v3f_, distance, t_vf, t_vf);
     define_nsbuiltin2(t_d, v3f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v3f_, normalize, t_vf, t_vf);
     define_nsbuiltin2(t_uint8, v3f_, eq, t_vf, t_vf);
@@ -713,6 +727,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vf, v4f_, fill, t_vf, t_f);
     define_nsbuiltin2(t_vf, v4f_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, v4f_, length, t_vf);
+    define_nsbuiltin2(t_d, v4f_, distance, t_vf, t_vf);
     define_nsbuiltin2(t_d, v4f_, dot, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v4f_, normalize, t_vf, t_vf);
     define_nsbuiltin2(t_uint8, v4f_, eq, t_vf, t_vf);
@@ -744,6 +759,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, v2d_, fill, t_vd, t_d);
     define_nsbuiltin2(t_vd, v2d_, copy, t_vd, t_vd);
     define_nsbuiltin1(t_d, v2d_, length, t_vd);
+    define_nsbuiltin2(t_d, v2d_, distance, t_vd, t_vd);
     define_nsbuiltin2(t_d, v2d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v2d_, normalize, t_vd, t_vd);
     define_nsbuiltin2(t_uint8, v2d_, eq, t_vd, t_vd);
@@ -772,6 +788,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, v3d_, fill, t_vd, t_d);
     define_nsbuiltin2(t_vd, v3d_, copy, t_vf, t_vf);
     define_nsbuiltin1(t_d, v3d_, length, t_vd);
+    define_nsbuiltin2(t_d, v3d_, distance, t_vd, t_vd);
     define_nsbuiltin2(t_d, v3d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v3d_, normalize, t_vd, t_vd);
     define_nsbuiltin2(t_uint8, v3d_, eq, t_vd, t_vd);
@@ -806,6 +823,7 @@ init_vecmat(void)
     define_nsbuiltin2(t_vd, v4d_, fill, t_vd, t_d);
     define_nsbuiltin2(t_vd, v4d_, copy, t_vd, t_vd);
     define_nsbuiltin1(t_d, v4d_, length, t_vd);
+    define_nsbuiltin2(t_d, v4d_, distance, t_vd, t_vd);
     define_nsbuiltin2(t_d, v4d_, dot, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v4d_, normalize, t_vd, t_vd);
     define_nsbuiltin2(t_uint8, v4d_, eq, t_vd, t_vd);
@@ -1095,6 +1113,30 @@ native_v2f_length(oobject_t list, oint32_t ac)
     r0->t = t_float64;
     CHECK_VF2(alist->a0);
     r0->v.d = v2f_length(alist->a0->v.f32);
+}
+
+static ofloat32_t
+v2f_distance(ofloat32_t v0[2], ofloat32_t v1[2])
+{
+    ofloat32_t		v[2];
+    v2f_sub(v, v0, v1);
+    return (v2f_length(v));
+}
+
+static void
+native_v2f_distance(oobject_t list, oint32_t ac)
+/* float64_t v2f.distance(float32_t v0[2], float32_t v1[2]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    r0->v.d = v2f_distance(alist->a0->v.f32, alist->a1->v.f32);
 }
 
 static ofloat32_t
@@ -1726,6 +1768,30 @@ native_v3f_length(oobject_t list, oint32_t ac)
     r0->t = t_float64;
     CHECK_VF3(alist->a0);
     r0->v.d = v3f_length(alist->a0->v.f32);
+}
+
+static ofloat32_t
+v3f_distance(ofloat32_t v0[3], ofloat32_t v1[3])
+{
+    ofloat32_t		v[3];
+    v3f_sub(v, v0, v1);
+    return (v3f_length(v));
+}
+
+static void
+native_v3f_distance(oobject_t list, oint32_t ac)
+/* float64_t v3f.distance(float32_t v0[3], float32_t v1[3]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    r0->v.d = v3f_distance(alist->a0->v.f32, alist->a1->v.f32);
 }
 
 static ofloat32_t
@@ -2611,6 +2677,30 @@ native_v4f_length(oobject_t list, oint32_t ac)
 }
 
 static ofloat32_t
+v4f_distance(ofloat32_t v0[4], ofloat32_t v1[4])
+{
+    ofloat32_t		v[4];
+    v4f_sub(v, v0, v1);
+    return (v4f_length(v));
+}
+
+static void
+native_v4f_distance(oobject_t list, oint32_t ac)
+/* float64_t v4f.distance(float32_t v0[4], float32_t v1[4]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    r0->v.d = v4f_distance(alist->a0->v.f32, alist->a1->v.f32);
+}
+
+static ofloat32_t
 v4f_dot(ofloat32_t v0[4], ofloat32_t v1[4])
 {
     return (v0[0] * v1[0] + v0[1] * v1[1] + v0[2] * v1[2] + v0[3] * v1[3]);
@@ -3408,6 +3498,30 @@ native_v2d_length(oobject_t list, oint32_t ac)
 }
 
 static ofloat64_t
+v2d_distance(ofloat64_t v0[2], ofloat64_t v1[2])
+{
+    ofloat64_t		v[2];
+    v2d_sub(v, v0, v1);
+    return (v2d_length(v));
+}
+
+static void
+native_v2d_distance(oobject_t list, oint32_t ac)
+/* float64_t v2d.distance(float64_t v0[2], float64_t v1[2]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    r0->v.d = v2d_distance(alist->a0->v.f64, alist->a1->v.f64);
+}
+
+static ofloat64_t
 v2d_dot(ofloat64_t v0[2], ofloat64_t v1[2])
 {
     return (v0[0] * v1[0] + v0[1] * v1[1]);
@@ -4037,6 +4151,30 @@ native_v3d_length(oobject_t list, oint32_t ac)
     r0->t = t_float64;
     CHECK_VD3(alist->a0);
     r0->v.d = v3d_length(alist->a0->v.f64);
+}
+
+static ofloat64_t
+v3d_distance(ofloat64_t v0[3], ofloat64_t v1[3])
+{
+    ofloat64_t		v[3];
+    v3d_sub(v, v0, v1);
+    return (v3d_length(v));
+}
+
+static void
+native_v3d_distance(oobject_t list, oint32_t ac)
+/* float64_t v3d.distance(float64_t v0[3], float64_t v1[3]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    r0->v.d = v3d_distance(alist->a0->v.f64, alist->a1->v.f64);
 }
 
 static ofloat64_t
@@ -4920,6 +5058,30 @@ native_v4d_length(oobject_t list, oint32_t ac)
     r0->t = t_float64;
     CHECK_VD4(alist->a0);
     r0->v.d = v4d_length(alist->a0->v.f64);
+}
+
+static ofloat64_t
+v4d_distance(ofloat64_t v0[4], ofloat64_t v1[4])
+{
+    ofloat64_t		v[4];
+    v4d_sub(v, v0, v1);
+    return (v4d_length(v));
+}
+
+static void
+native_v4d_distance(oobject_t list, oint32_t ac)
+/* float64_t v4d.distance(float64_t v0[4], float64_t v1[4]); */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    r0->t = t_float64;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    r0->v.d = v4d_distance(alist->a0->v.f64, alist->a1->v.f64);
 }
 
 static ofloat64_t

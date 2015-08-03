@@ -40691,6 +40691,8 @@ namespace t61 {
     v2f.copy(v2f_c, v2f_a);
     if (v2f_c[0] != 1 || v2f_c[1] != 2) 	    print("error %d\n", __LINE__);
     if (v2f.length(v2f_b) != 5) 		    print("error %d\n", __LINE__);
+    if (cmp(v2f.distance(v2f_a, v2f_b), 2.8284270763397217))
+	print("error %d\n", __LINE__);
     if (v2f.dot(v2f_a, v2f_b) != 11)		    print("error %d\n", __LINE__);
     v2f.normalize(v2f_c, v2f_b);
     if (cmp(v2f_c[0], 0.6) || cmp(v2f_c[1], 0.8))   print("error %d\n", __LINE__);
@@ -40755,6 +40757,8 @@ namespace t61 {
     if (v3f_c[0] != 1 || v3f_c[1] != 2 || v3f_c[2] != 3)
 	print("error %d\n", __LINE__);
     if (cmp(v3f.length(v3f_b), 8.774964))	    print("error %d\n", __LINE__);
+    if (cmp(v3f.distance(v3f_a, v3f_b), 5.1961522102355957))
+	print("error %d\n", __LINE__);
     if (v3f.dot(v3f_a, v3f_b) != 32)		    print("error %d\n", __LINE__);
     v3f.normalize(v3f_c, v3f_b);
     if (cmp(v3f_c[0], 0.455842) || cmp(v3f_c[1], 0.569803) ||
@@ -40850,6 +40854,7 @@ namespace t61 {
     if (v4f_c[0] != 1 || v4f_c[1] != 2 || v4f_c[2] != 3 || v4f_c[3] != 4)
 	print("error %d\n", __LINE__);
     if (cmp(v4f.length(v4f_b), 13.190906))	    print("error %d\n", __LINE__);
+    if (v4f.distance(v4f_a, v4f_b) != 8)	    print("error %d\n", __LINE__);
     if (v4f.dot(v4f_a, v4f_b) != 70)		    print("error %d\n", __LINE__);
     v4f.normalize(v4f_c, v4f_b);
     if (cmp(v4f_c[0], 0.379049) || cmp(v4f_c[1], 0.454859) ||
@@ -40945,6 +40950,8 @@ namespace t61 {
     v2d.copy(v2d_c, v2d_a);
     if (v2d_c[0] != 1 || v2d_c[1] != 2) 	    print("error %d\n", __LINE__);
     if (v2d.length(v2d_b) != 5) 		    print("error %d\n", __LINE__);
+    if (cmp(v2d.distance(v2d_a, v2d_b), 2.8284270763397217))
+	print("error %d\n", __LINE__);
     if (v2d.dot(v2d_a, v2d_b) != 11)		    print("error %d\n", __LINE__);
     v2d.normalize(v2d_c, v2d_b);
     if (cmp(v2d_c[0], 0.6) || cmp(v2d_c[1], 0.8))   print("error %d\n", __LINE__);
@@ -41009,6 +41016,8 @@ namespace t61 {
     if (v3d_c[0] != 1 || v3d_c[1] != 2 || v3d_c[2] != 3)
 	print("error %d\n", __LINE__);
     if (cmp(v3d.length(v3d_b), 8.774964))	    print("error %d\n", __LINE__);
+    if (cmp(v3d.distance(v3d_a, v3d_b), 5.1961522102355957))
+	print("error %d\n", __LINE__);
     if (v3d.dot(v3d_a, v3d_b) != 32)		    print("error %d\n", __LINE__);
     v3d.normalize(v3d_c, v3d_b);
     if (cmp(v3d_c[0], 0.455842) || cmp(v3d_c[1], 0.569803) ||
@@ -41104,6 +41113,7 @@ namespace t61 {
     if (v4d_c[0] != 1 || v4d_c[1] != 2 || v4d_c[2] != 3 || v4d_c[3] != 4)
 	print("error %d\n", __LINE__);
     if (cmp(v4d.length(v4d_b), 13.190906))	    print("error %d\n", __LINE__);
+    if (v4d.distance(v4d_a, v4d_b) != 8)	    print("error %d\n", __LINE__);
     if (v4d.dot(v4d_a, v4d_b) != 70)		    print("error %d\n", __LINE__);
     v4d.normalize(v4d_c, v4d_b);
     if (cmp(v4d_c[0], 0.379049) || cmp(v4d_c[1], 0.454859) ||
