@@ -677,7 +677,7 @@ getc_quoted(ostream_t *stream, onote_t *note)
 		value = ogetc(stream);
 		digit = char_value(value, 8);
 		if (digit != eof) {
-		    ch = digit;
+		    ch = (ch << 3) | digit;
 		    for (i = 1; i < 2; i++) {
 			value = ogetc(stream);
 			digit = char_value(value, 8);
@@ -694,6 +694,8 @@ getc_quoted(ostream_t *stream, onote_t *note)
 		}
 		else
 		    oungetc(stream, value);
+		if (ch > 255)
+		    oread_warn("malformed octal sequence");
 		break;
 	    case 'x':
 		value = ogetc(stream);
