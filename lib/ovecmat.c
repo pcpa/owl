@@ -90,6 +90,9 @@ static void v2f_mod(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[2]);
 static void native_v2f_mod(oobject_t list, oint32_t ac);
 static void v2f_rotate(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
 static void native_v2f_rotate(oobject_t list, oint32_t ac);
+static void v2f_closestPointOnLine(ofloat32_t v0[2], ofloat32_t v1[2],
+				   ofloat32_t v2[2], ofloat32_t v3[2]);
+static void native_v2f_closestPointOnLine(oobject_t list, oint32_t ac);
 
 static void native_v3f_set(oobject_t list, oint32_t ac);
 static void v3f_fill(ofloat32_t v0[3], ofloat32_t s0);
@@ -160,6 +163,9 @@ static void v3f_rotateY(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_rotateY(oobject_t list, oint32_t ac);
 static void v3f_rotateZ(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_rotateZ(oobject_t list, oint32_t ac);
+static void v3f_closestPointOnLine(ofloat32_t v0[3], ofloat32_t v1[3],
+				   ofloat32_t v2[3], ofloat32_t v3[3]);
+static void native_v3f_closestPointOnLine(oobject_t list, oint32_t ac);
 
 static void native_v4f_set(oobject_t list, oint32_t ac);
 static void v4f_fill(ofloat32_t v0[4], ofloat32_t s0);
@@ -273,6 +279,9 @@ static void v2d_mod(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[2]);
 static void native_v2d_mod(oobject_t list, oint32_t ac);
 static void v2d_rotate(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
 static void native_v2d_rotate(oobject_t list, oint32_t ac);
+static void v2d_closestPointOnLine(ofloat64_t v0[2], ofloat64_t v1[2],
+				   ofloat64_t v2[2], ofloat64_t v3[2]);
+static void native_v2d_closestPointOnLine(oobject_t list, oint32_t ac);
 
 static void native_v3d_set(oobject_t list, oint32_t ac);
 static void v3d_fill(ofloat64_t v0[3], ofloat64_t s0);
@@ -343,6 +352,9 @@ static void v3d_rotateY(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_rotateY(oobject_t list, oint32_t ac);
 static void v3d_rotateZ(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_rotateZ(oobject_t list, oint32_t ac);
+static void v3d_closestPointOnLine(ofloat64_t v0[3], ofloat64_t v1[3],
+				   ofloat64_t v2[3], ofloat64_t v3[3]);
+static void native_v3d_closestPointOnLine(oobject_t list, oint32_t ac);
 
 static void native_v4d_set(oobject_t list, oint32_t ac);
 static void v4d_fill(ofloat64_t v0[4], ofloat64_t s0);
@@ -686,6 +698,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v2f_, div, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, mod, t_vf, t_vf, t_vf);
     define_nsbuiltin3(t_vf, v2f_, rotate, t_vf, t_vf, t_f);
+    define_nsbuiltin4(t_vf, v2f_, closestPointOnLine, t_vf, t_vf, t_vf, t_vf);
 
     current_record = v3f_record;
     define_nsbuiltin4(t_vf, v3f_, set, t_vf, t_f, t_f, t_f);
@@ -721,6 +734,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v3f_, rotateX, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, rotateY, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, rotateZ, t_vf, t_vf, t_f);
+    define_nsbuiltin4(t_vf, v3f_, closestPointOnLine, t_vf, t_vf, t_vf, t_vf);
 
     current_record = v4f_record;
     define_nsbuiltin5(t_vf, v4f_, set, t_vf, t_f, t_f, t_f, t_f);
@@ -782,6 +796,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v2d_, div, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, mod, t_vd, t_vd, t_vd);
     define_nsbuiltin3(t_vd, v2d_, rotate, t_vd, t_vd, t_d);
+    define_nsbuiltin4(t_vd, v2d_, closestPointOnLine, t_vd, t_vd, t_vd, t_vd);
 
     current_record = v3d_record;
     define_nsbuiltin4(t_vd, v3d_, set, t_vd, t_d, t_d, t_d);
@@ -817,6 +832,7 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v3d_, rotateX, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, rotateY, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, rotateZ, t_vd, t_vd, t_d);
+    define_nsbuiltin4(t_vd, v3d_, closestPointOnLine, t_vd, t_vd, t_vd, t_vd);
 
     current_record = v4d_record;
     define_nsbuiltin5(t_vd, v4d_, set, t_vd, t_d, t_d, t_d, t_d);
@@ -1678,6 +1694,54 @@ native_v2f_rotate(oobject_t list, oint32_t ac)
     CHECK_VF2(alist->a0);
     CHECK_VF2(alist->a1);
     v2f_rotate(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_closestPointOnLine(ofloat32_t v0[2], ofloat32_t v1[2],
+		       ofloat32_t v2[2], ofloat32_t v3[2])
+{
+    float	line_length;
+    float	vector[2];
+    float	line_direction[2];
+    float	distance;
+    line_length = v2f_distance(v2, v3);
+    v2f_sub(vector, v1, v2);
+    v2f_sub(line_direction, v3, v2);
+    v2f_divs(line_direction, line_direction, line_length);
+    distance = v2f_dot(vector, line_direction);
+    if (distance <= 0) {
+	v0[0] = v2[0];
+	v0[1] = v2[1];
+    }
+    else if (distance >= line_length) {
+	v0[0] = v3[0];
+	v0[1] = v3[1];
+    }
+    else {
+	v2f_muls(line_direction, line_direction, distance);
+	v2f_add(v0, v2, line_direction);
+    }
+}
+
+static void
+native_v2f_closestPointOnLine(oobject_t list, oint32_t ac)
+/* float32_t v2f.closestPointOnLine(float32_t res[2], float32_t point[2],
+				    float32_t a[2], float32_t b[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_vec_t	*alist;
+
+    alist = (nat_vec_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    CHECK_VF2(alist->a2);
+    CHECK_VF2(alist->a3);
+    v2f_closestPointOnLine(alist->a0->v.f32, alist->a1->v.f32,
+			   alist->a2->v.f32, alist->a3->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2582,6 +2646,55 @@ native_v3f_rotateZ(oobject_t list, oint32_t ac)
     CHECK_VF3(alist->a0);
     CHECK_VF3(alist->a1);
     v3f_rotateZ(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_closestPointOnLine(ofloat32_t v0[3], ofloat32_t v1[3],
+		       ofloat32_t v2[3], ofloat32_t v3[3])
+{
+    float	line_length = v3f_distance(v2, v3);
+    float	vector[3];
+    float	line_direction[3];
+    float	distance;
+    v3f_sub(vector, v1, v2);
+    v3f_sub(line_direction, v3, v2);
+    v3f_divs(line_direction, line_direction, line_length);
+    distance = v3f_dot(vector, line_direction);
+    if (distance <= 0) {
+	v0[0] = v2[0];
+	v0[1] = v2[1];
+	v0[2] = v2[2];
+    }
+    else if (distance >= line_length) {
+	v0[0] = v3[0];
+	v0[1] = v3[1];
+	v0[2] = v3[2];
+    }
+    else {
+	v3f_muls(line_direction, line_direction, distance);
+	v3f_add(v0, v2, line_direction);
+    }
+}
+
+static void
+native_v3f_closestPointOnLine(oobject_t list, oint32_t ac)
+/* float32_t v3f.closestPointOnLine(float32_t res[3], float32_t point[3],
+				    float32_t a[3], float32_t b[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_vec_t	*alist;
+
+    alist = (nat_vec_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    CHECK_VF3(alist->a2);
+    CHECK_VF3(alist->a3);
+    v3f_closestPointOnLine(alist->a0->v.f32, alist->a1->v.f32,
+			   alist->a2->v.f32, alist->a3->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -4066,6 +4179,54 @@ native_v2d_rotate(oobject_t list, oint32_t ac)
 }
 
 static void
+v2d_closestPointOnLine(ofloat64_t v0[2], ofloat64_t v1[2],
+		       ofloat64_t v2[2], ofloat64_t v3[2])
+{
+    double	line_length;
+    double	vector[2];
+    double	line_direction[2];
+    double	distance;
+    line_length = v2d_distance(v2, v3);
+    v2d_sub(vector, v1, v2);
+    v2d_sub(line_direction, v3, v2);
+    v2d_divs(line_direction, line_direction, line_length);
+    distance = v2d_dot(vector, line_direction);
+    if (distance <= 0) {
+	v0[0] = v2[0];
+	v0[1] = v2[1];
+    }
+    else if (distance >= line_length) {
+	v0[0] = v3[0];
+	v0[1] = v3[1];
+    }
+    else {
+	v2d_muls(line_direction, line_direction, distance);
+	v2d_add(v0, v2, line_direction);
+    }
+}
+
+static void
+native_v2d_closestPointOnLine(oobject_t list, oint32_t ac)
+/* float64_t v2d.closestPointOnLine(float64_t res[2], float64_t point[2],
+				    float64_t a[2], float64_t b[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_vec_t	*alist;
+
+    alist = (nat_vec_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    CHECK_VD2(alist->a2);
+    CHECK_VD2(alist->a3);
+    v2d_closestPointOnLine(alist->a0->v.f64, alist->a1->v.f64,
+			   alist->a2->v.f64, alist->a3->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
 native_v3d_set(oobject_t list, oint32_t ac)
 /* float64_t v3d.set(float64_t v0[3], float64_t s0,
 		     float64_t s1, float64_t s2)[3]; */
@@ -4966,6 +5127,56 @@ native_v3d_rotateZ(oobject_t list, oint32_t ac)
     CHECK_VD3(alist->a0);
     CHECK_VD3(alist->a1);
     v3d_rotateZ(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_closestPointOnLine(ofloat64_t v0[3], ofloat64_t v1[3],
+		       ofloat64_t v2[3], ofloat64_t v3[3])
+{
+    double	line_length;
+    double	vector[3];
+    double	line_direction[3];
+    double	distance;
+    line_length = v3d_distance(v2, v3);
+    v3d_sub(vector, v1, v2);
+    v3d_sub(line_direction, v3, v2);
+    v3d_divs(line_direction, line_direction, line_length);
+    distance = v3d_dot(vector, line_direction);
+    if (distance <= 0) {
+	v0[0] = v2[0];
+	v0[1] = v2[1];
+	v0[2] = v2[2];
+    }
+    else if (distance >= line_length) {
+	v0[0] = v3[0];
+	v0[1] = v3[1];
+	v0[2] = v3[2];
+    }
+    else {
+	v3d_muls(line_direction, line_direction, distance);
+	v3d_add(v0, v2, line_direction);
+    }
+}
+
+static void
+native_v3d_closestPointOnLine(oobject_t list, oint32_t ac)
+/* float64_t v3d.closestPointOnLine(float64_t res[3], float64_t point[3],
+				    float64_t a[3], float64_t b[2])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_vec_t	*alist;
+
+    alist = (nat_vec_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    CHECK_VD3(alist->a2);
+    CHECK_VD3(alist->a3);
+    v3d_closestPointOnLine(alist->a0->v.f64, alist->a1->v.f64,
+			   alist->a2->v.f64, alist->a3->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }

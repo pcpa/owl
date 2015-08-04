@@ -40744,6 +40744,11 @@ namespace t61 {
     v2f.rotate(v2f_a, v2f_b, 0.7853981625);
     if (cmp(v2f_a[0], -0.70710676908493042) ||
 	cmp(v2f_a[1],  2.1213202476501465))	print("error %d\n", __LINE__);
+    v2f.set(v2f_a, 1, 2);
+    v2f.set(v2f_b, 3, 4);
+    v2f.set(v2f_c, 1.5, 3.5);
+    v2f.closestPointOnLine(v2f_c, v2f_c, v2f_a, v2f_b);
+    if (v2f_c[0] != 2 || v2f_c[1] != 3)		print("error %d\n", __LINE__);
     float32_t v3f_a[3] = { 1, 2, 3 };
     float32_t v3f_b[3] = { 4, 5, 6 };
     float32_t v3f_c[3] = {};
@@ -40841,6 +40846,11 @@ namespace t61 {
     if (cmp(v3f_c[0], -0.70710676908493042) ||
 	cmp(v3f_c[1], 2.1213202476501465) || v3f_c[2] != 3)
 	print("error %d\n", __LINE__);
+    v3f.set(v3f_c, 1.5, 3.5, 4.5);
+    v3f.closestPointOnLine(v3f_c, v3f_c, v3f_a, v3f_b);
+    if (cmp(v3f_c[0], 2.1666669845581055) ||
+	cmp(v3f_c[1], 3.1666669845581055) ||
+	cmp(v3f_c[2], 4.1666669845581055))	print("error %d\n", __LINE__);
     float32_t v4f_a[4] = { 1, 2, 3, 4 };
     float32_t v4f_b[4] = { 5, 6, 7, 8 };
     float32_t v4f_c[4] = {};
@@ -41003,6 +41013,11 @@ namespace t61 {
     v2d.rotate(v2d_a, v2d_b, 0.7853981625);
     if (cmp(v2d_a[0], -0.70710677928277221) ||
 	cmp(v2d_a[1],  2.1213203441942343))	print("error %d\n", __LINE__);
+    v2d.set(v2d_a, 1, 2);
+    v2d.set(v2d_b, 3, 4);
+    v2d.set(v2d_c, 1.5, 3.5);
+    v2d.closestPointOnLine(v2d_c, v2d_c, v2d_a, v2d_b);
+    if (cmp(v2d_c[0], 2) || v2d_c[1] != 3)	print("error %d\n", __LINE__);
     float64_t v3d_a[3] = { 1, 2, 3 };
     float64_t v3d_b[3] = { 4, 5, 6 };
     float64_t v3d_c[3] = {};
@@ -41100,6 +41115,11 @@ namespace t61 {
     if (cmp(v3d_c[0], -0.70710677928277221) ||
 	cmp(v3d_c[1], 2.1213203441942343) || v3d_c[2] != 3)
 	print("error %d\n", __LINE__);
+    v3d.set(v3d_c, 1.5, 3.5, 4.5);
+    v3d.closestPointOnLine(v3d_c, v3d_c, v3d_a, v3d_b);
+    if (cmp(v3d_c[0], 2.1666669845581055) ||
+	cmp(v3d_c[1], 3.1666669845581055) ||
+	cmp(v3d_c[2], 4.1666669845581055))	print("error %d\n", __LINE__);
     float64_t v4d_a[4] = { 1, 2, 3, 4 };
     float64_t v4d_b[4] = { 5, 6, 7, 8 };
     float64_t v4d_c[4] = {};
