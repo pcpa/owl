@@ -394,7 +394,8 @@ ovm_raise(oint32_t xcpt)
     else
 	thread_self->r0.v.w = thread_self->xcpt;
     /* While information in the stack */
-    search_instruction_pointer();
+    if (_jit)
+	search_instruction_pointer();
     siglongjmp(thread_self->env, 1);
 }
 
