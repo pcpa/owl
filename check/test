@@ -31541,47 +31541,47 @@ print("%d\n%d\n%d\n%d\n%d\n%d\n",
 
 /* Use small values to no interfere too much with profiling code generation */
 auto t39afib(auto n) {
-    return n >= 2 ? t39afib(n - 1) + t39afib(n - 2) + 1 : 1;
+    return n > 2 ? t39afib(n - 1) + t39afib(n - 2) : n ? 1 : 0;
 }
 print("a : fib(10) = %d\n", t39afib(10));
 uint64_t t39ulfib(uint64_t n) {
-    return n >= 2 ? t39ulfib(n - 1) + t39ulfib(n - 2) + 1 : 1;
+    return n > 2 ? t39ulfib(n - 1) + t39ulfib(n - 2) : n ? 1 : 0;
 }
 print("ul: fib(10) = %d\n", t39ulfib(10));
 int64_t t39lfib(int64_t n) {
-    return n >= 2 ? t39lfib(n - 1) + t39lfib(n - 2) + 1 : 1;
+    return n > 2 ? t39lfib(n - 1) + t39lfib(n - 2) : n ? 1 : 0;
 }
 print("sl: fib(10) = %d\n", t39lfib(10));
 uint32_t t39uifib(uint32_t n) {
-    return n >= 2 ? t39uifib(n - 1) + t39uifib(n - 2) + 1 : 1;
+    return n > 2 ? t39uifib(n - 1) + t39uifib(n - 2) : n ? 1 : 0;
 }
 print("ui: fib(10) = %d\n", t39uifib(10));
 int32_t t39ifib(int32_t n) {
-    return n >= 2 ? t39ifib(n - 1) + t39ifib(n - 2) + 1 : 1;
+    return n > 2 ? t39ifib(n - 1) + t39ifib(n - 2) : n ? 1 : 0;
 }
 print("si: fib(10) = %d\n", t39ifib(10));
 uint16_t t39usfib(uint16_t n) {
-    return n >= 2 ? t39usfib(n - 1) + t39usfib(n - 2) + 1 : 1;
+    return n > 2 ? t39usfib(n - 1) + t39usfib(n - 2) : n ? 1 : 0;
 }
 print("us: fib(10) = %d\n", t39usfib(10));
 int16_t t39sfib(int16_t n) {
-    return n >= 2 ? t39sfib(n - 1) + t39sfib(n - 2) + 1 : 1;
+    return n > 2 ? t39sfib(n - 1) + t39sfib(n - 2) : n ? 1 : 0;
 }
 print("ss: fib(10) = %d\n", t39sfib(10));
 uint8_t t39ucfib(uint8_t n) {
-    return n >= 2 ? t39ucfib(n - 1) + t39ucfib(n - 2) + 1 : 1;
+    return n > 2 ? t39ucfib(n - 1) + t39ucfib(n - 2) : n ? 1 : 0;
 }
 print("uc: fib(10) = %d\n", t39ucfib(10));
 int8_t t39cfib(int8_t n) {
-    return n >= 2 ? t39cfib(n - 1) + t39cfib(n - 2) + 1 : 1;
+    return n > 2 ? t39cfib(n - 1) + t39cfib(n - 2) : n ? 1 : 0;
 }
 print("sc: fib(10) = %d\n", t39cfib(10));
 float32_t t39ffib(float32_t n) {
-    return n >= 2 ? t39ffib(n - 1) + t39ffib(n - 2) + 1 : 1;
+    return n > 2 ? t39ffib(n - 1) + t39ffib(n - 2) : n ? 1 : n;
 }
 print("f : fib(10) = %d\n", t39ffib(10));
 float64_t t39dfib(float64_t n) {
-    return n >= 2 ? t39dfib(n - 1) + t39dfib(n - 2) + 1 : 1;
+    return n > 2 ? t39dfib(n - 1) + t39dfib(n - 2) : n ? 1 : n;
 }
 print("d : fib(10) = %d\n", t39dfib(10));
 /* Simple test using implemented features
