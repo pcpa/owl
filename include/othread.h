@@ -108,6 +108,8 @@
     } while (0)
 #define othreads_lock()		omutex_lock(&othread_mutex)
 #define othreads_unlock()	omutex_unlock(&othread_mutex)
+#define ocount_lock()		omutex_lock(&ocount_mutex)
+#define ocount_unlock()		omutex_unlock(&ocount_mutex)
 #define othread_kill(signo)						\
     do {								\
         pthread_kill(thread_self->pthread, signo);			\

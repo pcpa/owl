@@ -40,9 +40,9 @@ vm_builtin(othread_t *thread);
  * Initialization
  */
 jit_function_t			 jit_main;
+pthread_mutex_t		 	 ocount_mutex;
 
 static pthread_cond_t		 count_cond;
-static pthread_mutex_t		 count_mutex;
 static ovector_t		*thread_vector;
 
 /*
@@ -52,7 +52,6 @@ void
 init_vm(void)
 {
     pthread_cond_init(&count_cond, null);
-    omutex_init(&count_mutex);
     /*
      * SIGFPE and SIGSEGV are (or should be) sent to the thread causing it
      * other signals are (or may be) sent to random threads
@@ -337,15 +336,13 @@ ovm_exit(void)
 
     if (thread_self == thread_main) {
 	/* thread_main is not reassigned */
-	omutex_lock(&count_mutex);
+	ocount_lock();
 	othreads_unlock();
 	while (thread_main->next != thread_main)
 	    /* wait for children threads to exit */
-	    pthread_cond_wait(&count_cond, &count_mutex);
+	    pthread_cond_wait(&count_cond, &ocount_mutex);
 
-	/* mutex is implicitly released by pthread_cond_wait */
-	/* but helgrind does not agree */
-	omutex_unlock(&count_mutex);
+	ocount_unlock();
 
 	/* free mpfr per thread cache data */
 	othreads_lock();
@@ -364,13 +361,13 @@ ovm_exit(void)
 	for (ptr = thread_self->next; ptr->next != thread_self; ptr = ptr->next)
 	    ;
 	ptr->next = thread_self->next;
-	omutex_lock(&count_mutex);
+	ocount_lock();
 	if (ptr->next == ptr)
 	    pthread_cond_signal(&count_cond);
 
 	/* free mpfr per thread cache data */
 	mpfr_free_cache();
-	omutex_unlock(&count_mutex);
+	ocount_unlock();
 
 	if (thread_vector->offset >= thread_vector->length)
 	    orenew_vector(thread_vector, thread_vector->length + 16);

@@ -139,6 +139,7 @@ init_object(void)
     struct sigaction		handler;
 
     omutex_init(&othread_mutex);
+    omutex_init(&ocount_mutex);
     omutex_init(&gc_mutex);
 
     if (cfg_use_semaphore) {
@@ -719,6 +720,10 @@ gc(void)
     /* Prevent threads from exiting */
     othreads_lock();
 
+    /* Prevent possible race conditions if a thread is exiting and
+     * just released threads mutex */
+    ocount_lock();
+
     gc_mark_roots();
 
     prev = next = gc_root;
@@ -890,6 +895,7 @@ gc(void)
 #endif
 
     /* Allow threads to exit */
+    ocount_unlock();
     othreads_unlock();
 }
 

@@ -686,5 +686,6 @@ ovm_truncr_d(oregister_t *r, ofloat64_t d);
  */
 typedef void (*jit_function_t)(othread_t *);
 extern jit_function_t		jit_main;
+extern pthread_mutex_t		ocount_mutex;
 
 #endif /* _ovm_h */
