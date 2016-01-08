@@ -2911,6 +2911,8 @@ translate_event(oevent_t *ev)
 	    ev->fx		= sv->dgesture.x;
 	    ev->fy		= sv->dgesture.y;
 	    break;
+	case SDL_AUDIODEVICEADDED:
+	    break;
 	case SDL_USEREVENT:
 	    ev->timer		= sv->user.data1;
 	    break;
