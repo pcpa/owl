@@ -1390,10 +1390,18 @@ native_print_impl(ostream_t *stream,
 	    othrow(except_invalid_argument);
 	stream->offset = 0;
     }
-    else if (!stream->s_write)
+    else {
+	omutex_lock(&stream->mutex);
+	if (!stream->s_write) {
+	    omutex_unlock(&stream->mutex);
+	    othrow(except_invalid_argument);
+	}
+    }
+    if (vector == null || otype(vector) != t_string) {
+	if (streamp)
+	    omutex_unlock(&stream->mutex);
 	othrow(except_invalid_argument);
-    if (vector == null || otype(vector) != t_string)
-	othrow(except_invalid_argument);
+    }
 
 #define next_argument()							\
     do {								\
@@ -1417,9 +1425,6 @@ native_print_impl(ostream_t *stream,
 	arg = list[aidx];						\
 	argp = true;							\
     } while (0)
-
-    if (streamp)
-	omutex_lock(&stream->mutex);
 
     aidx = 0;
     arg = null;
