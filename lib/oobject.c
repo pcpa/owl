@@ -59,9 +59,6 @@ static void
 sigfpe_handler(int unused);
 
 static void
-resume_handler(int unused);
-
-static void
 new_object(oobject_t *pointer, otype_t type, oword_t length);
 
 static void
@@ -122,7 +119,6 @@ static sem_t		  enter_sem;
 static sem_t		  sleep_sem;
 static sem_t		  leave_sem;
 static volatile oint32_t  sr_int;
-static sigset_t		  sr_set;
 
 #if CACHE_DEBUG
 eint32_t		  cache_debug = 1;
@@ -151,29 +147,13 @@ init_object(void)
     /* FIXME this should be a noop */
     pthread_sigmask(SIG_SETMASK, null, &set);
     sigdelset(&set, SUSPEND_SIGNAL);
-
-    if (!cfg_use_semaphore)
-	sigdelset(&set, RESUME_SIGNAL);
     pthread_sigmask(SIG_SETMASK, &set, null);
-
-    if (!cfg_use_semaphore) {
-	sigfillset(&sr_set);
-	sigdelset(&sr_set, RESUME_SIGNAL);
-    }
 
     handler.sa_flags = 0;
     sigemptyset(&handler.sa_mask);
     handler.sa_handler = suspend_handler;
     if (sigaction(SUSPEND_SIGNAL, &handler, null))
 	oerror("sigaction: %s", strerror(errno));
-
-    if (!cfg_use_semaphore) {
-	handler.sa_flags = 0;
-	sigemptyset(&handler.sa_mask);
-	handler.sa_handler = resume_handler;
-	if (sigaction(RESUME_SIGNAL, &handler, null))
-	    oerror("sigaction: %s", strerror(errno));
-    }
 
     new_object((oobject_t *)&thread_main, t_thread, sizeof(othread_t));
 
@@ -313,10 +293,12 @@ onew_thread(oobject_t *pointer)
 
     /* Add thread to "end" of circular list */
     othreads_lock();
+    ocount_lock();
     thread->next = thread_self;
     for (next = thread_self->next; next->next != thread_self; next = next->next)
 	;
     next->next = thread;
+    ocount_unlock();
     othreads_unlock();
 }
 
@@ -635,9 +617,12 @@ suspend_handler(int unused)
 	}
     }
     else {
+	/*  Tell gc thread is in signal handler */
 	sr_int = 1;
-	/* wait resume signal */
-	sigsuspend(&sr_set);
+
+	/*  Wait for gc to finish inspecting thread data */
+	while (sr_int)
+	    sched_yield();
     }
 }
 
@@ -645,13 +630,6 @@ static void
 sigfpe_handler(int unused)
 {
     siglongjmp(thread_main->env, 1);
-}
-
-static void
-resume_handler(int unused)
-{
-    sr_int = 1;
-    /* returning from resume_handler() also means returing from sigsuspend() */
 }
 
 static void
@@ -1233,9 +1211,10 @@ gc_mark_thread(othread_t *thread)
 	    }
 	}
 	else {
-	    sr_int = 0;
+	    assert(sr_int == 0);
 	    if ((error = pthread_kill(thread->pthread, SUSPEND_SIGNAL)))
 		oerror("pthread_kill: %s", strerror(error));
+	    /* Wait until thread blocks in suspend signal handler */
 	    while (!sr_int)
 		sched_yield();
 	}
@@ -1267,13 +1246,9 @@ gc_mark_thread(othread_t *thread)
 		sched_yield();
 	    }
 	}
-	else {
+	else
+	    /* Let thread leave suspend signal */
 	    sr_int = 0;
-	    if ((error = pthread_kill(thread->pthread, RESUME_SIGNAL)))
-		oerror("pthread_kill: %s", strerror(error));
-	    while (!sr_int)
-		sched_yield();
-	}
     }
 }
 

@@ -60,6 +60,5 @@
 #define S_unbuffered		(1 << 5)
 
 #define SUSPEND_SIGNAL		SIGUSR1
-#define RESUME_SIGNAL		SIGUSR2
 
 #endif /* _odefs_h */

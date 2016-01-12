@@ -189,7 +189,7 @@ cfg_parse_options(int argc, char *argv[])
     cfg_mpfr_prc = mpfr_get_default_prec();
     cfg_mpfr_rnd = mpfr_get_default_rounding_mode();
     cfg_stack_size = 64 * 1024 * 1024;
-    cfg_use_semaphore = true;
+    cfg_use_semaphore = false;
 
     for (error = 0; !error;) {
 	opt_short = getopt_long_only(argc, argv, short_options,
