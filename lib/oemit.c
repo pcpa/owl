@@ -1551,6 +1551,7 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
     ooperand_t		*lop;
     otoken_t		 tok;
     ooperand_t		*rop;
+    obool_t		 opset;
     orecord_t		*record;
     osymbol_t		*symbol;
 
@@ -1573,11 +1574,14 @@ emit_record(oast_t *last, oast_t *ast, oast_t *rast)
     if (rast) {
 	tok = get_token(ast);
 	if (tok) {
-	    rop = operand_get(bop->s);
+	    if ((opset = ast->token >= tok_andset && ast->token <= tok_remset))
+		rop = operand_get(rast->offset);
+	    else
+		rop = operand_get(bop->s);
 	    load_record(bop, lop, rop);
 	    emit(rast);
 	    emit_binary_next(rop, tok, operand_top());
-	    if (ast->token >= tok_andset && ast->token <= tok_remset)
+	    if (opset)
 		store_record(bop, lop, rop);
 	}
 	else {
@@ -1601,6 +1605,7 @@ emit_vector(oast_t *last, oast_t *ast, oast_t *rast)
     ooperand_t		*lop;
     otoken_t		 tok;
     ooperand_t		*rop;
+    obool_t		 opset;
 
     emit(last->l.ast);
     bop = operand_top();
@@ -1612,11 +1617,14 @@ emit_vector(oast_t *last, oast_t *ast, oast_t *rast)
     if (rast) {
 	tok = get_token(ast);
 	if (tok) {
-	    rop = operand_get(bop->s);
+	    if ((opset = ast->token >= tok_andset && ast->token <= tok_remset))
+		rop = operand_get(rast->offset);
+	    else
+		rop = operand_get(bop->s);
 	    load_vector(bop, lop, rop);
 	    emit(rast);
 	    emit_binary_next(rop, tok, operand_top());
-	    if (ast->token >= tok_andset && ast->token <= tok_remset)
+	    if (opset)
 		store_vector(bop, lop, rop);
 	}
 	else {

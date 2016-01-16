@@ -270,6 +270,10 @@ realize(oast_t *ast)
 	    ast->offset = ast->l.ast->offset;
 	    break;
 	case tok_set:
+	    realize(ast->l.ast);
+	    realize(ast->r.ast);
+	    ast->offset = ast->l.ast->offset;
+	    break;
 	case tok_andset:	case tok_orset:
 	case tok_xorset:
 	case tok_mul2set:	case tok_div2set:
@@ -279,7 +283,12 @@ realize(oast_t *ast)
 	case tok_trunc2set:	case tok_remset:
 	    realize(ast->l.ast);
 	    realize(ast->r.ast);
-	    ast->offset = ast->l.ast->offset;
+	    if (ast->l.ast->token == tok_symbol)
+		/* FIXME should also work for records, but for safety on
+		 * complex (complicated) lvalues... */
+		ast->offset = ast->l.ast->offset;
+	    else
+		ast->offset = get();
 	    break;
 	case tok_code:		case tok_stat:
 	case tok_finally:
