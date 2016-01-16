@@ -313,6 +313,12 @@ static jit_int32_t	 SPL[6];
 static jit_word_t	 tmp_mask;
 static jit_word_t	 reg_mask;
 
+/* Special case telling reload to not clobber any register; use a global
+ * state because during reload the ooperand_t register may change, but
+ * still cannot let any protected register to get clobbered. Currently
+ * only required on "new vector[expression]". */
+static jit_int32_t	 reload_noclobber;
+
 static char		*exceptions[] = {
     "nothing",
     "out of memory",
@@ -1238,7 +1244,9 @@ emit_new(oast_t *ast)
 		abort();
 	}
 	/* must load bop because right side operand may have spilled it */
+	++reload_noclobber;
 	emit_load(bop);
+	--reload_noclobber;
 	jit_prepare();
 	jit_pushargr(GPR[bop->u.w]);
 	jit_pushargi(type & ~t_vector);
@@ -3308,7 +3316,7 @@ emit_reload(ooperand_t *op, obool_t same)
 	    jit_prepare();
 	    jit_pushargr(GPR[regno]);
 	    jit_pushargr(JIT_R0);
-	    emit_finish(ovm_load, mask1(op->u.w));
+	    emit_finish(ovm_load, reload_noclobber ? 0 : mask1(op->u.w));
 	    break;
 	case t_half:	case t_word:
 	    if (regval == JIT_R0) {
