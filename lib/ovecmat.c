@@ -37,6 +37,9 @@
  * translation from glm (http://glm.g-truc.net)
  */
 
+/* NOTE vNT.mmul(v0, m0, v1) treats v0 as a transposed square matrix,
+ * then, transposes back the result to a vector. */
+
 /*
  * Prototypes
  */
@@ -64,6 +67,10 @@ static void v2f_divs(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
 static void native_v2f_divs(oobject_t list, oint32_t ac);
 static void v2f_mods(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t s0);
 static void native_v2f_mods(oobject_t list, oint32_t ac);
+static void v2f_mulm(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[4]);
+static void native_v2f_mulm(oobject_t list, oint32_t ac);
+static void v2f_mmul(ofloat32_t v0[2], ofloat32_t v1[4], ofloat32_t v2[2]);
+static void native_v2f_mmul(oobject_t list, oint32_t ac);
 static void v2f_clamp(ofloat32_t v0[2], ofloat32_t v1[2],
 		      ofloat32_t minVal, ofloat32_t maxVal);
 static void native_v2f_clamp(oobject_t list, oint32_t ac);
@@ -118,6 +125,10 @@ static void v3f_divs(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_divs(oobject_t list, oint32_t ac);
 static void v3f_mods(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t s0);
 static void native_v3f_mods(oobject_t list, oint32_t ac);
+static void v3f_mulm(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[9]);
+static void native_v3f_mulm(oobject_t list, oint32_t ac);
+static void v3f_mmul(ofloat32_t v0[3], ofloat32_t v1[9], ofloat32_t v2[3]);
+static void native_v3f_mmul(oobject_t list, oint32_t ac);
 static void v3f_clamp(ofloat32_t v0[3], ofloat32_t v1[3],
 		      ofloat32_t minVal, ofloat32_t maxVal);
 static void native_v3f_clamp(oobject_t list, oint32_t ac);
@@ -192,6 +203,9 @@ static void native_v4f_divs(oobject_t list, oint32_t ac);
 static void v4f_mods(ofloat32_t v0[4], ofloat32_t v1[1], ofloat32_t s0);
 static void native_v4f_mods(oobject_t list, oint32_t ac);
 static void v4f_mulm(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[16]);
+static void native_v4f_mulm(oobject_t list, oint32_t ac);
+static void v4f_mmul(ofloat32_t v0[4], ofloat32_t v1[16], ofloat32_t v2[4]);
+static void native_v4f_mmul(oobject_t list, oint32_t ac);
 static void v4f_clamp(ofloat32_t v0[4], ofloat32_t v1[4],
 		      ofloat32_t minVal, ofloat32_t maxVal);
 static void native_v4f_clamp(oobject_t list, oint32_t ac);
@@ -253,6 +267,10 @@ static void v2d_divs(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
 static void native_v2d_divs(oobject_t list, oint32_t ac);
 static void v2d_mods(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t s0);
 static void native_v2d_mods(oobject_t list, oint32_t ac);
+static void v2d_mulm(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[4]);
+static void native_v2d_mulm(oobject_t list, oint32_t ac);
+static void v2d_mmul(ofloat64_t v0[2], ofloat64_t v1[4], ofloat64_t v2[2]);
+static void native_v2d_mmul(oobject_t list, oint32_t ac);
 static void v2d_clamp(ofloat64_t v0[2], ofloat64_t v1[2],
 		      ofloat64_t minVal, ofloat64_t maxVal);
 static void native_v2d_clamp(oobject_t list, oint32_t ac);
@@ -307,6 +325,10 @@ static void v3d_divs(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_divs(oobject_t list, oint32_t ac);
 static void v3d_mods(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t s0);
 static void native_v3d_mods(oobject_t list, oint32_t ac);
+static void v3d_mulm(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[9]);
+static void native_v3d_mulm(oobject_t list, oint32_t ac);
+static void v3d_mmul(ofloat64_t v0[3], ofloat64_t v1[9], ofloat64_t v2[3]);
+static void native_v3d_mmul(oobject_t list, oint32_t ac);
 static void v3d_clamp(ofloat64_t v0[3], ofloat64_t v1[3],
 		      ofloat64_t minVal, ofloat64_t maxVal);
 static void native_v3d_clamp(oobject_t list, oint32_t ac);
@@ -381,6 +403,9 @@ static void native_v4d_divs(oobject_t list, oint32_t ac);
 static void v4d_mods(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t s0);
 static void native_v4d_mods(oobject_t list, oint32_t ac);
 static void v4d_mulm(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[16]);
+static void native_v4d_mulm(oobject_t list, oint32_t ac);
+static void v4d_mmul(ofloat64_t v0[4], ofloat64_t v1[16], ofloat64_t v2[4]);
+static void native_v4d_mmul(oobject_t list, oint32_t ac);
 static void v4d_clamp(ofloat64_t v0[4], ofloat64_t v1[4],
 		      ofloat64_t minVal, ofloat64_t maxVal);
 static void native_v4d_clamp(oobject_t list, oint32_t ac);
@@ -685,6 +710,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v2f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v2f_, divs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v2f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v2f_, mulm, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v2f_, mmul, t_vf, t_vf, t_vf);
     define_nsbuiltin4(t_vf, v2f_, clamp, t_vf, t_vf, t_f, t_f);
     define_nsbuiltin2(t_vf, v2f_, abs, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v2f_, floor, t_vf, t_vf);
@@ -715,6 +742,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v3f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, divs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v3f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v3f_, mulm, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v3f_, mmul, t_vf, t_vf, t_vf);
     define_nsbuiltin4(t_vf, v3f_, clamp, t_vf, t_vf, t_f, t_f);
     define_nsbuiltin3(t_vf, v3f_, cross, t_vf, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v3f_, abs, t_vf, t_vf);
@@ -751,6 +780,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vf, v4f_, muls, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v4f_, divs, t_vf, t_vf, t_f);
     define_nsbuiltin3(t_vf, v4f_, mods, t_vf, t_vf, t_f);
+    define_nsbuiltin3(t_vf, v4f_, mulm, t_vf, t_vf, t_vf);
+    define_nsbuiltin3(t_vf, v4f_, mmul, t_vf, t_vf, t_vf);
     define_nsbuiltin4(t_vf, v4f_, clamp, t_vf, t_vf, t_f, t_f);
     define_nsbuiltin2(t_vf, v4f_, abs, t_vf, t_vf);
     define_nsbuiltin2(t_vf, v4f_, floor, t_vf, t_vf);
@@ -783,6 +814,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v2d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v2d_, divs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v2d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v2d_, mulm, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v2d_, mmul, t_vd, t_vd, t_vd);
     define_nsbuiltin4(t_vd, v2d_, clamp, t_vd, t_vd, t_d, t_d);
     define_nsbuiltin2(t_vd, v2d_, abs, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v2d_, floor, t_vd, t_vd);
@@ -813,6 +846,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v3d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, divs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v3d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v3d_, mulm, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v3d_, mmul, t_vd, t_vd, t_vd);
     define_nsbuiltin4(t_vd, v3d_, clamp, t_vd, t_vd, t_d, t_d);
     define_nsbuiltin3(t_vd, v3d_, cross, t_vd, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v3d_, abs, t_vd, t_vd);
@@ -849,6 +884,8 @@ init_vecmat(void)
     define_nsbuiltin3(t_vd, v4d_, muls, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v4d_, divs, t_vd, t_vd, t_d);
     define_nsbuiltin3(t_vd, v4d_, mods, t_vd, t_vd, t_d);
+    define_nsbuiltin3(t_vd, v4d_, mulm, t_vd, t_vd, t_vd);
+    define_nsbuiltin3(t_vd, v4d_, mmul, t_vd, t_vd, t_vd);
     define_nsbuiltin4(t_vd, v4d_, clamp, t_vd, t_vd, t_d, t_d);
     define_nsbuiltin2(t_vd, v4d_, abs, t_vd, t_vd);
     define_nsbuiltin2(t_vd, v4d_, floor, t_vd, t_vd);
@@ -1374,6 +1411,64 @@ native_v2f_mods(oobject_t list, oint32_t ac)
     CHECK_VF2(alist->a0);
     CHECK_VF2(alist->a1);
     v2f_mods(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_mulm(ofloat32_t v0[2], ofloat32_t v1[2], ofloat32_t v2[4])
+{
+    ofloat32_t		a0, a1;
+
+    a0 = v1[0];		a1 = v1[1];
+    v0[0] = a0 * A2(v2, 0, 0) + a1 * A2(v2, 1, 0);
+    v0[1] = a0 * A2(v2, 0, 1) + a1 * A2(v2, 1, 1);
+}
+
+static void
+native_v2f_mulm(oobject_t list, oint32_t ac)
+/* float32_t v2f.mulm(float32_t v0[2], float32_t v1[2],
+		      float32_t v2[4])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_VF2(alist->a1);
+    CHECK_MF2(alist->a2);
+    v2f_mulm(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2f_mmul(ofloat32_t v0[2], ofloat32_t v1[4], ofloat32_t v2[2])
+{
+    ofloat32_t		a0, a1;
+
+    a0 = v2[0];		a1 = v2[1];
+    v0[0] = A2(v1, 0, 0) * a0 + A2(v1, 0, 1) * a1;
+    v0[1] = A2(v1, 1, 0) * a0 + A2(v1, 1, 1) * a1;
+}
+
+static void
+native_v2f_mmul(oobject_t list, oint32_t ac)
+/* float32_t v2f.mmul(float32_t v0[2], float32_t v1[4],
+		      float32_t v2[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF2(alist->a0);
+    CHECK_MF2(alist->a1);
+    CHECK_VF2(alist->a2);
+    v2f_mmul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -2084,6 +2179,66 @@ native_v3f_mods(oobject_t list, oint32_t ac)
     CHECK_VF3(alist->a0);
     CHECK_VF3(alist->a1);
     v3f_mods(alist->a0->v.f32, alist->a1->v.f32, alist->a2);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_mulm(ofloat32_t v0[3], ofloat32_t v1[3], ofloat32_t v2[9])
+{
+    ofloat32_t		a0, a1, a2;
+
+    a0 = v1[0];		a1 = v1[1];	a2 = v1[2];
+    v0[0] = a0 * A3(v2, 0, 0) + a1 * A3(v2, 1, 0) + a2 * A3(v2, 2, 0);
+    v0[1] = a0 * A3(v2, 0, 1) + a1 * A3(v2, 1, 1) + a2 * A3(v2, 2, 1);
+    v0[2] = a0 * A3(v2, 0, 2) + a1 * A3(v2, 1, 2) + a2 * A3(v2, 2, 2);
+}
+
+static void
+native_v3f_mulm(oobject_t list, oint32_t ac)
+/* float32_t v3f.mulm(float32_t v0[3], float32_t v1[3],
+		      float32_t v2[9])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_VF3(alist->a1);
+    CHECK_MF3(alist->a2);
+    v3f_mulm(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3f_mmul(ofloat32_t v0[3], ofloat32_t v1[9], ofloat32_t v2[3])
+{
+    ofloat32_t		a0, a1, a2;
+
+    a0 = v2[0];		a1 = v2[1];	a2 = v2[2];
+    v0[0] = A3(v1, 0, 0) * a0 + A3(v1, 0, 1) * a1 + A3(v1, 0, 2) * a2;
+    v0[1] = A3(v1, 1, 0) * a0 + A3(v1, 1, 1) * a1 + A3(v1, 1, 2) * a2;
+    v0[2] = A3(v1, 2, 0) * a0 + A3(v1, 2, 1) * a1 + A3(v1, 2, 2) * a2;
+}
+
+static void
+native_v3f_mmul(oobject_t list, oint32_t ac)
+/* float32_t v3f.mmul(float32_t v0[3], float32_t v1[9],
+		      float32_t v2[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF3(alist->a0);
+    CHECK_MF3(alist->a1);
+    CHECK_VF3(alist->a2);
+    v3f_mmul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
     r0->t = t_vector|t_float32;
     r0->v.o = alist->a0;
 }
@@ -3055,18 +3210,74 @@ native_v4f_mods(oobject_t list, oint32_t ac)
 static void
 v4f_mulm(ofloat32_t v0[4], ofloat32_t v1[4], ofloat32_t v2[16])
 {
-    ofloat32_t		a00, a01, a02, a03;
+    ofloat32_t		a0, a1, a2, a3;
 
-    a00 = v1[0];	a01 = v1[1];
-    a02 = v1[2];	a03 = v1[3];
-    v0[0] = (a00 * A4(v2, 0, 0) + a01 * A4(v2, 1, 0) +
-	     a02 * A4(v2, 2, 0) + a03 * A4(v2, 3, 0));
-    v0[1] = (a00 * A4(v2, 0, 1) + a01 * A4(v2, 1, 1) +
-	     a02 * A4(v2, 2, 1) + a03 * A4(v2, 3, 1));
-    v0[2] = (a00 * A4(v2, 0, 2) + a01 * A4(v2, 1, 2) +
-	     a02 * A4(v2, 2, 2) + a03 * A4(v2, 3, 2));
-    v0[3] = (a00 * A4(v2, 0, 3) + a01 * A4(v2, 1, 3) +
-	     a02 * A4(v2, 2, 3) + a03 * A4(v2, 3, 3));
+    a0 = v1[0];		a1 = v1[1];
+    a2 = v1[2];		a3 = v1[3];
+    v0[0] = (a0 * A4(v2, 0, 0) + a1 * A4(v2, 1, 0) +
+	     a2 * A4(v2, 2, 0) + a3 * A4(v2, 3, 0));
+    v0[1] = (a0 * A4(v2, 0, 1) + a1 * A4(v2, 1, 1) +
+	     a2 * A4(v2, 2, 1) + a3 * A4(v2, 3, 1));
+    v0[2] = (a0 * A4(v2, 0, 2) + a1 * A4(v2, 1, 2) +
+	     a2 * A4(v2, 2, 2) + a3 * A4(v2, 3, 2));
+    v0[3] = (a0 * A4(v2, 0, 3) + a1 * A4(v2, 1, 3) +
+	     a2 * A4(v2, 2, 3) + a3 * A4(v2, 3, 3));
+}
+
+static void
+native_v4f_mulm(oobject_t list, oint32_t ac)
+/* float32_t v4f.mulm(float32_t v0[4], float32_t v1[4],
+		      float32_t v2[16])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_VF4(alist->a1);
+    CHECK_MF4(alist->a2);
+    v4f_mulm(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
+}
+
+
+static void
+v4f_mmul(ofloat32_t v0[4], ofloat32_t v1[16], ofloat32_t v2[4])
+{
+    ofloat32_t		a0, a1, a2, a3;
+
+    a0 = v2[0];		a1 = v2[1];
+    a2 = v2[2];		a3 = v2[3];
+    v0[0] = (A4(v1, 0, 0) * a0 + A4(v1, 0, 1) * a1 +
+	     A4(v1, 0, 2) * a2 + A4(v1, 0, 3) * a3);
+    v0[1] = (A4(v1, 1, 0) * a0 + A4(v1, 1, 1) * a1 +
+	     A4(v1, 1, 2) * a2 + A4(v1, 1, 3) * a3);
+    v0[2] = (A4(v1, 2, 0) * a0 + A4(v1, 2, 1) * a1 +
+	     A4(v1, 2, 2) * a2 + A4(v1, 2, 3) * a3);
+    v0[3] = (A4(v1, 3, 0) * a0 + A4(v1, 3, 1) * a1 +
+	     A4(v1, 3, 2) * a2 + A4(v1, 3, 3) * a3);
+}
+
+static void
+native_v4f_mmul(oobject_t list, oint32_t ac)
+/* float32_t v4f.mmul(float32_t v0[4], float32_t v1[16],
+		      float32_t v2[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VF4(alist->a0);
+    CHECK_MF4(alist->a1);
+    CHECK_VF4(alist->a2);
+    v4f_mmul(alist->a0->v.f32, alist->a1->v.f32, alist->a2->v.f32);
+    r0->t = t_vector|t_float32;
+    r0->v.o = alist->a0;
 }
 
 static void
@@ -3854,6 +4065,64 @@ native_v2d_mods(oobject_t list, oint32_t ac)
     CHECK_VD2(alist->a0);
     CHECK_VD2(alist->a1);
     v2d_mods(alist->a0->v.f64, alist->a1->v.f64, alist->a2);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_mulm(ofloat64_t v0[2], ofloat64_t v1[2], ofloat64_t v2[4])
+{
+    ofloat64_t		a0, a1;
+
+    a0 = v1[0];		a1 = v1[1];
+    v0[0] = a0 * A2(v2, 0, 0) + a1 * A2(v2, 1, 0);
+    v0[1] = a0 * A2(v2, 0, 1) + a1 * A2(v2, 1, 1);
+}
+
+static void
+native_v2d_mulm(oobject_t list, oint32_t ac)
+/* float64_t v2d.mulm(float64_t v0[2], float64_t v1[2],
+		      float64_t v2[4])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_VD2(alist->a1);
+    CHECK_MD2(alist->a2);
+    v2d_mulm(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v2d_mmul(ofloat64_t v0[2], ofloat64_t v1[4], ofloat64_t v2[2])
+{
+    ofloat64_t		a0, a1;
+
+    a0 = v2[0];		a1 = v2[1];
+    v0[0] = A2(v1, 0, 0) * a0 + A2(v1, 0, 1) * a1;
+    v0[1] = A2(v1, 1, 0) * a0 + A2(v1, 1, 1) * a1;
+}
+
+static void
+native_v2d_mmul(oobject_t list, oint32_t ac)
+/* float64_t v2d.mmul(float64_t v0[2], float64_t v1[4],
+		      float64_t v2[2])[2]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD2(alist->a0);
+    CHECK_MD2(alist->a1);
+    CHECK_VD2(alist->a2);
+    v2d_mmul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -4878,6 +5147,66 @@ native_v3d_mod(oobject_t list, oint32_t ac)
     CHECK_VD3(alist->a1);
     CHECK_VD3(alist->a2);
     v3d_mod(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_mulm(ofloat64_t v0[3], ofloat64_t v1[3], ofloat64_t v2[9])
+{
+    ofloat64_t		a0, a1, a2;
+
+    a0 = v1[0];		a1 = v1[1];	a2 = v1[2];
+    v0[0] = a0 * A3(v2, 0, 0) + a1 * A3(v2, 1, 0) + a2 * A3(v2, 2, 0);
+    v0[1] = a0 * A3(v2, 0, 1) + a1 * A3(v2, 1, 1) + a2 * A3(v2, 2, 1);
+    v0[2] = a0 * A3(v2, 0, 2) + a1 * A3(v2, 1, 2) + a2 * A3(v2, 2, 2);
+}
+
+static void
+native_v3d_mulm(oobject_t list, oint32_t ac)
+/* float64_t v3d.mulm(float64_t v0[3], float64_t v1[3],
+		      float64_t v2[9])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_VD3(alist->a1);
+    CHECK_MD3(alist->a2);
+    v3d_mulm(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v3d_mmul(ofloat64_t v0[3], ofloat64_t v1[9], ofloat64_t v2[3])
+{
+    ofloat64_t		a0, a1, a2;
+
+    a0 = v2[0];		a1 = v2[1];	a2 = v2[2];
+    v0[0] = A3(v1, 0, 0) * a0 + A3(v1, 0, 1) * a1 + A3(v1, 0, 2) * a2;
+    v0[1] = A3(v1, 1, 0) * a0 + A3(v1, 1, 1) * a1 + A3(v1, 1, 2) * a2;
+    v0[2] = A3(v1, 2, 0) * a0 + A3(v1, 2, 1) * a1 + A3(v1, 2, 2) * a2;
+}
+
+static void
+native_v3d_mmul(oobject_t list, oint32_t ac)
+/* float64_t v3d.mmul(float64_t v0[3], float64_t v1[9],
+		      float64_t v2[3])[3]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD3(alist->a0);
+    CHECK_MD3(alist->a1);
+    CHECK_VD3(alist->a2);
+    v3d_mmul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
     r0->t = t_vector|t_float64;
     r0->v.o = alist->a0;
 }
@@ -6233,18 +6562,73 @@ native_m2f_divs(oobject_t list, oint32_t ac)
 static void
 v4d_mulm(ofloat64_t v0[4], ofloat64_t v1[4], ofloat64_t v2[16])
 {
-    ofloat64_t		a00, a01, a02, a03;
+    ofloat64_t		a0, a1, a2, a3;
 
-    a00 = v1[0];	a01 = v1[1];
-    a02 = v1[2];	a03 = v1[3];
-    v0[0] = (a00 * A4(v2, 0, 0) + a01 * A4(v2, 1, 0) +
-	     a02 * A4(v2, 2, 0) + a03 * A4(v2, 3, 0));
-    v0[1] = (a00 * A4(v2, 0, 1) + a01 * A4(v2, 1, 1) +
-	     a02 * A4(v2, 2, 1) + a03 * A4(v2, 3, 1));
-    v0[2] = (a00 * A4(v2, 0, 2) + a01 * A4(v2, 1, 2) +
-	     a02 * A4(v2, 2, 2) + a03 * A4(v2, 3, 2));
-    v0[3] = (a00 * A4(v2, 0, 3) + a01 * A4(v2, 1, 3) +
-	     a02 * A4(v2, 2, 3) + a03 * A4(v2, 3, 3));
+    a0 = v1[0];		a1 = v1[1];
+    a2 = v1[2];		a3 = v1[3];
+    v0[0] = (a0 * A4(v2, 0, 0) + a1 * A4(v2, 1, 0) +
+	     a2 * A4(v2, 2, 0) + a3 * A4(v2, 3, 0));
+    v0[1] = (a0 * A4(v2, 0, 1) + a1 * A4(v2, 1, 1) +
+	     a2 * A4(v2, 2, 1) + a3 * A4(v2, 3, 1));
+    v0[2] = (a0 * A4(v2, 0, 2) + a1 * A4(v2, 1, 2) +
+	     a2 * A4(v2, 2, 2) + a3 * A4(v2, 3, 2));
+    v0[3] = (a0 * A4(v2, 0, 3) + a1 * A4(v2, 1, 3) +
+	     a2 * A4(v2, 2, 3) + a3 * A4(v2, 3, 3));
+}
+
+static void
+native_v4d_mulm(oobject_t list, oint32_t ac)
+/* float64_t v4d.mulm(float64_t v0[4], float64_t v1[4],
+		      float64_t v2[16])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_VD4(alist->a1);
+    CHECK_MD4(alist->a2);
+    v4d_mulm(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
+}
+
+static void
+v4d_mmul(ofloat64_t v0[4], ofloat64_t v1[16], ofloat64_t v2[4])
+{
+    ofloat64_t		a0, a1, a2, a3;
+
+    a0 = v2[0];		a1 = v2[1];
+    a2 = v2[2];		a3 = v2[3];
+    v0[0] = (A4(v1, 0, 0) * a0 + A4(v1, 0, 1) * a1 +
+	     A4(v1, 0, 2) * a2 + A4(v1, 0, 3) * a3);
+    v0[1] = (A4(v1, 1, 0) * a0 + A4(v1, 1, 1) * a1 +
+	     A4(v1, 1, 2) * a2 + A4(v1, 1, 3) * a3);
+    v0[2] = (A4(v1, 2, 0) * a0 + A4(v1, 2, 1) * a1 +
+	     A4(v1, 2, 2) * a2 + A4(v1, 2, 3) * a3);
+    v0[3] = (A4(v1, 3, 0) * a0 + A4(v1, 3, 1) * a1 +
+	     A4(v1, 3, 2) * a2 + A4(v1, 3, 3) * a3);
+}
+
+static void
+native_v4d_mmul(oobject_t list, oint32_t ac)
+/* float64_t v4d.mmul(float64_t v0[4], float64_t v1[16],
+		      float64_t v2[4])[4]; */
+{
+    GET_THREAD_SELF()
+    oregister_t			*r0;
+    nat_vec_vec_vec_t		*alist;
+
+    alist = (nat_vec_vec_vec_t *)list;
+    r0 = &thread_self->r0;
+    CHECK_VD4(alist->a0);
+    CHECK_MD4(alist->a1);
+    CHECK_VD4(alist->a2);
+    v4d_mmul(alist->a0->v.f64, alist->a1->v.f64, alist->a2->v.f64);
+    r0->t = t_vector|t_float64;
+    r0->v.o = alist->a0;
 }
 
 static void

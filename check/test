@@ -41276,6 +41276,12 @@ namespace t61 {
     m2f.div(m2f_c, m2f_a, m2f_b);
     if (m2f_c[0] != 4 || m2f_c[1] != 5 || m2f_c[2] != -5 || m2f_c[3] != -6)
 	print("error %d\n", __LINE__);
+    v2f.mulm(v2f_c, v2f_a, m2f_a);
+    if (v2f_c[0] != 7 || v2f_c[1] != 10)
+	print("error %d\n", __LINE__);
+    v2f.mmul(v2f_c, m2f_a, v2f_a);
+    if (v2f_c[0] != 5 || v2f_c[1] != 11)
+	print("error %d\n", __LINE__);
     float32_t m3f_a[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     float32_t m3f_b[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
     float32_t m3f_c[9] = {};
@@ -41367,6 +41373,12 @@ namespace t61 {
     if (m3f_c[0] != -5 || m3f_c[1] != -4 || m3f_c[2] != -3 ||
 	m3f_c[3] !=  8 || m3f_c[4] !=  7 || m3f_c[5] !=  6 ||
 	m3f_c[6] != 20 || m3f_c[7] != 16 || m3f_c[8] != 12)
+	print("error %d\n", __LINE__);
+    v3f.mulm(v3f_c, v3f_a, m3f_a);
+    if (v3f_c[0] != 30 || v3f_c[1] != 36 || v3f_c[2] != 42)
+	print("error %d\n", __LINE__);
+    v3f.mmul(v3f_c, m3f_a, v3f_a);
+    if (v3f_c[0] != 14 || v3f_c[1] != 32 || v3f_c[2] != 50)
 	print("error %d\n", __LINE__);
     float32_t m4f_a[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
     float32_t m4f_b[16] = { 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -41585,6 +41597,14 @@ namespace t61 {
 	m4f_c[12] != 0 || m4f_c[13] != 0 ||
 	cmp(m4f_c[14], -129.903809) || m4f_c[15] != 1)
 	print("error %d\n", __LINE__);
+    v4f.mulm(v4f_c, v4f_a, m4f_a);
+    if (v4f_c[0] !=  90 || v4f_c[1] != 100 ||
+	v4f_c[2] != 110 || v4f_c[3] != 120)
+	print("error %d\n", __LINE__);
+    v4f.mmul(v4f_c, m4f_a, v4f_a);
+    if (v4f_c[0] !=  30 || v4f_c[1] != 70 ||
+	v4f_c[2] != 110 || v4f_c[3] != 150)
+	print("error %d\n", __LINE__);
     float64_t m2d_a[4] = { 1, 2, 3, 4 };
     float64_t m2d_b[4] = { 4, 3, 2, 1 };
     float64_t m2d_c[4] = {};
@@ -41641,6 +41661,12 @@ namespace t61 {
 	print("error %d\n", __LINE__);
     m2d.div(m2d_c, m2d_a, m2d_b);
     if (m2d_c[0] != 4 || m2d_c[1] != 5 || m2d_c[2] != -5 || m2d_c[3] != -6)
+	print("error %d\n", __LINE__);
+    v2d.mulm(v2d_c, v2d_a, m2d_a);
+    if (v2d_c[0] != 7 || v2d_c[1] != 10)
+	print("error %d\n", __LINE__);
+    v2d.mmul(v2d_c, m2d_a, v2d_a);
+    if (v2d_c[0] != 5 || v2d_c[1] != 11)
 	print("error %d\n", __LINE__);
     float64_t m3d_a[9] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     float64_t m3d_b[9] = { 9, 8, 7, 6, 5, 4, 3, 2, 1 };
@@ -41915,6 +41941,12 @@ namespace t61 {
     if (cmp(v3d_c[0], 934.56279809220985) ||
 	cmp(v3d_c[1], 627.28139904610487) || cmp(v3d_c[2], 1.1534181240063592))
 	print("error %d\n", __LINE__);
+    v3d.mulm(v3d_c, v3d_a, m3d_a);
+    if (v3d_c[0] != 30 || v3d_c[1] != 36 || v3d_c[2] != 42)
+	print("error %d\n", __LINE__);
+    v3d.mmul(v3d_c, m3d_a, v3d_a);
+    if (v3d_c[0] != 14 || v3d_c[1] != 32 || v3d_c[2] != 50)
+	print("error %d\n", __LINE__);
     m4d.set(m4d_c,
 	    1,	0,  0, 1,
 	    0,	2, -1, 0,
@@ -41950,6 +41982,14 @@ namespace t61 {
 	cmp(m4d_c[10], 0.577350) || m4d_c[11] != 0 ||
 	m4d_c[12] != 0 || m4d_c[13] != 0 ||
 	cmp(m4d_c[14], -129.9038105676658) || m4d_c[15] != 1)
+	print("error %d\n", __LINE__);
+    v4d.mulm(v4d_c, v4d_a, m4d_a);
+    if (v4d_c[0] !=  90 || v4d_c[1] != 100 ||
+	v4d_c[2] != 110 || v4d_c[3] != 120)
+	print("error %d\n", __LINE__);
+    v4d.mmul(v4d_c, m4d_a, v4d_a);
+    if (v4d_c[0] !=  30 || v4d_c[1] != 70 ||
+	v4d_c[2] != 110 || v4d_c[3] != 150)
 	print("error %d\n", __LINE__);
 };
 
