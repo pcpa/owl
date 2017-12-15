@@ -641,9 +641,7 @@ static struct {
     { "MUS_MID",			MUS_MID },
     { "MUS_OGG",			MUS_OGG },
     { "MUS_MP3",			MUS_MP3 },
-    { "MUS_MP3_MAD",			MUS_MP3_MAD },
     { "MUS_FLAC",			MUS_FLAC },
-    { "MUS_MODPLUG",			MUS_MODPLUG },
     /* Special channel effects identifier */
     { "CHANNEL_POST",			MIX_CHANNEL_POST },
     /* Mix_Fadding */
@@ -1491,13 +1489,23 @@ native_Init(oobject_t list, oint32_t ac)
     r0 = &thread_self->r0;
     r0->t = t_word;
     if (!sdl_active) {
+#if 0
 	r0->v.w = ((SDL_Init(SDL_INIT_EVERYTHING) != 0) |
 		   (IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG|
 			     IMG_INIT_TIF|IMG_INIT_WEBP) == 0) |
 		   (TTF_Init() != 0) |
 		   (Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
-			     MIX_INIT_MODPLUG|MIX_INIT_MP3|
-			     MIX_INIT_OGG|MIX_INIT_FLUIDSYNTH) == 0));
+			     MIX_INIT_MP3|MIX_INIT_OGG|
+			     MIX_INIT_MID) == 0));
+#else
+	r0->v.w = ((SDL_Init(SDL_INIT_EVERYTHING) != 0) |
+		   (IMG_Init(IMG_INIT_JPG|IMG_INIT_PNG|
+			     IMG_INIT_TIF|IMG_INIT_WEBP) == 0) |
+		   (TTF_Init() != 0));
+	Mix_Init(MIX_INIT_FLAC|MIX_INIT_MOD|
+			     MIX_INIT_MP3|MIX_INIT_OGG|
+			     MIX_INIT_MID);
+#endif
 	Mix_HookMusicFinished(music_callback);
 	Mix_ChannelFinished(channel_callback);
 	r0->v.w |= SDLNet_Init();
