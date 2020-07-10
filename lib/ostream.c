@@ -508,7 +508,7 @@ oputc(ostream_t *stream, oint32_t byte)
 		stream->offset = stream->size = 0;
 		stream->s_r_mode = 0;
 	    }
-	    else if (stream->size >= stream->size)
+	    else if (stream->size >= stream->length)
 		stream_w_flush(stream);
 	    stream->ptr[stream->offset] = byte;
 	    if (++stream->offset > stream->size)
