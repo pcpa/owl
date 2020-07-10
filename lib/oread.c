@@ -2646,6 +2646,7 @@ macro_read(void)
 	    break;
 	case mac_error:
 	case mac_warning:
+	    /* make "string" stream from simple string */
 	    stream = (ostream_t *)thr_str;
 	    stream->offset = stream->length = 0;
 	    ungetch(macro_skip());
@@ -2653,6 +2654,8 @@ macro_read(void)
 		oputc(stream, ch);
 	    /* backup line number */
 	    ungetch(ch);
+	    /* make simple string from "string" stream */
+	    stream->length = stream->offset;
 	    if (macros[offset].macro == mac_warning)
 		oread_warn("%p", stream);
 	    else
