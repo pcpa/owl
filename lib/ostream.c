@@ -478,18 +478,17 @@ oungetc(ostream_t *stream, oint32_t ch)
 	if (stream->offset)
 	    --stream->offset;
 	else if (stream->size) {
-	    if (stream->size >= stream->size) {
+	    if (stream->size >= stream->length)
 		orenew_vector((ovector_t *)stream,
 			      stream->size + BUFSIZ);
-		memmove(stream->ptr + 1, stream->ptr, stream->size);
-		*stream->ptr = ch;
-		++stream->size;
-	    }
-	    else {
-		*stream->ptr = ch;
-		stream->size = 1;
-		stream->s_r_mode = 1;
-	    }
+	    memmove(stream->ptr + 1, stream->ptr, stream->size);
+	    *stream->ptr = ch;
+	    ++stream->size;
+	}
+	else {
+	    *stream->ptr = ch;
+	    stream->size = 1;
+	    stream->s_r_mode = 1;
 	}
     }
     else if (stream->offset)
