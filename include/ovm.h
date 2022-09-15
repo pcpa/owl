@@ -46,13 +46,16 @@
     } while (0)
 #define check_mpq(R)							\
     do {								\
-	if (mpz_fits_slong_p(ozr(R)) &&					\
-	    mpz_fits_slong_p(mpq_denref(oqr(R)))) {			\
+	if (mpz_fits_slong_p(mpq_denref(oqr(R)))) {			\
 	    if (mpz_cmp_ui(mpq_denref(oqr(R)), 1) == 0) {		\
-		(R)->t = t_word;					\
-		(R)->v.w = mpz_get_si(ozr(R));				\
+		if (mpz_fits_slong_p(mpq_numref(oqr(R)))) {		\
+		    (R)->t = t_word;					\
+		    (R)->v.w = mpz_get_si(ozr(R));			\
+		}							\
+		else							\
+		    (R)->t = t_mpz;					\
 	    }								\
-	    else {							\
+	    else if (mpz_fits_slong_p(mpq_numref(oqr(R)))) {		\
 		(R)->t = t_rat;						\
 		rat_num((R)->v.r) = mpz_get_si(ozr(R));			\
 		rat_den((R)->v.r) = mpz_get_si(mpq_denref(oqr(R)));	\

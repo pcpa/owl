@@ -2804,6 +2804,8 @@ translate_event(oevent_t *ev)
 	    memcpy(ev->text->v.ptr, sv->text.text,
 		   SDL_TEXTINPUTEVENT_TEXT_SIZE);
 	    break;
+	case SDL_KEYMAPCHANGED:
+	    break;
 	case SDL_MOUSEMOTION:
 	    translate_window(ev, sv->motion.windowID);
 #if 0
