@@ -125,7 +125,9 @@ AC_MSG_CHECKING([for TLS support])
 have_tls=yes
 save_CFLAGS=$CFLAGS
 CFLAGS="-pthread"
-AC_TRY_LINK([__thread void *tls_var;],
+AC_TRY_LINK([
+#include <stdlib.h>
+__thread void *tls_var;],
 		[tls_var = malloc(1024);],
 	AC_DEFINE([HAVE_TLS], 1,
 		[Define to 1 if __thread is available.]),
