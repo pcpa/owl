@@ -2749,9 +2749,20 @@ translate_event(oevent_t *ev)
     sv = ev->__event;
     ev->time = sv->common.timestamp;
     switch ((ev->type = sv->type)) {
-	case SDL_QUIT:
+	case SDL_QUIT:		/* 0x100 */
 	    break;
-	case SDL_WINDOWEVENT:
+	    /* iOS events begin */
+	case SDL_APP_TERMINATING:
+	case SDL_APP_LOWMEMORY:
+	case SDL_APP_WILLENTERBACKGROUND:
+	case SDL_APP_DIDENTERBACKGROUND:
+	case SDL_APP_WILLENTERFOREGROUND:
+	case SDL_APP_DIDENTERFOREGROUND:
+	    /* iOS events end */
+	case SDL_LOCALECHANGED:
+	case SDL_DISPLAYEVENT:	/* 0x150 */
+	    break;
+	case SDL_WINDOWEVENT:	/* 0x200 */
 	    translate_window(ev, sv->window.windowID);
 	    switch ((ev->event = sv->window.event)) {
 		case SDL_WINDOWEVENT_MOVED:
@@ -2773,6 +2784,8 @@ translate_event(oevent_t *ev)
 		default:
 		    break;
 	    }
+	    break;
+	case SDL_SYSWMEVENT:
 	    break;
 	case SDL_KEYDOWN:	case SDL_KEYUP:
 	    translate_window(ev, sv->key.windowID);
@@ -2805,8 +2818,9 @@ translate_event(oevent_t *ev)
 		   SDL_TEXTINPUTEVENT_TEXT_SIZE);
 	    break;
 	case SDL_KEYMAPCHANGED:
+	case SDL_TEXTEDITING_EXT:
 	    break;
-	case SDL_MOUSEMOTION:
+	case SDL_MOUSEMOTION:	/* 0x400 */
 	    translate_window(ev, sv->motion.windowID);
 #if 0
 	    ev->device		= sv->motion.which;
@@ -2836,7 +2850,7 @@ translate_event(oevent_t *ev)
 	    ev->x		= sv->wheel.x;
 	    ev->y		= sv->wheel.y;
 	    break;
-	case SDL_JOYAXISMOTION:
+	case SDL_JOYAXISMOTION:	/* 0x600 */
 #if 0
 	    ev->device		= sv->jaxis.which;
 #endif
@@ -2870,7 +2884,9 @@ translate_event(oevent_t *ev)
 	    ev->device		= sv->jdevice.which;
 #endif
 	    break;
-	case SDL_CONTROLLERAXISMOTION:
+	case SDL_JOYBATTERYUPDATED:
+	    break;
+	case SDL_CONTROLLERAXISMOTION:	/* 0x650 */
 #if 0
 	    ev->device		= sv->caxis.which;
 #endif
@@ -2889,8 +2905,18 @@ translate_event(oevent_t *ev)
 	    ev->device		= sv->cdevice.which;
 #endif
 	    break;
-	case SDL_FINGERMOTION:		case SDL_FINGERDOWN:
+
+	case SDL_CONTROLLERDEVICEREMAPPED:
+	case SDL_CONTROLLERTOUCHPADDOWN:
+	case SDL_CONTROLLERTOUCHPADMOTION:
+	case SDL_CONTROLLERTOUCHPADUP:
+	case SDL_CONTROLLERSENSORUPDATE:
+	case SDL_CONTROLLERUPDATECOMPLETE_RESERVED_FOR_SDL3:
+	case SDL_CONTROLLERSTEAMHANDLEUPDATED:
+	    break;
+	case SDL_FINGERDOWN:	/* 0x700 */
 	case SDL_FINGERUP:
+	case SDL_FINGERMOTION:
 #if 0
 	    ev->device		= sv->tfinger.touchId;
 	    ev->finger		= sv->tfinger.fingerId;
@@ -2900,6 +2926,18 @@ translate_event(oevent_t *ev)
 	    ev->fdx		= sv->tfinger.dx;
 	    ev->fdy		= sv->tfinger.dy;
 	    ev->pressure	= sv->tfinger.pressure;
+	    break;
+	case SDL_DOLLARGESTURE:	/* 0x800 */
+#if 0
+	    ev->gesture		= sv->dgesture.gestureId;
+	    ev->device		= sv->dgesture.touchId;
+#endif
+	    ev->fingers		= sv->dgesture.numFingers;
+	    ev->ferror		= sv->dgesture.error;
+	    ev->fx		= sv->dgesture.x;
+	    ev->fy		= sv->dgesture.y;
+	    break;
+	case SDL_DOLLARRECORD:
 	    break;
 	case SDL_MULTIGESTURE:
 #if 0
@@ -2911,19 +2949,20 @@ translate_event(oevent_t *ev)
 	    ev->dist		= sv->mgesture.dDist;
 	    ev->fingers		= sv->mgesture.numFingers;
 	    break;
-	case SDL_DOLLARGESTURE:
-#if 0
-	    ev->gesture		= sv->dgesture.gestureId;
-	    ev->device		= sv->dgesture.touchId;
-#endif
-	    ev->fingers		= sv->dgesture.numFingers;
-	    ev->ferror		= sv->dgesture.error;
-	    ev->fx		= sv->dgesture.x;
-	    ev->fy		= sv->dgesture.y;
+	case SDL_CLIPBOARDUPDATE:	/* 0x900 */
+	case SDL_DROPFILE:		/* 0x1000 */
+	case SDL_DROPTEXT:
+	case SDL_DROPBEGIN:
+	case SDL_DROPCOMPLETE:
 	    break;
-	case SDL_AUDIODEVICEADDED:
+	case SDL_AUDIODEVICEADDED:	/* 0x1100 */
+	case SDL_AUDIODEVICEREMOVED:
 	    break;
-	case SDL_USEREVENT:
+	case SDL_SENSORUPDATE:		/* 0x1200 */
+	case SDL_RENDER_TARGETS_RESET:	/* 0x2000 */
+	case SDL_RENDER_DEVICE_RESET:
+	case SDL_POLLSENTINEL:		/* 0x7F00 */
+	case SDL_USEREVENT:		/* 0x8000 */
 	    ev->timer		= sv->user.data1;
 	    break;
 	case SDL_USEREVENT + 1:
